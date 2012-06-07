@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html LANG="{{ LANG }}" dir="{{ DIR }}">
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <title>{% block page_title %}Air Mozilla{% endblock %}</title>
+
+    {% block site_css %}
+      {{ css('main_css') }}
+    {% endblock %}
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+
+    {% block site_js %}
+      {{ js('main_js') }}
+    {% endblock %}
+  </body>
+</html>
+

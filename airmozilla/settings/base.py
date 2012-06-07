@@ -13,18 +13,14 @@ PROJECT_MODULE = 'airmozilla'
 # and js files that can be bundled together by the minify app.
 MINIFY_BUNDLES = {
     'css': {
-        'example_css': (
-            'css/examples/main.css',
-        ),
-        'example_mobile_css': (
-            'css/examples/mobile.css',
+        'main_css': (
+            'css/main/main.css',
         ),
     },
     'js': {
-        'example_js': (
-            'js/examples/libs/jquery-1.4.4.min.js',
-            'js/examples/libs/jquery.cookie.js',
-            'js/examples/init.js',
+        'main_js': (
+            'js/main/libs/jquery-1.4.4.min.js',
+            'js/main/libs/jquery.cookie.js',
         ),
     }
 }
@@ -35,8 +31,7 @@ ROOT_URLCONF = '%s.urls' % PROJECT_MODULE
 INSTALLED_APPS = list(INSTALLED_APPS) + [
     # Application base, containing global templates.
     '%s.base' % PROJECT_MODULE,
-    # Example code. Can (and should) be removed for actual projects.
-    '%s.examples' % PROJECT_MODULE,
+    '%s.main' % PROJECT_MODULE,
 ]
 
 
@@ -55,8 +50,8 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_URL = 'http://127.0.0.1:8000'
 LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = 'examples.home'
-LOGIN_REDIRECT_URL_FAILURE = 'examples.home'
+LOGIN_REDIRECT_URL = 'main.home'
+LOGIN_REDIRECT_URL_FAILURE = 'main.home'
 
 TEMPLATE_CONTEXT_PROCESSORS = list(TEMPLATE_CONTEXT_PROCESSORS) + [
     'django_browserid.context_processors.browserid_form',
