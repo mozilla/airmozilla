@@ -32,6 +32,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     # Application base, containing global templates.
     '%s.base' % PROJECT_MODULE,
     '%s.main' % PROJECT_MODULE,
+    '%s.auth' % PROJECT_MODULE,
 ]
 
 
@@ -48,10 +49,13 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+# Domains allowed for log in
+ALLOWED_BID = ['mozilla.com', 'mozillafoundation.org']
+
 SITE_URL = 'http://127.0.0.1:8000'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = 'main.home'
-LOGIN_REDIRECT_URL_FAILURE = 'main.home'
+LOGIN_REDIRECT_URL_FAILURE = 'auth.login_failure'
 
 TEMPLATE_CONTEXT_PROCESSORS = list(TEMPLATE_CONTEXT_PROCESSORS) + [
     'django_browserid.context_processors.browserid_form',

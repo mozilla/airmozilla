@@ -1,13 +1,12 @@
 from django.conf import settings
 from django.conf.urls.defaults import patterns, include
 
-from .main import urls
-
 from funfactory.monkeypatches import patch
 patch()
 
 urlpatterns = patterns('',
-    (r'', include(urls)),
+    (r'', include('airmozilla.main.urls')),
+    (r'', include('airmozilla.auth.urls')),
 )
 
 ## In DEBUG mode, serve media files through Django.

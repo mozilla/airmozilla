@@ -1,5 +1,3 @@
-"""Example views. Feel free to delete this app."""
-
 import logging
 
 from django.shortcuts import render
