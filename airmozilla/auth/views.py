@@ -21,5 +21,6 @@ def mozilla_browserid_verify(request):
             return redirect(settings.LOGIN_REDIRECT_URL)
     return redirect(settings.LOGIN_REDIRECT_URL_FAILURE)
 
+
 def login_failure(request):
     return render(request, 'login_failure.html')

@@ -88,4 +88,11 @@ DOMAIN_METHODS['messages'] = [
 #    ('media/js/**.js', 'javascript'),
 # ]
 
-LOGGING = dict(loggers=dict(playdoh = {'level': logging.DEBUG}))
+LOGGING = dict(loggers=dict(playdoh={'level': logging.DEBUG}))
+
+# Remove localization middleware
+MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
+MIDDLEWARE_CLASSES.remove('funfactory.middleware.LocaleURLMiddleware')
+MIDDLEWARE_CLASSES.insert(0, 'airmozilla.locale_middleware.' +
+                             'LocaleURLMiddleware')
+MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
