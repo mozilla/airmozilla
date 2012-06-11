@@ -1,0 +1,44 @@
+{% extends "manage_base.html" %}
+{% set page = "users" %}
+
+{% block manage_title %}
+    Edit users
+{% endblock %}
+
+{% block content %}
+    <table id="current_users" class="table table-striped table-bordered">
+    <thead>
+    <tr>
+        <th>Email</th>
+        <th>Group(s)</th>
+        <th>Permission grants</th>
+        <th>Last login</th>
+        <th>Staff?</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for u in users %}
+        <tr>
+            <td>{{ u.email }}</td>
+            <td>{% for g in u.groups.all() %}
+                    <p>{{ g }}</p>
+                {% endfor %}
+            </td>
+            <td>
+                {{ '<strong>Superuser.</strong>'|safe if u.is_superuser }}
+                {% for p in u.user_permissions.all() %}
+                    {{ p.name }}.
+                {% endfor %}
+            </td>
+            <td>{{ u.last_login|naturaltime }}</td>
+            <td>{{ 'Yes' if u.is_staff else 'No' }}</td>
+            <td><a href="{{ url('manage.user_edit', u.id) }} " class="btn">
+                <i class="icon-edit"></i>
+                Edit
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+{% endblock %}

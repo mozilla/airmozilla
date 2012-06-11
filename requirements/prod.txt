@@ -1,1 +1,3 @@
 -r ../vendor/src/funfactory/funfactory/requirements/prod.txt
+
+-e git://github.com/tzangms/django-bootstrap-form.git#egg=django-bootstrap-form

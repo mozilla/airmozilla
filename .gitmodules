@@ -1,3 +1,6 @@
 [submodule "vendor"]
 	path = vendor
 	url = git://github.com/mozilla/playdoh-lib.git
+[submodule "vendor-local/src/django-bootstrap-form"]
+	path = vendor-local/src/django-bootstrap-form
+	url = git://github.com/tzangms/django-bootstrap-form.git

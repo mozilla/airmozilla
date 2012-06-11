@@ -1,0 +1,13 @@
+[class^="icon-"] {background-image: url("/media/img/manage/glyphicons-halflings.png")}
+
+body {
+    padding-top: 15px;
+}
+
+ul {
+    list-style-type: none;
+}
+
+#logo-img {
+    width: 200px;
+}

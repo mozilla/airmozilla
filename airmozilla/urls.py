@@ -7,6 +7,7 @@ patch()
 urlpatterns = patterns('',
     (r'', include('airmozilla.main.urls')),
     (r'', include('airmozilla.auth.urls')),
+    (r'', include('airmozilla.manage.urls')),
 )
 
 ## In DEBUG mode, serve media files through Django.

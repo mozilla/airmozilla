@@ -16,10 +16,14 @@ MINIFY_BUNDLES = {
         'main_css': (
             'css/main/main.css',
         ),
+        'manage_css': (
+            'css/manage/bootstrap.min.css',
+            'css/manage/manage.css',
+        )
     },
     'js': {
         'main_js': (
-            'js/main/libs/jquery-1.4.4.min.js',
+            'js/main/libs/jquery-1.7.2.min.js',
             'js/main/libs/jquery.cookie.js',
         ),
     }
@@ -33,6 +37,9 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     '%s.base' % PROJECT_MODULE,
     '%s.main' % PROJECT_MODULE,
     '%s.auth' % PROJECT_MODULE,
+    '%s.manage' % PROJECT_MODULE,
+
+    'bootstrapform',
 ]
 
 
@@ -41,6 +48,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
 JINGO_EXCLUDE_APPS = [
     'admin',
     'registration',
+    'bootstrapform',
 ]
 
 # BrowserID configuration
