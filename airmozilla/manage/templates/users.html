@@ -41,4 +41,28 @@
     {% endfor %}
     </tbody>
     </table>
+    <div class="pagination">
+        <ul>
+            {% if users.has_previous() %}
+            <li>
+                <a href="?page={{ users.previous_page_number() }}">&larr;</a>
+            </li>
+            {% endif %}
+            <li class="active">
+                <a href="?page={{ users.number }}">{{ users.number }}
+                            / {{ users.paginator.num_pages }}</a>
+            </li>
+            {% if users.has_next() %}
+            <li>
+                <a href="?page={{ users.next_page_number() }}">&rarr;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <form class="well form-search" method="post">
+        Find user:
+        {{ csrf() }}
+        {{ bootstrapform(form) }}
+        <button type="submit" class="btn">Search</button>
+    </form>
 {% endblock %}

@@ -1,9 +1,10 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import User, Group
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect
 
-from airmozilla.manage.forms import UserEditForm, GroupEditForm
+from airmozilla.manage.forms import UserEditForm, GroupEditForm, UserFindForm
 
 
 @staff_member_required
@@ -16,8 +17,23 @@ def home(request):
 @permission_required('change_user')
 def users(request):
     """User editor:  view users and update a user's group."""
+    if request.method == 'POST':
+        form = UserFindForm(request.POST)
+        if form.is_valid():
+            user = User.objects.get(email=form.cleaned_data['email'])
+            return redirect('manage.user_edit', user.id)
+    else:
+        form = UserFindForm()
     users = User.objects.all()
-    return render(request, 'users.html', {'users': users})
+    paginator = Paginator(users, 10)
+    page = request.GET.get('page')
+    try:
+        users_paged = paginator.page(page)
+    except PageNotAnInteger:
+        users_paged = paginator.page(1)
+    except EmptyPage:
+        users_paged = paginator.page(paginator.num_pages)
+    return render(request, 'users.html', {'users': users_paged, 'form': form})
 
 
 @staff_member_required
