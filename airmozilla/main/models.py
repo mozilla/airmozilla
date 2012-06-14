@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
 
 
 class Participant(models.Model):
@@ -27,6 +26,7 @@ class Participant(models.Model):
     )
     cleared = models.CharField(max_length=2,
                                choices=CLEARED_CHOICES, default='N')
+
     def __unicode__(self):
         return self.name
 
@@ -34,6 +34,7 @@ class Participant(models.Model):
 class Category(models.Model):
     """ Categories globally divide events - one category per event. """
     name = models.CharField(max_length=50)
+
     def __unicode__(self):
         return self.name
 
@@ -41,8 +42,10 @@ class Category(models.Model):
 class Tag(models.Model):
     """ Tags are flexible; events can have multiple tags. """
     name = models.CharField(max_length=50)
+
     def __unicode__(self):
         return self.name
+
 
 class Event(models.Model):
     """ Events - all the essential data and metadata for publishing. """
@@ -51,10 +54,10 @@ class Event(models.Model):
     placeholder_img = models.FileField(upload_to='placeholders/')
     description = models.TextField()
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField( \
-                     help_text='Enter times as HH:MM, %s time.' \
+    end_time = models.DateTimeField(
+                     help_text='Enter times as HH:MM, %s time.'
                                 % (settings.TIME_ZONE))
-    participants = models.ManyToManyField(Participant, 
+    participants = models.ManyToManyField(Participant,
                           help_text='Speakers or presenters for this event.')
     location = models.CharField(max_length=50)
     category = models.ForeignKey(Category)

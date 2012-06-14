@@ -5,6 +5,28 @@
     Event request
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('manage/css/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('manage/css/jquery-ui-1.8.21.custom.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
 {% block content %}
-    <p>Coming soon.</p>
+<form action="{{ url('manage.event_request') }}" method="post" class="form-horizontal" enctype="multipart/form-data">
+{{ csrf() }}
+{{ bootstrapform(form) }}
+{% include 'manage/_form_buttons.html' %}
+</form>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/select2.min.js') }}"></script>
+    <script src="{{ static('manage/js/jquery-ui-1.8.21.custom.min.js') }}"></script>
+    <script src="{{ static('manage/js/jquery-ui-timepicker-addon.js') }}"></script>
+    <script src="{{ static('manage/js/event-request.js') }}"></script>
+  {% endcompress %}
 {% endblock %}
