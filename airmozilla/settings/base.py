@@ -9,25 +9,6 @@ from funfactory.settings_base import *
 # clone.
 PROJECT_MODULE = 'airmozilla'
 
-# Bundles is a dictionary of two dictionaries, css and js, which list css files
-# and js files that can be bundled together by the minify app.
-MINIFY_BUNDLES = {
-    'css': {
-        'main_css': (
-            'css/main/main.css',
-        ),
-        'manage_css': (
-            'css/manage/bootstrap.min.css',
-            'css/manage/manage.css',
-        )
-    },
-    'js': {
-        'main_js': (
-            'js/main/libs/jquery-1.7.2.min.js',
-            'js/main/libs/jquery.cookie.js',
-        ),
-    }
-}
 
 # Defines the views served for root URLs.
 ROOT_URLCONF = '%s.urls' % PROJECT_MODULE

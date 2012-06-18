@@ -1,4 +1,6 @@
-[class^="icon-"] {background-image: url("/media/img/manage/glyphicons-halflings.png")}
+[class^="icon-"] {
+    background-image: url("../img/glyphicons-halflings.png");
+}
 
 body {
     padding-top: 15px;

@@ -1,19 +1,22 @@
 <!DOCTYPE html>
-<html LANG="{{ LANG }}" dir="{{ DIR }}">
+<html lang="{{ LANG }}" dir="{{ DIR }}">
   <head>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
     <title>{% block page_title %}Air Mozilla{% endblock %}</title>
-
+    
     {% block site_css %}
-      {{ css('main_css') }}
+      {% compress css %}
+      <link href="{{ static('css/main.css')}}" rel="stylesheet" type="text/css">
+      {% endcompress %}
     {% endblock %}
   </head>
   <body>
     {% block content %}{% endblock %}
 
     {% block site_js %}
-      {{ js('main_js') }}
+      {% compress js %}
+      <script src="{{ static('js/libs/jquery-1.7.2.min.js') }}"></script>
+      {% endcompress %}
     {% endblock %}
   </body>
 </html>
-

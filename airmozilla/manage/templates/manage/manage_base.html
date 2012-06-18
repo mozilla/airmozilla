@@ -25,14 +25,17 @@
     <title>{% block page_title %}Air Mozilla Management{% endblock %}</title>
 
     {% block site_css %}
-      {{ css('manage_css') }}
+      {% compress css %}
+      <link href="{{ static('manage/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
+      <link href="{{ static('manage/css/manage.css') }}" rel="stylesheet" type="text/css">
+      {% endcompress %}
     {% endblock %}
   </head>
   <body>
     <div class="container-fluid">
     <div class="row">
         <div class="span12" id="logo">
-            <img id="logo-img" src="{{ MEDIA_URL }}img/logo-airmo-lg.png" alt="Air Mozilla">
+            <img id="logo-img" src="{{ static('img/logo-airmo-lg.png') }}" alt="Air Mozilla">
        		<div class="row">
             <div id="menu" class="span3">
                 <ul class="nav nav-list">
@@ -61,8 +64,9 @@
 	</div>
     </div>
     {% block site_js %}
-      {{ js('main_js') }}
+      {% compress js %}
+      <script src="{{ static('js/libs/jquery-1.7.2.min.js') }}"></script>
+      {% endcompress %}
     {% endblock %}
   </body>
 </html>
-
