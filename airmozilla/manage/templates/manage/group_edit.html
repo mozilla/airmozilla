@@ -1,4 +1,4 @@
-{% extends "groups.html" %}
+{% extends "manage/groups.html" %}
 
 {% block manage_title %}
 Editing group {{ g.name }}
@@ -8,6 +8,6 @@ Editing group {{ g.name }}
 <form action="{{ url('manage.group_edit', g.id) }}" method="post">
 {{ csrf() }}
 {{ bootstrapform(form) }}
-{% include '_form_buttons.html' %}
+{% include 'manage/_form_buttons.html' %}
 </form>
 {% endblock %}

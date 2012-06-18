@@ -1,4 +1,4 @@
-{% extends "groups.html" %}
+{% extends "manage/groups.html" %}
 
 {% block manage_title %}
 New group
@@ -8,6 +8,6 @@ New group
 <form action="{{ url('manage.group_new') }}" method="post">
 {{ csrf() }}
 {{ bootstrapform(form) }}
-{% include '_form_buttons.html' %}
+{% include 'manage/_form_buttons.html' %}
 </form>
 {% endblock %}
