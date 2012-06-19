@@ -19,4 +19,5 @@ urlpatterns = patterns('',
                                      name='manage.tag_autocomplete'),
     url(r'^manage/participants', views.participant_edit,
                                  name='manage.participant_edit'),
+    url(r'^manage/categories', views.categories, name='manage.categories'), 
 )

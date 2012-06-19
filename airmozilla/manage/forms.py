@@ -1,17 +1,18 @@
 from django import forms
 from django.contrib.auth.models import User, Group
 
-from airmozilla.main.models import Event, Tag
+from airmozilla.base.forms import BaseModelForm 
+from airmozilla.main.models import Category, Event, Tag
 
 
-class UserEditForm(forms.ModelForm):
+class UserEditForm(BaseModelForm):
     class Meta:
         model = User
         fields = ('is_active', 'is_staff', 'is_superuser',
                   'groups', 'user_permissions')
 
 
-class GroupEditForm(forms.ModelForm):
+class GroupEditForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         super(GroupEditForm, self).__init__(*args, **kwargs)
         self.fields['name'].required = True
@@ -24,7 +25,7 @@ class GroupEditForm(forms.ModelForm):
         model = Group
 
 
-class UserFindForm(forms.ModelForm):
+class UserFindForm(BaseModelForm):
     class Meta:
         model = User
         fields = ('email',)
@@ -38,7 +39,7 @@ class UserFindForm(forms.ModelForm):
         return user.email
 
 
-class EventRequestForm(forms.ModelForm):
+class EventRequestForm(BaseModelForm):
     tags = forms.CharField()
 
     def clean_tags(self):
@@ -59,3 +60,7 @@ class EventRequestForm(forms.ModelForm):
             'call_info': forms.Textarea(attrs={'rows': 3}),
             'additional_links': forms.Textarea(attrs={'rows': 3})
         }
+
+class CategoryForm(BaseModelForm):
+    class Meta:
+        model = Category

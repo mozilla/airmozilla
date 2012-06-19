@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 {% set page = page|default('home') -%}
 {% set navigation_bar = [
-	('', 'Management Tools', '', '', True),
-	(url('manage.home'), 'Welcome', 'home', 'icon-home', True),
-	(url('auth.logout'), 'Log Out', '', 'icon-off', True),
+    ('', 'Management Tools', '', '', True),
+    (url('manage.home'), 'Welcome', 'home', 'icon-home', True),
+    (url('auth.logout'), 'Log Out', '', 'icon-off', True),
 
-	('', 'Users and groups', '', '', perms.change_user),
-	(url('manage.users'), 'Edit users', 'users', 'icon-user',
-	 perms.change_user),
-	(url('manage.groups'), 'Group permissions', 'groups', 'icon-lock',
-	 perms.change_group),
+    ('', 'Users and groups', '', '', perms.change_user),
+    (url('manage.users'), 'Edit users', 'users', 'icon-user',
+     perms.change_user),
+    (url('manage.groups'), 'Group permissions', 'groups', 'icon-lock',
+     perms.change_group),
 
-	('', 'Event Tools', '', '', perms.manage.event_request),
-	(url('manage.event_request'), 'Event request', 'erequest',
-	 'icon-calendar', perms.manage.event_request),
-	(url('manage.participant_edit'), 'Participant editor', 'part_edit',
-	 'icon-picture', perms.manage.participant_edit),
-	(url('manage.event_edit'), 'Edit events', 'events', 'icon-facetime-video',
-	 perms.manage.produce_events)
+    ('', 'Event Tools', '', '', perms.manage.event_request),
+    (url('manage.event_request'), 'Event request', 'erequest',
+     'icon-calendar', perms.add_event),
+    (url('manage.participant_edit'), 'Participant editor', 'part_edit',
+     'icon-picture', perms.change_participant),
+    (url('manage.event_edit'), 'Edit events', 'events', 'icon-facetime-video',
+     perms.change_event),
+    (url('manage.categories'), 'Categories', 'categories', 'icon-folder-close',
+     perms.change_category)
 ] -%}
 <html LANG="{{ LANG }}" dir="{{ DIR }}">
   <head>

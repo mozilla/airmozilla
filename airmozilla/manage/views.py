@@ -6,9 +6,10 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.utils import simplejson
 
-from airmozilla.main.models import Event, Tag
-from airmozilla.manage.forms import UserEditForm, GroupEditForm, \
-                                    UserFindForm, EventRequestForm
+from airmozilla.main.models import Category, Event, Tag
+from airmozilla.manage.forms import CategoryForm, GroupEditForm, \
+                                    EventRequestForm, UserEditForm, \
+                                    UserFindForm
 
 staff_required = user_passes_test(lambda u: u.is_staff)
 
@@ -136,3 +137,17 @@ def participant_edit(request):
 def event_edit(request):
     """Event edit/production:  change, approve, publish events."""
     return render(request, 'manage/event_edit.html')
+
+@staff_required
+@permission_required('change_category')
+def categories(request):
+    categories = Category.objects.all()
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=Category())
+        if form.is_valid():
+            form.save()
+            form = CategoryForm()
+    else:
+        form = CategoryForm()
+    return render(request, 'manage/categories.html', 
+                  {'categories': categories, 'form': form})

@@ -1,0 +1,28 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "categories" %}
+
+{% block manage_title %}
+    Categories 
+{% endblock %}
+
+{% block content %}
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for category in categories %}
+            <tr>
+                <td>{{ category.name }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <form action="{{ url('manage.categories') }}" method="post" class="form-inline well">
+        {{ csrf() }}
+        {{ bootstrapform(form) }}
+        <button class="btn btn-primary" type="submit">New category</button>
+    </form>
+{% endblock %}
