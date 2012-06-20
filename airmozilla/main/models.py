@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 
 
@@ -55,8 +54,7 @@ class Event(models.Model):
     description = models.TextField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(
-                     help_text='Enter times as HH:MM, %s time.'
-                                % (settings.TIME_ZONE))
+                      help_text='Enter times in the US Pacific timezone.')
     participants = models.ManyToManyField(Participant,
                           help_text='Speakers or presenters for this event.')
     location = models.CharField(max_length=50)
