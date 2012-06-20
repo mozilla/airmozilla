@@ -5,7 +5,7 @@ Editing group {{ g.name }}
 {% endblock %}
 
 {% block content %}
-<form action="{{ url('manage.group_edit', g.id) }}" method="post">
+<form action="{{ url('manage:group_edit', g.id) }}" method="post">
 {{ csrf() }}
 {{ bootstrapform(form) }}
 {% include 'manage/_form_buttons.html' %}

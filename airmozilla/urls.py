@@ -6,9 +6,9 @@ from funfactory.monkeypatches import patch
 patch()
 
 urlpatterns = patterns('',
-    (r'', include('airmozilla.main.urls')),
-    (r'', include('airmozilla.auth.urls')),
-    (r'', include('airmozilla.manage.urls')),
+    (r'^manage/', include('airmozilla.manage.urls', namespace='manage')),
+    (r'', include('airmozilla.main.urls', namespace='main')),
+    (r'', include('airmozilla.auth.urls', namespace='auth')),
 )
 
 ## In DEBUG mode, serve media files through Django.

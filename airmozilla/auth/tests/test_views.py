@@ -11,7 +11,7 @@ from airmozilla.auth.browserid_mock import mock_browserid
 class TestViews(TestCase):
     def _login_attempt(self, email, assertion='fakeassertion123'):
         with mock_browserid(email):
-            r = self.client.post(reverse('auth.mozilla_browserid_verify'),
+            r = self.client.post(reverse('auth:mozilla_browserid_verify'),
                                  {'assertion': assertion})
         return r
 

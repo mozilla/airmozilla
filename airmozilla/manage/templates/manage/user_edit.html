@@ -5,7 +5,7 @@ Editing user {{ u.email }}
 {% endblock %}
 
 {% block content %}
-<form action="{{ url('manage.user_edit', u.id) }}" method="post">
+<form action="{{ url('manage:user_edit', u.id) }}" method="post">
 {{ csrf() }}
 {{ bootstrapform(form) }}
 {% include 'manage/_form_buttons.html' %}

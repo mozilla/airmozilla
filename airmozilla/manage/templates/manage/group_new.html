@@ -5,7 +5,7 @@ New group
 {% endblock %}
 
 {% block content %}
-<form action="{{ url('manage.group_new') }}" method="post">
+<form action="{{ url('manage:group_new') }}" method="post">
 {{ csrf() }}
 {{ bootstrapform(form) }}
 {% include 'manage/_form_buttons.html' %}

@@ -28,7 +28,7 @@ def users(request):
         form = UserFindForm(request.POST)
         if form.is_valid():
             user = User.objects.get(email=form.cleaned_data['email'])
-            return redirect('manage.user_edit', user.id)
+            return redirect('manage:user_edit', user.id)
     else:
         form = UserFindForm()
     users = User.objects.all()
@@ -53,7 +53,7 @@ def user_edit(request, id):
         form = UserEditForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            return redirect('manage.users')
+            return redirect('manage:users')
     else:
         form = UserEditForm(instance=user)
     return render(request, 'manage/user_edit.html', {'form': form, 'u': user})
@@ -76,7 +76,7 @@ def group_edit(request, id):
         form = GroupEditForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
-            return redirect('manage.groups')
+            return redirect('manage:groups')
     else:
         form = GroupEditForm(instance=group)
     return render(request, 'manage/group_edit.html',
@@ -92,7 +92,7 @@ def group_new(request):
         form = GroupEditForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
-            return redirect('manage.groups')
+            return redirect('manage:groups')
     else:
         form = GroupEditForm(instance=group)
     return render(request, 'manage/group_new.html', {'form': form})
@@ -106,7 +106,7 @@ def event_request(request):
         form = EventRequestForm(request.POST, request.FILES, instance=Event())
         if form.is_valid():
             form.save()
-            return redirect('manage.home')
+            return redirect('manage:home')
     else:
         form = EventRequestForm()
     return render(request, 'manage/event_request.html', {'form': form})

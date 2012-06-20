@@ -23,7 +23,7 @@
                 {% endfor %}
                 </td>
                 <td>
-                    <a href="{{ url('manage.group_edit', g.id) }}" class="btn">
+                    <a href="{{ url('manage:group_edit', g.id) }}" class="btn">
                         <i class="icon-edit"></i>
                         Edit
                     </a>
@@ -32,7 +32,7 @@
         {% endfor %}
     </tbody>
 </table>
-<a href="{{ url('manage.group_new') }}" class="btn">
+<a href="{{ url('manage:group_new') }}" class="btn">
     <i class="icon-plus-sign"></i>
     New group
 </a>
