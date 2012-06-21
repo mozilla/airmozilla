@@ -17,7 +17,7 @@
             </tr>
         </thead>
         <tbody>
-        {% for participant in participants %}
+        {% for participant in paginate %}
             <tr>
                 <td>{{ participant.name }}</td>
                 <td>{{ participant.email }}</td>
@@ -34,24 +34,7 @@
         {% endfor %}
         </tbody>
     </table>
-    <div class="pagination">
-        <ul>
-            {% if participants.has_previous() %}
-            <li>
-                <a href="?page={{ participants.previous_page_number() }}">&larr;</a>
-            </li>
-            {% endif %}
-            <li class="active">
-                <a href="?page={{ participants.number }}">{{ participants.number }}
-                            / {{ participants.paginator.num_pages }}</a>
-            </li>
-            {% if participants.has_next() %}
-            <li>
-                <a href="?page={{ participants.next_page_number() }}">&rarr;</a>
-            </li>
-            {% endif %}
-        </ul>
-    </div>
+    {% include 'manage/_paginate.html' %}
     <p>
     <a href="{{ url('manage:participant_new') }}" class="btn">
         <i class="icon-plus-sign"></i>

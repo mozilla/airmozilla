@@ -5,10 +5,5 @@
 {% endblock %}
 
 {% block content %}
-    <form action="{{ url('manage:participant_edit', participant.id) }}"
-          method="post" enctype="multipart/form-data">
-    {{ csrf() }}
-    {{ bootstrapform(form) }}
-    {% include 'manage/_form_buttons.html' %}
-    </form>
+    {% include 'manage/_default_form_upload.html' %}
 {% endblock %}

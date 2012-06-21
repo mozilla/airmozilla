@@ -20,7 +20,7 @@
         {% endfor %}
         </tbody>
     </table>
-    <form action="{{ url('manage:categories') }}" method="post" class="form-inline well">
+    <form method="post" class="form-inline well">
         {{ csrf() }}
         {{ bootstrapform(form) }}
         <button class="btn btn-primary" type="submit">New category</button>

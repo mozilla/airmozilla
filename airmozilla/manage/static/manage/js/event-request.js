@@ -4,7 +4,7 @@ $(function() {
     $('#id_tags').select2({
         tags: [],
         ajax: {
-            url: '/manage/tag_autocomplete',
+            url: '/manage/tag-autocomplete',
             dataType: 'json',
             data: function (term, page) {
                 return {q: term};
@@ -34,7 +34,7 @@ $(function() {
     $('#id_participants').select2({
         tags: [],
         ajax: {
-            url: '/manage/participant_autocomplete',
+            url: '/manage/participant-autocomplete',
             dataType: 'json',
             data: function (term, page) {
                 return {q: term};

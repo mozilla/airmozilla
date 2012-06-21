@@ -44,7 +44,7 @@ def users(request):
     except EmptyPage:
         users_paged = paginator.page(paginator.num_pages)
     return render(request, 'manage/users.html',
-                  {'users': users_paged, 'form': form})
+                  {'paginate': users_paged, 'form': form})
 
 
 @staff_required
@@ -165,7 +165,7 @@ def participants(request):
     except EmptyPage:
         participants_paged = paginator.page(paginator.num_pages)
     return render(request, 'manage/participants.html',
-                  {'participants': participants_paged, 'form': search_form})
+                  {'paginate': participants_paged, 'form': search_form})
 
 
 @staff_required

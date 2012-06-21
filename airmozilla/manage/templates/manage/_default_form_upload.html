@@ -1,0 +1,5 @@
+<form method="post" enctype="multipart/form-data">
+    {{ csrf() }}
+    {{ bootstrapform(form) }}
+    {% include 'manage/_form_buttons.html' %}
+</form>

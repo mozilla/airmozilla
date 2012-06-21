@@ -14,11 +14,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{{ url('manage:event_request') }}" method="post" class="form-horizontal" enctype="multipart/form-data">
-{{ csrf() }}
-{{ bootstrapform(form) }}
-{% include 'manage/_form_buttons.html' %}
-</form>
+{% include 'manage/_default_form_upload.html' %}
 {% endblock %}
 
 {% block site_js %}

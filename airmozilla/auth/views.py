@@ -23,4 +23,4 @@ def mozilla_browserid_verify(request):
 
 
 def login_failure(request):
-    return render(request, 'login_failure.html')
+    return render(request, 'auth/login_failure.html')

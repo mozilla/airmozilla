@@ -1,13 +1,9 @@
 {% extends "manage/users.html" %}
 
 {% block manage_title %}
-Editing user {{ u.email }}
+    Editing user {{ u.email }}
 {% endblock %}
 
 {% block content %}
-<form action="{{ url('manage:user_edit', u.id) }}" method="post">
-{{ csrf() }}
-{{ bootstrapform(form) }}
-{% include 'manage/_form_buttons.html' %}
-</form>
+    {% include 'manage/_default_form.html' %}
 {% endblock %}

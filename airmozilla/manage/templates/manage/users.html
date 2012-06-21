@@ -18,7 +18,7 @@
     </tr>
     </thead>
     <tbody>
-    {% for u in users %}
+    {% for u in paginate %}
         <tr>
             <td>{{ u.email }}</td>
             <td>{% for g in u.groups.all() %}
@@ -42,24 +42,7 @@
     {% endfor %}
     </tbody>
     </table>
-    <div class="pagination">
-        <ul>
-            {% if users.has_previous() %}
-            <li>
-                <a href="?page={{ users.previous_page_number() }}">&larr;</a>
-            </li>
-            {% endif %}
-            <li class="active">
-                <a href="?page={{ users.number }}">{{ users.number }}
-                            / {{ users.paginator.num_pages }}</a>
-            </li>
-            {% if users.has_next() %}
-            <li>
-                <a href="?page={{ users.next_page_number() }}">&rarr;</a>
-            </li>
-            {% endif %}
-        </ul>
-    </div>
+    {% include 'manage/_paginate.html' %}
     <form class="well form-search" method="post">
         Find user:
         {{ csrf() }}
