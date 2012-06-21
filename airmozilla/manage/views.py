@@ -1,14 +1,17 @@
+import re
+
 from django.contrib.auth.decorators import permission_required, \
                                            user_passes_test
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from django.utils import simplejson
 
-from airmozilla.main.models import Category, Event, Tag
+from airmozilla.base.utils import json_view
+from airmozilla.main.models import Category, Event, Participant, Tag
 from airmozilla.manage.forms import CategoryForm, GroupEditForm, \
-                                    EventRequestForm, UserEditForm, \
+                                    EventRequestForm, ParticipantEditForm, \
+                                    ParticipantFindForm, UserEditForm, \
                                     UserFindForm
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -114,6 +117,7 @@ def event_request(request):
 
 @staff_required
 @permission_required('add_event')
+@json_view
 def tag_autocomplete(request):
     """ Feeds JSON tag names to the Event Request form. """
     query = request.GET['q']
@@ -121,15 +125,79 @@ def tag_autocomplete(request):
     tag_names = [{'id': t.name, 'text': t.name} for t in tags]
     # for new tags - the first tag is the query
     tag_names.insert(0, {'id': query, 'text': query})
-    result = {'tags': tag_names}
-    return HttpResponse(simplejson.dumps(result), mimetype='application/json')
+    return {'tags': tag_names}
+
+
+@staff_required
+@permission_required('add_event')
+@json_view
+def participant_autocomplete(request):
+    """ Participant names to Event Request autocompleter. """
+    query = request.GET['q']
+    participants = Participant.objects.filter(name__icontains=query)
+    # Only match names with a component which starts with the query
+    regex = re.compile(r'\b%s' % re.escape(query.split()[0]), re.I)
+    participant_names = [{'id': p.name, 'text': p.name} 
+                         for p in participants if regex.findall(p.name)]
+    return {'participants': participant_names[:5]}
 
 
 @staff_required
 @permission_required('change_participant')
-def participant_edit(request):
-    """Participant editor page:  update biographical info."""
-    return render(request, 'manage/participant_edit.html')
+def participants(request):
+    """Participants page:  view and search participants/speakers. """
+    if request.method == 'POST':
+        search_form = ParticipantFindForm(request.POST)
+        if search_form.is_valid():
+            participants = Participant.objects.filter(name__icontains=
+                                       search_form.cleaned_data['name'])
+        else:
+            participants = Participant.objects.all()
+    else:
+        participants = Participant.objects.all()
+        search_form = ParticipantFindForm()
+    paginator = Paginator(participants, 10)
+    page = request.GET.get('page')
+    try:
+        participants_paged = paginator.page(page)
+    except PageNotAnInteger:
+        participants_paged = paginator.page(1)
+    except EmptyPage:
+        participants_paged = paginator.page(paginator.num_pages)
+    return render(request, 'manage/participants.html',
+                  {'participants': participants_paged, 'form': search_form})
+
+
+@staff_required
+@permission_required('changed_participant')
+def participant_edit(request, id):
+    """ Participant edit page:  update biographical info. """
+    participant = Participant.objects.get(id=id)
+    if request.method == 'POST':
+        form = ParticipantEditForm(request.POST, request.FILES,
+                                   instance=participant)
+        if form.is_valid():
+            form.save()
+            return redirect('manage:participants')
+    else:
+        form = ParticipantEditForm(instance=participant)
+    return render(request, 'manage/participant_edit.html',
+                  {'form': form, 'participant': participant})
+
+
+@staff_required
+@permission_required('add_participant')
+def participant_new(request):
+    if request.method == 'POST':
+        form = ParticipantEditForm(request.POST, request.FILES,
+                                   instance=Participant())
+        if form.is_valid():
+            form.save()
+            return redirect('manage:participants')
+    else:
+        form = ParticipantEditForm()
+    return render(request, 'manage/participant_new.html',
+                  {'form': form})
 
 
 @staff_required
@@ -137,6 +205,7 @@ def participant_edit(request):
 def event_edit(request):
     """Event edit/production:  change, approve, publish events."""
     return render(request, 'manage/event_edit.html')
+
 
 @staff_required
 @permission_required('change_category')
@@ -149,5 +218,5 @@ def categories(request):
             form = CategoryForm()
     else:
         form = CategoryForm()
-    return render(request, 'manage/categories.html', 
+    return render(request, 'manage/categories.html',
                   {'categories': categories, 'form': form})

@@ -1,11 +1,11 @@
 {% extends "manage/participants.html" %}
 
 {% block manage_title %}
-    Editing participant {{ participant.name }}
+    New participant
 {% endblock %}
 
 {% block content %}
-    <form action="{{ url('manage:participant_edit', participant.id) }}"
+    <form action="{{ url('manage:participant_new') }}"
           method="post" enctype="multipart/form-data">
     {{ csrf() }}
     {{ bootstrapform(form) }}

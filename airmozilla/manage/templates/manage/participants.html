@@ -1,0 +1,70 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "part_edit" %}
+
+{% block manage_title %}
+    Participants
+{% endblock %}
+
+{% block content %}
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Cleared</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for participant in participants %}
+            <tr>
+                <td>{{ participant.name }}</td>
+                <td>{{ participant.email }}</td>
+                <td>{{ participant.get_role_display() }}</td>
+                <td>{{ participant.get_cleared_display() }}</td>
+                <td>
+                    <a class="btn"
+                       href="{{ url('manage:participant_edit', participant.id) }}">
+                        <i class="icon-edit"></i>
+                        Edit
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        <ul>
+            {% if participants.has_previous() %}
+            <li>
+                <a href="?page={{ participants.previous_page_number() }}">&larr;</a>
+            </li>
+            {% endif %}
+            <li class="active">
+                <a href="?page={{ participants.number }}">{{ participants.number }}
+                            / {{ participants.paginator.num_pages }}</a>
+            </li>
+            {% if participants.has_next() %}
+            <li>
+                <a href="?page={{ participants.next_page_number() }}">&rarr;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <p>
+    <a href="{{ url('manage:participant_new') }}" class="btn">
+        <i class="icon-plus-sign"></i>
+        New participant
+    </a>
+    </p>
+     <form class="well form-search" method="post">
+        Find participant:
+        {{ csrf() }}
+        {{ bootstrapform(form) }}
+        <button type="submit" class="btn">
+            <i class="icon-search"></i>
+            Search
+        </button>
+    </form>
+{% endblock %}

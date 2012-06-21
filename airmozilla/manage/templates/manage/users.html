@@ -36,6 +36,7 @@
             <td><a href="{{ url('manage:user_edit', u.id) }} " class="btn">
                 <i class="icon-edit"></i>
                 Edit
+                </a>
             </td>
         </tr>
     {% endfor %}
@@ -63,6 +64,9 @@
         Find user:
         {{ csrf() }}
         {{ bootstrapform(form) }}
-        <button type="submit" class="btn">Search</button>
+        <button type="submit" class="btn">
+            <i class="icon-search"></i>
+            Search
+        </button>
     </form>
 {% endblock %}

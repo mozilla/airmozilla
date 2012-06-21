@@ -4,7 +4,7 @@ from django.db import models
 class Participant(models.Model):
     """ Participants - speakers at events. """
     name = models.CharField(max_length=50)
-    photo = models.FileField(upload_to='participants/')
+    photo = models.FileField(upload_to='participants/', blank=True)
     email = models.EmailField(blank=True)
     department = models.CharField(max_length=50, blank=True)
     team = models.CharField(max_length=50, blank=True)
@@ -50,7 +50,7 @@ class Event(models.Model):
     """ Events - all the essential data and metadata for publishing. """
     title = models.CharField(max_length=200)
     video_url = models.URLField(blank=True)
-    placeholder_img = models.FileField(upload_to='placeholders/')
+    placeholder_img = models.FileField(upload_to='placeholders/', blank=True)
     description = models.TextField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(

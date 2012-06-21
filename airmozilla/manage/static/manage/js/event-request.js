@@ -29,4 +29,19 @@ $(function() {
         stepHour: 1,
         stepMinute: 15
     });
+
+    // Autocomplete participants (select2)
+    $('#id_participants').select2({
+        tags: [],
+        ajax: {
+            url: '/manage/participant_autocomplete',
+            dataType: 'json',
+            data: function (term, page) {
+                return {q: term};
+            },
+            results: function(data, page) {
+                return {results: data.participants};
+            }
+        }
+    });
 });
