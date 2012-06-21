@@ -1,0 +1,77 @@
+[
+    {
+        "pk": 1, 
+        "model": "main.participant", 
+        "fields": {
+            "topic_url": "http://www.google.com/", 
+            "cleared": "Y", 
+            "name": "Tim Mickel", 
+            "photo": "2012/06/22/62f1643bff888d15b1a7c8b8bfb81c59.gif", 
+            "twitter": "BarackObama", 
+            "role": "P", 
+            "blog_url": "http://tmickel.com/", 
+            "team": "Web Tools", 
+            "department": "Web Dev", 
+            "irc": "tmickel", 
+            "email": "tmickel@mit.ed"
+        }
+    },
+    {
+        "pk": 7, 
+        "model": "main.category", 
+        "fields": {
+            "name": "testing"
+        }
+    }, 
+    {
+        "pk": 8, 
+        "model": "main.category", 
+        "fields": {
+            "name": "category"
+        }
+    }, 
+       {
+        "pk": 1, 
+        "model": "main.tag", 
+        "fields": {
+            "name": "testing"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "main.tag", 
+        "fields": {
+            "name": "airmozilla"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "main.tag", 
+        "fields": {
+            "name": "test"
+        }
+    },
+    {
+        "pk": 22, 
+        "model": "main.event", 
+        "fields": {
+            "placeholder_img": "placeholders/Strawberry.gif", 
+            "category": 7, 
+            "description": "sadfasdf", 
+            "video_url": "http://www.google.com/", 
+            "title": "Test event", 
+            "start_time": "2012-06-21T19:30:00Z", 
+            "tags": [
+                1
+            ], 
+            "call_info": "", 
+            "additional_links": "", 
+            "participants": [
+                1
+            ], 
+            "end_time": "2012-06-21T20:00:00Z", 
+            "public": false, 
+            "location": "Mountain View Ten Forward"
+        }
+    } 
+]

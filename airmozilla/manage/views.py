@@ -4,7 +4,6 @@ from django.contrib.auth.decorators import permission_required, \
                                            user_passes_test
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
 from airmozilla.base.utils import json_view

@@ -16,7 +16,6 @@
         {{ browserid_form.as_p() }}
     </form>
 {% endif %}
-    <p>{{ event.start_time|js_date('ddd, MMM D, YYYY, h:mma UTCZZ') }} (local time)</p>
 {% endblock %}
 
 {% block site_js %}

@@ -3,6 +3,7 @@ import json
 
 from django import http
 
+
 # From socorro-crashstats
 def json_view(f):
     @functools.wraps(f)

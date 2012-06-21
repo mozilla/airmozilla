@@ -12,6 +12,7 @@ def _upload_path(instance, filename):
     __, extension = os.path.splitext(filename)
     return path + hashed_filename + extension
 
+
 class Participant(models.Model):
     """ Participants - speakers at events. """
     name = models.CharField(max_length=50)
