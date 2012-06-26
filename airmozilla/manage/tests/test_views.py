@@ -258,8 +258,8 @@ class TestParticipants(TestCase):
             {
                 'name': 'George Washington',
                 'email': 'george@whitehouse.gov',
-                'role': 'PP',
-                'cleared': 'Y'
+                'role': Participant.ROLE_PRINCIPAL_PRESENTER,
+                'cleared': Participant.CLEARED_YES
             }
         )
         self.assertRedirects(response_ok, reverse('manage:participants'))
@@ -284,8 +284,8 @@ class TestParticipants(TestCase):
                     'name': 'Mozilla Firefox',
                     'photo': fp,
                     'email': 'mozilla@mozilla.com',
-                    'role': 'PP',
-                    'cleared': 'N'
+                    'role': Participant.ROLE_PRINCIPAL_PRESENTER,
+                    'cleared': Participant.CLEARED_NO
                 }
             )
         self.assertRedirects(response_ok, reverse('manage:participants'))

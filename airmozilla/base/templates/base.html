@@ -2,14 +2,11 @@
 <html lang="{{ LANG }}" dir="{{ DIR }}">
   <head>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block page_title %}Air Mozilla{% endblock %}</title>
-    {% block site_css %}
-      {% compress css %}
-      <link href="{{ static('css/main.css')}}" rel="stylesheet" type="text/css">
-      {% endcompress %}
-    {% endblock %}
+    {% block site_css %}{% endblock %}
   </head>
-  <body>
+  <body class="home blog stone" role="document">
     {% block content %}{% endblock %}
 
     {% block site_js %}

@@ -1,30 +1,108 @@
-{% extends "main_base.html" %}
+{% extends 'main/main_base.html' %}
+{% set front_page = (events.number == 1) %}
 
-{% block content %}
-<h1>
-    <a href="/">{{ _('Air Mozilla') }}</a>
-</h1>
-
-{% if request.user.is_active %}
-
-    <p>{{ _('You are logged in as {username}')|f(username=request.user) }}.
-    <a href="{{ url('auth:logout') }}">{{ _('Log out') }}</a></p>
-{% else %}
-    <p><a id="browserid" href="#">{{ _('Log in with BrowserID') }}</a></p>
-    <form method="post" action="{{ url('auth:mozilla_browserid_verify') }}">
-        {{ csrf() }}
-        {{ browserid_form.as_p() }}
-    </form>
-{% endif %}
+{% block banner %}
+  {% if front_page %}
+    {% include 'main/_banner_large.html' %}
+  {% else %}
+    {% include 'main/_banner_small.html' %}
+  {% endif %}
 {% endblock %}
 
-{% block site_js %}
-    {{ super() }}
-    {% if not request.user.is_active %}
-        {{ browserid_form.media }}
+{% block also_live %}
+  {% if also_live %}
+  <aside id="also-live" class="widget more-posts hfeed">
+    <h3 class="widget-title">{{ _('Also Live Now') }}</h3>
+      <ul>
+      {% for live in also_live %}
+        <li class="hentry live">
+          <h4 class="entry-title">
+            <a href="{{ url('main:event', live.slug) }}">
+              <span class="video-thumb">
+                <img src="{{ live.placeholder_img.url }}" alt="{{ live.title }}"
+                     width="160" height="160" class="wp-post-image">
+              </span>
+              {{ live.title }}
+            </a>
+          </h4>
+          <p class="event-date">{{ _('Started') }} {{ live.start_time|js_date }}</p>
+          <p class="entry-summary">{{ short_desc(live) }}</p>
+        </li>
+      {% endfor %}
+      </ul>
+  </aside>
+  {% endif %}
+{% endblock %}
+
+{% block content_main %}
+  {% if front_page %}
+    {% if live %}
+    {% set href=url('main:event', live.slug) %}
+    <article id="feature-{{ live.id }}" class="tag-live main-feature">
+      <header>
+        <hgroup>
+          <h2 class="feature-type">{{ _('Streaming Live Now') }}</h2>
+          <h3 class="entry-title">
+            <a href="{{ href }}" rel="bookmark">{{ live.title }}</a>
+          </h3>
+        </hgroup>
+        <p class="event-date">{{ _('Started') }} {{ live.start_time|js_date }}</p>
+      </header>
+      <div class="entry-summary">
+        <a href="{{ href }}">
+          <img src="{{ live.placeholder_img.url }}" alt="{{ live.title }}" width="160"
+               height="160" class="wp-post-image">
+        </a>
+        <p>{{ short_desc(live, 10) }}
+        <a class="go" href="{{ href }}">{{_('See more') }}</a></p>
+        <p class="watch"><a class="button" href="{{ href }}">
+          {{ _('Watch Now') }}
+        </a></p>
+      </div>
+    </article> 
     {% endif %}
-    {% compress js %}
-        <script src="{{ static('js/libs/moment.min.js') }}"></script>
-        <script src="{{ static('main/js/timezone.js') }}"></script>
-    {% endcompress %}
+    <h2 class="section-title">
+      {{ _('Recent Videos') }}
+    </h2>
+  {% endif %}
+  {% for event in events %}
+    {% set href = url('main:event', slug=event.slug) %}
+    <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry">
+      <header class="entry-header">
+        <h2 class="entry-title">
+          <a href="{{ href }}">{{ event.title }}</a>
+        </h2>
+      </header>
+      <div class="entry-summary">
+        <p class="event-date">{{ event.start_time|js_date }}</p>
+        <a href="{{ href }}">
+          <img src="{{ event.placeholder_img.url }}"
+               width="68" height="68" alt="{{ event.title }}"
+               class="attachment-68x68 wp-post-image">
+        </a>
+        <p>
+          {{ short_desc(event) }}
+          <a class="go" href="{{ href }}">{{ _('See more') }}</a>
+        </p>
+      </div>
+    </article>
+  {% endfor %}
+  <nav class="nav-paging">
+    <ul role="navigation">
+      {% if events.has_next() %}
+        <li class="prev">
+          <a href="{{ url('main:home', events.next_page_number()) }}">
+            {{ _('Older videos') }}
+          </a>
+        </li>
+      {% endif %}
+      {% if events.has_previous() %}
+        <li class="next">
+          <a href="{{ url('main:home', events.previous_page_number()) }}">
+            {{ _('Newer videos') }}
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
 {% endblock %}

@@ -44,7 +44,7 @@ ALLOWED_BID = ['mozilla.com', 'mozillafoundation.org']
 SITE_URL = 'http://127.0.0.1:8000'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = 'main:home'
-LOGIN_REDIRECT_URL_FAILURE = 'auth:login_failure'
+LOGIN_REDIRECT_URL_FAILURE = 'main:login_failure'
 
 TEMPLATE_CONTEXT_PROCESSORS = list(TEMPLATE_CONTEXT_PROCESSORS) + [
     'django_browserid.context_processors.browserid_form',

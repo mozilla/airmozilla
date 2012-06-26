@@ -1,0 +1,35 @@
+{% extends 'main/main_base.html' %}
+{% set page='explore' %}
+
+{% block page_title %}
+{{ event.title }} | Air Mozilla
+{% endblock %}
+
+{% block banner %}
+  {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block content_main %}
+  <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
+    <header class="entry-header">
+      <h1 class="entry-title">
+        {{ event.title }}
+      </h1>
+      <h2 class="event-date">
+        {{ event.start_time|js_date }}
+      </h2>
+      {% if event.participants.all() %}
+        Presenters:
+        {% for participant in event.participants.all() %}
+          <a href="{{ url('main:participant', participant.slug) }}">
+            {{ participant.name }}
+          </a>
+        {% endfor %}
+      {% endif %}
+    </header>
+    <div class="entry-content">
+      <p>{{ event.description }}</p>
+      {{ event.video_url }}
+    </div>
+  </article>
+{% endblock %}

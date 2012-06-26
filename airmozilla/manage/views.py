@@ -6,7 +6,7 @@ from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect
 
-from airmozilla.base.utils import json_view
+from airmozilla.base.utils import json_view, unique_slugify
 from airmozilla.main.models import Category, Event, Participant, Tag
 from airmozilla.manage.forms import CategoryForm, GroupEditForm, \
                                     EventRequestForm, ParticipantEditForm, \
@@ -107,7 +107,12 @@ def event_request(request):
     if request.method == 'POST':
         form = EventRequestForm(request.POST, request.FILES, instance=Event())
         if form.is_valid():
-            form.save()
+            event = form.save(commit=False)
+            if not event.slug:
+                event.slug = unique_slugify(event.title, Event, 
+                    event.start_time.strftime('%Y%m%d'))
+            event.save()
+            form.save_m2m()
             return redirect('manage:home')
     else:
         form = EventRequestForm()
@@ -136,7 +141,7 @@ def participant_autocomplete(request):
     participants = Participant.objects.filter(name__icontains=query)
     # Only match names with a component which starts with the query
     regex = re.compile(r'\b%s' % re.escape(query.split()[0]), re.I)
-    participant_names = [{'id': p.name, 'text': p.name} 
+    participant_names = [{'id': p.name, 'text': p.name}
                          for p in participants if regex.findall(p.name)]
     return {'participants': participant_names[:5]}
 
@@ -176,7 +181,11 @@ def participant_edit(request, id):
         form = ParticipantEditForm(request.POST, request.FILES,
                                    instance=participant)
         if form.is_valid():
-            form.save()
+            participant = form.save(commit=False)
+            if not participant.slug:
+                participant.slug = unique_slugify(participant.name, 
+                                                  Participant)
+            participant.save()
             return redirect('manage:participants')
     else:
         form = ParticipantEditForm(instance=participant)
@@ -191,7 +200,11 @@ def participant_new(request):
         form = ParticipantEditForm(request.POST, request.FILES,
                                    instance=Participant())
         if form.is_valid():
-            form.save()
+            participant = form.save(commit=False)
+            if not participant.slug:
+                participant.slug = unique_slugify(participant.name, 
+                                                  Participant)
+            participant.save()
             return redirect('manage:participants')
     else:
         form = ParticipantEditForm()

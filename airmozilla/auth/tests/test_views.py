@@ -22,7 +22,7 @@ class TestViews(TestCase):
     def test_bad_verification(self):
         """Bad verification -> failure."""
         response = self._login_attempt(None)
-        self.assertRedirects(response, 
+        self.assertRedirects(response,
                              reverse(settings.LOGIN_REDIRECT_URL_FAILURE))
 
     def test_nonmozilla(self):

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User, Group
 from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm
+from airmozilla.base.utils import unique_slugify
 from airmozilla.main.models import Category, Event, Participant, Tag
 
 
@@ -79,6 +80,7 @@ class EventRequestForm(BaseModelForm):
             'call_info': forms.Textarea(attrs={'rows': 3}),
             'additional_links': forms.Textarea(attrs={'rows': 3})
         }
+        exclude = ('featured', 'status')
 
 
 class ParticipantEditForm(BaseModelForm):

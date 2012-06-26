@@ -2,6 +2,23 @@ import functools
 import json
 
 from django import http
+from django.template.defaultfilters import slugify
+
+
+def unique_slugify(data, model, duplicate_key=''):
+    """Returns a unique slug string.  If duplicate_key is provided, this is
+       appended for non-unique slugs before adding a count."""
+    slug_base = slugify(data)
+    counter = 0
+    slug = slug_base
+    while model.objects.filter(slug__iexact=slug):
+        counter += 1
+        if counter == 1 and duplicate_key:
+            slug_base += '-' + duplicate_key
+            slug = slug_base
+            continue
+        slug = "%s-%i" % (slug_base, counter)
+    return slug
 
 
 # From socorro-crashstats

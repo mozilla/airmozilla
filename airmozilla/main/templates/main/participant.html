@@ -1,0 +1,57 @@
+{% extends 'main/main_base.html' %}
+{% set page='explore' %}
+
+{% block page_title %}
+{{ _('Presenter profile:') }} {{ participant.name }} | Air Mozilla
+{% endblock %}
+
+{% block banner %}
+  {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block content_main %}
+  <article id="participant-{{ participant.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
+  <header class="entry-header">
+    <h1 class="entry-title">
+      {{ _('Presenter profile:') }} {{ participant.name }}
+    </h1>
+  </header>
+  <div class="entry-content participant-profile">
+    {% if participant.photo %}
+      <img src="{{ participant.photo.url }}"
+         alt="{{ participant.name}} Photo">
+    {% endif %}
+    {% if participant.email %}
+      <p>
+        {{ _('Email') }}:
+        <a href="mailto:{{ participant.email }}">{{ participant.email }}</a>
+      </p>
+    {% endif %}
+    {% if participant.department %}
+      <p>{{ _('Department') }}: {{ participant.department }}</p>
+    {% endif %}
+    {% if participant.team %}
+      <p>{{ _('Team') }}: {{ participant.team }}</p>
+    {% endif %}
+    {% if participant.irc %}
+      <p>{{ _('IRC') }}: {{ participant.irc }}</p>
+    {% endif %}
+    {% if participant.twitter %}
+      <p>{{ _('Twitter') }}: 
+        <a href="https://twitter.com/{{participant.twitter}}">
+          @{{ participant.twitter }}
+          </a></p>
+    {% endif %}
+    {% if participant.topic_url %}
+      <p>
+        <a href="{{ participant.topic_url }}">{{ _('Topic page') }}</a>
+      </p>
+    {% endif %}
+    {% if participant.blog_url %}
+      <p>
+        <a href="{{ participant.blog_url }}">{{ _('Blog') }}</a>
+      </p>
+    {% endif %}
+  </div>
+  </article>
+{% endblock %}
