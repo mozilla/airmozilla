@@ -1,23 +1,13 @@
-playdoh
+Air Mozilla
 =======
 
-Mozilla's Playdoh is a web application template based on [Django][django].
+Air Mozilla is the Internet multimedia presence of Mozilla, with live and
+pre-recorded shows, interviews, news snippets, tutorial videos, and
+features about the Mozilla community.
 
-Patches are welcome! Feel free to fork and contribute to this project on
-[github][gh-playdoh].
-
-Full [documentation][docs] is available as well.
-
+We are rebuilding Air Mozilla to use [Mozilla's Playdoh][gh-playdoh],
+a web application template based on [Django][django],
+and adding some neat features along the way.
 
 [django]: http://www.djangoproject.com/
 [gh-playdoh]: https://github.com/mozilla/playdoh
-[docs]: http://playdoh.rtfd.org/
-
-
-License
--------
-This software is licensed under the [New BSD License][BSD]. For more
-information, read the file ``LICENSE``.
-
-[BSD]: http://creativecommons.org/licenses/BSD/
-
