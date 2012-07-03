@@ -71,7 +71,10 @@
             ], 
             "end_time": "2012-06-21T20:00:00Z", 
             "public": false, 
-            "location": "Mountain View Ten Forward"
+            "location": "Mountain View Ten Forward",
+            "slug": "test-event",
+            "status": "scheduled",
+            "featured": false
         }
     } 
 ]

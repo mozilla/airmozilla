@@ -1,5 +1,7 @@
 {% extends "manage/manage_base.html" %}
-{% set page = "erequest" %}
+{% if not page %}
+    {% set page = "erequest" %}
+{% endif %}
 
 {% block manage_title %}
     Event request

@@ -5,13 +5,13 @@ from django import http
 from django.template.defaultfilters import slugify
 
 
-def unique_slugify(data, model, duplicate_key=''):
+def unique_slugify(data, models, duplicate_key=''):
     """Returns a unique slug string.  If duplicate_key is provided, this is
        appended for non-unique slugs before adding a count."""
     slug_base = slugify(data)
     counter = 0
     slug = slug_base
-    while model.objects.filter(slug__iexact=slug):
+    while any(model.objects.filter(slug=slug).exists() for model in models):
         counter += 1
         if counter == 1 and duplicate_key:
             slug_base += '-' + duplicate_key

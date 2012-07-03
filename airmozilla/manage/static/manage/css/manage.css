@@ -18,10 +18,8 @@ div.controls select {
     width: 200px;
 }
 
-/* Fixes bootstrap.css strange behavior on Django upload forms. */
-
-div.controls label {
-    display: inline;
+#container {
+    margin-left: 100px;
 }
 
 /* timepicker */

@@ -17,7 +17,7 @@
      'icon-calendar', perms.add_event),
     (url('manage:participants'), 'Participant editor', 'part_edit',
      'icon-picture', perms.change_participant),
-    (url('manage:event_edit'), 'Edit events', 'events', 'icon-facetime-video',
+    (url('manage:events'), 'Event manager', 'events', 'icon-facetime-video',
      perms.change_event),
     (url('manage:categories'), 'Categories', 'categories', 'icon-folder-close',
      perms.change_category)
@@ -32,12 +32,12 @@
     {% endcompress %}
 {% endblock %}
 {% block content %}
-    <div class="container-fluid">
+    <div class="container-fluid" id="container">
     <div class="row">
         <div class="span12" id="logo">
             <img id="logo-img" src="{{ static('img/logo-airmo-lg.png') }}" alt="Air Mozilla">
        		<div class="row">
-            <div id="menu" class="span3">
+            <div id="menu" class="span2">
                 <ul class="nav nav-list">
 					{% for href, title, id, icon, perm in navigation_bar %}
 						{% if perm %}
@@ -55,7 +55,7 @@
 					{% endfor %}
                 </ul>
 	    	</div>
-		    <div id="content" class="span9">
+		    <div id="content" class="span10">
 		        <h2>{% block manage_title %}{% endblock %}</h2>
 		        {% block manage_content %}{% endblock %}
 		    </div>

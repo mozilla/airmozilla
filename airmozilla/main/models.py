@@ -20,8 +20,8 @@ def _upload_path(tag):
 class Participant(models.Model):
     """ Participants - speakers at events. """
     name = models.CharField(max_length=50)
-    slug = models.SlugField(blank=True, max_length=65)
-    photo = models.FileField(upload_to=_upload_path('participant-photo'), 
+    slug = models.SlugField(blank=True, max_length=65, unique=True)
+    photo = models.FileField(upload_to=_upload_path('participant-photo'),
                              blank=True)
     email = models.EmailField(blank=True)
     department = models.CharField(max_length=50, blank=True)
@@ -73,7 +73,7 @@ class Tag(models.Model):
 class Event(models.Model):
     """ Events - all the essential data and metadata for publishing. """
     title = models.CharField(max_length=200)
-    slug = models.SlugField(blank=True, max_length=215)
+    slug = models.SlugField(blank=True, max_length=215, unique=True)
     video_url = models.URLField(blank=True)
     STATUS_INITIATED = 'initiated'
     STATUS_SCHEDULED = 'scheduled'
@@ -99,3 +99,9 @@ class Event(models.Model):
     public = models.BooleanField(default=False,
                     help_text='Available to everyone (else MoCo only.)')
     featured = models.BooleanField(default=False)
+
+
+class EventOldSlug(models.Model):
+    """Used to permanently redirect old URLs to the new slug location."""
+    event = models.ForeignKey(Event)
+    slug = models.SlugField(max_length=215, unique=True)

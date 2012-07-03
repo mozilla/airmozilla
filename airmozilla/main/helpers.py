@@ -15,7 +15,7 @@ def js_date(dt, format='ddd, MMM D, YYYY, h:mma UTCZZ'):
     dt_tz = dt.tzname() or 'UTC'
     formatted_datetime = ' '.join([dt_date, dt_time, dt_tz])
     return jinja2.Markup('<time datetime="%s" class="jstime"'
-                          'data-format="%s">%s</time>'
+                          ' data-format="%s">%s</time>'
                  % (dt.isoformat(), format, formatted_datetime))
 
 

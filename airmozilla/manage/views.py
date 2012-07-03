@@ -1,17 +1,21 @@
+import datetime
 import re
 
-from django.contrib.auth.decorators import permission_required, \
-                                           user_passes_test
+from django.contrib.auth.decorators import (permission_required,
+                                            user_passes_test)
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect
+from django.utils.timezone import utc
 
 from airmozilla.base.utils import json_view, unique_slugify
-from airmozilla.main.models import Category, Event, Participant, Tag
-from airmozilla.manage.forms import CategoryForm, GroupEditForm, \
-                                    EventRequestForm, ParticipantEditForm, \
-                                    ParticipantFindForm, UserEditForm, \
-                                    UserFindForm
+from airmozilla.main.models import (Category, Event, EventOldSlug,
+                                    Participant, Tag)
+from airmozilla.manage.forms import (CategoryForm, GroupEditForm,
+                                     EventEditForm, EventFindForm,
+                                     EventRequestForm, ParticipantEditForm,
+                                     ParticipantFindForm, UserEditForm,
+                                     UserFindForm)
 
 staff_required = user_passes_test(lambda u: u.is_staff)
 
@@ -109,7 +113,7 @@ def event_request(request):
         if form.is_valid():
             event = form.save(commit=False)
             if not event.slug:
-                event.slug = unique_slugify(event.title, Event, 
+                event.slug = unique_slugify(event.title, [Event, EventOldSlug],
                     event.start_time.strftime('%Y%m%d'))
             event.save()
             form.save_m2m()
@@ -117,6 +121,73 @@ def event_request(request):
     else:
         form = EventRequestForm()
     return render(request, 'manage/event_request.html', {'form': form})
+
+
+@staff_required
+@permission_required('change_event')
+def events(request):
+    """Event edit/production:  approve, change, and publish events."""
+    search_results = []
+    if request.method == 'POST':
+        search_form = EventFindForm(request.POST)
+        if search_form.is_valid():
+            search_results = Event.objects.filter(
+                             title__icontains=search_form.cleaned_data['title']
+                             ).order_by('-end_time')
+    else:
+        search_form = EventFindForm()
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    initiated = (Event.objects.filter(status=Event.STATUS_INITIATED)
+                             .order_by('start_time'))
+    upcoming = Event.objects.filter(status=Event.STATUS_SCHEDULED,
+                                    end_time__gt=now).order_by('start_time')
+    archived = Event.objects.filter(end_time__lt=now).order_by('-end_time')
+    paginator = Paginator(archived, 10)
+    page = request.GET.get('page')
+    try:
+        archived_paged = paginator.page(page)
+    except PageNotAnInteger:
+        archived_paged = paginator.page(1)
+    except EmptyPage:
+        archived_paged = paginator.page(paginator.num_pages)
+    return render(request, 'manage/events.html', {
+        'initiated': initiated,
+        'upcoming': upcoming,
+        'paginate': archived_paged,
+        'form': search_form,
+        'search_results': search_results
+    })
+
+
+@staff_required
+@permission_required('change_event')
+def event_edit(request, id):
+    """Edit form for a particular event."""
+    event = Event.objects.get(id=id)
+    if request.method == 'POST':
+        old_slug = event.slug
+        form = EventEditForm(request.POST, request.FILES, instance=event)
+        if form.is_valid():
+            event = form.save(commit=False)
+            if not event.slug:
+                event.slug = unique_slugify(event.title,
+                    [Event, EventOldSlug],
+                    event.start_time.strftime('%Y%m%d'))
+            if event.slug != old_slug:
+                EventOldSlug.objects.create(slug=old_slug, event=event)
+            event.save()
+            form.save_m2m()
+            return redirect('manage:events')
+    else:
+        tag_format = lambda objects: ','.join(map(unicode, objects))
+        participants_formatted = tag_format(event.participants.all())
+        tags_formatted = tag_format(event.tags.all())
+        form = EventEditForm(instance=event, initial={
+            'participants': participants_formatted, 
+            'tags': tags_formatted
+        })
+    return render(request, 'manage/event_edit.html', {'form': form,
+                                                      'event': event})
 
 
 @staff_required
@@ -183,8 +254,8 @@ def participant_edit(request, id):
         if form.is_valid():
             participant = form.save(commit=False)
             if not participant.slug:
-                participant.slug = unique_slugify(participant.name, 
-                                                  Participant)
+                participant.slug = unique_slugify(participant.name,
+                                                  [Participant])
             participant.save()
             return redirect('manage:participants')
     else:
@@ -202,21 +273,14 @@ def participant_new(request):
         if form.is_valid():
             participant = form.save(commit=False)
             if not participant.slug:
-                participant.slug = unique_slugify(participant.name, 
-                                                  Participant)
+                participant.slug = unique_slugify(participant.name,
+                                                  [Participant])
             participant.save()
             return redirect('manage:participants')
     else:
         form = ParticipantEditForm()
     return render(request, 'manage/participant_new.html',
                   {'form': form})
-
-
-@staff_required
-@permission_required('change_event')
-def event_edit(request):
-    """Event edit/production:  change, approve, publish events."""
-    return render(request, 'manage/event_edit.html')
 
 
 @staff_required

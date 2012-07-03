@@ -207,9 +207,9 @@ class TestEvents(TestCase):
         parsed_fail = json.loads(response_fail.content)
         eq_(parsed_fail, {'participants': []})
 
-    def test_event_edit(self):
-        """The event editor page responds successfully."""
-        response = self.client.get(reverse('manage:event_edit'))
+    def test_events(self):
+        """The events page responds successfully."""
+        response = self.client.get(reverse('manage:events'))
         eq_(response.status_code, 200)
 
 
@@ -224,7 +224,7 @@ class TestParticipants(TestCase):
         """Participants pagination always returns valid pages."""
         response = self.client.get(reverse('manage:participants'))
         eq_(response.status_code, 200)
-        response = self.client.get(reverse('manage:participants'), 
+        response = self.client.get(reverse('manage:participants'),
                                    {'page': 5000})
         eq_(response.status_code, 200)
 
@@ -282,6 +282,7 @@ class TestParticipants(TestCase):
             response_ok = self.client.post(reverse('manage:participant_new'),
                 {
                     'name': 'Mozilla Firefox',
+                    'slug': 'mozilla-firefox',
                     'photo': fp,
                     'email': 'mozilla@mozilla.com',
                     'role': Participant.ROLE_PRINCIPAL_PRESENTER,

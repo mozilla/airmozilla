@@ -1,5 +1,12 @@
 $(function() {
     'use strict';
+    var process_tags = function process_tags(element) {
+        var data = [];
+        $(element.val().split(',')).each(function () {
+            data.push({id: this, text: this});
+        });
+        return data;
+    }
     // Autocomplete tags - uses the select2 library
     $('#id_tags').select2({
         tags: [],
@@ -12,7 +19,8 @@ $(function() {
             results: function (data, page) {
                 return {results: data.tags};
             }
-        }
+        },
+        initSelection: process_tags
     });
 
     // Datetime picker (jQuery UI)
@@ -42,6 +50,7 @@ $(function() {
             results: function(data, page) {
                 return {results: data.participants};
             }
-        }
+        },
+        initSelection: process_tags
     });
 });

@@ -4,7 +4,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import utc
 
-from airmozilla.main.models import Event, Participant
+from airmozilla.main.models import Event, EventOldSlug, Participant
 
 
 def page(request, template):
@@ -18,7 +18,7 @@ def home(request, page=1):
     featured = Event.objects.filter(public=True, featured=True)
     now = datetime.datetime.utcnow().replace(tzinfo=utc)
     past_filter = {'end_time__lt': now, 'status': Event.STATUS_SCHEDULED}
-    live_filter = {'end_time__gt': now, 'start_time__lt': now, 
+    live_filter = {'end_time__gt': now, 'start_time__lt': now,
                    'status': Event.STATUS_SCHEDULED}
     if not request.user.is_active:
         past_filter['public'] = True
@@ -48,7 +48,11 @@ def home(request, page=1):
 def event(request, slug):
     """Video, description, and other metadata."""
     featured = Event.objects.filter(public=True, featured=True)
-    event = get_object_or_404(Event, slug=slug)
+    try:
+        event = Event.objects.get(slug=slug)
+    except Event.DoesNotExist:
+        old_slug = get_object_or_404(EventOldSlug, slug=slug)
+        return redirect('main:event', slug=old_slug.event.slug)
     if ((not event.public or event.status == Event.STATUS_INITIATED)
         and not request.user.is_active):
         return redirect('main:login')
