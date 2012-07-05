@@ -85,6 +85,7 @@ class EventRequestForm(BaseModelForm):
         model = Event
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
+            'short_description': forms.Textarea(attrs={'rows': 2}),
             'call_info': forms.Textarea(attrs={'rows': 3}),
             'additional_links': forms.Textarea(attrs={'rows': 3})
         }

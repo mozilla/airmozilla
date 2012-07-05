@@ -76,7 +76,7 @@ Air Mozilla | Mozilla, in Video
                 </a>
               </h4>
               <p class="event-date">{{ feature.start_time|js_date }}</p>
-              <p class="entry-summary">{{ feature.description }}</p>
+              <p class="entry-summary">{{ short_desc(feature) }}</p>
             </li>
           {% endfor %}
         </ul>

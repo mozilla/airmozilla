@@ -86,6 +86,9 @@ class Event(models.Model):
     placeholder_img = models.FileField(upload_to=
                                       _upload_path('event-placeholder'))
     description = models.TextField()
+    short_description = models.TextField(blank=True, help_text='Optional: ' +
+                        'if not provided, this will be filled in by the ' +
+                        'first words of the full description.')
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(
                       help_text='Enter times in the US Pacific timezone.')

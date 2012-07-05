@@ -28,6 +28,4 @@ def date_now():
 @register.function
 def short_desc(event, words=25):
     """Takes an event object and returns a shortened description."""
-    # We use an event object instead of a description itself
-    # so in the future, we could use a human-shortened version if provided.
-    return truncate_words(event.description, words)
+    return event.short_description or truncate_words(event.description, words)
