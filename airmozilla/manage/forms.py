@@ -89,7 +89,7 @@ class EventRequestForm(BaseModelForm):
             'call_info': forms.Textarea(attrs={'rows': 3}),
             'additional_links': forms.Textarea(attrs={'rows': 3})
         }
-        exclude = ('featured', 'status')
+        exclude = ('featured', 'status', 'archive_time')
 
 
 class EventEditForm(EventRequestForm):

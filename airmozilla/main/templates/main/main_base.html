@@ -59,29 +59,11 @@ Air Mozilla | Mozilla, in Video
       </aside>
       {% block also_live %}{% endblock %}
       {% if featured %}
-        <aside id="also-featured" class="widget more-posts hfeed">
-        <h3 class="widget-title">{{ _('Featured Videos') }}</h3>
-        <ul>
-          {% for feature in featured %}
-            <li class="hentry featured">
-              <h4 class="entry-title">
-                <a href="{{ url('main:event', slug=feature.slug) }}">
-                  <span class="video-thumb">
-                    <img width="160" height="160"
-                         src="{{ feature.placeholder_img.url }}"
-                         alt="{{ feature.title }}"
-                         class="attachment-160x160 wp-post-image">
-                  </span>
-                  {{ feature.title }}
-                </a>
-              </h4>
-              <p class="event-date">{{ feature.start_time|js_date }}</p>
-              <p class="entry-summary">{{ short_desc(feature) }}</p>
-            </li>
-          {% endfor %}
-        </ul>
-        </aside>
+        {% set widget_title = _('Featured Videos') -%}
+        {% set widget_events = featured -%}
+        {% include 'main/_side_events.html' %}
       {% endif %}
+      {% block upcoming %}{% endblock %}
     </div>
   </div>
 

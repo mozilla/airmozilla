@@ -27,15 +27,6 @@ $(function() {
     $('#id_start_time').datetimepicker({
         stepHour: 1,
         stepMinute: 15,
-        onClose: function(dateText, inst) {
-            $('#id_end_time').datetimepicker('option',
-                'minDate', new Date(dateText));
-            $('#id_end_time').val(dateText);
-        }
-    });
-    $('#id_end_time').datetimepicker({
-        stepHour: 1,
-        stepMinute: 15
     });
 
     // Autocomplete participants (select2)

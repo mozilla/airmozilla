@@ -90,3 +90,10 @@ MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
 # Times stored in the db as UTC; forms/templates as Pacific time
 USE_TZ = True
 TIME_ZONE = 'America/Los_Angeles'
+
+# Configuration for live/archiving events treatment
+# How much time, in minutes, an event shows as "live" before its start time.
+LIVE_MARGIN = 10
+
+# Default amount of time, in minutes, an event spends in the "archiving" state.
+ARCHIVING_MARGIN = 60

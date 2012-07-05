@@ -1,0 +1,20 @@
+<aside class="widget more-posts hfeed">
+  <h3 class="widget-title">{{ widget_title }}</h3>
+  <ul>
+    {% for event in widget_events %}
+      <li class="hentry">
+        <h4 class="entry-title">
+          <a href="{{ url('main:event', event.slug) }}">
+            <span class="video-thumb">
+              <img src="{{ event.placeholder_img.url }}" alt="{{ event.title }}"
+                   width="160" height="160" class="wp-post-image">
+            </span>
+            {{ event.title }}
+          </a>
+        </h4>
+        <p class="event-date">{{ event.start_time|js_date }}</p>
+        <p class="entry-summary">{{ short_desc(event) }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+</aside>

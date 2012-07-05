@@ -11,26 +11,17 @@
 
 {% block also_live %}
   {% if also_live %}
-  <aside id="also-live" class="widget more-posts hfeed">
-    <h3 class="widget-title">{{ _('Also Live Now') }}</h3>
-      <ul>
-      {% for live in also_live %}
-        <li class="hentry live">
-          <h4 class="entry-title">
-            <a href="{{ url('main:event', live.slug) }}">
-              <span class="video-thumb">
-                <img src="{{ live.placeholder_img.url }}" alt="{{ live.title }}"
-                     width="160" height="160" class="wp-post-image">
-              </span>
-              {{ live.title }}
-            </a>
-          </h4>
-          <p class="event-date">{{ _('Started') }} {{ live.start_time|js_date }}</p>
-          <p class="entry-summary">{{ short_desc(live) }}</p>
-        </li>
-      {% endfor %}
-      </ul>
-  </aside>
+    {% set widget_title = _('Also live') -%} 
+    {% set widget_events = also_live -%}
+    {% include 'main/_side_events.html' %}
+  {% endif %}
+{% endblock %}
+
+{% block upcoming %}
+  {% if upcoming %}
+    {% set widget_title = _('Upcoming') -%}
+    {% set widget_events = upcoming -%}
+    {% include 'main/_side_events.html' %}
   {% endif %}
 {% endblock %}
 

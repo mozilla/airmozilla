@@ -1,12 +1,11 @@
-import datetime
 import re
 
+from django.conf import settings
 from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect
-from django.utils.timezone import utc
 
 from airmozilla.base.utils import json_view, unique_slugify
 from airmozilla.main.models import (Category, Event, EventOldSlug,
@@ -133,15 +132,14 @@ def events(request):
         if search_form.is_valid():
             search_results = Event.objects.filter(
                              title__icontains=search_form.cleaned_data['title']
-                             ).order_by('-end_time')
+                             ).order_by('-start_time')
     else:
         search_form = EventFindForm()
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
-    initiated = (Event.objects.filter(status=Event.STATUS_INITIATED)
-                             .order_by('start_time'))
-    upcoming = Event.objects.filter(status=Event.STATUS_SCHEDULED,
-                                    end_time__gt=now).order_by('start_time')
-    archived = Event.objects.filter(end_time__lt=now).order_by('-end_time')
+    initiated = Event.objects.initiated().order_by('start_time')
+    upcoming = Event.objects.upcoming().order_by('start_time')
+    live = Event.objects.live().order_by('start_time')
+    archiving = Event.objects.archiving().order_by('-archive_time')
+    archived = Event.objects.archived().order_by('-archive_time')
     paginator = Paginator(archived, 10)
     page = request.GET.get('page')
     try:
@@ -153,6 +151,8 @@ def events(request):
     return render(request, 'manage/events.html', {
         'initiated': initiated,
         'upcoming': upcoming,
+        'live': live,
+        'archiving': archiving,
         'paginate': archived_paged,
         'form': search_form,
         'search_results': search_results

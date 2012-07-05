@@ -16,7 +16,7 @@ class TestPages(TestCase):
         # Make the fixture event live as of the test.
         event = Event.objects.get(title='Test event')
         event.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
-        event.end_time = event.start_time + datetime.timedelta(hours=1)
+        event.archive_time = None
         event.save()
 
     def test_home(self):

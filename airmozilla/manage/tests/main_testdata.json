@@ -70,7 +70,7 @@
             "participants": [
                 1
             ], 
-            "end_time": "2012-06-21T20:00:00Z", 
+            "archive_time": "2012-06-21T20:00:00Z", 
             "public": true, 
             "location": "Mountain View Ten Forward",
             "slug": "test-event",

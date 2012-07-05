@@ -2,7 +2,6 @@ import datetime
 
 from django.core.paginator import Paginator, EmptyPage
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.timezone import utc
 
 from airmozilla.main.models import Event, EventOldSlug, Participant
 
@@ -15,29 +14,28 @@ def page(request, template):
 
 def home(request, page=1):
     """Paginated recent videos and live videos."""
-    featured = Event.objects.filter(public=True, featured=True)
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
-    past_filter = {'end_time__lt': now, 'status': Event.STATUS_SCHEDULED}
-    live_filter = {'end_time__gt': now, 'start_time__lt': now,
-                   'status': Event.STATUS_SCHEDULED}
+    featured_events = Event.objects.filter(public=True, featured=True)
+    archived_events = Event.objects.archived().order_by('-archive_time')
+    live_events = Event.objects.live().order_by('start_time')
+    upcoming_events = Event.objects.upcoming().order_by('start_time')
     if not request.user.is_active:
-        past_filter['public'] = True
-        live_filter['public'] = True
-    past_events = Event.objects.filter(**past_filter).order_by('-end_time')
-    live_events = Event.objects.filter(**live_filter).order_by('-end_time')
-    paginate = Paginator(past_events, 10)
+        archived_events = archived_events.filter(public=True)
+        live_events = live_events.filter(public=True)
+        upcoming_events = upcoming_events.filter(public=True)
+    upcoming_events = upcoming_events[:3]
+    paginate = Paginator(archived_events, 10)
     try:
-        past_events_paged = paginate.page(page)
+        archived_paged = paginate.page(page)
     except EmptyPage:
-        past_events_paged = paginate.page(paginate.num_pages)
-    live = False
+        archived_paged = paginate.page(paginate.num_pages)
+    live = None
     also_live = []
     if live_events:
-        live = live_events[0]
-        also_live = live_events[1:]
+        live, also_live = live_events[0], live_events[1:]
     return render(request, 'main/home.html', {
-        'events': past_events_paged,
-        'featured': featured,
+        'events': archived_paged,
+        'featured': featured_events,
+        'upcoming': upcoming_events,
         'live': live,
         'also_live': also_live
     })

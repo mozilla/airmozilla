@@ -2,7 +2,9 @@ import datetime
 import hashlib
 import os
 
+from django.conf import settings
 from django.db import models
+from django.utils.timezone import utc
 
 
 def _upload_path(tag):
@@ -70,6 +72,36 @@ class Tag(models.Model):
         return self.name
 
 
+class EventManager(models.Manager):
+    def _get_now(self):
+        return datetime.datetime.utcnow().replace(tzinfo=utc)
+
+    def _get_live_time(self):
+        return (self._get_now() +
+                datetime.timedelta(minutes=settings.LIVE_MARGIN))
+
+    def initiated(self):
+        return self.get_query_set().filter(status=Event.STATUS_INITIATED)
+
+    def upcoming(self):
+        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED,
+               archive_time=None, start_time__gt=self._get_live_time())
+
+    def live(self):
+        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED,
+               archive_time=None, start_time__lt=self._get_live_time())
+
+    def archiving(self):
+        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED,
+               archive_time__gt=self._get_now(),
+               start_time__lt=self._get_now())
+
+    def archived(self):
+        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED,
+               archive_time__lt=self._get_now(),
+               start_time__lt=self._get_now())
+
+
 class Event(models.Model):
     """ Events - all the essential data and metadata for publishing. """
     title = models.CharField(max_length=200)
@@ -90,8 +122,7 @@ class Event(models.Model):
                         'if not provided, this will be filled in by the ' +
                         'first words of the full description.')
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField(
-                      help_text='Enter times in the US Pacific timezone.')
+    archive_time = models.DateTimeField(blank=True, null=True)
     participants = models.ManyToManyField(Participant,
                           help_text='Speakers or presenters for this event.')
     location = models.CharField(max_length=50)
@@ -102,6 +133,7 @@ class Event(models.Model):
     public = models.BooleanField(default=False,
                     help_text='Available to everyone (else MoCo only.)')
     featured = models.BooleanField(default=False)
+    objects = EventManager()
 
 
 class EventOldSlug(models.Model):

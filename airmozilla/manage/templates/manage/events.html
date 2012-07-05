@@ -5,7 +5,7 @@
   Event manager
 {% endblock %}
 
-{% macro event_table(name, events, hidden_tag=False) -%}
+{% macro event_table(name, events, hidden_tag=False, live_tag=False) -%}
 <h3>{{ name }}</h3>
 <table class="table table-striped table-bordered">
   <thead>
@@ -13,7 +13,7 @@
       <th style="width: 19%">Title</th>
       <th style="width: 10%">Location</th>
       <th style="width: 19%">Start time</th>
-      <th style="width: 19%">End time</th>
+      <th style="width: 19%">Archive time</th>
       <th style="width: 15%">Category</th>
       <th style="width: 9%">Visibility</th>
       <th style="width: 9%"></th>
@@ -29,7 +29,13 @@
         </td>
         <td>{{ event.location }}</td>
         <td>{{ event.start_time|js_date('ddd, MMM D, YYYY, h:mma') }}</td>
-        <td>{{ event.end_time|js_date('ddd, MMM D, YYYY, h:mma') }}</td>
+        <td>
+          {% if event.archive_time %}
+            {{ event.archive_time|js_date('ddd, MMM D, YYYY, h:mma') }}
+          {% else %}
+            Not archived
+          {% endif %}
+        </td>
         <td>{{ event.category }}</td>
         <td>{% if event.public %}
               <span class="label">Public</span>
@@ -39,7 +45,7 @@
             {% if event.featured %}
               <span class="label label-success">Featured</span>
             {% endif %}
-            {% if event.start_time <= date_now() <= event.end_time %}
+            {% if live_tag %}
               <span class="label label-important">Live</span>
             {% endif %}
             {% if hidden_tag %}
@@ -65,11 +71,17 @@
     {{ event_table('Search results', search_results) }}
   {% else %}
     {% if paginate.number == 1 %}
+      {% if live %}
+        {{ event_table('Live events', live, False, True) }}
+      {% endif %}
+      {% if archiving %}
+        {{ event_table('Archiving events', archiving, True) }}
+      {% endif %}
       {% if initiated %}
         {{ event_table('Initiated events, need approval', initiated, True) }}
       {% endif %}
       {% if upcoming %}
-        {{ event_table('Upcoming and current events', upcoming) }}
+        {{ event_table('Upcoming events', upcoming) }}
       {% endif %}
     {% endif %}
     {{ event_table('Archived events', paginate) }}
