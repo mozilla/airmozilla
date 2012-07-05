@@ -4,8 +4,9 @@
         "model": "main.participant", 
         "fields": {
             "topic_url": "http://www.google.com/", 
-            "cleared": "Y", 
-            "name": "Tim Mickel", 
+            "cleared": "yes", 
+            "name": "Tim Mickel",
+            "slug": "tim-mickel",
             "photo": "2012/06/22/62f1643bff888d15b1a7c8b8bfb81c59.gif", 
             "twitter": "BarackObama", 
             "role": "P", 
@@ -70,11 +71,19 @@
                 1
             ], 
             "end_time": "2012-06-21T20:00:00Z", 
-            "public": false, 
+            "public": true, 
             "location": "Mountain View Ten Forward",
             "slug": "test-event",
             "status": "scheduled",
             "featured": false
         }
-    } 
+    },
+    {
+        "pk": 1,
+        "model": "main.eventoldslug",
+        "fields": {
+            "event": 22,
+            "slug": "test-old-slug"
+        }
+    }
 ]

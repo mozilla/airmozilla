@@ -8,7 +8,7 @@ from funfactory.urlresolvers import reverse
 
 from nose.tools import eq_, ok_
 
-from airmozilla.main.models import Category, Event, Participant
+from airmozilla.main.models import Category, Event, EventOldSlug, Participant
 
 
 class TestPermissions(TestCase):
@@ -211,6 +211,51 @@ class TestEvents(TestCase):
         """The events page responds successfully."""
         response = self.client.get(reverse('manage:events'))
         eq_(response.status_code, 200)
+
+    def test_find_event(self):
+        """Find event responds with filtered results or raises error."""
+        response_ok = self.client.post(reverse('manage:events'),
+                                       {'title': 'test'})
+        eq_(response_ok.status_code, 200)
+        ok_(response_ok.content.find('Test event') >= 0)
+        response_fail = self.client.post(reverse('manage:events'),
+                                         {'title': 'laskdjflkajdsf'})
+        eq_(response_fail.status_code, 200)
+        ok_(response_fail.content.find('No event') >= 0)
+
+    def test_modify_slug(self):
+        """Test editing an event - modifying an event's slug
+           results in a correct EventOldSlug."""
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(reverse('manage:event_edit',
+                                           kwargs={'id': event.id}))
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(reverse('manage:event_edit',
+                                               kwargs={'id': event.id}),
+            {
+                'title': 'Tested event',
+                'status': Event.STATUS_SCHEDULED,
+                'description': '...',
+                'start_time': '2012-06-28 16:30:00',
+                'end_time': '2012-06-28 16:45:00',
+                'participants': 'Tim Mickel',
+                'location': 'mtv',
+                'category': '7',
+                'tags': 'xxx'
+            }
+        )
+        self.assertRedirects(response_ok, reverse('manage:events'))
+        ok_(EventOldSlug.objects.get(slug='test-event', event=event))
+        event = Event.objects.get(title='Tested event')
+        eq_(event.slug, 'tested-event')
+        response_fail = self.client.post(reverse('manage:event_edit',
+                                                 kwargs={'id': event.id}),
+            {
+                'title': 'not nearly enough data',
+                'status': Event.STATUS_SCHEDULED
+            }
+        )
+        eq_(response_fail.status_code, 200)
 
 
 class TestParticipants(TestCase):

@@ -183,7 +183,7 @@ def event_edit(request, id):
         participants_formatted = tag_format(event.participants.all())
         tags_formatted = tag_format(event.tags.all())
         form = EventEditForm(instance=event, initial={
-            'participants': participants_formatted, 
+            'participants': participants_formatted,
             'tags': tags_formatted
         })
     return render(request, 'manage/event_edit.html', {'form': form,

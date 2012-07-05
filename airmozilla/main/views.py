@@ -1,6 +1,6 @@
 import datetime
 
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.core.paginator import Paginator, EmptyPage
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import utc
 
@@ -28,8 +28,6 @@ def home(request, page=1):
     paginate = Paginator(past_events, 10)
     try:
         past_events_paged = paginate.page(page)
-    except PageNotAnInteger:
-        past_events_paged = paginate.page(1)
     except EmptyPage:
         past_events_paged = paginate.page(paginate.num_pages)
     live = False
