@@ -147,7 +147,6 @@ class TestEvents(TestCase):
             response_ok = self.client.post(reverse('manage:event_request'),
                 {
                     'title': 'Airmozilla Launch Test',
-                    'video_url': 'http://www.mozilla.org',
                     'placeholder_img': fp,
                     'description': 'xxx',
                     'start_time': '8/20/2012 13:00',
@@ -166,7 +165,7 @@ class TestEvents(TestCase):
         self.assertRedirects(response_ok, reverse('manage:home'))
         eq_(response_fail.status_code, 200)
         event = Event.objects.get(title='Airmozilla Launch Test')
-        eq_(event.video_url, 'http://www.mozilla.org/')
+        eq_(event.location, 'Mountain View')
 
     def test_tag_autocomplete(self):
         """Autocomplete makes JSON for fixture tags and a nonexistent tag."""

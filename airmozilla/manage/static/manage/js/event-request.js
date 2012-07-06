@@ -44,4 +44,17 @@ $(function() {
         },
         initSelection: process_tags
     });
+
+    // Autofill template environments
+    $('#id_template').change(function() {
+        var selected = $('#id_template').val();
+        if (selected) {
+            $.getJSON('/manage/templates/env-autofill',
+                {'template': selected},
+                function(data) {
+                    $('#id_template_environment').val(data['variables']);
+                }
+            );
+        }
+    });
 });

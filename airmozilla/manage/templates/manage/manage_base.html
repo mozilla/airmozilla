@@ -12,15 +12,19 @@
     (url('manage:groups'), 'Group permissions', 'groups', 'icon-lock',
      perms.change_group),
 
+    ('', 'Event configuration', '', '', perms.change_category),
+    (url('manage:categories'), 'Categories', 'categories', 'icon-folder-close',
+     perms.change_category),
+    (url('manage:templates'), 'Video templates', 'templates', 'icon-film',
+     perms.change_template),
+
     ('', 'Event Tools', '', '', perms.manage.event_request),
     (url('manage:event_request'), 'Event request', 'erequest',
      'icon-calendar', perms.add_event),
     (url('manage:participants'), 'Participant editor', 'part_edit',
      'icon-picture', perms.change_participant),
     (url('manage:events'), 'Event manager', 'events', 'icon-facetime-video',
-     perms.change_event),
-    (url('manage:categories'), 'Categories', 'categories', 'icon-folder-close',
-     perms.change_category)
+     perms.change_event)
 ] -%}
 {% block page_title %}
     Air Mozilla Management

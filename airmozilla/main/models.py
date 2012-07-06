@@ -6,6 +6,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import utc
 
+from airmozilla.main.fields import EnvironmentField
+
 
 def _upload_path(tag):
     def _upload_path_tagged(instance, filename):
@@ -72,6 +74,21 @@ class Tag(models.Model):
         return self.name
 
 
+class Template(models.Model):
+    """Provides the HTML embed codes, links, etc. for each different type of
+       video or stream."""
+    name = models.CharField(max_length=100)
+    content = models.TextField(help_text='The HTML framework for this'
+        ' template.  Use <code>{{ any_variable_name }}</code> for per-event'
+        ' tags. Other Jinja2 constructs are available, along with the related'
+        ' <code>request</code>, <code>datetime</code>, and <code>event</code>'
+        ' objects, and the <code>md5</code> function. Warning! Changes affect'
+        ' all events associated with this template.')
+
+    def __unicode__(self):
+        return self.name
+
+
 class EventManager(models.Manager):
     def _get_now(self):
         return datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -106,7 +123,10 @@ class Event(models.Model):
     """ Events - all the essential data and metadata for publishing. """
     title = models.CharField(max_length=200)
     slug = models.SlugField(blank=True, max_length=215, unique=True)
-    video_url = models.URLField(blank=True)
+    template = models.ForeignKey(Template, blank=True, null=True)
+    template_environment = EnvironmentField(blank=True, help_text='Specify'
+        ' the template variables in the format <code>variable1=value</code>,'
+        'one per line.')
     STATUS_INITIATED = 'initiated'
     STATUS_SCHEDULED = 'scheduled'
     STATUS_CHOICES = (

@@ -1,0 +1,49 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='templates' %}
+
+{% block manage_title %}
+  Video templates
+{% endblock %}
+
+{% block manage_content %}
+  <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for template in templates %}
+      <tr>
+        <td>{{ template.name }}</td>
+        <td>
+          <a class="btn" href="{{ url('manage:template_edit', template.id) }}">
+            <i class="icon-edit"></i>
+            Edit
+          </a>
+          <form method="post" class="confirm"
+                action="{{ url('manage:template_remove', template.id) }}">
+            {{ csrf() }}
+            <button class="btn btn-danger" type="submit">
+              <i class="icon-trash"></i>
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    <a class="btn" href="{{ url('manage:template_new') }}">
+      <i class="icon-plus-sign"></i>
+      New template
+    </a>
+  </p>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('manage/js/confirm-delete.js') }}"></script>
+{% endblock %}

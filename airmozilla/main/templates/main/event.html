@@ -29,7 +29,7 @@
     </header>
     <div class="entry-content">
       <p>{{ event.description }}</p>
-      {{ event.video_url }}
+      <p>{{ video|safe }}</p>
     </div>
   </article>
 {% endblock %}

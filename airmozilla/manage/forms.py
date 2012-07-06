@@ -5,7 +5,7 @@ from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm
 from airmozilla.main.models import (Category, Event, EventOldSlug,
-                                    Participant, Tag)
+                                    Participant, Tag, Template)
 
 
 class UserEditForm(BaseModelForm):
@@ -87,7 +87,8 @@ class EventRequestForm(BaseModelForm):
             'description': forms.Textarea(attrs={'rows': 4}),
             'short_description': forms.Textarea(attrs={'rows': 2}),
             'call_info': forms.Textarea(attrs={'rows': 3}),
-            'additional_links': forms.Textarea(attrs={'rows': 3})
+            'additional_links': forms.Textarea(attrs={'rows': 3}),
+            'template_environment': forms.Textarea(attrs={'rows': 3})
         }
         exclude = ('featured', 'status', 'archive_time')
 
@@ -95,8 +96,9 @@ class EventRequestForm(BaseModelForm):
 class EventEditForm(EventRequestForm):
     class Meta:
         model = Event
-        widgets = EventRequestForm._meta.widgets 
+        widgets = EventRequestForm._meta.widgets
         exclude = ()
+
 
 class EventFindForm(BaseModelForm):
     class Meta:
@@ -130,3 +132,11 @@ class ParticipantFindForm(BaseModelForm):
 class CategoryForm(BaseModelForm):
     class Meta:
         model = Category
+
+
+class TemplateEditForm(BaseModelForm):
+    class Meta:
+        model = Template
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 20})
+        }

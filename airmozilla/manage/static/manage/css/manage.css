@@ -22,6 +22,16 @@ div.controls select {
     margin-left: 100px;
 }
 
+/* wide template input */
+#id_content {
+    width: 80%;
+}
+
+/* confirmation/delete button forms */
+.confirm {
+    display: inline;
+}
+
 /* timepicker */
 
 .ui-timepicker-div .ui-widget-header {

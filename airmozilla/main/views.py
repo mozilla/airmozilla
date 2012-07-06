@@ -1,7 +1,10 @@
 import datetime
+import hashlib
 
 from django.core.paginator import Paginator, EmptyPage
 from django.shortcuts import get_object_or_404, redirect, render
+
+from jingo import Template
 
 from airmozilla.main.models import Event, EventOldSlug, Participant
 
@@ -52,8 +55,21 @@ def event(request, slug):
     if ((not event.public or event.status == Event.STATUS_INITIATED)
         and not request.user.is_active):
         return redirect('main:login')
+    template_tagged = ''
+    if event.template:
+        context = {
+            'md5': lambda s: hashlib.md5(s).hexdigest(),
+            'event': event,
+            'request': request,
+            'datetime': datetime.datetime.utcnow()
+        }
+        if isinstance(event.template_environment, dict):
+            context.update(event.template_environment)
+        template = Template(event.template.content)
+        template_tagged = template.render(context)
     return render(request, 'main/event.html', {
         'event': event,
+        'video': template_tagged,
         'featured': featured,
     })
 
