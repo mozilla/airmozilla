@@ -89,7 +89,7 @@ MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
 # Enable timezone support for Django TZ-aware datetime objects
 # Times stored in the db as UTC; forms/templates as Pacific time
 USE_TZ = True
-TIME_ZONE = 'America/Los_Angeles'
+TIME_ZONE = 'US/Pacific'
 
 # Configuration for live/archiving events treatment
 # How much time, in minutes, an event shows as "live" before its start time.

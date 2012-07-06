@@ -6,7 +6,7 @@ $(function() {
             data.push({id: this, text: this});
         });
         return data;
-    }
+    };
     // Autocomplete tags - uses the select2 library
     $('#id_tags').select2({
         tags: [],
@@ -24,9 +24,11 @@ $(function() {
     });
 
     // Datetime picker (jQuery UI)
-    $('#id_start_time').datetimepicker({
+    $('#id_start_time, #id_archive_time').datetimepicker({
         stepHour: 1,
         stepMinute: 15,
+        dateFormat: 'yy-mm-dd',
+        timeFormat: 'hh:mm'
     });
 
     // Autocomplete participants (select2)

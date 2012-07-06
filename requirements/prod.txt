@@ -1,3 +1,5 @@
 -r ../vendor/src/funfactory/funfactory/requirements/prod.txt
 
 -e git://github.com/tzangms/django-bootstrap-form.git@a307fce656#egg=django-bootstrap-form
+
+pytz==2012c

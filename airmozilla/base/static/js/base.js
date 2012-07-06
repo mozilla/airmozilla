@@ -8,4 +8,6 @@ $(function() {
         var parsed = moment(datetime);
         $element.text(parsed.format(format));
     });
+    $.timeago.settings.allowFuture = true;
+    $('time.timeago').timeago();
 });

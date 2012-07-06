@@ -1,15 +1,16 @@
+import pytz
 import re
 
-from django.conf import settings
 from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from jinja2 import Environment, meta
 
-from airmozilla.base.utils import json_view, unique_slugify
+from airmozilla.base.utils import json_view, tz_apply, unique_slugify
 from airmozilla.main.models import (Category, Event, EventOldSlug,
                                     Participant, Tag, Template)
 from airmozilla.manage.forms import (CategoryForm, GroupEditForm,
@@ -116,6 +117,10 @@ def event_request(request):
             if not event.slug:
                 event.slug = unique_slugify(event.title, [Event, EventOldSlug],
                     event.start_time.strftime('%Y%m%d'))
+            tz = pytz.timezone(request.POST['timezone'])
+            event.start_time = tz_apply(event.start_time, tz)
+            if event.archive_time:
+                event.archive_time = tz_apply(event.archive_time, tz)
             event.save()
             form.save_m2m()
             return redirect('manage:home')
@@ -177,16 +182,22 @@ def event_edit(request, id):
                     event.start_time.strftime('%Y%m%d'))
             if event.slug != old_slug:
                 EventOldSlug.objects.create(slug=old_slug, event=event)
+            tz = pytz.timezone(request.POST['timezone'])
+            event.start_time = tz_apply(event.start_time, tz)
+            if event.archive_time:
+                event.archive_time = tz_apply(event.archive_time, tz)
             event.save()
             form.save_m2m()
             return redirect('manage:events')
     else:
+        timezone.activate(pytz.timezone('UTC'))
         tag_format = lambda objects: ','.join(map(unicode, objects))
         participants_formatted = tag_format(event.participants.all())
         tags_formatted = tag_format(event.tags.all())
         form = EventEditForm(instance=event, initial={
             'participants': participants_formatted,
-            'tags': tags_formatted
+            'tags': tags_formatted,
+            'timezone': timezone.get_current_timezone() # UTC
         })
     return render(request, 'manage/event_edit.html', {'form': form,
                                                       'event': event})

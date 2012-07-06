@@ -32,6 +32,10 @@ div.controls select {
     display: inline;
 }
 
+.timeago {
+    border-bottom: 1px dotted #000;
+}
+
 /* timepicker */
 
 .ui-timepicker-div .ui-widget-header {
@@ -60,4 +64,8 @@ div.controls select {
     border: none;
     margin: 0;
     padding: 0;
+}
+
+.ui_tpicker_timezone select {
+    width: 150px;
 }

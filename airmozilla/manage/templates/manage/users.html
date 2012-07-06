@@ -31,7 +31,7 @@
                     {{ p.name }}.
                 {% endfor %}
             </td>
-            <td>{{ u.last_login|naturaltime }}</td>
+            <td>{{ u.last_login|js_date }}</td>
             <td>{{ 'Yes' if u.is_staff else 'No' }}</td>
             <td><a href="{{ url('manage:user_edit', u.id) }} " class="btn">
                 <i class="icon-edit"></i>

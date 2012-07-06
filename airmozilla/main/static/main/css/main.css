@@ -229,6 +229,11 @@ label .note { color: #afb6bb; }
 .entry-posted .posted-date { display: inline; font-size: 1em; line-height: normal; }
 .entry-posted .posted-year { display: inline; font-size: 1em; }
 
+/*** Timeago dotted underline */
+time.timeago {
+    border-bottom: 1px dotted #b4b4b4;
+}
+
 /*** Entry @Header */
 .post .entry-header { padding-left: 0; }
 .entry-title { min-height: 0; }

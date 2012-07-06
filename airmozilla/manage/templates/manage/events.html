@@ -28,10 +28,10 @@
           </a>
         </td>
         <td>{{ event.location }}</td>
-        <td>{{ event.start_time|js_date('ddd, MMM D, YYYY, h:mma') }}</td>
+        <td>{{ event.start_time|js_date }}</td>
         <td>
           {% if event.archive_time %}
-            {{ event.archive_time|js_date('ddd, MMM D, YYYY, h:mma') }}
+            {{ event.archive_time|js_date }}
           {% else %}
             Not archived
           {% endif %}
@@ -64,9 +64,6 @@
 {%- endmacro %}
 
 {% block manage_content %}
-  <div class="alert alert-info">
-    Times are displayed in local time, {{ date_now()|js_date('UTCZZ') }}.
-  </div>
   {% if search_results %}
     {{ event_table('Search results', search_results) }}
   {% else %}
@@ -102,12 +99,4 @@
             Search
         </button>
     </form>
-{% endblock %}
-
-{% block site_js %}
-  {{ super() }}
-  {% compress js %}
-    <script src="{{ static('js/libs/moment.min.js') }}"></script>
-    <script src="{{ static('main/js/timezone.js') }}"></script>
-  {% endcompress %}
 {% endblock %}
