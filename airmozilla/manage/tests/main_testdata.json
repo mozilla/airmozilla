@@ -74,7 +74,9 @@
             "location": "Mountain View Ten Forward",
             "slug": "test-event",
             "status": "scheduled",
-            "featured": false
+            "featured": false,
+            "template": 1,
+            "template_environment": ""
         }
     },
     {
@@ -83,6 +85,14 @@
         "fields": {
             "event": 22,
             "slug": "test-old-slug"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "main.template",
+        "fields": {
+            "name": "test template",
+            "content": "{% set hello='world' %}{{ hello }}{{ tv1 }}{{ tv2 }}"
         }
     }
 ]

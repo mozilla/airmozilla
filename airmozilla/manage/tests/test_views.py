@@ -1,4 +1,6 @@
+import datetime
 import json
+import pytz
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group
@@ -8,7 +10,8 @@ from funfactory.urlresolvers import reverse
 
 from nose.tools import eq_, ok_
 
-from airmozilla.main.models import Category, Event, EventOldSlug, Participant
+from airmozilla.main.models import (Category, Event, EventOldSlug, Participant,
+                                    Template)
 
 
 class TestPermissions(TestCase):
@@ -134,6 +137,18 @@ class TestUsersAndGroups(TestCase):
 
 class TestEvents(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    event_base_data = {
+        'status': Event.STATUS_SCHEDULED,
+        'description': '...',
+        'participants': 'Tim Mickel',
+        'location': 'Mountain View',
+        'category': '7',
+        'tags': 'xxx',
+        'template': '1',
+        'start_time': '2012-3-4 12:00',
+        'timezone': 'US/Pacific'
+    }
+    placeholder = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):
         User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
@@ -143,20 +158,14 @@ class TestEvents(TestCase):
         """Event request responses and successful creation in the db."""
         response = self.client.get(reverse('manage:event_request'))
         eq_(response.status_code, 200)
-        with open('airmozilla/manage/tests/firefox.png') as fp:
-            response_ok = self.client.post(reverse('manage:event_request'),
-                {
-                    'title': 'Airmozilla Launch Test',
-                    'placeholder_img': fp,
-                    'description': 'xxx',
-                    'start_time': '8/20/2012 13:00',
-                    'participants': 'Tim Mickel',
-                    'location': 'Mountain View',
-                    'category': '7',
-                    'tags': 'airmozilla, test '
-                }
+        with open(self.placeholder) as fp:
+            response_ok = self.client.post(
+                reverse('manage:event_request'),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title='Airmozilla Launch Test')
             )
-            response_fail = self.client.post(reverse('manage:event_request'),
+            response_fail = self.client.post(
+                reverse('manage:event_request'),
                 {
                     'title': 'Test fails, not enough data!',
                 }
@@ -169,7 +178,8 @@ class TestEvents(TestCase):
 
     def test_tag_autocomplete(self):
         """Autocomplete makes JSON for fixture tags and a nonexistent tag."""
-        response = self.client.get(reverse('manage:tag_autocomplete'),
+        response = self.client.get(
+            reverse('manage:tag_autocomplete'),
             {
                 'q': 'tes'
             }
@@ -183,7 +193,8 @@ class TestEvents(TestCase):
 
     def test_participant_autocomplete(self):
         """Autocomplete makes JSON pages and correct results for fixtures."""
-        response = self.client.get(reverse('manage:participant_autocomplete'),
+        response = self.client.get(
+            reverse('manage:participant_autocomplete'),
             {
                 'q': 'Ti'
             }
@@ -221,38 +232,101 @@ class TestEvents(TestCase):
         eq_(response_fail.status_code, 200)
         ok_(response_fail.content.find('No event') >= 0)
 
-    def test_modify_slug(self):
+    def test_event_edit_slug(self):
         """Test editing an event - modifying an event's slug
            results in a correct EventOldSlug."""
         event = Event.objects.get(title='Test event')
         response = self.client.get(reverse('manage:event_edit',
                                            kwargs={'id': event.id}))
         eq_(response.status_code, 200)
-        response_ok = self.client.post(reverse('manage:event_edit',
-                                               kwargs={'id': event.id}),
-            {
-                'title': 'Tested event',
-                'status': Event.STATUS_SCHEDULED,
-                'description': '...',
-                'start_time': '2012-06-28 16:30:00',
-                'participants': 'Tim Mickel',
-                'location': 'mtv',
-                'category': '7',
-                'tags': 'xxx'
-            }
+        response_ok = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.id}),
+            dict(self.event_base_data, title='Tested event')
         )
         self.assertRedirects(response_ok, reverse('manage:events'))
         ok_(EventOldSlug.objects.get(slug='test-event', event=event))
         event = Event.objects.get(title='Tested event')
         eq_(event.slug, 'tested-event')
-        response_fail = self.client.post(reverse('manage:event_edit',
-                                                 kwargs={'id': event.id}),
+        response_fail = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.id}),
             {
                 'title': 'not nearly enough data',
                 'status': Event.STATUS_SCHEDULED
             }
         )
         eq_(response_fail.status_code, 200)
+
+    def test_event_edit_templates(self):
+        """Event editing results in correct template environments."""
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_edit', kwargs={'id': event.id})
+        response_ok = self.client.post(
+            url,
+            dict(self.event_base_data, title='template edit',
+                 template_environment='tv1=\'hi\'\ntv2===')
+        )
+        self.assertRedirects(response_ok, reverse('manage:events'))
+        event = Event.objects.get(id=event.id)
+        eq_(event.template_environment, {'tv1': "'hi'", 'tv2': '=='})
+        response_edit_page = self.client.get(url)
+        eq_(response_edit_page.status_code, 200,
+            'Edit page renders OK with a specified template environment.')
+        response_fail = self.client.post(url,
+            dict(self.event_base_data, title='template edit',
+                 template_environment='failenvironment'))
+        eq_(response_fail.status_code, 200)
+
+    def test_timezones(self):
+        """Event requests/edits demonstrate correct timezone math."""
+        utc = pytz.timezone('UTC')
+
+        def _tz_test(url, tzdata, correct_date, msg):
+            with open(self.placeholder) as fp:
+                base_data = dict(self.event_base_data,
+                                 title='timezone test', placeholder_img=fp)
+                self.client.post(url, dict(base_data, **tzdata))
+            event = Event.objects.get(title='timezone test',
+                                      start_time=correct_date)
+            ok_(event, msg + ' vs. ' + str(event.start_time))
+        url = reverse('manage:event_request')
+        _tz_test(
+            url,
+            {
+                'start_time': '2012-08-03 12:00',
+                'timezone': 'US/Eastern'
+            },
+            datetime.datetime(2012, 8, 3, 16).replace(tzinfo=utc),
+            'Event request summer date - Eastern UTC-04 input'
+        )
+        _tz_test(
+            url,
+            {
+                'start_time': '2012-11-30 3:00',
+                'timezone': 'Europe/Paris'
+            },
+            datetime.datetime(2012, 11, 30, 2).replace(tzinfo=utc),
+            'Event request winter date - CET UTC+01 input'
+        )
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_edit', kwargs={'id': event.id})
+        _tz_test(
+            url,
+            {
+                'start_time': '2012-08-03 15:00',
+                'timezone': 'US/Pacific'
+            },
+            datetime.datetime(2012, 8, 3, 22).replace(tzinfo=utc),
+            'Modify event summer date - Pacific UTC-07 input'
+        )
+        _tz_test(
+            url,
+            {
+                'start_time': '2012-12-25 15:00',
+                'timezone': 'US/Pacific'
+            },
+            datetime.datetime(2012, 12, 25, 23).replace(tzinfo=utc),
+            'Modify event winter date - Pacific UTC-08 input'
+        )
 
 
 class TestParticipants(TestCase):
@@ -357,3 +431,70 @@ class TestCategories(TestCase):
         ok_(Category.objects.get(name='Web Dev Talks'))
         response_fail = self.client.post(reverse('manage:categories'))
         eq_(response_fail.status_code, 200)
+
+
+class TestTemplates(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+
+    def setUp(self):
+        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
+        assert self.client.login(username='fake', password='fake')
+
+    def test_templates(self):
+        """Templates listing responds OK."""
+        response = self.client.get(reverse('manage:templates'))
+        eq_(response.status_code, 200)
+
+    def test_template_new(self):
+        """New template form responds OK and results in a new template."""
+        url = reverse('manage:template_new')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'name': 'happy template',
+            'content': 'hello!'
+        })
+        self.assertRedirects(response_ok, reverse('manage:templates'))
+        ok_(Template.objects.get(name='happy template'))
+        response_fail = self.client.post(url)
+        eq_(response_fail.status_code, 200)
+
+    def test_template_edit(self):
+        """Template editor response OK, results in changed data or fail."""
+        template = Template.objects.get(name='test template')
+        url = reverse('manage:template_edit', kwargs={'id': template.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'name': 'new name',
+            'content': 'new content'
+        })
+        self.assertRedirects(response_ok, reverse('manage:templates'))
+        template = Template.objects.get(id=template.id)
+        eq_(template.content, 'new content')
+        response_fail = self.client.post(url, {
+            'name': 'no content'
+        })
+        eq_(response_fail.status_code, 200)
+
+    def test_template_remove(self):
+        """Deleting a template works correctly."""
+        template = Template.objects.get(name='test template')
+        url = reverse('manage:template_remove', kwargs={'id': template.id})
+        self.client.get(url)
+        template = Template.objects.get(id=template.id)
+        ok_(template)  # the template wasn't deleted because we didn't use POST
+        response_ok = self.client.post(url)
+        self.assertRedirects(response_ok, reverse('manage:templates'))
+        template = Template.objects.filter(id=template.id).exists()
+        ok_(not template)
+
+    def test_template_env_autofill(self):
+        """The JSON autofiller responds correctly for the fixture template."""
+        template = Template.objects.get(name='test template')
+        response = self.client.get(reverse('manage:template_env_autofill'),
+                                   {'template': template.id})
+        eq_(response.status_code, 200)
+        template_parsed = json.loads(response.content)
+        ok_(template_parsed)
+        eq_(template_parsed, {'variables': 'tv1=\ntv2='})
