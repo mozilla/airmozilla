@@ -81,3 +81,14 @@ SECRET_KEY = ''
 # Common Event Format logging parameters
 #CEF_PRODUCT = 'Playdoh'
 #CEF_VENDOR = 'Mozilla'
+
+
+# Caching - use memcached
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'KEY_PREFIX': 'airmoz',
+        'TIMEOUT': 6 * 60 * 60,
+        'LOCATION': ''
+    }
+}

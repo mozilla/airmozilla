@@ -16,5 +16,8 @@ urlpatterns = patterns('',
         kwargs={'template': 'main/login_failure.html'}),
     url(r'^about/$', views.page, name='about',
         kwargs={'template': 'main/about.html'}),
+    url(r'^calendar/$', views.events_calendar, name='calendar'),
+    url(r'^calendar/private/$', views.events_calendar,
+        kwargs={'public': False}, name='private_calendar'),
     url(r'^(?P<slug>[-\w]+)/$', views.event, name='event'),
 )

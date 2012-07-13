@@ -3,7 +3,9 @@ import hashlib
 import os
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
+from django.dispatch import receiver
 from django.utils.timezone import utc
 
 from airmozilla.main.fields import EnvironmentField
@@ -100,23 +102,32 @@ class EventManager(models.Manager):
     def initiated(self):
         return self.get_query_set().filter(status=Event.STATUS_INITIATED)
 
+    def approved(self):
+        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED)
+    
     def upcoming(self):
-        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED,
-               archive_time=None, start_time__gt=self._get_live_time())
+        return self.approved().filter(
+            archive_time=None,
+            start_time__gt=self._get_live_time()
+        )
 
     def live(self):
-        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED,
-               archive_time=None, start_time__lt=self._get_live_time())
+        return self.approved().filter(
+            archive_time=None,
+            start_time__lt=self._get_live_time()
+        )
 
     def archiving(self):
-        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED,
-               archive_time__gt=self._get_now(),
-               start_time__lt=self._get_now())
+        return self.approved().filter(
+            archive_time__gt=self._get_now(),
+            start_time__lt=self._get_now()
+        )
 
     def archived(self):
-        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED,
-               archive_time__lt=self._get_now(),
-               start_time__lt=self._get_now())
+        return self.approved().filter(
+            archive_time__lt=self._get_now(),
+            start_time__lt=self._get_now()
+        )
 
 
 class Event(models.Model):
@@ -154,6 +165,12 @@ class Event(models.Model):
                     help_text='Available to everyone (else MoCo only.)')
     featured = models.BooleanField(default=False)
     objects = EventManager()
+
+
+@receiver(models.signals.post_save, sender=Event)
+def event_clear_cache(sender, **kwargs):
+    cache.delete('calendar_public')
+    cache.delete('calendar_private')
 
 
 class EventOldSlug(models.Model):

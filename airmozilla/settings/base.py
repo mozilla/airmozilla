@@ -97,3 +97,8 @@ LIVE_MARGIN = 10
 
 # Default amount of time, in minutes, an event spends in the "archiving" state.
 ARCHIVING_MARGIN = 60
+
+# How many events in the past (and future) should the calendar system
+# return.  E.g. if CALENDAR_SIZE=30, up to 60 events (half from the past
+# and half from the future) will be output.
+CALENDAR_SIZE = 30

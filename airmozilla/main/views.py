@@ -1,8 +1,14 @@
 import datetime
 import hashlib
+import vobject
 
+from django import http
+from django.conf import settings
+from django.contrib.sites.models import RequestSite
 from django.core.paginator import Paginator, EmptyPage
 from django.shortcuts import get_object_or_404, redirect, render
+from django.core.cache import cache
+from django.utils.timezone import utc
 
 from jingo import Template
 
@@ -84,3 +90,39 @@ def participant(request, slug):
         'participant': participant,
         'featured': featured
     })
+
+
+def events_calendar(request, public=True):
+    cache_key = 'calendar_%s' % ('public' if public else 'private')
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+    cal = vobject.iCalendar()
+    cal.add('X-WR-CALNAME').value = ('Air Mozilla Public Events' if public
+                                     else 'Air Mozilla Private Events')
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    events = list(Event.objects.approved()
+                        .filter(start_time__lt=now, public=public) 
+                        .order_by('-start_time')[:settings.CALENDAR_SIZE])
+    events += list(Event.objects.approved()
+                        .filter(start_time__gte=now, public=public)
+                        .order_by('start_time')[:settings.CALENDAR_SIZE])
+    base_url = '%s://%s/' % (request.is_secure() and 'https' or 'http',
+                             RequestSite(request).domain)
+    for event in events:
+        vevent = cal.add('vevent')
+        vevent.add('summary').value = event.title
+        vevent.add('dtstart').value = event.start_time
+        vevent.add('dtend').value = (event.start_time +
+                                     datetime.timedelta(hours=1))
+        vevent.add('description').value = event.description
+        vevent.add('location').value = event.location
+        vevent.add('url').value = base_url + event.slug + '/'
+    icalstream = cal.serialize()
+    response = http.HttpResponse(icalstream,
+                                 mimetype='text/calendar; charset=utf-8')
+    filename = 'AirMozillaEvents%s.ics' % ('Public' if public else 'Private')
+    response['Content-Disposition'] = (
+        'inline; filename=AirmozillaEvents%s.ics' % filename)
+    cache.set(cache_key, response)
+    return response

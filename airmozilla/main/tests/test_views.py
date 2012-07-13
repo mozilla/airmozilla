@@ -64,3 +64,10 @@ class TestPages(TestCase):
         participant.save()
         response_fail = self.client.get(participant_page)
         self.assertRedirects(response_fail, reverse('main:login'))
+
+    def test_calendars(self):
+        """Calendars respond successfully."""
+        response = self.client.get(reverse('main:calendar'))
+        eq_(response.status_code, 200)
+        response = self.client.get(reverse('main:private_calendar'))
+        eq_(response.status_code, 200)
