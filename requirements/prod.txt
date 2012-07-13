@@ -3,3 +3,8 @@
 -e git://github.com/tzangms/django-bootstrap-form.git@a307fce656#egg=django-bootstrap-form
 
 pytz==2012c
+python-dateutil==1.5
+vobject==0.8.1c
+python-memcached==1.48
+PIL==1.1.7
+sorl-thumbnail==11.12
