@@ -23,6 +23,8 @@
      'icon-calendar', perms.add_event),
     (url('manage:participants'), 'Participant editor', 'part_edit',
      'icon-picture', perms.change_participant),
+    (url('manage:approvals'), 'Approval inbox', 'approvals', 'icon-envelope',
+     perms.change_approval),
     (url('manage:events'), 'Event manager', 'events', 'icon-facetime-video',
      perms.change_event)
 ] -%}

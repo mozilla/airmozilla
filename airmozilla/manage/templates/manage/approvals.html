@@ -1,0 +1,56 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='approvals' -%}
+
+{% block manage_title %}
+  Approvals pending
+{% endblock %}
+
+{% block manage_content %}
+  {% if approvals %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Event title</th>
+        <th>Start time</th>
+        <th>Location</th>
+        <th>Creator</th>
+        <th>Created</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for approval in approvals %}
+      <tr>
+        <td>{{ approval.event.title }}</td>
+        <td>{{ approval.event.start_time|js_date }}</td>
+        <td>{{ approval.event.location }}</td>
+        <td>{{ approval.event.creator.get_full_name() }}</td>
+        <td>{{ approval.event.created|js_date }}</td>
+        <td>
+          <a class="btn" 
+             href="{{ url('manage:approval_review', approval.id) }}">
+            <i class="icon-wrench"></i>
+            Review
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% if recent %}
+  <h3>Recent reviews from your group</h3>
+  <ul>
+  {% for review in recent %}
+    <li>
+        {{ review.user.get_full_name() }} ({{ review.group }})
+        <strong>{{ 'approved' if review.approved else 'rejected' }}</strong>
+        "{{ review.event.title }}" - {{ review.processed_time|js_date }}
+        {% if review.comment %}
+          - {{ review.comment }}
+        {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+  {% endif %}
+{% endblock %}

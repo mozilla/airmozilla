@@ -1,12 +1,13 @@
 import datetime
 
+from django.contrib.auth.models import Group
 from django.test import TestCase
 from django.utils.timezone import utc
 
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_
 
-from airmozilla.main.models import Event, EventOldSlug, Participant
+from airmozilla.main.models import Approval, Event, EventOldSlug, Participant
 
 
 class TestPages(TestCase):
@@ -30,9 +31,17 @@ class TestPages(TestCase):
 
     def test_event(self):
         """Event view page loads correctly if the event is public and
-           scheduled; request a login otherwise."""
+           scheduled and approved; request a login otherwise."""
         event = Event.objects.get(title='Test event')
+        group = Group.objects.get()
+        approval = Approval(event=event, group=group)
+        approval.save()
         event_page = reverse('main:event', kwargs={'slug': event.slug})
+        response_fail_approval = self.client.get(event_page)
+        self.assertRedirects(response_fail_approval, reverse('main:login'))
+        approval.approved = True
+        approval.processed = True
+        approval.save()
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
         event.public = False

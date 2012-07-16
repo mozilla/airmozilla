@@ -1,0 +1,72 @@
+{% extends 'manage/approvals.html' %}
+
+{% block manage_title %}
+  Reviewing event "{{ approval.event.title }}"
+{% endblock %}
+
+{% block manage_content %}
+  {% set data = [
+    ('Title', approval.event.title),
+    ('Placeholder image',
+     '<a href="{url}">View</a>'|fe(url=approval.event.placeholder_img.url)),
+    ('Description', approval.event.description),
+    ('Short description', approval.event.short_description),
+    ('Start time', approval.event.start_time|js_date),
+    ('Location', approval.event.location),
+    ('Category', approval.event.category),
+    ('Call info', approval.event.call_info),
+    ('Additional links', approval.event.additional_links),
+    ('Public', 'Yes' if approval.event.public else 'No (MoCo Only)'),
+    ('Creator', approval.event.creator.get_full_name() +
+                ' <' + approval.event.creator.email + '>'),
+    ('Created', approval.event.created|js_date),
+  ] -%}
+  <table class="table">
+    {% for row in data %}
+      <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+      </tr>
+    {% endfor %}
+      <tr>
+        <td>Participants</td>
+        <td>
+          {% for participant in approval.event.participants.all() %}
+            &bull; {{ participant.name }}
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>Tags</td>
+        <td>
+          {% for tag in approval.event.tags.all() %}
+            &bull; {{ tag.name }}
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>Approvals requested</td>
+        <td>
+          {% for app in approval.event.approval_set.all() %}
+            &bull; {{ app.group }}
+          {% endfor %}
+        </td>
+      </tr>
+  </table>
+  <form method="post" class="form-horizontal">
+  {{ csrf() }}
+  {{ bootstrapform(form) }}
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary btn-large"
+            name="approve" id='submit_approve'>
+      <i class="icon-ok"></i>
+      Approve
+    </a>
+    <button type="submit" class="btn btn-danger btn-large"
+            name="reject" id="submit_reject">
+      <i class="icon-remove"></i>
+      Reject
+    </a>
+  </div>
+  </form>
+{% endblock %}

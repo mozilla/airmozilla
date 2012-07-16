@@ -32,6 +32,16 @@ div.controls select {
     display: inline;
 }
 
+/* event edit status floating box */
+.event-status {
+    position: absolute;
+    right: 2%;
+}
+
+.event-status li {
+    margin-bottom: 10px;
+}
+
 .timeago {
     border-bottom: 1px dotted #000;
 }

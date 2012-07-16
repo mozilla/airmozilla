@@ -4,3 +4,37 @@
 {% block manage_title %}
   Editing event "{{ event.title }}"
 {% endblock %}
+
+{% block manage_content %}
+  <div class="event-status span4 well">
+    <strong>Event status: {{ event.status }}</strong>
+    <ul>
+      {% for approval in event.approval_set.all() %}
+        <li>
+        {% if approval.processed %}
+          {% set badge = 'success' if approval.approved else 'important' %}
+          <span class="badge badge-{{ badge }}">
+            {{ 'Approved' if approval.approved else 'Rejected' }}
+          </span>
+          <span class="badge badge-inverse">{{ approval.group }}</span>
+          &nbsp;
+          {{ approval.processed_time|js_date }}<br>{{ approval.user.email }}
+          {% if approval.comment %}
+            - {{ approval.comment }}
+          {% endif %} 
+        {% else %}
+          Needs review from {{ approval.group }}
+        {% endif %}
+        </li>
+      {% endfor %}
+      <li>
+        <span class="badge badge-info">Modified</span>
+        {{ event.modified|js_date }}<br>{{ event.modified_user.email }}
+      </li>
+      <li>
+        <span class="badge badge-info">Created</span>
+        {{ event.created|js_date }}<br>{{ event.creator.email }}</li>
+    </ul>
+  </div>
+  {% include 'manage/_default_form_upload.html' %}
+{% endblock %}

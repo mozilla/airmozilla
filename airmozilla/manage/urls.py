@@ -27,7 +27,10 @@ urlpatterns = patterns('',
     url(r'^templates/new/$', views.template_new, name='template_new'),
     url(r'^templates/(?P<id>\d+)/$', views.template_edit,
                                      name='template_edit'),
-    url(r'^templates/remove/(?P<id>\d+)/$', views.template_remove,
+    url(r'^templates/(?P<id>\d+)/remove/$', views.template_remove,
                                             name='template_remove'),
     url(r'^templates/$', views.templates, name='templates'),
+    url(r'^approvals/$', views.approvals, name='approvals'),
+    url(r'^approvals/(?P<id>\d+)/$', views.approval_review,
+                                     name='approval_review')
 )

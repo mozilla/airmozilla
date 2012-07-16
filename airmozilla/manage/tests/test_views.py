@@ -10,8 +10,8 @@ from funfactory.urlresolvers import reverse
 
 from nose.tools import eq_, ok_
 
-from airmozilla.main.models import (Category, Event, EventOldSlug, Participant,
-                                    Template)
+from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
+                                    Participant, Template)
 
 
 class TestPermissions(TestCase):
@@ -498,3 +498,33 @@ class TestTemplates(TestCase):
         template_parsed = json.loads(response.content)
         ok_(template_parsed)
         eq_(template_parsed, {'variables': 'tv1=\ntv2='})
+
+
+class TestApprovals(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    
+    def setUp(self):
+        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
+        assert self.client.login(username='fake', password='fake')
+
+    def test_approvals(self):
+        response = self.client.get(reverse('manage:approvals'))
+        eq_(response.status_code, 200)
+
+    def test_approval_review(self):
+        app = Approval(event=Event.objects.get(id=22),
+                       group=Group.objects.get(id=1))
+        app.save()
+        url = reverse('manage:approval_review', kwargs={'id': app.id})
+        response_not_in_group = self.client.get(url)
+        self.assertRedirects(response_not_in_group,
+                             reverse('manage:approvals'))
+        User.objects.get(username='fake').groups.add(1)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_approve = self.client.post(url, {'approve': 'approve'})
+        self.assertRedirects(response_approve, reverse('manage:approvals'))
+        app = Approval.objects.get(id=app.id)
+        ok_(app.approved)
+        ok_(app.processed)
+        eq_(app.user, User.objects.get(username='fake'))

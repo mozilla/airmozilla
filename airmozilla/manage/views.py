@@ -11,9 +11,9 @@ from django.utils import timezone
 from jinja2 import Environment, meta
 
 from airmozilla.base.utils import json_view, tz_apply, unique_slugify
-from airmozilla.main.models import (Category, Event, EventOldSlug,
+from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
                                     Participant, Tag, Template)
-from airmozilla.manage.forms import (CategoryForm, GroupEditForm,
+from airmozilla.manage.forms import (ApprovalForm, CategoryForm, GroupEditForm,
                                      EventEditForm, EventFindForm,
                                      EventRequestForm, ParticipantEditForm,
                                      ParticipantFindForm, TemplateEditForm,
@@ -121,6 +121,8 @@ def event_request(request):
             event.start_time = tz_apply(event.start_time, tz)
             if event.archive_time:
                 event.archive_time = tz_apply(event.archive_time, tz)
+            event.creator = request.user
+            event.modified_user = request.user
             event.save()
             form.save_m2m()
             return redirect('manage:home')
@@ -186,6 +188,17 @@ def event_edit(request, id):
             event.start_time = tz_apply(event.start_time, tz)
             if event.archive_time:
                 event.archive_time = tz_apply(event.archive_time, tz)
+            approvals_old = [app.group for app in event.approval_set.all()]
+            approvals_new = form.cleaned_data['approvals']
+            approvals_add = set(approvals_new).difference(approvals_old)
+            approvals_remove = set(approvals_old).difference(approvals_new)
+            for approval in approvals_add:
+                app = Approval(group=approval, event=event)
+                app.save()
+            for approval in approvals_remove:
+                app = Approval.objects.get(group=approval, event=event)
+                app.delete()
+            event.modified_user = request.user
             event.save()
             form.save_m2m()
             return redirect('manage:events')
@@ -366,3 +379,35 @@ def template_remove(request, id):
         template = Template.objects.get(id=id)
         template.delete()
     return redirect('manage:templates')
+
+
+@staff_required
+@permission_required('change_approval')
+def approvals(request):
+    user = request.user
+    approvals = Approval.objects.filter(group__in=user.groups.all(),
+                                        processed=False)
+    recent = (Approval.objects.filter(group__in=user.groups.all(),
+                                             processed=True)
+                      .order_by('-processed_time')[:25])
+    return render(request, 'manage/approvals.html', {'approvals': approvals,
+                                                     'recent': recent})
+
+@staff_required
+@permission_required('change_approval')
+def approval_review(request, id):
+    approval = Approval.objects.get(id=id)
+    if approval.group not in request.user.groups.all():
+        return redirect('manage:approvals')
+    if request.method == 'POST':
+        form = ApprovalForm(request.POST, instance=approval)
+        approval = form.save(commit=False)
+        approval.approved = 'approve' in request.POST
+        approval.processed = True
+        approval.user = request.user
+        approval.save()
+        return redirect('manage:approvals')
+    else:
+        form = ApprovalForm(instance=approval)
+    return render(request, 'manage/approval_review.html',
+                  {'approval': approval, 'form': form})

@@ -3,12 +3,11 @@ import pytz
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User, Group
-from django.utils.timezone import get_current_timezone_name
 
 from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm
-from airmozilla.main.models import (Category, Event, EventOldSlug,
+from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
                                     Participant, Tag, Template)
 
 
@@ -108,13 +107,22 @@ class EventRequestForm(BaseModelForm):
 
 
 class EventEditForm(EventRequestForm):
+    approvals = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.filter(permissions__codename='change_approval'),
+        required=False,
+    )
+    def __init__(self, *args, **kwargs):
+        super(EventEditForm, self).__init__(*args, **kwargs)
+        approvals = kwargs['instance'].approval_set.all()
+        self.fields['approvals'].initial = [app.group for app in approvals]
     class Meta(EventRequestForm.Meta):
         exclude = ()
         # Fields specified to enforce order
         fields = ('title', 'slug', 'status', 'public', 'featured', 'template',
         'template_environment', 'placeholder_img', 'location', 'description',
         'short_description', 'start_time', 'archive_time', 'timezone',
-        'participants', 'category', 'tags', 'call_info', 'additional_links')
+        'participants', 'category', 'tags', 'call_info', 'additional_links',
+        'approvals')
 
 
 class EventFindForm(BaseModelForm):
@@ -156,4 +164,12 @@ class TemplateEditForm(BaseModelForm):
         model = Template
         widgets = {
             'content': forms.Textarea(attrs={'rows': 20})
+        }
+
+class ApprovalForm(BaseModelForm):
+    class Meta:
+        model = Approval
+        fields = ('comment',)
+        widgets = {
+            'comment': forms.Textarea(attrs={'rows': 3})
         }

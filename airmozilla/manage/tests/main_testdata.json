@@ -76,7 +76,11 @@
             "status": "scheduled",
             "featured": false,
             "template": 1,
-            "template_environment": ""
+            "template_environment": "",
+            "creator": 1,
+            "created": "2012-06-21T20:00:00Z",
+            "modified_user": 1,
+            "modified": "2012-06-21T20:00:00Z"
         }
     },
     {
@@ -93,6 +97,21 @@
         "fields": {
             "name": "test template",
             "content": "{% set hello='world' %}{{ hello }}{{ tv1 }}{{ tv2 }}"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "auth.user",
+        "fields": {
+            "username": "sdkjf",
+            "email": "askjdf@slkjsk.com"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "auth.group",
+        "fields": {
+            "name": "testapprover"
         }
     }
 ]
