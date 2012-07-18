@@ -21,6 +21,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     '%s.manage' % PROJECT_MODULE,
 
     'bootstrapform',
+    'sorl.thumbnail'
 ]
 
 
@@ -102,3 +103,6 @@ ARCHIVING_MARGIN = 60
 # return.  E.g. if CALENDAR_SIZE=30, up to 60 events (half from the past
 # and half from the future) will be output.
 CALENDAR_SIZE = 30
+
+# Use PNG for thumbnailing
+THUMBNAIL_FORMAT = 'PNG'

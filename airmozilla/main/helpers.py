@@ -5,6 +5,7 @@ from django.utils.text import truncate_words
 from django.utils.timezone import utc
 
 from jingo import register
+from sorl.thumbnail import get_thumbnail
 
 
 @register.filter
@@ -30,3 +31,11 @@ def date_now():
 def short_desc(event, words=25):
     """Takes an event object and returns a shortened description."""
     return event.short_description or truncate_words(event.description, words)
+
+
+@register.function
+def thumbnail(filename, geometry, **options):
+    try:
+        return get_thumbnail(filename, geometry, **options)
+    except IOError:
+        return None

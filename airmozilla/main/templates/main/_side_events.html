@@ -6,8 +6,9 @@
         <h4 class="entry-title">
           <a href="{{ url('main:event', event.slug) }}">
             <span class="video-thumb">
-              <img src="{{ event.placeholder_img.url }}" alt="{{ event.title }}"
-                   width="160" height="160" class="wp-post-image">
+              {% set thumb = thumbnail(event.placeholder_img, '160x85', crop='center') %}
+              <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+                   alt="{{ event.title }}" class="wp-post-image">
             </span>
             {{ event.title }}
           </a>

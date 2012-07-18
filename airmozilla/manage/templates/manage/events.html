@@ -10,11 +10,12 @@
 <table class="table table-striped table-bordered">
   <thead>
     <tr>
+      <th style="width: 5%"></th>
       <th style="width: 19%">Title</th>
-      <th style="width: 10%">Location</th>
+      <th style="width: 8%">Location</th>
       <th style="width: 19%">Start time</th>
       <th style="width: 19%">Archive time</th>
-      <th style="width: 15%">Category</th>
+      <th style="width: 12%">Category</th>
       <th style="width: 9%">Visibility</th>
       <th style="width: 9%"></th>
     </tr>
@@ -22,6 +23,11 @@
   <tbody>
     {% for event in events %}
       <tr>
+        <td>
+          {% set thumb = thumbnail(event.placeholder_img, '32x32') %}        
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+               alt="Placeholder image">
+        </td>
         <td>
           <a href="{{ url('main:event', event.slug) }}">
             {{ event.title }}
