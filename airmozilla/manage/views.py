@@ -5,19 +5,20 @@ from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
 from jinja2 import Environment, meta
 
 from airmozilla.base.utils import json_view, tz_apply, unique_slugify
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
-                                    Participant, Tag, Template)
+                                    Location, Participant, Tag, Template)
 from airmozilla.manage.forms import (ApprovalForm, CategoryForm, GroupEditForm,
                                      EventEditForm, EventFindForm,
-                                     EventRequestForm, ParticipantEditForm,
-                                     ParticipantFindForm, TemplateEditForm,
-                                     UserEditForm, UserFindForm)
+                                     EventRequestForm, LocationEditForm,
+                                     ParticipantEditForm, ParticipantFindForm,
+                                     TemplateEditForm, UserEditForm,
+                                     UserFindForm)
 
 staff_required = user_passes_test(lambda u: u.is_staff)
 
@@ -380,6 +381,54 @@ def template_remove(request, id):
         template.delete()
     return redirect('manage:templates')
 
+
+@staff_required
+@permission_required('change_location')
+def locations(request):
+    locations = Location.objects.all()
+    return render(request, 'manage/locations.html', {'locations': locations})
+
+
+@staff_required
+@permission_required('change_location')
+def location_edit(request, id):
+    location = Location.objects.get(id=id)
+    if request.method == 'POST':
+        form = LocationEditForm(request.POST, instance=location)
+        if form.is_valid():
+            form.save()
+            return redirect('manage:locations')
+    else:
+        form = LocationEditForm(instance=location)
+    return render(request, 'manage/location_edit.html', {'form': form,
+                                                         'location': location})
+
+
+@staff_required
+@permission_required('add_location')
+def location_new(request):
+    if request.method == 'POST':
+        form = LocationEditForm(request.POST, instance=Location())
+        if form.is_valid():
+            form.save()
+            return redirect('manage:locations')
+    else:
+        form = LocationEditForm()
+    return render(request, 'manage/location_new.html', {'form': form})
+
+@staff_required
+@permission_required('change_location')
+def location_remove(request, id):
+    if request.method == 'POST':
+        location = Location.objects.get(id=id)
+        location.delete()
+    return redirect('manage:locations')
+
+@staff_required
+@json_view
+def location_timezone(request):
+    location = get_object_or_404(Location, id=request.GET['location'])
+    return {'timezone': location.timezone}
 
 @staff_required
 @permission_required('change_approval')

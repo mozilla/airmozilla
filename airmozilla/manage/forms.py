@@ -8,7 +8,10 @@ from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
-                                    Participant, Tag, Template)
+                                    Location, Participant, Tag, Template)
+
+
+TIMEZONE_CHOICES = [(tz, tz.replace('_', ' ')) for tz in pytz.common_timezones]
 
 
 class UserEditForm(BaseModelForm):
@@ -48,7 +51,6 @@ class UserFindForm(BaseModelForm):
 class EventRequestForm(BaseModelForm):
     tags = forms.CharField()
     participants = forms.CharField()
-    TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.common_timezones]
     timezone = forms.ChoiceField(choices=TIMEZONE_CHOICES,
                      initial=settings.TIME_ZONE)
     def __init__(self, *args, **kwargs):
@@ -58,6 +60,11 @@ class EventRequestForm(BaseModelForm):
              '<i class="icon-plus-sign"></i>'
              'New Participant'
              '</a>' % reverse('manage:participant_new'))
+        self.fields['location'].help_text = (
+            '<a href="%s" class="btn" target="_blank">'
+            '<i class="icon-plus-sign"></i>'
+            'New location'
+            '</a>' % reverse('manage:location_new'))
 
     def clean_tags(self):
         tags = self.cleaned_data['tags']
@@ -101,8 +108,8 @@ class EventRequestForm(BaseModelForm):
         exclude = ('featured', 'status', 'archive_time')
         # Fields specified to enforce order
         fields = ('title', 'slug', 'placeholder_img', 'description',
-        'short_description', 'start_time', 'timezone', 'participants',
-        'location', 'category', 'tags', 'call_info', 'additional_links',
+        'short_description', 'location', 'start_time', 'timezone',
+        'participants', 'category', 'tags', 'call_info', 'additional_links',
         'public')
 
 
@@ -165,6 +172,19 @@ class TemplateEditForm(BaseModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'rows': 20})
         }
+
+
+class LocationEditForm(BaseModelForm):
+    timezone = forms.ChoiceField(choices=TIMEZONE_CHOICES)
+    def __init__(self, *args, **kwargs):
+        super(LocationEditForm, self).__init__(*args, **kwargs)
+        if 'instance' in kwargs:
+            initial = kwargs['instance'].timezone
+        else:
+            initial = settings.TIME_ZONE
+        self.fields['timezone'].initial = initial
+    class Meta:
+        model = Location
 
 class ApprovalForm(BaseModelForm):
     class Meta:

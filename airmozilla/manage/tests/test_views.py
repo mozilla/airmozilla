@@ -11,7 +11,7 @@ from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
-                                    Participant, Template)
+                                    Location, Participant, Template)
 
 
 class TestPermissions(TestCase):
@@ -141,7 +141,7 @@ class TestEvents(TestCase):
         'status': Event.STATUS_SCHEDULED,
         'description': '...',
         'participants': 'Tim Mickel',
-        'location': 'Mountain View',
+        'location': '1',
         'category': '7',
         'tags': 'xxx',
         'template': '1',
@@ -174,7 +174,7 @@ class TestEvents(TestCase):
         self.assertRedirects(response_ok, reverse('manage:home'))
         eq_(response_fail.status_code, 200)
         event = Event.objects.get(title='Airmozilla Launch Test')
-        eq_(event.location, 'Mountain View')
+        eq_(event.location, Location.objects.get(id=1))
 
     def test_tag_autocomplete(self):
         """Autocomplete makes JSON for fixture tags and a nonexistent tag."""
@@ -528,3 +528,71 @@ class TestApprovals(TestCase):
         ok_(app.approved)
         ok_(app.processed)
         eq_(app.user, User.objects.get(username='fake'))
+
+
+class TestLocations(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+
+    def setUp(self):
+        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
+        assert self.client.login(username='fake', password='fake')
+
+    def test_locations(self):
+        """Location management pages return successfully."""
+        response = self.client.get(reverse('manage:locations'))
+        eq_(response.status_code, 200)
+
+    def test_location_new(self):
+        """Adding new location works correctly."""
+        url = reverse('manage:location_new')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'name': 'testing',
+            'timezone': 'US/Pacific'
+        })
+        self.assertRedirects(response_ok, reverse('manage:locations'))
+        location = Location.objects.get(name='testing')
+        eq_(location.timezone, 'US/Pacific')
+        response_fail = self.client.post(url)
+        eq_(response_fail.status_code, 200)
+
+    def test_location_remove(self):
+        """Removing a location works correctly and leaves associated events
+           with null locations."""
+        url = reverse('manage:location_remove', kwargs={'id': 1})
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse('manage:locations'))
+        location = Location.objects.filter(id=1).exists()
+        ok_(not location)
+        event = Event.objects.get(id=22)
+        eq_(event.location, None)
+
+    def test_location_edit(self):
+        """Test location editor; timezone switch works correctly."""
+        url = reverse('manage:location_edit', kwargs={'id': 1})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'name': 'eastern',
+            'timezone': 'US/Eastern'
+        })
+        self.assertRedirects(response_ok, reverse('manage:locations'))
+        location = Location.objects.get(id=1)
+        eq_(location.timezone, 'US/Eastern')
+        response_fail = self.client.post(url, {
+            'name': 'eastern',
+            'timezone': 'notatimezone'
+        })
+        eq_(response_fail.status_code, 200)
+
+    def test_location_timezone(self):
+        """Test timezone-ajax autofill."""
+        url = reverse('manage:location_timezone')
+        response_fail = self.client.get(url, {'location': '23323'})
+        eq_(response_fail.status_code, 404)
+        response_ok = self.client.get(url, {'location': '1'})
+        eq_(response_ok.status_code, 200)
+        data = json.loads(response_ok.content)
+        ok_('timezone' in data)
+        eq_(data['timezone'], 'US/Pacific')

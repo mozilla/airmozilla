@@ -47,6 +47,19 @@ $(function() {
         initSelection: process_tags
     });
 
+    // Fill in the timezone from the selected location
+    $('#id_location').select2();
+    $('#id_location').bind('change', function() {
+        $.getJSON('/manage/locations/tz/',
+            {'location': $('#id_location').val()},
+            function(data) {
+                $('#id_timezone').select2('val', data['timezone']);
+            }
+        );
+    });
+    $('#id_timezone').select2();
+    $('#id_category').select2();
+
     // Autofill template environments
     $('#id_template').change(function() {
         var selected = $('#id_template').val();

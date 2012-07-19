@@ -93,6 +93,14 @@ class Template(models.Model):
         return self.name
 
 
+class Location(models.Model):
+    """Venue/location of a video/stream/presentation/etc."""
+    name = models.CharField(max_length=300)
+    timezone = models.CharField(max_length=250)
+
+    def __unicode__(self):
+        return self.name
+
 class EventManager(models.Manager):
     def _get_now(self):
         return datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -140,7 +148,8 @@ class Event(models.Model):
     """ Events - all the essential data and metadata for publishing. """
     title = models.CharField(max_length=200)
     slug = models.SlugField(blank=True, max_length=215, unique=True)
-    template = models.ForeignKey(Template, blank=True, null=True)
+    template = models.ForeignKey(Template, blank=True, null=True,
+                                 on_delete=models.SET_NULL)
     template_environment = EnvironmentField(blank=True, help_text='Specify'
         ' the template variables in the format <code>variable1=value</code>,'
         'one per line.')
@@ -162,7 +171,8 @@ class Event(models.Model):
     archive_time = models.DateTimeField(blank=True, null=True)
     participants = models.ManyToManyField(Participant,
                           help_text='Speakers or presenters for this event.')
-    location = models.CharField(max_length=50)
+    location = models.ForeignKey(Location, blank=True, null=True,
+                                 on_delete=models.SET_NULL) 
     category = models.ForeignKey(Category)
     tags = models.ManyToManyField(Tag, blank=True)
     call_info = models.TextField(blank=True)

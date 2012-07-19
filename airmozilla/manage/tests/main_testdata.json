@@ -18,6 +18,14 @@
         }
     },
     {
+        "pk": 1,
+        "model": "main.location",
+        "fields": {
+            "name": "Mountain View",
+            "timezone": "US/Pacific"
+        }
+    },
+    {
         "pk": 7, 
         "model": "main.category", 
         "fields": {
@@ -71,7 +79,7 @@
             ], 
             "archive_time": "2012-06-21T20:00:00Z", 
             "public": true, 
-            "location": "Mountain View Ten Forward",
+            "location": 1,
             "slug": "test-event",
             "status": "scheduled",
             "featured": false,

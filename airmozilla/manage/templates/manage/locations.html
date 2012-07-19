@@ -1,0 +1,51 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='locations' -%}
+
+{% block manage_title %}
+  Locations
+{% endblock %}
+
+{% block manage_content %}
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Time zone</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for location in locations %}
+      <tr>
+        <td>{{ location.name }}</td>
+        <td>{{ location.timezone }}</td>
+        <td>
+          <a class="btn" href="{{ url('manage:location_edit', location.id) }}">
+            <i class="icon-edit"></i>
+            Edit
+          </a>
+          <form method="post" class="confirm"
+                action="{{ url('manage:location_remove', location.id) }}">
+            {{ csrf() }}
+            <button class="btn btn-danger" type="submit">
+              <i class="icon-trash"></i>
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    <a class="btn" href="{{ url('manage:location_new') }}">
+      <i class="icon-plus-sign"></i>
+      New location
+    </a>
+  </p>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('manage/js/confirm-delete.js') }}"></script>
+{% endblock %}
