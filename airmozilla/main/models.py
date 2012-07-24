@@ -173,16 +173,20 @@ class Event(models.Model):
                           help_text='Speakers or presenters for this event.')
     location = models.ForeignKey(Location, blank=True, null=True,
                                  on_delete=models.SET_NULL) 
-    category = models.ForeignKey(Category)
+    category = models.ForeignKey(Category, blank=True, null=True,
+                                 on_delete=models.SET_NULL)
     tags = models.ManyToManyField(Tag, blank=True)
     call_info = models.TextField(blank=True)
     additional_links = models.TextField(blank=True)
     public = models.BooleanField(default=False,
                     help_text='Available to everyone (else MoCo only.)')
     featured = models.BooleanField(default=False)
-    creator = models.ForeignKey(User, related_name='creator')
+    creator = models.ForeignKey(User, related_name='creator', blank=True,
+                                null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)
-    modified_user = models.ForeignKey(User, related_name='modified_user')
+    modified_user = models.ForeignKey(User, related_name='modified_user',
+                                      blank=True, null=True,
+                                      on_delete=models.SET_NULL)
     modified = models.DateTimeField(auto_now=True)
     objects = EventManager()
 
@@ -197,8 +201,10 @@ class Approval(models.Model):
     """Sign events with approvals from appropriate user groups to log and
        designate that an event can be published."""
     event = models.ForeignKey(Event)
-    group = models.ForeignKey(Group)
-    user = models.ForeignKey(User, blank=True, null=True)
+    group = models.ForeignKey(Group, blank=True, null=True,
+                              on_delete=models.SET_NULL)
+    user = models.ForeignKey(User, blank=True, null=True,
+                             on_delete=models.SET_NULL)
     approved = models.BooleanField(default=False)
     processed = models.BooleanField(default=False)
     processed_time = models.DateTimeField(auto_now=True)
