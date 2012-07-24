@@ -110,9 +110,10 @@ class EventManager(models.Manager):
                 datetime.timedelta(minutes=settings.LIVE_MARGIN))
 
     def initiated(self):
-        return self.get_query_set().filter(Q(status=Event.STATUS_INITIATED) |
+        return (self.get_query_set().filter(Q(status=Event.STATUS_INITIATED) |
                                            Q(approval__approved=False) |
                                            Q(approval__processed=False))
+                    .distinct())
 
     def approved(self):
         return (self.get_query_set().filter(status=Event.STATUS_SCHEDULED)
