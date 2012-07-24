@@ -5,5 +5,17 @@
 {% endblock %}
 
 {% block manage_content %}
-    {% include 'manage/_default_form_upload.html' %}
+  <form method="post" enctype="multipart/form-data" class="form-horizontal">
+      {{ csrf() }}
+      {{ bootstrapform(form) }}
+      <div class="control-group">
+        <div class="controls">
+          <button class="btn btn-success" id="sendmail" name="sendmail">
+            <i class="icon-envelope"></i>
+            Save and email for confirmation
+          </button>
+        </div>
+      </div>
+      {% include 'manage/_form_buttons.html' %}
+  </form>
 {% endblock %}

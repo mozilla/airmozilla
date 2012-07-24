@@ -75,9 +75,11 @@ def event(request, slug):
             context.update(event.template_environment)
         template = Template(event.template.content)
         template_tagged = template.render(context)
+    participants = event.participants.filter(cleared=Participant.CLEARED_YES)
     return render(request, 'main/event.html', {
         'event': event,
         'video': template_tagged,
+        'participants': participants,
         'featured': featured,
     })
 
@@ -86,8 +88,6 @@ def participant(request, slug):
     """Individual participant/speaker profile."""
     participant = get_object_or_404(Participant, slug=slug)
     featured = Event.objects.filter(public=True, featured=True)
-    if participant.cleared != Participant.CLEARED_YES:
-        return redirect('main:login')
     return render(request, 'main/participant.html', {
         'participant': participant,
         'featured': featured

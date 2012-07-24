@@ -16,7 +16,8 @@
 {% endblock %}
 
 {% block manage_content %}
-{% include 'manage/_default_form_upload.html' %}
+  {% set submit_text = 'Save and Submit' %}
+  {% include 'manage/_default_form_upload.html' %}
 {% endblock %}
 
 {% block site_js %}

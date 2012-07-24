@@ -92,3 +92,13 @@ CACHES = {
         'LOCATION': ''
     }
 }
+
+# Email backend - fill in with SMTP details
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = ''
+EMAIL_PORT = 25
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = True
+
+EMAIL_FROM_ADDRESS = 'air@air.mozilla.org'

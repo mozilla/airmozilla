@@ -1,13 +1,16 @@
 import pytz
 import re
 
+from django.conf import settings
 from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
+from django.core.mail import EmailMessage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
+from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 
 from airmozilla.base.utils import json_view, tz_apply, unique_slugify
@@ -194,8 +197,24 @@ def event_edit(request, id):
             approvals_add = set(approvals_new).difference(approvals_old)
             approvals_remove = set(approvals_old).difference(approvals_new)
             for approval in approvals_add:
-                app = Approval(group=approval, event=event)
+                group = Group.objects.get(name=approval)
+                app = Approval(group=group, event=event)
                 app.save()
+                emails = [u.email for u in group.user_set.all()]
+                subject = ('[Air Mozilla] Approval requested: "%s"' %
+                           event.title)
+                message = ('A new event has been created that requires'
+                    ' approval from someone in your group (%s). Please log in'
+                    ' to the Air Mozilla management page (%s) to review the'
+                    ' request.\n\nTitle: %s\nCreator: %s\nDate and time: %s\n'
+                    ' Description: %s' %
+                    (group.name,
+                     request.build_absolute_uri(reverse('manage:approvals')),
+                     event.title, event.creator.email, event.start_time,
+                     event.description))
+                email = EmailMessage(subject, message,
+                                     settings.EMAIL_FROM_ADDRESS, emails)
+                email.send()
             for approval in approvals_remove:
                 app = Approval.objects.get(group=approval, event=event)
                 app.delete()
@@ -271,7 +290,7 @@ def participants(request):
 
 
 @staff_required
-@permission_required('changed_participant')
+@permission_required('change_participant')
 def participant_edit(request, id):
     """ Participant edit page:  update biographical info. """
     participant = Participant.objects.get(id=id)
@@ -284,11 +303,51 @@ def participant_edit(request, id):
                 participant.slug = unique_slugify(participant.name,
                                                   [Participant])
             participant.save()
+            if 'sendmail' in request.POST:
+                return redirect('manage:participant_email', id=participant.id)
             return redirect('manage:participants')
     else:
         form = ParticipantEditForm(instance=participant)
     return render(request, 'manage/participant_edit.html',
                   {'form': form, 'participant': participant})
+
+
+@staff_required
+@permission_required('change_participant')
+def participant_email(request, id):
+    participant = Participant.objects.get(id=id)
+    to_addr = participant.email
+    from_addr = settings.EMAIL_FROM_ADDRESS
+    reply_to = request.user.email
+    if not reply_to:
+        reply_to = from_addr
+    last_events = (Event.objects.filter(participants=participant)
+                        .order_by('-created'))
+    last_event = last_events[0] if last_events else None
+    cc_addr = last_event.creator.email if last_event else None
+    subject = ('Presenter profile on Air Mozilla (%s)' % participant.name)
+    profile_url = request.build_absolute_uri(
+        reverse('main:participant', kwargs={'slug': participant.slug})
+    )
+    message = ('A new profile for you will be added to the Air'
+                ' Mozilla website (http://air.mozilla.org) to be shown along'
+                ' with events and presentations you participate in.  Please'
+                ' verify the information posted is correct; if there are any'
+                ' issues or corrections, please let us know'
+                ' (%s).\n\nProfile: %s' % (reply_to, profile_url))
+    if request.method == 'POST':
+        if 'submit' in request.POST:
+            cc = [cc_addr] if (('cc' in request.POST) and cc_addr) else None
+            email = EmailMessage(subject, message, from_addr, [to_addr],
+                                 cc=cc, headers={'Reply-To': reply_to})
+            email.send()
+        return redirect('manage:participants')
+    else:
+        return render(request, 'manage/participant_email.html',
+                      {'participant': participant, 'message': message,
+                       'subject': subject, 'reply_to': reply_to,
+                       'to_addr': to_addr, 'from_addr': from_addr,
+                       'cc_addr': cc_addr, 'last_event': last_event})
 
 
 @staff_required

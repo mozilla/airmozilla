@@ -63,7 +63,7 @@ class TestPages(TestCase):
              kwargs={'slug': old_event_slug.event.slug}))
 
     def test_participant(self):
-        """Cleared participant responds successfully; else request a login."""
+        """Participant pages always respond successfully."""
         participant = Participant.objects.get(name='Tim Mickel')
         participant_page = reverse('main:participant',
                                    kwargs={'slug': participant.slug})
@@ -71,8 +71,8 @@ class TestPages(TestCase):
         eq_(response_ok.status_code, 200)
         participant.cleared = Participant.CLEARED_NO
         participant.save()
-        response_fail = self.client.get(participant_page)
-        self.assertRedirects(response_fail, reverse('main:login'))
+        response_ok = self.client.get(participant_page)
+        eq_(response_ok.status_code, 200)
 
     def test_calendars(self):
         """Calendars respond successfully."""

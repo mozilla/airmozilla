@@ -18,9 +18,9 @@
       <h2 class="event-date">
         {{ event.start_time|js_date }}
       </h2>
-      {% if event.participants.all() %}
+      {% if participants %}
         Presenters:
-        {% for participant in event.participants.all() %}
+        {% for participant in participants %}
           <a href="{{ url('main:participant', participant.slug) }}">
             {{ participant.name }}
           </a>
