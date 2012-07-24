@@ -17,14 +17,6 @@
   {% endif %}
 {% endblock %}
 
-{% block upcoming %}
-  {% if upcoming %}
-    {% set widget_title = _('Upcoming') -%}
-    {% set widget_events = upcoming -%}
-    {% include 'main/_side_events.html' %}
-  {% endif %}
-{% endblock %}
-
 {% block content_main %}
   {% if front_page %}
     {% if live %}

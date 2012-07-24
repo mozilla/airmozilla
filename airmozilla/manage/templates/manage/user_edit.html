@@ -1,9 +1,9 @@
 {% extends "manage/users.html" %}
 
 {% block manage_title %}
-    Editing user {{ u.email }}
+  Editing user {{ user.email }}
 {% endblock %}
 
 {% block manage_content %}
-    {% include 'manage/_default_form.html' %}
+  {% include 'manage/_default_form.html' %}
 {% endblock %}

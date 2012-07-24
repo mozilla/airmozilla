@@ -2,7 +2,9 @@ import functools
 import json
 
 from django import http
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.defaultfilters import slugify
+from django.utils.decorators import method_decorator
 
 
 def unique_slugify(data, models, duplicate_key=''):
@@ -27,6 +29,7 @@ def tz_apply(datetime, tz):
     datetime = datetime.replace(tzinfo=None)
     return tz.normalize(tz.localize(datetime))
 
+
 # From socorro-crashstats
 def json_view(f):
     @functools.wraps(f)
@@ -35,8 +38,10 @@ def json_view(f):
         if isinstance(response, http.HttpResponse):
             return response
         else:
-            return http.HttpResponse(_json_clean(json.dumps(response)),
-                                content_type='application/json; charset=UTF-8')
+            return http.HttpResponse(
+                _json_clean(json.dumps(response)),
+                content_type='application/json; charset=UTF-8'
+            )
     return wrapper
 
 
@@ -49,3 +54,15 @@ def _json_clean(value):
     # although python's standard library does not, so we do it here.
     # http://stackoverflow.com/questions/1580647/json-why-are-forward-slashes-escaped
     return value.replace("</", "<\\/")
+
+
+def paginate(objects, page, count):
+    """Returns a set of paginated objects, count per page (on #page)"""
+    paginator = Paginator(objects, count)
+    try:
+        objects_paged = paginator.page(page)
+    except PageNotAnInteger:
+        objects_paged = paginator.page(1)
+    except EmptyPage:
+        objects_paged = paginator.page(paginator.num_pages)
+    return objects_paged

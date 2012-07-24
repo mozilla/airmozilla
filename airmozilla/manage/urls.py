@@ -4,7 +4,7 @@ from . import views
 
 
 urlpatterns = patterns('',
-    url(r'^/?$', views.home, name='home'),
+    url(r'^/?$', views.dashboard, name='home'),
     url(r'^users/(?P<id>\d+)/$', views.user_edit, name='user_edit'),
     url(r'^users/', views.users, name='users'),
     url(r'^groups/(?P<id>\d+)/$', views.group_edit, name='group_edit'),
@@ -12,6 +12,8 @@ urlpatterns = patterns('',
     url(r'^groups/$', views.groups, name='groups'),
     url(r'^events/request/$', views.event_request, name='event_request'),
     url(r'^events/(?P<id>\d+)/$', views.event_edit, name='event_edit'),
+    url(r'^events/archive/(?P<id>\d+)/$', views.event_archive,
+                                          name='event_archive'),
     url(r'^events/$', views.events, name='events'),
     url(r'^tag-autocomplete/$', views.tag_autocomplete,
                                 name='tag_autocomplete'),

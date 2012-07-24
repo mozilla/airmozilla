@@ -10,4 +10,8 @@ $(function() {
     });
     $.timeago.settings.allowFuture = true;
     $('time.timeago').timeago();
+
+    $('button.cancel').click(function() {
+        return confirm('Are you sure you want to cancel?');
+    });
 });

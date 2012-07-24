@@ -58,12 +58,18 @@ Air Mozilla | Mozilla, in Video
       </p>
       </aside>
       {% block also_live %}{% endblock %}
-      {% if featured %}
-        {% set widget_title = _('Featured Videos') -%}
-        {% set widget_events = featured -%}
-        {% include 'main/_side_events.html' %}
-      {% endif %}
-      {% block upcoming %}{% endblock %}
+        {% if featured %}
+          {% set widget_title = _('Featured Videos') -%}
+          {% set widget_events = featured -%}
+          {% include 'main/_side_events.html' %}
+        {% endif %}
+      {% block upcoming %}
+        {% if upcoming %}
+          {% set widget_title = _('Upcoming') -%}
+          {% set widget_events = upcoming -%}
+          {% include 'main/_side_events.html' %}
+        {% endif %} 
+      {% endblock %}
     </div>
   </div>
 

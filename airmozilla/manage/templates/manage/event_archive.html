@@ -1,0 +1,11 @@
+{% extends "manage/event_request.html" %}
+{% set page = "events" %}
+
+{% block manage_title %}
+  Archiving event "{{ event.title }}"
+{% endblock %}
+
+{% block manage_content %}
+  {% set submit_text = 'Archive this event' %}
+  {% include 'manage/_default_form.html' %}
+{% endblock %}

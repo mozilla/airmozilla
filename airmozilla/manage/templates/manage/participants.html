@@ -5,58 +5,68 @@
     Participants
 {% endblock %}
 
+{% macro participants_table(participants) %}
+<table class="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Cleared</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for participant in participants %}
+      <tr>
+        {% set thumb = thumbnail(participant.photo, '32x32') %}                
+        <td><img src="{{ thumb.url }}" width="{{ thumb.width }}"
+                 height="{{ thumb.height }}" alt="Participant photo">
+        </td>
+        <td>
+          <a href="{{ url('main:participant', participant.slug)}}">
+            {{ participant.name }}
+          </a>
+        </td>
+        <td>{{ participant.email }}</td>
+        <td>{{ participant.get_role_display() }}</td>
+        <td>{{ participant.get_cleared_display() }}</td>
+        <td>
+          <a class="btn"
+             href="{{ url('manage:participant_edit', participant.id) }}">
+            <i class="icon-edit"></i>
+              Edit
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
 {% block manage_content %}
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Cleared</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for participant in paginate %}
-            <tr>
-                {% set thumb = thumbnail(participant.photo, '32x32') %}                
-                <td><img src="{{ thumb.url }}" width="{{ thumb.width }}"
-                         height="{{ thumb.height }}" alt="Participant photo">
-                </td>
-                <td>
-                  <a href="{{ url('main:participant', participant.slug)}}">
-                    {{ participant.name }}
-                  </a>
-                </td>
-                <td>{{ participant.email }}</td>
-                <td>{{ participant.get_role_display() }}</td>
-                <td>{{ participant.get_cleared_display() }}</td>
-                <td>
-                    <a class="btn"
-                       href="{{ url('manage:participant_edit', participant.id) }}">
-                        <i class="icon-edit"></i>
-                        Edit
-                    </a>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% include 'manage/_paginate.html' %}
-    <p>
-    <a href="{{ url('manage:participant_new') }}" class="btn">
-        <i class="icon-plus-sign"></i>
-        New participant
-    </a>
-    </p>
-     <form class="well form-search" method="post">
-        Find participant:
-        {{ csrf() }}
-        {{ bootstrapform(form) }}
-        <button type="submit" class="btn">
-            <i class="icon-search"></i>
-            Search
-        </button>
-    </form>
+  {% set paginate = participants_clear %}
+  {% if paginate.number == 1 %}
+    <h3>Need clearing</h3>
+    {{ participants_table(participants_not_clear) }}
+  {% endif %}
+  <h3>All participants</h3>
+  {{ participants_table(participants_clear) }} 
+  {% include 'manage/_paginate.html' %}
+  <p>
+  <a href="{{ url('manage:participant_new') }}" class="btn">
+    <i class="icon-plus-sign"></i>
+    New participant
+  </a>
+  </p>
+   <form class="well form-search" method="post">
+    Find participant:
+    {{ csrf() }}
+    {{ bootstrapform(form) }}
+    <button type="submit" class="btn">
+      <i class="icon-search"></i>
+        Search
+    </button>
+  </form>
 {% endblock %}

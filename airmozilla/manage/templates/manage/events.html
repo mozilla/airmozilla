@@ -39,7 +39,9 @@
           {% if event.archive_time %}
             {{ event.archive_time|js_date }}
           {% else %}
-            Not archived
+            <a href="{{ url('manage:event_archive', event.id) }}" class="btn">
+              <i class="icon-time"></i> Archive
+            </a>
           {% endif %}
         </td>
         <td>{{ event.category }}</td>
@@ -60,7 +62,7 @@
         </td>
         <td>
           <a href="{{ url('manage:event_edit', event.id) }}" class="btn">
-            <i class="icon-edit"></i>Edit
+            <i class="icon-edit"></i> Edit
           </a>
         </td>
       </tr>
@@ -73,21 +75,22 @@
   {% if search_results %}
     {{ event_table('Search results', search_results) }}
   {% else %}
+    {% set paginate = archived %}
     {% if paginate.number == 1 %}
+      {% if initiated %}
+        {{ event_table('Initiated events, need approval', initiated, True) }}
+      {% endif %}
       {% if live %}
         {{ event_table('Live events', live, False, True) }}
       {% endif %}
       {% if archiving %}
         {{ event_table('Archiving events', archiving, True) }}
-      {% endif %}
-      {% if initiated %}
-        {{ event_table('Initiated events, need approval', initiated, True) }}
-      {% endif %}
+      {% endif %} 
       {% if upcoming %}
         {{ event_table('Upcoming events', upcoming) }}
       {% endif %}
     {% endif %}
-    {{ event_table('Archived events', paginate) }}
+    {{ event_table('Archived events', archived) }}
     {% include 'manage/_paginate.html' %}
   {% endif %}
   <p>

@@ -2,8 +2,13 @@
     background-image: url("../img/glyphicons-halflings.png");
 }
 
+.icon-white {
+    background-image: url("../img/glyphicons-halflings-white.png");
+}
+
 body {
-    padding-top: 15px;
+    padding-top: 50px;
+    overflow-y: scroll;
 }
 
 ul {
@@ -12,10 +17,6 @@ ul {
 
 div.controls select {
     width: auto;
-}
-
-#logo-img {
-    width: 200px;
 }
 
 #container {
@@ -30,6 +31,24 @@ div.controls select {
 /* confirmation/delete button forms */
 .confirm {
     display: inline;
+}
+
+/* management menu badges */
+ul.nav .badge {
+    float: right;
+}
+
+/* Optional forms get small bit of text */
+
+div.control-group label:after {
+    content: "\aOptional";
+    white-space: pre;
+    font-size: 9px;
+    color: #999;
+}
+
+div.required label:after {
+    content: none;
 }
 
 /* event edit status floating box */

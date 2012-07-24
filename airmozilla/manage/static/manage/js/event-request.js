@@ -31,6 +31,29 @@ $(function() {
         timeFormat: 'hh:mm'
     });
 
+    // Slider for archive time (jQuery UI)
+    var $archive_time_slider = $('#archive_time_slider');
+    if ($archive_time_slider.length > 0) {
+        var $id_archive_time = $('#id_archive_time');
+        var $id_archive_time_parent = $id_archive_time.parent();
+        $id_archive_time_parent.addClass('input-prepend');
+        $id_archive_time.before('<span class="add-on">Start time + </span>');
+        $id_archive_time_parent.addClass('input-append');
+        $id_archive_time.after('<span class="add-on"> minutes</span>');
+        $('#id_archive_time').datetimepicker('destroy');
+        $('#id_archive_time').val('90');
+        $archive_time_slider.slider({
+            min: 0,
+            max: 240,
+            value: 90,
+            step: 5,
+            range: 'min',
+            slide: function(event, ui) {
+                $('#id_archive_time').val(ui.value);
+            }
+        });
+    }
+
     // Autocomplete participants (select2)
     $('#id_participants').select2({
         tags: [],

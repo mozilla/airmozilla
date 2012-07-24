@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.dispatch import receiver
 from django.utils.timezone import utc
 
+from airmozilla.base.utils import unique_slugify
 from airmozilla.main.fields import EnvironmentField
 from sorl.thumbnail import ImageField
 
@@ -20,7 +21,7 @@ def _upload_path(tag):
         path = os.path.join(now.strftime('%Y'), now.strftime('%m'),
                             now.strftime('%d'))
         hashed_filename = (hashlib.md5(filename +
-                            str(now.microsecond)).hexdigest())
+                           str(now.microsecond)).hexdigest())
         __, extension = os.path.splitext(filename)
         return os.path.join(tag, path, hashed_filename + extension)
     return _upload_path_tagged
@@ -82,8 +83,9 @@ class Template(models.Model):
     """Provides the HTML embed codes, links, etc. for each different type of
        video or stream."""
     name = models.CharField(max_length=100)
-    content = models.TextField(help_text='The HTML framework for this'
-        ' template.  Use <code>{{ any_variable_name }}</code> for per-event'
+    content = models.TextField(
+        help_text='The HTML framework for this template.  Use'
+        ' <code>{{ any_variable_name }}</code> for per-event'
         ' tags. Other Jinja2 constructs are available, along with the related'
         ' <code>request</code>, <code>datetime</code>, and <code>event</code>'
         ' objects, and the <code>md5</code> function. Warning! Changes affect'
@@ -101,6 +103,7 @@ class Location(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class EventManager(models.Manager):
     def _get_now(self):
         return datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -111,8 +114,8 @@ class EventManager(models.Manager):
 
     def initiated(self):
         return (self.get_query_set().filter(Q(status=Event.STATUS_INITIATED) |
-                                           Q(approval__approved=False) |
-                                           Q(approval__processed=False))
+                                            Q(approval__approved=False) |
+                                            Q(approval__processed=False))
                     .distinct())
 
     def approved(self):
@@ -135,7 +138,7 @@ class EventManager(models.Manager):
     def archiving(self):
         return self.approved().filter(
             archive_time__gt=self._get_now(),
-            start_time__lt=self._get_now()
+            start_time__lt=self._get_live_time()
         )
 
     def archived(self):
@@ -151,9 +154,11 @@ class Event(models.Model):
     slug = models.SlugField(blank=True, max_length=215, unique=True)
     template = models.ForeignKey(Template, blank=True, null=True,
                                  on_delete=models.SET_NULL)
-    template_environment = EnvironmentField(blank=True, help_text='Specify'
-        ' the template variables in the format <code>variable1=value</code>,'
-        'one per line.')
+    template_environment = EnvironmentField(
+        blank=True,
+        help_text='Specify the template variables in the format'
+        '<code>variable1=value</code>, one per line.'
+    )
     STATUS_INITIATED = 'initiated'
     STATUS_SCHEDULED = 'scheduled'
     STATUS_CHOICES = (
@@ -164,22 +169,28 @@ class Event(models.Model):
                               default=STATUS_INITIATED)
     placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
     description = models.TextField()
-    short_description = models.TextField(blank=True, help_text='Optional: ' +
-                        'if not provided, this will be filled in by the ' +
-                        'first words of the full description.')
+    short_description = models.TextField(
+        blank=True,
+        help_text='If not provided, this will be filled in by the first '
+        'words of the full description.'
+    )
     start_time = models.DateTimeField()
     archive_time = models.DateTimeField(blank=True, null=True)
-    participants = models.ManyToManyField(Participant,
-                          help_text='Speakers or presenters for this event.')
+    participants = models.ManyToManyField(
+        Participant,
+        help_text='Speakers or presenters for this event.'
+    )
     location = models.ForeignKey(Location, blank=True, null=True,
-                                 on_delete=models.SET_NULL) 
+                                 on_delete=models.SET_NULL)
     category = models.ForeignKey(Category, blank=True, null=True,
                                  on_delete=models.SET_NULL)
     tags = models.ManyToManyField(Tag, blank=True)
     call_info = models.TextField(blank=True)
     additional_links = models.TextField(blank=True)
-    public = models.BooleanField(default=False,
-                    help_text='Available to everyone (else MoCo only.)')
+    public = models.BooleanField(
+        default=False,
+        help_text='Available to everyone (else MoCo only.)'
+    )
     featured = models.BooleanField(default=False)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
@@ -217,3 +228,23 @@ def event_clear_cache(sender, **kwargs):
     cache.delete('calendar_public')
     cache.delete('calendar_private')
 
+
+@receiver(models.signals.pre_save, sender=Event)
+def event_update_slug(sender, instance, raw, *args, **kwargs):
+    if raw:
+        return
+    if not instance.slug:
+        instance.slug = unique_slugify(instance.title, [Event, EventOldSlug],
+                                       instance.start_time.strftime('%Y%m%d'))
+    try:
+        old = Event.objects.get(id=instance.id)
+        if instance.slug != old.slug:
+            EventOldSlug.objects.create(slug=old.slug, event=instance)
+    except Event.DoesNotExist:
+        pass
+
+
+@receiver(models.signals.pre_save, sender=Participant)
+def participant_update_slug(sender, instance, raw, *args, **kwargs):
+    if not raw and not instance.slug:
+        instance.slug = unique_slugify(instance.name, [Participant])
