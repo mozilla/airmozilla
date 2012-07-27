@@ -3,6 +3,8 @@ from django.forms.fields import Field
 from django.forms.util import ValidationError
 from django.utils import simplejson as json
 
+from south.modelsinspector import add_introspection_rules
+
 # modified version of JSONField and JSONFormField: bradjasper/django-jsonfield
 
 
@@ -59,3 +61,5 @@ class EnvironmentField(models.TextField):
     def formfield(self, **kwargs):
         return super(EnvironmentField, self).formfield(
             form_class=EnvironmentFormField, **kwargs)
+
+add_introspection_rules([], ["^airmozilla\.main\.fields\.EnvironmentField"])

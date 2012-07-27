@@ -2,6 +2,7 @@
 
 -e git://github.com/tzangms/django-bootstrap-form.git@a307fce656#egg=django-bootstrap-form
 
+South==0.7.5
 pytz==2012c
 python-dateutil==1.5
 vobject==0.8.1c
