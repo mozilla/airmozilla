@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html LANG="{{ LANG }}" dir="{{ DIR }}">
+<html lang="en" dir="ltr">
   <head>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-    <title>{{ _('Something went wrong!') }}</title>
+    <title>Something went wrong!</title>
+    <style type="text/css">
+      body {
+        background-color: rgb(32, 39, 42);
+        color: rgb(255, 255, 255);
+      }
+    </style>
   </head>
   <body>
-    <h1>{{ _('Page not found') }}</h1>
-    <p>
-      {% trans %}
-        Sorry, but something went wrong.
-      {% endtrans %}
-    </p>
+    <h1>Server Error</h1>
+    <p>Sorry, Air Mozilla is currently experiencing an error.</p>
+    <p>We've been notified about the problem and we'll fix it soon!</p>
   </body>
 </html>
