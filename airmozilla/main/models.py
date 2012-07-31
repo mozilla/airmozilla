@@ -59,6 +59,9 @@ class Participant(models.Model):
     cleared = models.CharField(max_length=15,
                                choices=CLEARED_CHOICES, default=CLEARED_NO)
 
+    def is_clear(self):
+        return self.cleared == Participant.CLEARED_YES
+
     def __unicode__(self):
         return self.name
 
@@ -104,14 +107,16 @@ class Location(models.Model):
         return self.name
 
 
+def _get_now():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
+
+
+def _get_live_time():
+    return (_get_now() +
+            datetime.timedelta(minutes=settings.LIVE_MARGIN))
+
+
 class EventManager(models.Manager):
-    def _get_now(self):
-        return datetime.datetime.utcnow().replace(tzinfo=utc)
-
-    def _get_live_time(self):
-        return (self._get_now() +
-                datetime.timedelta(minutes=settings.LIVE_MARGIN))
-
     def initiated(self):
         return (self.get_query_set().filter(Q(status=Event.STATUS_INITIATED) |
                                             Q(approval__approved=False) |
@@ -126,25 +131,25 @@ class EventManager(models.Manager):
     def upcoming(self):
         return self.approved().filter(
             archive_time=None,
-            start_time__gt=self._get_live_time()
+            start_time__gt=_get_live_time()
         )
 
     def live(self):
         return self.approved().filter(
             archive_time=None,
-            start_time__lt=self._get_live_time()
+            start_time__lt=_get_live_time()
         )
 
     def archiving(self):
         return self.approved().filter(
-            archive_time__gt=self._get_now(),
-            start_time__lt=self._get_live_time()
+            archive_time__gt=_get_now(),
+            start_time__lt=_get_live_time()
         )
 
     def archived(self):
         return self.approved().filter(
-            archive_time__lt=self._get_now(),
-            start_time__lt=self._get_now()
+            archive_time__lt=_get_now(),
+            start_time__lt=_get_now()
         )
 
 
@@ -200,6 +205,10 @@ class Event(models.Model):
                                       on_delete=models.SET_NULL)
     modified = models.DateTimeField(auto_now=True)
     objects = EventManager()
+
+    def is_upcoming(self):
+        return (self.archive_time is None and
+                self.start_time > _get_live_time())
 
 
 class EventOldSlug(models.Model):

@@ -44,7 +44,7 @@ AUTHENTICATION_BACKENDS = [
 ALLOWED_BID = ['mozilla.com', 'mozillafoundation.org']
 
 SITE_URL = 'http://127.0.0.1:8000'
-LOGIN_URL = '/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = 'main:home'
 LOGIN_REDIRECT_URL_FAILURE = 'main:login_failure'
 

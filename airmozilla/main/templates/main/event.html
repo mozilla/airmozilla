@@ -18,18 +18,47 @@
       <h2 class="event-date">
         {{ event.start_time|js_date }}
       </h2>
-      {% if participants %}
-        Presenters:
-        {% for participant in participants %}
-          <a href="{{ url('main:participant', participant.slug) }}">
-            {{ participant.name }}
-          </a>
-        {% endfor %}
-      {% endif %}
+      <p>
+        {% if participants %}
+          {{ _('Featuring ') }}
+          {% for participant in participants %}
+            <a href="{{ url('main:participant', participant.slug) }}">
+              {{ participant.name }}</a>
+            {%- if not loop.last %}, {% endif -%}
+          {% endfor %}
+          &bull;
+        {% endif %}
+        {% if event.location %}
+          {{ _('Location') }}: {{ event.location.name }}
+        {% endif %}
+      </p>
     </header>
     <div class="entry-content">
+      {% if video %}
+        <p>{{ video|safe }}</p>
+      {% else %}
+        {% set thumb = thumbnail(event.placeholder_img, '120x120') %}
+        <img src="{{ thumb.url }}" width="{{ thumb.width }}"
+             height="{{ thumb.height }}" alt="{{ event.title }}">
+      {% endif %}
       <p>{{ event.description }}</p>
-      <p>{{ video|safe }}</p>
+      {% if event.category %}
+        <p>{{ _('Category') }}: {{ event.category.name }}</p>
+      {% endif %}
+      {% if event.tags.exists() %}
+        <p>
+          {{ _('Tags') }}:
+          {% for tag in event.tags.all() %}
+            <span class="tag">{{ tag.name }}</span>
+          {% endfor %}
+        </p
+      {% endif %}
+      {% if event.call_info %}
+        <p>{{ _('Call info') }}: {{ event.call_info }}</p>
+      {% endif %}
+      {% if event.additional_links %}
+        <p>{{ _('Additional links') }}: {{ event.additional_links|urlize }}</p>
+      {% endif %}
     </div>
   </article>
 {% endblock %}

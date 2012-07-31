@@ -49,7 +49,7 @@ def event(request, slug):
     if event.approval_set.filter(approved=False).exists():
         return redirect('main:login')
     template_tagged = ''
-    if event.template:
+    if event.template and not event.is_upcoming():
         context = {
             'md5': lambda s: hashlib.md5(s).hexdigest(),
             'event': event,
