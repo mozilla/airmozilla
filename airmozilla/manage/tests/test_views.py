@@ -10,6 +10,7 @@ from funfactory.urlresolvers import reverse
 
 from nose.tools import eq_, ok_
 
+import airmozilla.manage.forms
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
                                     Location, Participant, Template)
 
@@ -48,13 +49,6 @@ class TestPermissions(TestCase):
         response = self.client.get(reverse('manage:home'))
         self.assertRedirects(response, settings.LOGIN_URL
                              + '?next=' + reverse('manage:home'))
-
-    def test_edit_user(self):
-        """ Unprivileged admin - shouldn't see user change page. """
-        self._login(is_staff=True)
-        response = self.client.get(reverse('manage:users'))
-        self.assertRedirects(response, settings.LOGIN_URL
-                             + '?next=' + reverse('manage:users'))
 
 
 class TestUsersAndGroups(TestCase):
@@ -615,3 +609,117 @@ class TestLocations(TestCase):
         data = json.loads(response_ok.content)
         ok_('timezone' in data)
         eq_(data['timezone'], 'US/Pacific')
+
+
+class TestManagementRoles(TestCase):
+    """Basic tests to ensure management roles / permissions are working."""
+    fixtures = ['airmozilla/manage/tests/main_testdata.json',
+                'airmozilla/manage/tests/manage_groups_testdata.json']
+
+    def setUp(self):
+        self.user = (
+            User.objects.create_user(username='fake', password='fake')
+        )
+        self.user.is_staff = True
+        self.user.save()
+        assert self.client.login(username='fake', password='fake')
+
+    def _add_client_group(self, name):
+        group = Group.objects.get(name=name)
+        group.user_set.add(self.user)
+        ok_(group in self.user.groups.all())
+
+
+    def test_producer(self):
+        """Producer can see fixture events and edit pages."""
+        self._add_client_group('Producer')
+        response_events = self.client.get(reverse('manage:events'))
+        eq_(response_events.status_code, 200)
+        ok_(response_events.context['archived'])
+        ok_(not response_events.context['initiated'])
+        response_participants = self.client.get(reverse('manage:participants'))
+        ok_(response_participants.status_code, 200)
+        participant = response_participants.context['participants_clear'][0]
+        response_participant_edit = self.client.get(
+            reverse('manage:participant_edit', kwargs={'id': participant.id})
+        )
+        eq_(response_participant_edit.status_code, 200)
+    
+    def _unprivileged_event_manager_tests(self, form_class):
+        """Common tests for organizers/experienced organizers to ensure
+           basic event/participant permissions are not violated."""
+        response_event_request = self.client.get(
+            reverse('manage:event_request')
+        )
+        eq_(response_event_request.status_code, 200)
+        eq_(response_event_request.context['form'].__class__, form_class)
+        response_events = self.client.get(reverse('manage:events'))
+        eq_(response_events.status_code, 200)
+        ok_(not response_events.context['archived'],
+            'Unprivileged viewer can see events which do not belong to it')
+        event = Event.objects.get(title='Test event')
+        event.creator = self.user
+        event.save()
+        response_events = self.client.get(reverse('manage:events'))
+        ok_(response_events.context['archived'],
+            'Unprivileged viewer cannot see events which belong to it.')
+        response_event_edit = self.client.get(reverse('manage:event_edit',
+                                                      kwargs={'id': event.id}))
+        eq_(response_event_edit.context['form'].__class__, form_class)
+        response_participants = self.client.get(reverse('manage:participants'))
+        ok_(response_participants.status_code, 200)
+        participant = response_participants.context['participants_clear'][0]
+        participant_edit_url = reverse('manage:participant_edit', 
+                                       kwargs={'id': participant.id})
+        response_participant_edit_fail = self.client.get(participant_edit_url)
+        self.assertRedirects(
+            response_participant_edit_fail,
+            reverse('manage:participants')
+        )
+        participant.creator = self.user
+        participant.save()
+        response_participant_edit_ok = self.client.get(participant_edit_url)
+        eq_(response_participant_edit_ok.status_code, 200)
+
+    def _unprivileged_page_tests(self, additional_pages=[]):
+        """Common tests to ensure unprivileged admins do not have access to
+           event or user configuration pages."""
+        pages = additional_pages + [
+            'manage:users',
+            'manage:groups',
+            'manage:categories',
+            'manage:locations',
+            'manage:templates'
+        ]
+        for page in pages:
+            response = self.client.get(reverse(page))
+            self.assertRedirects(response, settings.LOGIN_URL + 
+                                '?next=' + reverse(page))
+
+    def test_event_organizer(self):
+        """Event organizer: ER with unprivileged form, can only edit own
+           participants, can only see own events."""
+        self._add_client_group('Event Organizer')
+        self._unprivileged_event_manager_tests(
+            airmozilla.manage.forms.EventRequestForm
+        )
+        self._unprivileged_page_tests(additional_pages=['manage:approvals'])
+
+    def test_experienced_event_organizer(self):
+        """Experienced event organizer: ER with semi-privileged form,
+           can only edit own participants, can only see own events."""
+        self._add_client_group('Experienced Event Organizer')
+        self._unprivileged_event_manager_tests(
+            airmozilla.manage.forms.EventExperiencedRequestForm
+        )
+        self._unprivileged_page_tests(additional_pages=['manage:approvals'])
+
+    def test_approver(self):
+        """Approver (in this case, PR), can access the approval pages."""
+        self._add_client_group('PR')
+        self._unprivileged_page_tests(
+            additional_pages=['manage:event_request', 'manage:events',
+                              'manage:participants']
+        )
+        response_approvals = self.client.get(reverse('manage:approvals'))
+        eq_(response_approvals.status_code, 200)
