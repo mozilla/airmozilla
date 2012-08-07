@@ -120,8 +120,9 @@ class EventEditForm(EventRequestForm):
     )
     def __init__(self, *args, **kwargs):
         super(EventEditForm, self).__init__(*args, **kwargs)
-        approvals = kwargs['instance'].approval_set.all()
-        self.fields['approvals'].initial = [app.group for app in approvals]
+        if 'instance' in kwargs:
+            approvals = kwargs['instance'].approval_set.all()
+            self.fields['approvals'].initial = [app.group for app in approvals]
     class Meta(EventRequestForm.Meta):
         exclude = ('archive_time',)
         # Fields specified to enforce order
@@ -130,6 +131,19 @@ class EventEditForm(EventRequestForm):
         'short_description', 'start_time', 'archive_time', 'timezone',
         'participants', 'category', 'tags', 'call_info', 'additional_links',
         'approvals')
+
+
+class EventExperiencedRequestForm(EventEditForm):
+    class Meta(EventEditForm.Meta):
+        exclude = ('featured', 'archive_time', 'slug')
+        # Fields specified to enforce order
+        fields = (
+            'title', 'status', 'public', 'template',
+            'template_environment', 'placeholder_img', 'description',
+            'short_description', 'location', 'start_time', 'timezone',
+            'participants', 'category', 'tags', 'call_info',
+            'additional_links', 'public', 'approvals'
+        )
 
 
 class EventArchiveForm(BaseModelForm):
@@ -161,7 +175,7 @@ class EventFindForm(BaseModelForm):
 class ParticipantEditForm(BaseModelForm):
     class Meta:
         model = Participant
-
+        exclude = ('creator',)
 
 class ParticipantFindForm(BaseModelForm):
     class Meta:

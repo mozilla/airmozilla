@@ -39,9 +39,13 @@
           {% if event.archive_time %}
             {{ event.archive_time|js_date }}
           {% else %}
-            <a href="{{ url('manage:event_archive', event.id) }}" class="btn">
-              <i class="icon-time"></i> Archive
-            </a>
+            {% if perms.main.change_event_others %}
+              <a href="{{ url('manage:event_archive', event.id) }}" class="btn">
+                <i class="icon-time"></i> Archive
+              </a>
+            {% else %}
+              Not archived
+            {% endif %}
           {% endif %}
         </td>
         <td>{{ event.category }}</td>
@@ -90,7 +94,9 @@
         {{ event_table('Upcoming events', upcoming) }}
       {% endif %}
     {% endif %}
-    {{ event_table('Archived events', archived) }}
+    {% if archived %}
+      {{ event_table('Archived events', archived) }}
+    {% endif %}
     {% include 'manage/_paginate.html' %}
   {% endif %}
   <p>

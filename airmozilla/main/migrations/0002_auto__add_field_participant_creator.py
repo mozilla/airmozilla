@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Participant.creator'
         db.add_column('main_participant', 'creator',
-                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='creator', null=True, on_delete=models.SET_NULL, to=orm['auth.User']),
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='participant_creator', null=True, on_delete=models.SET_NULL, to=orm['auth.User']),
                       keep_default=False)
 
 
@@ -79,7 +79,7 @@ class Migration(SchemaMigration):
             'call_info': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Category']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'participant_creator'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['auth.User']"}),
+            'creator': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'creator'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['auth.User']"}),
             'description': ('django.db.models.fields.TextField', [], {}),
             'featured': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -114,7 +114,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Participant'},
             'blog_url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'}),
             'cleared': ('django.db.models.fields.CharField', [], {'default': "'no'", 'max_length': '15'}),
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'creator'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['auth.User']"}),
+            'creator': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'participant_creator'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['auth.User']"}),
             'department': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),

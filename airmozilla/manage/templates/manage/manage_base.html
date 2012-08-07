@@ -5,29 +5,29 @@
     ('main:home', 'Air Mozilla Index', '', 'icon-backward', True, ''),
     ('auth:logout', 'Sign out', '', 'icon-off', True, ''),
 
-      ('', 'Event Tools', '', '', perms.manage.event_request, ''),
+      ('', 'Event Tools', '', '', perms.main.add_event, ''),
     ('manage:event_request', 'Event request', 'erequest', 'icon-calendar',
-     perms.add_event, ''),
+     perms.main.add_event, ''),
     ('manage:participants', 'Participants', 'part_edit', 'icon-picture',
-     perms.change_participant, '%s participant(s) need clearing'),
+     perms.main.change_participant, '%s participant(s) need clearing'),
     ('manage:approvals', 'Approval inbox', 'approvals', 'icon-envelope',
-     perms.change_approval, '%s event(s) requiring your approval'),
+     perms.main.change_approval, '%s event(s) requiring your approval'),
     ('manage:events', 'Event manager', 'events', 'icon-facetime-video',
-     perms.change_event, '%s new unapproved or unscheduled event(s)'),
+     perms.main.change_event, '%s new unapproved or unscheduled event(s)'),
 
-    ('', 'Users and groups', '', '', perms.change_user, ''),
-    ('manage:users', 'Edit users', 'users', 'icon-user', perms.change_user,
+    ('', 'Users and groups', '', '', perms.auth.change_user, ''),
+    ('manage:users', 'Edit users', 'users', 'icon-user', perms.auth.change_user,
      ''),
     ('manage:groups', 'Group permissions', 'groups', 'icon-lock',
-     perms.change_group, ''),
+     perms.auth.change_group, ''),
 
-    ('', 'Event configuration', '', '', perms.change_category, ''),
+    ('', 'Event configuration', '', '', perms.main.change_location, ''),
     ('manage:categories', 'Categories', 'categories', 'icon-folder-close',
-     perms.change_category, ''),
+     perms.main.change_category, ''),
     ('manage:locations', 'Locations', 'locations', 'icon-globe',
-     perms.change_location, ''),
+     perms.main.change_location, ''),
     ('manage:templates', 'Video templates', 'templates', 'icon-film',
-     perms.change_template, '')
+     perms.main.change_template, '')
 ] -%}
 {% block page_title %}
     Air Mozilla Management

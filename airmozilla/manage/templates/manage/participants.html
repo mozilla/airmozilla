@@ -20,9 +20,12 @@
   <tbody>
     {% for participant in participants %}
       <tr>
-        {% set thumb = thumbnail(participant.photo, '32x32') %}                
-        <td><img src="{{ thumb.url }}" width="{{ thumb.width }}"
-                 height="{{ thumb.height }}" alt="Participant photo">
+        <td>
+        {% if participant.photo %}
+          {% set thumb = thumbnail(participant.photo, '32x32') %} 
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}"
+                   height="{{ thumb.height }}" alt="Participant photo">
+        {% endif %}
         </td>
         <td>
           <a href="{{ url('main:participant', participant.slug)}}">
@@ -33,11 +36,14 @@
         <td>{{ participant.get_role_display() }}</td>
         <td>{{ participant.get_cleared_display() }}</td>
         <td>
-          <a class="btn"
-             href="{{ url('manage:participant_edit', participant.id) }}">
-            <i class="icon-edit"></i>
-              Edit
-          </a>
+          {% if perms.main.change_participant_others
+             or participant.creator == request.user %}
+            <a class="btn"
+               href="{{ url('manage:participant_edit', participant.id) }}">
+              <i class="icon-edit"></i>
+                Edit
+            </a>
+          {% endif %}
         </td>
       </tr>
     {% endfor %}
@@ -47,7 +53,7 @@
 
 {% block manage_content %}
   {% set paginate = participants_clear %}
-  {% if paginate.number == 1 %}
+  {% if paginate.number == 1 and participants_not_clear %}
     <h3>Need clearing</h3>
     {{ participants_table(participants_not_clear) }}
   {% endif %}

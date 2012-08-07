@@ -58,7 +58,7 @@ class Participant(models.Model):
     )
     cleared = models.CharField(max_length=15,
                                choices=CLEARED_CHOICES, default=CLEARED_NO)
-    creator = models.ForeignKey(User, related_name='creator', blank=True,
+    creator = models.ForeignKey(User, related_name='participant_creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
 
     class Meta:
@@ -205,9 +205,8 @@ class Event(models.Model):
         help_text='Available to everyone (else MoCo only.)'
     )
     featured = models.BooleanField(default=False)
-    creator = models.ForeignKey(User, related_name='participant_creator',
-                                blank=True, null=True,
-                                on_delete=models.SET_NULL)
+    creator = models.ForeignKey(User, related_name='creator', blank=True,
+                                null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)
     modified_user = models.ForeignKey(User, related_name='modified_user',
                                       blank=True, null=True,

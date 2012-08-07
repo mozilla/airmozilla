@@ -151,7 +151,9 @@ class TestEvents(TestCase):
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):
-        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
+        self.user = (
+            User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
+        )
         assert self.client.login(username='fake', password='fake')
 
     def test_event_request(self):
@@ -170,11 +172,11 @@ class TestEvents(TestCase):
                     'title': 'Test fails, not enough data!',
                 }
             )
-        # update this when there is a proper success page for event requests
-        self.assertRedirects(response_ok, reverse('manage:home'))
+        self.assertRedirects(response_ok, reverse('manage:events'))
         eq_(response_fail.status_code, 200)
         event = Event.objects.get(title='Airmozilla Launch Test')
         eq_(event.location, Location.objects.get(id=1))
+        eq_(event.creator, self.user)
 
     def test_tag_autocomplete(self):
         """Autocomplete makes JSON for fixture tags and a nonexistent tag."""
@@ -247,6 +249,7 @@ class TestEvents(TestCase):
         ok_(EventOldSlug.objects.get(slug='test-event', event=event))
         event = Event.objects.get(title='Tested event')
         eq_(event.slug, 'tested-event')
+        eq_(event.modified_user, self.user)
         response_fail = self.client.post(
             reverse('manage:event_edit', kwargs={'id': event.id}),
             {
@@ -327,13 +330,28 @@ class TestEvents(TestCase):
             datetime.datetime(2012, 12, 25, 23).replace(tzinfo=utc),
             'Modify event winter date - Pacific UTC-08 input'
         )
-
+    
+    def test_event_archive(self):
+        """Event archive page loads and shows correct archive_time behavior."""
+        event = Event.objects.get(title='Test event')
+        event.archive_time = None
+        event.save()
+        url = reverse('manage:event_archive', kwargs={'id': event.id})
+        response_ok = self.client.get(url)
+        eq_(response_ok.status_code, 200)
+        response_ok = self.client.post(url, {'archive_time': '120'})
+        self.assertRedirects(response_ok, reverse('manage:events'))
+        event_modified = Event.objects.get(id=event.id)
+        eq_(event_modified.archive_time, 
+            event_modified.start_time + datetime.timedelta(minutes=120))
 
 class TestParticipants(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def setUp(self):
-        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
+        self.user = (
+            User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
+        )
         assert self.client.login(username='fake', password='fake')
 
     def test_participant_pages(self):
@@ -408,6 +426,7 @@ class TestParticipants(TestCase):
         self.assertRedirects(response_ok, reverse('manage:participants'))
         participant = Participant.objects.get(name='Mozilla Firefox')
         eq_(participant.email, 'mozilla@mozilla.com')
+        eq_(participant.creator, self.user)
 
 
 class TestCategories(TestCase):
