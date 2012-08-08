@@ -175,7 +175,7 @@ class EventFindForm(BaseModelForm):
 class ParticipantEditForm(BaseModelForm):
     class Meta:
         model = Participant
-        exclude = ('creator',)
+        exclude = ('creator', 'clear_token')
 
 class ParticipantFindForm(BaseModelForm):
     class Meta:

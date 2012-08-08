@@ -76,6 +76,19 @@ def participant(request, slug):
     })
 
 
+def participant_clear(request, clear_token):
+    participant = get_object_or_404(Participant, clear_token=clear_token)
+    if request.method == 'POST':
+        participant.cleared = Participant.CLEARED_YES
+        participant.clear_token = ''
+        participant.save()
+        return render(request, 'main/participant_clear_done.html')
+    else:
+        return render(request, 'main/participant_clear.html', {
+            'participant': participant
+        })
+
+
 def events_calendar(request, public=True):
     cache_key = 'calendar_%s' % ('public' if public else 'private')
     cached = cache.get(cache_key)

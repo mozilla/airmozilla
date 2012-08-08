@@ -58,6 +58,7 @@ class Participant(models.Model):
     )
     cleared = models.CharField(max_length=15,
                                choices=CLEARED_CHOICES, default=CLEARED_NO)
+    clear_token = models.CharField(max_length=36, blank=True)
     creator = models.ForeignKey(User, related_name='participant_creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
 

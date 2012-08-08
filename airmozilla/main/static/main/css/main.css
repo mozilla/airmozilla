@@ -152,6 +152,9 @@ body .entry-comments a { background-image: url(img/icn-comment.png); }
 
 legend { color: #b4b4b4; } /* For IE */
 
+/* Participant clearing form */
+form.publish-form { display: block; clear: both; text-align: center; }
+
 /* @Sidebar *********/
 #content-sub { background: #2d373b; padding: 24px 24px 4em; margin-right: -24px; }
 .widget_nav_menu li, .widget_categories li { border-bottom-color: #48585e; }

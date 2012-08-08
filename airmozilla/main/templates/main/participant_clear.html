@@ -1,0 +1,9 @@
+{% extends 'main/participant.html' %}
+
+{% block content_main %}
+  {{ super() }}
+  <form method="post" class="publish-form">
+    {{ csrf() }}
+    <button type="submit">{{ _('Clear for publication') }}</button>
+  </form>
+{% endblock %}

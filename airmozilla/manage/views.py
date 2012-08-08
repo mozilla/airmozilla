@@ -2,6 +2,7 @@ import datetime
 import functools
 import pytz
 import re
+import uuid
 
 from django.conf import settings
 from django.contrib.auth.decorators import (permission_required,
@@ -363,6 +364,9 @@ def participant_email(request, id):
     if (not request.user.has_perm('main.change_participant_others') and
             participant.creator != request.user):
         return redirect('manage:participants')
+    if not participant.clear_token:
+        participant.clear_token = str(uuid.uuid4())
+        participant.save()
     to_addr = participant.email
     from_addr = settings.EMAIL_FROM_ADDRESS
     reply_to = request.user.email
@@ -373,14 +377,15 @@ def participant_email(request, id):
     last_event = last_events[0] if last_events else None
     cc_addr = last_event.creator.email if last_event else None
     subject = ('Presenter profile on Air Mozilla (%s)' % participant.name)
-    profile_url = request.build_absolute_uri(
-        reverse('main:participant', kwargs={'slug': participant.slug})
+    token_url = request.build_absolute_uri(
+        reverse('main:participant_clear',
+                kwargs={'clear_token': participant.clear_token})
     )
     message = render_to_string(
         'manage/_email_participant.html',
         {
             'reply_to': reply_to,
-            'link': profile_url
+            'token_url': token_url
         }
     )
     if request.method == 'POST':
