@@ -358,6 +358,7 @@ def participant_edit(request, id):
 
 @staff_required
 @permission_required('main.change_participant')
+@cancel_redirect('manage:participants')
 def participant_email(request, id):
     """Dedicated page for sending an email to a Participant."""
     participant = Participant.objects.get(id=id)
@@ -389,11 +390,10 @@ def participant_email(request, id):
         }
     )
     if request.method == 'POST':
-        if 'submit' in request.POST:
-            cc = [cc_addr] if (('cc' in request.POST) and cc_addr) else None
-            email = EmailMessage(subject, message, from_addr, [to_addr],
-                                 cc=cc, headers={'Reply-To': reply_to})
-            email.send()
+        cc = [cc_addr] if (('cc' in request.POST) and cc_addr) else None
+        email = EmailMessage(subject, message, from_addr, [to_addr],
+                             cc=cc, headers={'Reply-To': reply_to})
+        email.send()
         return redirect('manage:participants')
     else:
         return render(request, 'manage/participant_email.html',

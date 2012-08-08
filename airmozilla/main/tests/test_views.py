@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from django.contrib.auth.models import Group
 from django.test import TestCase
@@ -73,6 +74,23 @@ class TestPages(TestCase):
         participant.save()
         response_ok = self.client.get(participant_page)
         eq_(response_ok.status_code, 200)
+
+    def test_participant_clear(self):
+        """Visiting a participant clear token page changes the Participant
+           status as expected."""
+        participant = Participant.objects.get(name='Tim Mickel')
+        participant.cleared = Participant.CLEARED_NO
+        token = str(uuid.uuid4())
+        participant.clear_token = token
+        participant.save()
+        url = reverse('main:participant_clear', kwargs={'clear_token': token}) 
+        response_ok = self.client.get(url)
+        eq_(response_ok.status_code, 200)
+        response_changed = self.client.post(url)
+        eq_(response_changed.status_code, 200)
+        participant = Participant.objects.get(name='Tim Mickel')
+        eq_(participant.clear_token, '')
+        eq_(participant.cleared, Participant.CLEARED_YES)
 
     def test_calendars(self):
         """Calendars respond successfully."""

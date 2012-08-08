@@ -1,5 +1,13 @@
 {% extends 'main/main_base.html' %}
 
+{% block page_title %}
+{{ _('Presenter profile: clear') }} Air Mozilla
+{% endblock %}
+
+{% block banner %}
+  {% include 'main/_banner_small.html' %}
+{% endblock %} 
+
 {% block content_main %}
   {{ _("Thank you, your profile is cleared!  If you have any other questions,
         please don't hesitate to contact us.") }}

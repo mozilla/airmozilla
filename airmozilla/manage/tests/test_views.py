@@ -402,6 +402,20 @@ class TestParticipants(TestCase):
         )
         eq_(response_fail.status_code, 200)
 
+    def test_participant_email(self):
+        """Participant email page generates a token, redirects properly."""
+        participant = Participant.objects.get(name='Tim Mickel')
+        participant.clear_token = ''
+        participant.save()
+        url = reverse('manage:participant_email',
+            kwargs={'id': participant.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        participant = Participant.objects.get(name='Tim Mickel')
+        ok_(participant.clear_token)
+        response_redirect = self.client.post(url)
+        self.assertRedirects(response_redirect, reverse('manage:participants'))
+
     def test_participant_new(self):
         """New participant page responds OK and form works as expected."""
         response = self.client.get(reverse('manage:participant_new'))
