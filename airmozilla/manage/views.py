@@ -117,6 +117,15 @@ def group_new(request):
 
 
 @staff_required
+@permission_required('auth.delete_group')
+def group_remove(request, id):
+    if request.method == 'POST':
+        group = Group.objects.get(id=id)
+        group.delete()
+    return redirect('manage:groups')
+
+
+@staff_required
 @permission_required('main.add_event')
 @cancel_redirect('manage:events')
 def event_request(request):

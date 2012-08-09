@@ -11,6 +11,7 @@
             <th>Name</th>
             <th>Permission grants</th>
             <th></th>
+            <th></th>
         </thead>
         <tbody>
             {% for g in groups %}
@@ -27,6 +28,16 @@
                             Edit
                         </a>
                     </td>
+                    <td>
+                        <form method="post" class="confirm"
+                              action="{{ url('manage:group_remove', g.id) }}">
+                          {{ csrf() }}
+                          <button class="btn btn-danger" type="submit">
+                            <i class="icon-trash"></i>
+                            Delete
+                          </button>
+                        </form>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -35,4 +46,9 @@
         <i class="icon-plus-sign"></i>
         New group
     </a>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('manage/js/confirm-delete.js') }}"></script>  
 {% endblock %}
