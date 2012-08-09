@@ -113,13 +113,14 @@ def events_calendar(request, public=True):
         vevent.add('dtend').value = (event.start_time +
                                      datetime.timedelta(hours=1))
         vevent.add('description').value = event.description
-        vevent.add('location').value = event.location.name
+        if event.location:
+            vevent.add('location').value = event.location.name
         vevent.add('url').value = base_url + event.slug + '/'
     icalstream = cal.serialize()
     response = http.HttpResponse(icalstream,
                                  mimetype='text/calendar; charset=utf-8')
     filename = 'AirMozillaEvents%s.ics' % ('Public' if public else 'Private')
     response['Content-Disposition'] = (
-        'inline; filename=AirmozillaEvents%s.ics' % filename)
+        'inline; filename=%s' % filename)
     cache.set(cache_key, response)
     return response
