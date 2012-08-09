@@ -17,8 +17,8 @@ from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 
 from airmozilla.base.utils import json_view, paginate, tz_apply
-from airmozilla.main.models import (Approval, Category, Event, Location,
-                                    Participant, Tag, Template)
+from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
+                                    Location, Participant, Tag, Template)
 from airmozilla.manage import forms
 
 
@@ -318,6 +318,18 @@ def event_archive(request, id):
 
 
 @staff_required
+@permission_required('main.delete_event')
+def event_remove(request, id):
+    if request.method == 'POST':
+        event = Event.objects.get(id=id)
+        slugs = EventOldSlug.objects.filter(event=event)
+        for slug in slugs:
+            slug.delete()
+        event.delete()
+    return redirect('manage:events')
+
+
+@staff_required
 @permission_required('main.change_participant')
 def participants(request):
     """Participants page:  view and search participants/speakers."""
@@ -366,8 +378,9 @@ def participant_edit(request, id):
     return render(request, 'manage/participant_edit.html',
                   {'form': form, 'participant': participant})
 
+
 @staff_required
-@permission_required('auth.delete_participant')
+@permission_required('main.delete_participant')
 def participant_remove(request, id):
     if request.method == 'POST':
         participant = Participant.objects.get(id=id)
@@ -446,6 +459,7 @@ def categories(request):
     categories = Category.objects.all()
     return render(request, 'manage/categories.html',
                   {'categories': categories})
+
 
 @staff_required
 @permission_required('main.add_category')

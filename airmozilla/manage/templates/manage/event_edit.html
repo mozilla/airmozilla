@@ -34,7 +34,24 @@
       <li>
         <span class="badge badge-info">Created</span>
         {{ event.created|js_date }}<br>{{ event.creator.email }}</li>
+      {% if request.user.has_perm('main.delete_event') %}
+        <li>
+          <form method="post" class="confirm"
+                action="{{ url('manage:event_remove', event.id) }}">
+            {{ csrf() }}
+            <button class="btn btn-danger" type="submit">
+              <i class="icon-trash"></i>
+              Delete event
+            </button>
+          </form>
+        </li>
+      {% endif %}
     </ul>
   </div>
   {% include 'manage/_default_form_upload.html' %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('manage/js/confirm-delete.js') }}"></script>  
 {% endblock %}
