@@ -14,10 +14,10 @@
       <th style="width: 19%">Title</th>
       <th style="width: 8%">Location</th>
       <th style="width: 19%">Start time</th>
-      <th style="width: 19%">Archive time</th>
+      <th style="width: 17%">Archive time</th>
       <th style="width: 12%">Category</th>
-      <th style="width: 9%">Visibility</th>
-      <th style="width: 9%"></th>
+      <th style="width: 8%">Visibility</th>
+      <th style="width: 12%"></th>
     </tr>
   </thead>
   <tbody>
@@ -68,6 +68,11 @@
           <a href="{{ url('manage:event_edit', event.id) }}" class="btn">
             <i class="icon-edit"></i> Edit
           </a>
+          {% if request.user.has_perm('main.change_event_others') %}
+            <a href="{{ url('manage:event_duplicate', event.id) }}" class="btn">
+              <i class="icon-repeat"></i> Duplicate
+            </a>
+          {% endif %}
         </td>
       </tr>
     {% endfor %}

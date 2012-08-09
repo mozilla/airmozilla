@@ -22,7 +22,8 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
 
     'bootstrapform',
     'sorl.thumbnail',
-    'south'
+    'south',
+    'django.contrib.messages'
 ]
 
 

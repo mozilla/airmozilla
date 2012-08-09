@@ -118,11 +118,20 @@ class EventEditForm(EventRequestForm):
         queryset=Group.objects.filter(permissions__codename='change_approval'),
         required=False,
     )
+
     def __init__(self, *args, **kwargs):
         super(EventEditForm, self).__init__(*args, **kwargs)
         if 'instance' in kwargs:
-            approvals = kwargs['instance'].approval_set.all()
-            self.fields['approvals'].initial = [app.group for app in approvals]
+            event = kwargs['instance']
+            approvals = event.approval_set.all()
+            self.initial['approvals'] = [app.group for app in approvals]
+            if event.pk:
+                tag_format = lambda objects: ','.join(map(unicode, objects))
+                participants_formatted = tag_format(event.participants.all())
+                tags_formatted = tag_format(event.tags.all())
+                self.initial['tags'] = tags_formatted
+                self.initial['participants'] = participants_formatted
+
     class Meta(EventRequestForm.Meta):
         exclude = ('archive_time',)
         # Fields specified to enforce order
@@ -153,7 +162,6 @@ class EventArchiveForm(BaseModelForm):
         self.fields['archive_time'].help_text = (
             '<div id="archive_time_slider"></div>'
         )
-        self.fields['archive_time'].initial
     
     class Meta(EventRequestForm.Meta):
         exclude = ()
@@ -210,7 +218,7 @@ class LocationEditForm(BaseModelForm):
             initial = kwargs['instance'].timezone
         else:
             initial = settings.TIME_ZONE
-        self.fields['timezone'].initial = initial
+        self.initial['timezone'] = initial
     class Meta:
         model = Location
 

@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
+from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
@@ -17,8 +18,8 @@ from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 
 from airmozilla.base.utils import json_view, paginate, tz_apply
-from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
-                                    Location, Participant, Tag, Template)
+from airmozilla.main.models import (Approval, Category, Event, Location,
+                                    Participant, Tag, Template)
 from airmozilla.manage import forms
 
 
@@ -69,6 +70,7 @@ def user_edit(request, id):
         form = forms.UserEditForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
+            messages.info(request, 'User %s saved.' % user.email)
             return redirect('manage:users')
     else:
         form = forms.UserEditForm(instance=user)
@@ -94,6 +96,7 @@ def group_edit(request, id):
         form = forms.GroupEditForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
+            messages.info(request, 'Group "%s" saved.' % group.name)
             return redirect('manage:groups')
     else:
         form = forms.GroupEditForm(instance=group)
@@ -110,6 +113,7 @@ def group_new(request):
         form = forms.GroupEditForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Group "%s" created.' % group.name)
             return redirect('manage:groups')
     else:
         form = forms.GroupEditForm(instance=group)
@@ -122,35 +126,105 @@ def group_remove(request, id):
     if request.method == 'POST':
         group = Group.objects.get(id=id)
         group.delete()
+        messages.info(request, 'Group "%s" removed.' % group.name)
     return redirect('manage:groups')
+
+
+def _event_process(request, form, event):
+    """Generate and clean associated event data for an event request
+       or event edit:  timezone application, approvals update and
+       notifications, creator and modifier."""
+    if not event.creator:
+        event.creator = request.user
+    event.modified_user = request.user
+    tz = pytz.timezone(request.POST['timezone'])
+    event.start_time = tz_apply(event.start_time, tz)
+    if event.archive_time:
+        event.archive_time = tz_apply(event.archive_time, tz)
+    if 'approvals' in form.cleaned_data:
+        event.save()
+        approvals_old = [app.group for app in event.approval_set.all()]
+        approvals_new = form.cleaned_data['approvals']
+        approvals_add = set(approvals_new).difference(approvals_old)
+        approvals_remove = set(approvals_old).difference(approvals_new)
+        for approval in approvals_add:
+            group = Group.objects.get(name=approval)
+            app = Approval(group=group, event=event)
+            app.save()
+            emails = [u.email for u in group.user_set.all()]
+            subject = ('[Air Mozilla] Approval requested: "%s"' %
+                       event.title)
+            message = render_to_string(
+                'manage/_email_approval.html',
+                {
+                    'group': group.name,
+                    'manage_url': request.build_absolute_uri(
+                        reverse('manage:approvals')
+                    ),
+                    'title': event.title,
+                    'creator': event.creator.email,
+                    'datetime': event.start_time,
+                    'description': event.description
+                }
+            )
+            email = EmailMessage(subject, message,
+                                 settings.EMAIL_FROM_ADDRESS, emails)
+            email.send()
+        for approval in approvals_remove:
+            app = Approval.objects.get(group=approval, event=event)
+            app.delete()
 
 
 @staff_required
 @permission_required('main.add_event')
 @cancel_redirect('manage:events')
-def event_request(request):
+def event_request(request, duplicate_id=None):
     """Event request page:  create new events to be published."""
-    if request.user.has_perm('main.add_event_scheduled'):
+    if (request.user.has_perm('main.add_event_scheduled')
+            or request.user.has_perm('main.change_event_others')):
         form_class = forms.EventExperiencedRequestForm
     else:
         form_class = forms.EventRequestForm
+
+    initial = {}
+    event_initial = None
+    if duplicate_id:
+        # Use a blank event, but fill in the initial data from duplication_id
+        event_initial = Event.objects.get(id=duplicate_id)
+        # We copy the initial data from a form generated on the origin event
+        # to retain initial data processing, e.g., on EnvironmentField.
+        event_initial_form = form_class(instance=event_initial)
+        for field in event_initial_form.fields:
+            if field in event_initial_form.initial:
+                # Usual initial form data
+                initial[field] = event_initial_form.initial[field]
+            else:
+                # Populated by form __init__ (e.g., approvals)
+                initial[field] = event_initial_form.fields[field].initial
+        # Excluded fields in an event copy
+        blank_fields = ('slug', 'start_time')
+        for field in blank_fields:
+            initial[field] = ''
+
     if request.method == 'POST':
-        form = form_class(request.POST, request.FILES,
-                          instance=Event())
+        event = Event()
+        if duplicate_id and ('placeholder_img' not in request.FILES):
+            # If this is a duplicate event action and a placeholder_img
+            # was not provided, copy it from the duplication source.
+            event.placeholder_img = event_initial.placeholder_img
+        form = form_class(request.POST, request.FILES, instance=event)
         if form.is_valid():
             event = form.save(commit=False)
-            tz = pytz.timezone(request.POST['timezone'])
-            event.start_time = tz_apply(event.start_time, tz)
-            if event.archive_time:
-                event.archive_time = tz_apply(event.archive_time, tz)
-            event.creator = request.user
-            event.modified_user = request.user
+            _event_process(request, form, event)
             event.save()
             form.save_m2m()
+            messages.success(request,
+                             'Event "%s" created.' % event.title)
             return redirect('manage:events')
     else:
-        form = form_class()
-    return render(request, 'manage/event_request.html', {'form': form})
+        form = form_class(initial=initial)
+    return render(request, 'manage/event_request.html', {'form': form,
+                  'duplicate_event': event_initial})
 
 
 @staff_required
@@ -208,61 +282,23 @@ def event_edit(request, id):
         form_class = forms.EventExperiencedRequestForm
     else:
         form_class = forms.EventRequestForm
+
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES, instance=event)
         if form.is_valid():
             event = form.save(commit=False)
-            tz = pytz.timezone(request.POST['timezone'])
-            event.start_time = tz_apply(event.start_time, tz)
-            if event.archive_time:
-                event.archive_time = tz_apply(event.archive_time, tz)
-            if 'approvals' in form.cleaned_data:
-                approvals_old = [app.group for app in event.approval_set.all()]
-                approvals_new = form.cleaned_data['approvals']
-                approvals_add = set(approvals_new).difference(approvals_old)
-                approvals_remove = set(approvals_old).difference(approvals_new)
-                for approval in approvals_add:
-                    group = Group.objects.get(name=approval)
-                    app = Approval(group=group, event=event)
-                    app.save()
-                    emails = [u.email for u in group.user_set.all()]
-                    subject = ('[Air Mozilla] Approval requested: "%s"' %
-                               event.title)
-                    message = render_to_string(
-                        'manage/_email_approval.html',
-                        {
-                            'group': group.name,
-                            'manage_url': request.build_absolute_uri(
-                                reverse('manage:approvals')
-                            ),
-                            'title': event.title,
-                            'creator': event.creator.email,
-                            'datetime': event.start_time,
-                            'description': event.description
-                        }
-                    )
-                    email = EmailMessage(subject, message,
-                                         settings.EMAIL_FROM_ADDRESS, emails)
-                    email.send()
-                for approval in approvals_remove:
-                    app = Approval.objects.get(group=approval, event=event)
-                    app.delete()
-            event.modified_user = request.user
+            _event_process(request, form, event)
             event.save()
             form.save_m2m()
+            messages.info(request, 'Event "%s" saved.' % event.title)
             return redirect('manage:events')
     else:
         timezone.activate(pytz.timezone('UTC'))
-        tag_format = lambda objects: ','.join(map(unicode, objects))
-        participants_formatted = tag_format(event.participants.all())
-        tags_formatted = tag_format(event.tags.all())
         form = form_class(instance=event, initial={
-            'participants': participants_formatted,
-            'tags': tags_formatted,
             'timezone': timezone.get_current_timezone()  # UTC
         })
-    return render(request, 'manage/event_edit.html', {'form': form,
-                                                      'event': event})
+    return render(request, 'manage/event_edit.html',
+                  {'form': form, 'event': event})
 
 
 @staff_required
@@ -309,24 +345,13 @@ def event_archive(request, id):
                 event.start_time + datetime.timedelta(minutes=minutes)
             )
             event.save()
+            messages.info(request, 'Event "%s" saved.' % event.title)
             return redirect('manage:events')
     else:
         form = forms.EventArchiveForm(instance=event)
 
     return render(request, 'manage/event_archive.html',
                   {'form': form, 'event': event})
-
-
-@staff_required
-@permission_required('main.delete_event')
-def event_remove(request, id):
-    if request.method == 'POST':
-        event = Event.objects.get(id=id)
-        slugs = EventOldSlug.objects.filter(event=event)
-        for slug in slugs:
-            slug.delete()
-        event.delete()
-    return redirect('manage:events')
 
 
 @staff_required
@@ -370,6 +395,8 @@ def participant_edit(request, id):
                                          instance=participant)
         if form.is_valid():
             form.save()
+            messages.info(request,
+                          'Participant "%s" saved.' % participant.name)
             if 'sendmail' in request.POST:
                 return redirect('manage:participant_email', id=participant.id)
             return redirect('manage:participants')
@@ -385,6 +412,7 @@ def participant_remove(request, id):
     if request.method == 'POST':
         participant = Participant.objects.get(id=id)
         participant.delete()
+        messages.info(request, 'Participant "%s" removed.' % participant.name)
     return redirect('manage:participants')
 
 
@@ -426,6 +454,7 @@ def participant_email(request, id):
         email = EmailMessage(subject, message, from_addr, [to_addr],
                              cc=cc, headers={'Reply-To': reply_to})
         email.send()
+        messages.success(request, 'Email sent to %s.' % to_addr)
         return redirect('manage:participants')
     else:
         return render(request, 'manage/participant_email.html',
@@ -446,6 +475,8 @@ def participant_new(request):
             participant = form.save(commit=False)
             participant.creator = request.user
             participant.save()
+            messages.success(request,
+                             'Participant "%s" created.' % participant.name)
             return redirect('manage:participants')
     else:
         form = forms.ParticipantEditForm()
@@ -469,6 +500,7 @@ def category_new(request):
         form = forms.CategoryForm(request.POST, instance=Category())
         if form.is_valid():
             form.save()
+            messages.success(request, 'Category created.')
             return redirect('manage:categories')
     else:
         form = forms.CategoryForm()
@@ -484,6 +516,7 @@ def category_edit(request, id):
         form = forms.CategoryForm(request.POST, instance=category)
         if form.is_valid():
             form.save()
+            messages.info(request, 'Category "%s" saved.' % category.name)
             return redirect('manage:categories')
     else:
         form = forms.CategoryForm(instance=category)
@@ -497,6 +530,7 @@ def category_remove(request, id):
     if request.method == 'POST':
         category = Category.objects.get(id=id)
         category.delete()
+        messages.info(request, 'Category "%s" removed.' % category.name)
     return redirect('manage:categories')
 
 
@@ -531,6 +565,7 @@ def template_edit(request, id):
         form = forms.TemplateEditForm(request.POST, instance=template)
         if form.is_valid():
             form.save()
+            messages.info(request, 'Template "%s" saved.' % template.name)
             return redirect('manage:templates')
     else:
         form = forms.TemplateEditForm(instance=template)
@@ -546,6 +581,7 @@ def template_new(request):
         form = forms.TemplateEditForm(request.POST, instance=Template())
         if form.is_valid():
             form.save()
+            messages.success(request, 'Template created.')
             return redirect('manage:templates')
     else:
         form = forms.TemplateEditForm()
@@ -558,6 +594,7 @@ def template_remove(request, id):
     if request.method == 'POST':
         template = Template.objects.get(id=id)
         template.delete()
+        messages.info(request, 'Template "%s" removed.' % template.name)
     return redirect('manage:templates')
 
 
@@ -577,6 +614,7 @@ def location_edit(request, id):
         form = forms.LocationEditForm(request.POST, instance=location)
         if form.is_valid():
             form.save()
+            messages.info(request, 'Location "%s" saved.' % location)
             return redirect('manage:locations')
     else:
         form = forms.LocationEditForm(instance=location)
@@ -592,6 +630,7 @@ def location_new(request):
         form = forms.LocationEditForm(request.POST, instance=Location())
         if form.is_valid():
             form.save()
+            messages.success(request, 'Location created.')
             if request.user.has_perm('main.change_location'):
                 return redirect('manage:locations')
             else:
@@ -607,6 +646,7 @@ def location_remove(request, id):
     if request.method == 'POST':
         location = Location.objects.get(id=id)
         location.delete()
+        messages.info(request, 'Location "%s" removed.' % location.name)
     return redirect('manage:locations')
 
 
@@ -646,6 +686,7 @@ def approval_review(request, id):
         approval.processed = True
         approval.user = request.user
         approval.save()
+        messages.info(request, '"%s" approval saved.' % approval.event.title)
         return redirect('manage:approvals')
     else:
         form = forms.ApprovalForm(instance=approval)

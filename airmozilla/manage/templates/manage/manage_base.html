@@ -81,10 +81,23 @@
 	    	</div>
 		    <div id="content" class="span10">
 		        <h2>{% block manage_title %}{% endblock %}</h2>
+            {% if messages %}
+                {% for message in messages %}
+                  <div class="alert
+                   {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+            {% endif %}
 		        {% block manage_content %}{% endblock %}
 		    </div>
             </div>
 		</div>
 	</div>
     </div>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('manage/js/confirm-delete.js') }}"></script>
 {% endblock %}

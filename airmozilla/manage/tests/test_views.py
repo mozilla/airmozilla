@@ -14,6 +14,20 @@ import airmozilla.manage.forms
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
                                     Location, Participant, Template)
 
+def _delete_test(self, obj, remove_view, redirect_view):
+    """Common test for deleting an object in the management interface,
+       checking that it was deleted properly, and ensuring that an improper
+       delete request does not remove the object."""
+    model = obj.__class__
+    url = reverse(remove_view, kwargs={'id': obj.id})
+    self.client.get(url)
+    obj = model.objects.get(id=obj.id)
+    ok_(obj)  # the template wasn't deleted because we didn't use POST
+    response_ok = self.client.post(url)
+    self.assertRedirects(response_ok, reverse(redirect_view))
+    obj = model.objects.filter(id=obj.id).exists()
+    ok_(not obj)
+
 
 class TestPermissions(TestCase):
     def _login(self, is_staff):
@@ -110,6 +124,10 @@ class TestUsersAndGroups(TestCase):
         self.assertRedirects(response, reverse('manage:groups'))
         group = Group.objects.get(id=group.id)
         eq_(group.name, 'newtestergroup')
+
+    def test_group_remove(self):
+        group, __ = Group.objects.get_or_create(name='testergroup')
+        _delete_test(self, group, 'manage:group_remove', 'manage:groups')
 
     def test_user_search(self):
         """Searching for a created user redirects properly; otherwise fail."""
@@ -348,6 +366,7 @@ class TestEvents(TestCase):
         eq_(event_modified.archive_time, 
             event_modified.start_time + datetime.timedelta(minutes=120))
 
+
 class TestParticipants(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
@@ -445,8 +464,15 @@ class TestParticipants(TestCase):
         eq_(participant.email, 'mozilla@mozilla.com')
         eq_(participant.creator, self.user)
 
+    def test_participant_remove(self):
+        participant = Participant.objects.get(name='Tim Mickel')
+        _delete_test(self, participant, 'manage:participant_remove',
+                     'manage:participants')
+
 
 class TestCategories(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    
     def setUp(self):
         User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
         assert self.client.login(username='fake', password='fake')
@@ -458,15 +484,20 @@ class TestCategories(TestCase):
 
     def test_category_new(self):
         """ Category form adds new categories. """
-        response_ok = self.client.post(reverse('manage:categories'),
+        response_ok = self.client.post(reverse('manage:category_new'),
             {
                 'name': 'Web Dev Talks '
             }
         )
-        eq_(response_ok.status_code, 200)
+        self.assertRedirects(response_ok, reverse('manage:categories'))
         ok_(Category.objects.get(name='Web Dev Talks'))
-        response_fail = self.client.post(reverse('manage:categories'))
+        response_fail = self.client.post(reverse('manage:category_new'))
         eq_(response_fail.status_code, 200)
+
+    def test_category_delete(self):
+        category = Category.objects.get(name='testing')
+        _delete_test(self, category, 'manage:category_remove',
+                     'manage:categories')
 
 
 class TestTemplates(TestCase):
@@ -514,16 +545,10 @@ class TestTemplates(TestCase):
         eq_(response_fail.status_code, 200)
 
     def test_template_remove(self):
-        """Deleting a template works correctly."""
         template = Template.objects.get(name='test template')
-        url = reverse('manage:template_remove', kwargs={'id': template.id})
-        self.client.get(url)
-        template = Template.objects.get(id=template.id)
-        ok_(template)  # the template wasn't deleted because we didn't use POST
-        response_ok = self.client.post(url)
-        self.assertRedirects(response_ok, reverse('manage:templates'))
-        template = Template.objects.filter(id=template.id).exists()
-        ok_(not template)
+        _delete_test(self, template, 'manage:template_remove',
+                     'manage:templates')
+
 
     def test_template_env_autofill(self):
         """The JSON autofiller responds correctly for the fixture template."""
@@ -596,11 +621,9 @@ class TestLocations(TestCase):
     def test_location_remove(self):
         """Removing a location works correctly and leaves associated events
            with null locations."""
-        url = reverse('manage:location_remove', kwargs={'id': 1})
-        response = self.client.post(url)
-        self.assertRedirects(response, reverse('manage:locations'))
-        location = Location.objects.filter(id=1).exists()
-        ok_(not location)
+        location = Location.objects.get(id=1)
+        _delete_test(self, location, 'manage:location_remove',
+                     'manage:locations')
         event = Event.objects.get(id=22)
         eq_(event.location, None)
 

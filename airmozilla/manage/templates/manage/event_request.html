@@ -4,7 +4,11 @@
 {% endif %}
 
 {% block manage_title %}
+  {% if duplicate_event %}
+    Duplicating event "{{ duplicate_event.title }}"
+  {% else %}
     Event request
+  {% endif %}
 {% endblock %}
 
 {% block site_css %}
