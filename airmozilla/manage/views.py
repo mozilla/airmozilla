@@ -427,15 +427,46 @@ def participant_new(request):
 @permission_required('main.change_category')
 def categories(request):
     categories = Category.objects.all()
+    return render(request, 'manage/categories.html',
+                  {'categories': categories})
+
+@staff_required
+@permission_required('main.add_category')
+@cancel_redirect('manage:categories')
+def category_new(request):
     if request.method == 'POST':
         form = forms.CategoryForm(request.POST, instance=Category())
         if form.is_valid():
             form.save()
-            form = forms.CategoryForm()
+            return redirect('manage:categories')
     else:
         form = forms.CategoryForm()
-    return render(request, 'manage/categories.html',
-                  {'categories': categories, 'form': form})
+    return render(request, 'manage/category_new.html', {'form': form})
+
+
+@staff_required
+@permission_required('main.change_category')
+@cancel_redirect('manage:categories')
+def category_edit(request, id):
+    category = Category.objects.get(id=id)
+    if request.method == 'POST':
+        form = forms.CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            return redirect('manage:categories')
+    else:
+        form = forms.CategoryForm(instance=category)
+    return render(request, 'manage/category_edit.html',
+                  {'form': form, 'category': category})
+
+
+@staff_required
+@permission_required('main.delete_category')
+def category_remove(request, id):
+    if request.method == 'POST':
+        category = Category.objects.get(id=id)
+        category.delete()
+    return redirect('manage:categories')
 
 
 @staff_required
@@ -491,7 +522,7 @@ def template_new(request):
 
 
 @staff_required
-@permission_required('main.remove_template')
+@permission_required('main.delete_template')
 def template_remove(request, id):
     if request.method == 'POST':
         template = Template.objects.get(id=id)

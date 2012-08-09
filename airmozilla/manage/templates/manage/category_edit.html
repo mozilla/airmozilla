@@ -1,0 +1,9 @@
+{% extends 'manage/categories.html' %}
+
+{% block manage_title %}
+  Editing category "{{ category.name }}"
+{% endblock %}
+
+{% block manage_content %}
+  {% include 'manage/_default_form.html' %}
+{% endblock %}
