@@ -275,6 +275,8 @@ def tag_autocomplete(request):
 def participant_autocomplete(request):
     """Participant names to Event request/edit autocompleter."""
     query = request.GET['q']
+    if not query:
+        return {'participants': []}
     participants = Participant.objects.filter(name__icontains=query)
     # Only match names with a component which starts with the query
     regex = re.compile(r'\b%s' % re.escape(query.split()[0]), re.I)

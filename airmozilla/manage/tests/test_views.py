@@ -211,6 +211,15 @@ class TestEvents(TestCase):
         eq_(response_fail.status_code, 200)
         parsed_fail = json.loads(response_fail.content)
         eq_(parsed_fail, {'participants': []})
+        response_blank = self.client.get(
+            reverse('manage:participant_autocomplete'),
+            {
+                'q': ''
+            }
+        )
+        eq_(response_blank.status_code, 200)
+        parsed_blank = json.loads(response_blank.content)
+        eq_(parsed_blank, {'participants': []})
 
     def test_events(self):
         """The events page responds successfully."""
