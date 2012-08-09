@@ -366,6 +366,14 @@ def participant_edit(request, id):
     return render(request, 'manage/participant_edit.html',
                   {'form': form, 'participant': participant})
 
+@staff_required
+@permission_required('auth.delete_participant')
+def participant_remove(request, id):
+    if request.method == 'POST':
+        participant = Participant.objects.get(id=id)
+        participant.delete()
+    return redirect('manage:participants')
+
 
 @staff_required
 @permission_required('main.change_participant')

@@ -44,6 +44,16 @@
                 Edit
             </a>
           {% endif %}
+          {% if perms.main.delete_participant %}
+            <form method="post" class="confirm"
+              action="{{ url('manage:participant_remove', participant.id) }}">
+              {{ csrf() }}
+              <button class="btn btn-danger" type="submit">
+                <i class="icon-trash"></i>
+                Delete
+              </button>
+            </form>
+          {% endif %}
         </td>
       </tr>
     {% endfor %}
@@ -75,4 +85,9 @@
         Search
     </button>
   </form>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('manage/js/confirm-delete.js') }}"></script>  
 {% endblock %}
