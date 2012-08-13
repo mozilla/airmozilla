@@ -208,7 +208,7 @@ def event_request(request, duplicate_id=None):
 
     if request.method == 'POST':
         event = Event()
-        if duplicate_id and ('placeholder_img' not in request.FILES):
+        if duplicate_id and 'placeholder_img' not in request.FILES:
             # If this is a duplicate event action and a placeholder_img
             # was not provided, copy it from the duplication source.
             event.placeholder_img = event_initial.placeholder_img
@@ -253,8 +253,8 @@ def events(request):
             .order_by('start_time'))
     archiving = (Event.objects.archiving().filter(**creator_filter)
                  .order_by('-archive_time'))
-    archived = (Event.objects.archived().filter(**creator_filter)
-                .order_by('-archive_time'))
+    archived = (Event.objects.archived(include_removed=True)
+                .filter(**creator_filter) .order_by('-archive_time'))
     archived_paged = paginate(archived, request.GET.get('page'), 10)
     return render(request, 'manage/events.html', {
         'initiated': initiated,

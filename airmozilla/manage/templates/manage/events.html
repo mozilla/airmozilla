@@ -58,10 +58,13 @@
               <span class="label label-success">Featured</span>
             {% endif %}
             {% if live_tag %}
-              <span class="label label-important">Live</span>
+              <span class="label label-info">Live</span>
             {% endif %}
             {% if hidden_tag %}
               <span class="label label-inverse">Hidden</span>
+            {% endif %}
+            {% if event.is_removed() %}
+              <span class="label label-important">Removed</span>
             {% endif %}
         </td>
         <td>

@@ -132,10 +132,15 @@ class EventManager(models.Manager):
                                             Q(approval__processed=False))
                     .distinct())
 
-    def approved(self):
-        return (self.get_query_set().filter(status=Event.STATUS_SCHEDULED)
-                                    .exclude(approval__approved=False)
-                                    .exclude(approval__processed=False))
+    def approved(self, include_removed=False):
+        query_set = self.get_query_set()
+        if include_removed:
+            query_set = query_set.filter(Q(status=Event.STATUS_SCHEDULED) |
+                                         Q(status=Event.STATUS_REMOVED))
+        else:
+            query_set = query_set.filter(status=Event.STATUS_SCHEDULED)
+        return (query_set.exclude(approval__approved=False)
+                         .exclude(approval__processed=False))
 
     def upcoming(self):
         return self.approved().filter(
@@ -155,8 +160,8 @@ class EventManager(models.Manager):
             start_time__lt=_get_live_time()
         )
 
-    def archived(self):
-        return self.approved().filter(
+    def archived(self, include_removed=False):
+        return self.approved(include_removed).filter(
             archive_time__lt=_get_now(),
             start_time__lt=_get_now()
         )
@@ -175,9 +180,11 @@ class Event(models.Model):
     )
     STATUS_INITIATED = 'initiated'
     STATUS_SCHEDULED = 'scheduled'
+    STATUS_REMOVED = 'removed'
     STATUS_CHOICES = (
         (STATUS_INITIATED, 'Initiated'),
-        (STATUS_SCHEDULED, 'Scheduled')
+        (STATUS_SCHEDULED, 'Scheduled'),
+        (STATUS_REMOVED, 'Removed')
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
                               default=STATUS_INITIATED)
@@ -224,6 +231,9 @@ class Event(models.Model):
     def is_upcoming(self):
         return (self.archive_time is None and
                 self.start_time > _get_live_time())
+    
+    def is_removed(self):
+        return self.status == self.STATUS_REMOVED
 
 
 class EventOldSlug(models.Model):

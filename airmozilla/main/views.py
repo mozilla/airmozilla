@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.sites.models import RequestSite
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
+from django.http import Http404
 from django.utils.timezone import utc
 
 from jingo import Template
@@ -43,11 +44,12 @@ def event(request, slug):
     except Event.DoesNotExist:
         old_slug = get_object_or_404(EventOldSlug, slug=slug)
         return redirect('main:event', slug=old_slug.event.slug)
-    if ((not event.public or event.status == Event.STATUS_INITIATED)
-        and not request.user.is_active):
+    if not event.public and not request.user.is_active:
         return redirect('main:login')
+    if event.status != Event.STATUS_SCHEDULED:
+        raise Http404('Event not scheduled')
     if event.approval_set.filter(approved=False).exists():
-        return redirect('main:login')
+        raise Http404('Event not approved')
     template_tagged = ''
     if event.template and not event.is_upcoming():
         context = {
