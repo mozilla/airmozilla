@@ -23,8 +23,14 @@ def page(request, template):
 
 def home(request, page=1):
     """Paginated recent videos and live videos."""
-    archived_events = Event.objects.archived().order_by('-archive_time')
-    live_events = Event.objects.live().order_by('start_time')
+    if request.user.is_active:
+        public_filter = {}
+    else:
+        public_filter = {'public': True}
+    archived_events = (Event.objects.archived().filter(**public_filter)
+                       .order_by('-archive_time'))
+    live_events = (Event.objects.live().filter(**public_filter)
+                   .order_by('start_time'))
     archived_paged = paginate(archived_events, page, 10)
     live = None
     also_live = []
