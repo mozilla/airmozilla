@@ -681,40 +681,41 @@ class TestManagementRoles(TestCase):
         self._add_client_group('Producer')
         response_events = self.client.get(reverse('manage:events'))
         eq_(response_events.status_code, 200)
-        ok_(response_events.context['archived'])
-        ok_(not response_events.context['initiated'])
+        ok_('Test event' in response_events.content)
         response_participants = self.client.get(reverse('manage:participants'))
         ok_(response_participants.status_code, 200)
-        participant = response_participants.context['participants_clear'][0]
         response_participant_edit = self.client.get(
-            reverse('manage:participant_edit', kwargs={'id': participant.id})
+            reverse('manage:participant_edit', kwargs={'id': 1})
         )
         eq_(response_participant_edit.status_code, 200)
     
-    def _unprivileged_event_manager_tests(self, form_class):
+    def _unprivileged_event_manager_tests(self, form_contains,
+                                          form_not_contains):
         """Common tests for organizers/experienced organizers to ensure
            basic event/participant permissions are not violated."""
         response_event_request = self.client.get(
             reverse('manage:event_request')
         )
         eq_(response_event_request.status_code, 200)
-        eq_(response_event_request.context['form'].__class__, form_class)
+        ok_(form_contains in response_event_request.content)
+        ok_(form_not_contains not in response_event_request.content)
         response_events = self.client.get(reverse('manage:events'))
         eq_(response_events.status_code, 200)
-        ok_(not response_events.context['archived'],
+        ok_('Test event' not in response_events.content,
             'Unprivileged viewer can see events which do not belong to it')
         event = Event.objects.get(title='Test event')
         event.creator = self.user
         event.save()
         response_events = self.client.get(reverse('manage:events'))
-        ok_(response_events.context['archived'],
+        ok_('Test event' in response_events.content,
             'Unprivileged viewer cannot see events which belong to it.')
         response_event_edit = self.client.get(reverse('manage:event_edit',
                                                       kwargs={'id': event.id}))
-        eq_(response_event_edit.context['form'].__class__, form_class)
+        ok_(form_contains in response_event_edit.content)
+        ok_(form_not_contains not in response_event_edit.content)
         response_participants = self.client.get(reverse('manage:participants'))
         ok_(response_participants.status_code, 200)
-        participant = response_participants.context['participants_clear'][0]
+        participant = Participant.objects.get(id=1)
         participant_edit_url = reverse('manage:participant_edit', 
                                        kwargs={'id': participant.id})
         response_participant_edit_fail = self.client.get(participant_edit_url)
@@ -747,7 +748,8 @@ class TestManagementRoles(TestCase):
            participants, can only see own events."""
         self._add_client_group('Event Organizer')
         self._unprivileged_event_manager_tests(
-            airmozilla.manage.forms.EventRequestForm
+            form_contains='Time zone',  # EventRequestForm
+            form_not_contains='Approvals'
         )
         self._unprivileged_page_tests(additional_pages=['manage:approvals'])
 
@@ -756,7 +758,8 @@ class TestManagementRoles(TestCase):
            can only edit own participants, can only see own events."""
         self._add_client_group('Experienced Event Organizer')
         self._unprivileged_event_manager_tests(
-            airmozilla.manage.forms.EventExperiencedRequestForm
+            form_contains='Approvals',  # EventExperiencedRequestForm
+            form_not_contains='Featured'
         )
         self._unprivileged_page_tests(additional_pages=['manage:approvals'])
 
