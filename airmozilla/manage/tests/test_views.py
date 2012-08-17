@@ -10,66 +10,61 @@ from funfactory.urlresolvers import reverse
 
 from nose.tools import eq_, ok_
 
-import airmozilla.manage.forms
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
                                     Location, Participant, Template)
 
-def _delete_test(self, obj, remove_view, redirect_view):
-    """Common test for deleting an object in the management interface,
-       checking that it was deleted properly, and ensuring that an improper
-       delete request does not remove the object."""
-    model = obj.__class__
-    url = reverse(remove_view, kwargs={'id': obj.id})
-    self.client.get(url)
-    obj = model.objects.get(id=obj.id)
-    ok_(obj)  # the template wasn't deleted because we didn't use POST
-    response_ok = self.client.post(url)
-    self.assertRedirects(response_ok, reverse(redirect_view))
-    obj = model.objects.filter(id=obj.id).exists()
-    ok_(not obj)
+class ManageTestCase(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
-
-class TestPermissions(TestCase):
-    def _login(self, is_staff):
-        user = User.objects.create_user('fake', 'fake@fake.com', 'fake')
-        user.is_staff = is_staff
-        user.save()
+    def setUp(self):
+        self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
-        return user
+    
+    def _delete_test(self, obj, remove_view, redirect_view):
+        """Common test for deleting an object in the management interface,
+           checking that it was deleted properly, and ensuring that an improper
+           delete request does not remove the object."""
+        model = obj.__class__
+        url = reverse(remove_view, kwargs={'id': obj.id})
+        self.client.get(url)
+        obj = model.objects.get(id=obj.id)
+        ok_(obj)  # the template wasn't deleted because we didn't use POST
+        response_ok = self.client.post(url)
+        self.assertRedirects(response_ok, reverse(redirect_view))
+        obj = model.objects.filter(id=obj.id).exists()
+        ok_(not obj)
 
+
+class TestPermissions(ManageTestCase):
     def test_unauthorized(self):
         """ Client with no log in - should be rejected. """
+        self.client.logout()
         response = self.client.get(reverse('manage:home'))
         self.assertRedirects(response, settings.LOGIN_URL
                              + '?next=' + reverse('manage:home'))
 
     def test_not_staff(self):
         """ User is not staff - should be rejected. """
-        self._login(is_staff=False)
+        self.user.is_staff = False
+        self.user.save()
         response = self.client.get(reverse('manage:home'))
         self.assertRedirects(response, settings.LOGIN_URL
                              + '?next=' + reverse('manage:home'))
 
     def test_staff_home(self):
         """ User is staff - should get an OK homepage. """
-        self._login(is_staff=True)
         response = self.client.get(reverse('manage:home'))
         eq_(response.status_code, 200)
 
     def test_staff_logout(self):
         """ Log out makes admin inaccessible. """
-        self._login(is_staff=True)
         self.client.get(reverse('auth:logout'))
         response = self.client.get(reverse('manage:home'))
         self.assertRedirects(response, settings.LOGIN_URL
                              + '?next=' + reverse('manage:home'))
 
 
-class TestUsersAndGroups(TestCase):
-    def setUp(self):
-        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
-        assert self.client.login(username='fake', password='fake')
-
+class TestUsersAndGroups(ManageTestCase):
     def test_user_group_pages(self):
         """User and group listing pages respond with success."""
         response = self.client.get(reverse('manage:users'))
@@ -127,7 +122,7 @@ class TestUsersAndGroups(TestCase):
 
     def test_group_remove(self):
         group, __ = Group.objects.get_or_create(name='testergroup')
-        _delete_test(self, group, 'manage:group_remove', 'manage:groups')
+        self._delete_test(group, 'manage:group_remove', 'manage:groups')
 
     def test_user_search(self):
         """Searching for a created user redirects properly; otherwise fail."""
@@ -147,8 +142,7 @@ class TestUsersAndGroups(TestCase):
         eq_(response_fail.status_code, 200)
 
 
-class TestEvents(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class TestEvents(ManageTestCase):
     event_base_data = {
         'status': Event.STATUS_SCHEDULED,
         'description': '...',
@@ -161,12 +155,6 @@ class TestEvents(TestCase):
         'timezone': 'US/Pacific'
     }
     placeholder = 'airmozilla/manage/tests/firefox.png'
-
-    def setUp(self):
-        self.user = (
-            User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
-        )
-        assert self.client.login(username='fake', password='fake')
 
     def test_event_request(self):
         """Event request responses and successful creation in the db."""
@@ -367,15 +355,7 @@ class TestEvents(TestCase):
             event_modified.start_time + datetime.timedelta(minutes=120))
 
 
-class TestParticipants(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
-
-    def setUp(self):
-        self.user = (
-            User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
-        )
-        assert self.client.login(username='fake', password='fake')
-
+class TestParticipants(ManageTestCase):
     def test_participant_pages(self):
         """Participants pagination always returns valid pages."""
         response = self.client.get(reverse('manage:participants'))
@@ -466,17 +446,11 @@ class TestParticipants(TestCase):
 
     def test_participant_remove(self):
         participant = Participant.objects.get(name='Tim Mickel')
-        _delete_test(self, participant, 'manage:participant_remove',
-                     'manage:participants')
+        self._delete_test(participant, 'manage:participant_remove',
+                          'manage:participants')
 
 
-class TestCategories(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    
-    def setUp(self):
-        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
-        assert self.client.login(username='fake', password='fake')
-
+class TestCategories(ManageTestCase):
     def test_categories(self):
         """ Categories listing responds OK. """
         response = self.client.get(reverse('manage:categories'))
@@ -496,17 +470,11 @@ class TestCategories(TestCase):
 
     def test_category_delete(self):
         category = Category.objects.get(name='testing')
-        _delete_test(self, category, 'manage:category_remove',
-                     'manage:categories')
+        self._delete_test(category, 'manage:category_remove',
+                          'manage:categories')
 
 
-class TestTemplates(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
-
-    def setUp(self):
-        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
-        assert self.client.login(username='fake', password='fake')
-
+class TestTemplates(ManageTestCase):
     def test_templates(self):
         """Templates listing responds OK."""
         response = self.client.get(reverse('manage:templates'))
@@ -546,8 +514,8 @@ class TestTemplates(TestCase):
 
     def test_template_remove(self):
         template = Template.objects.get(name='test template')
-        _delete_test(self, template, 'manage:template_remove',
-                     'manage:templates')
+        self._delete_test(template, 'manage:template_remove',
+                          'manage:templates')
 
 
     def test_template_env_autofill(self):
@@ -561,13 +529,7 @@ class TestTemplates(TestCase):
         eq_(template_parsed, {'variables': 'tv1=\ntv2='})
 
 
-class TestApprovals(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    
-    def setUp(self):
-        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
-        assert self.client.login(username='fake', password='fake')
-
+class TestApprovals(ManageTestCase):
     def test_approvals(self):
         response = self.client.get(reverse('manage:approvals'))
         eq_(response.status_code, 200)
@@ -591,13 +553,7 @@ class TestApprovals(TestCase):
         eq_(app.user, User.objects.get(username='fake'))
 
 
-class TestLocations(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
-
-    def setUp(self):
-        User.objects.create_superuser('fake', 'fake@fake.com', 'fake')
-        assert self.client.login(username='fake', password='fake')
-
+class TestLocations(ManageTestCase):
     def test_locations(self):
         """Location management pages return successfully."""
         response = self.client.get(reverse('manage:locations'))
@@ -622,8 +578,8 @@ class TestLocations(TestCase):
         """Removing a location works correctly and leaves associated events
            with null locations."""
         location = Location.objects.get(id=1)
-        _delete_test(self, location, 'manage:location_remove',
-                     'manage:locations')
+        self._delete_test(location, 'manage:location_remove',
+                          'manage:locations')
         event = Event.objects.get(id=22)
         eq_(event.location, None)
 
@@ -657,24 +613,20 @@ class TestLocations(TestCase):
         eq_(data['timezone'], 'US/Pacific')
 
 
-class TestManagementRoles(TestCase):
+class TestManagementRoles(ManageTestCase):
     """Basic tests to ensure management roles / permissions are working."""
     fixtures = ['airmozilla/manage/tests/main_testdata.json',
                 'airmozilla/manage/tests/manage_groups_testdata.json']
 
     def setUp(self):
-        self.user = (
-            User.objects.create_user(username='fake', password='fake')
-        )
-        self.user.is_staff = True
+        super(TestManagementRoles, self).setUp()
+        self.user.is_superuser = False
         self.user.save()
-        assert self.client.login(username='fake', password='fake')
 
     def _add_client_group(self, name):
         group = Group.objects.get(name=name)
         group.user_set.add(self.user)
         ok_(group in self.user.groups.all())
-
 
     def test_producer(self):
         """Producer can see fixture events and edit pages."""
