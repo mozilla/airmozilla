@@ -48,8 +48,8 @@ class UserFindForm(BaseModelForm):
 
 
 class EventRequestForm(BaseModelForm):
-    tags = forms.CharField()
-    participants = forms.CharField()
+    tags = forms.CharField(required=False)
+    participants = forms.CharField(required=False)
     timezone = forms.ChoiceField(choices=TIMEZONE_CHOICES,
                      initial=settings.TIME_ZONE, label='Time zone')
     def __init__(self, *args, **kwargs):
