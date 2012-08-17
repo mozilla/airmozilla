@@ -34,10 +34,10 @@ source $VENV/bin/activate
 pip install -q -r requirements/compiled.txt
 pip install -q -r requirements/dev.txt
 
-cat > settings/local.py <<SETTINGS
-from settings.base import *
+cat > airmozilla/settings/local.py <<SETTINGS
+from .base import *
 
-ROOT_URLCONF = 'workspace.urls'
+ROOT_URLCONF = 'airmozilla.urls'
 LOG_LEVEL = logging.ERROR
 # Database name has to be set because of sphinx
 DATABASES = {
@@ -53,7 +53,20 @@ DATABASES = {
         'TEST_COLLATION': 'utf8_general_ci',
     }
 }
-
+EMAIL_FROM_ADDRESS = 'any@doesntmatter.com'
+SECRET_KEY = 'blablabla'
+HMAC_KEYS = {
+'2012-06-06': 'anything',
+}
+from django_sha2 import get_password_hashers
+hashers = (#'django_sha2.hashers.BcryptHMACCombinedPasswordVerifier',
+#'django_sha2.hashers.SHA512PasswordHasher',
+#'django_sha2.hashers.SHA256PasswordHasher',
+'django.contrib.auth.hashers.SHA1PasswordHasher',
+'django.contrib.auth.hashers.MD5PasswordHasher',
+'django.contrib.auth.hashers.UnsaltedMD5PasswordHasher'
+)
+PASSWORD_HASHERS = get_password_hashers(hashers, HMAC_KEYS)
 INSTALLED_APPS += ('django_nose',)
 CELERY_ALWAYS_EAGER = True
 SETTINGS
