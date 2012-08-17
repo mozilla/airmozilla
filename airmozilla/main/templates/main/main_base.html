@@ -52,9 +52,10 @@ Air Mozilla | Mozilla, in Video
     </div>
     <div id="content-sub" class="sub sidebar widgets" role="complementary">
       <aside id="current-time" class="widget">
-      <h3 class="widget-title">{{ _('Current Time') }}</h3>
+      <h3 class="widget-title">{{ _('Your Local Time') }}</h3>
       <p class="datetime">
-        {{ date_now()|js_date(enable_timeago=False) }}
+        {{ date_now()|js_date(enable_timeago=False,
+                              format='ddd, MMM D, YYYY h:mma') }}
       </p>
       </aside>
       {% if not request.user.is_active %}
