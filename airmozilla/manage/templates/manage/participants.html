@@ -43,16 +43,16 @@
               <i class="icon-edit"></i>
                 Edit
             </a>
-          {% endif %}
-          {% if perms.main.delete_participant %}
-            <form method="post" class="confirm"
-              action="{{ url('manage:participant_remove', participant.id) }}">
-              {{ csrf() }}
-              <button class="btn btn-danger" type="submit">
-                <i class="icon-trash"></i>
-                Delete
-              </button>
-            </form>
+            {% if perms.main.delete_participant %}
+              <form method="post" class="confirm"
+                action="{{ url('manage:participant_remove', participant.id) }}">
+                {{ csrf() }}
+                <button class="btn btn-danger" type="submit">
+                  <i class="icon-trash"></i>
+                  Delete
+                </button>
+              </form>
+           {% endif %}
           {% endif %}
         </td>
       </tr>

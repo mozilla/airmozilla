@@ -411,6 +411,9 @@ def participant_edit(request, id):
 def participant_remove(request, id):
     if request.method == 'POST':
         participant = Participant.objects.get(id=id)
+        if (not request.user.has_perm('main.change_participant_others') and
+                participant.creator != request.user):
+            return redirect('manage:participants')
         participant.delete()
         messages.info(request, 'Participant "%s" removed.' % participant.name)
     return redirect('manage:participants')
