@@ -65,6 +65,16 @@ class EventRequestForm(BaseModelForm):
             'New location'
             '</a>' % reverse('manage:location_new'))
         self.fields['placeholder_img'].label = 'Placeholder image'
+        if 'instance' in kwargs:
+            event = kwargs['instance']
+            approvals = event.approval_set.all()
+            self.initial['approvals'] = [app.group for app in approvals]
+            if event.pk:
+                tag_format = lambda objects: ','.join(map(unicode, objects))
+                participants_formatted = tag_format(event.participants.all())
+                tags_formatted = tag_format(event.tags.all())
+                self.initial['tags'] = tags_formatted
+                self.initial['participants'] = participants_formatted
 
     def clean_tags(self):
         tags = self.cleaned_data['tags']
@@ -118,19 +128,6 @@ class EventEditForm(EventRequestForm):
         queryset=Group.objects.filter(permissions__codename='change_approval'),
         required=False,
     )
-
-    def __init__(self, *args, **kwargs):
-        super(EventEditForm, self).__init__(*args, **kwargs)
-        if 'instance' in kwargs:
-            event = kwargs['instance']
-            approvals = event.approval_set.all()
-            self.initial['approvals'] = [app.group for app in approvals]
-            if event.pk:
-                tag_format = lambda objects: ','.join(map(unicode, objects))
-                participants_formatted = tag_format(event.participants.all())
-                tags_formatted = tag_format(event.tags.all())
-                self.initial['tags'] = tags_formatted
-                self.initial['participants'] = participants_formatted
 
     class Meta(EventRequestForm.Meta):
         exclude = ('archive_time',)
