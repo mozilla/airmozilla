@@ -278,6 +278,17 @@ def event_update_slug(sender, instance, raw, *args, **kwargs):
         pass
 
 
+@receiver(models.signals.pre_save, sender=Event)
+def event_consistent_times(sender, instance, raw, *arg, **kwargs):
+    # Fix an edge case with disappearing events.
+    # Enforce consistent start_time and archive_time, that is,
+    # archive_time must be after start_time and not before it, if defined.
+    if raw:
+        return
+    if instance.archive_time and instance.start_time > instance.archive_time:
+        instance.archive_time = None
+
+
 @receiver(models.signals.pre_save, sender=Participant)
 def participant_update_slug(sender, instance, raw, *args, **kwargs):
     if not raw and not instance.slug:
