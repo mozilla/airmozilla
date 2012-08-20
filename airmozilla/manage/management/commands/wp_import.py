@@ -1,9 +1,11 @@
 import datetime
 import os
 import re
+import tempfile
 import urllib2
 
 from lxml import etree
+from tempfile import gettempdir
 
 from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
@@ -13,27 +15,31 @@ from airmozilla.main.models import Category, Event, Tag, Template
 
 
 class Command(BaseCommand):
-    args = '<wordpress_xml_dump.xml>'
+    args = '<wordpress_xml_dump.xml> <default_thumb>'
     nsmap = {
         'wp': 'http://wordpress.org/export/1.2/',
         'dc': 'http://purl.org/dc/elements/1.1/',
         'content': 'http://purl.org/rss/1.0/modules/content/',
         'excerpt': 'http://wordpress.org/export/1.2/excerpt/'
     }
-    import_cache = 'media/import_cache/'
-    default_thumb = import_cache + 'default.png'
+    import_cache = tempfile.gettempdir()
 
     def handle(self, *args, **options):
         attachments = {}
         try:
             wordpress_xml_dump = args[0]
+            item_parser = etree.iterparse(wordpress_xml_dump, tag='item')
         except IndexError:
             raise CommandError('Please provide an XML dump.')
-        try:
-            item_parser = etree.iterparse(wordpress_xml_dump, tag='item')
         except IOError:
             raise CommandError('The provided file does not exist or is not'
                                ' a valid Wordpress XML dump')
+        try:
+            self.default_thumb_path = args[1]
+            self.default_thumb = open(self.default_thumb_path, 'rb')
+        except IOError:
+            raise CommandError('Please provide a valid default thumbnail.')
+
         for _, element in item_parser:
             fields = {
                 'title': 'title',
@@ -162,8 +168,8 @@ class Command(BaseCommand):
         """Download, cache, and attach an event's placeholder image."""
         if not url:
             # Use a default image, provided
-            _, ext = os.path.splitext(self.default_thumb)
-            img_temp = File(open(self.default_thumb, 'rb'))
+            _, ext = os.path.splitext(self.default_thumb_path)
+            img_temp = File(self.default_thumb)
         else:
             _, ext = os.path.splitext(url)
             cache_path = os.path.join(self.import_cache, event.slug) + ext
