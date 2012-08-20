@@ -84,6 +84,35 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
     padding-bottom: 48px;
 }
 
+@media only screen and (max-width: 768px) {
+    #masthead {
+        padding-top: 5px;
+    }
+    #masthead nav {
+        float: none;
+        padding-top: 12px;
+        margin-right: 0;
+    }
+
+    #masthead nav ul li {
+        display: block;
+    }
+
+    #masthead ul li b, #masthead nav ul li .current {
+        background-image: none;
+    }
+
+    #masthead nav ul li a, #masthead nav ul li b {
+        padding: 7px;
+        display: block;
+        font-weight: normal;
+    }
+
+    #site-title, #site-title.home {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+}
 
 /* @Main feature *********/
 .main-feature { background: #eee; color: #506168; padding: 60px 48px 48px 232px; margin: 0 -48px 48px; position: relative; min-height: 160px; }
