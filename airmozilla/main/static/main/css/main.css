@@ -157,6 +157,8 @@ h1, h2, h3, h4, h5, h6 { color: #b4b4b4; text-shadow: 0 1px 0 rgba(0,0,0,0.3); }
 .event-date { clear: left; margin: 0 0 1em; font: .857em/1.2 "Open Sans", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif; }
 .single-post .event-date { margin: .75em 0 1em; }
 
+div.warning { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037; padding: 10px; }
+
 .entry-content table { border-color: #2d373b; }
 .entry-content th, .entry-content td { border-bottom-color: #2d373b; }
 

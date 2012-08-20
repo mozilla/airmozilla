@@ -11,6 +11,9 @@
 
 {% block content_main %}
   <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
+    {% if warning %}
+      <div class="warning">Warning: {{ warning }}</div>
+    {% endif %}
     <header class="entry-header">
       <h1 class="entry-title">
         {{ event.title }}
