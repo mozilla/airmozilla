@@ -4,7 +4,6 @@ import json
 from django import http
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.defaultfilters import slugify
-from django.utils.decorators import method_decorator
 
 
 def unique_slugify(data, models, duplicate_key=''):

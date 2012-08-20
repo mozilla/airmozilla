@@ -17,8 +17,9 @@ def js_date(dt, format='ddd, MMM D, YYYY, h:mma UTCZZ', enable_timeago=True):
     formatted_datetime = ' '.join([dt_date, dt_time, dt_tz])
     timeago = 'timeago ' if enable_timeago else ''
     return jinja2.Markup('<time datetime="%s" class="%sjstime"'
-                          ' data-format="%s">%s</time>'
-                 % (dt.isoformat(), timeago, format, formatted_datetime))
+                         ' data-format="%s">%s</time>'
+                         % (dt.isoformat(), timeago,
+                            format, formatted_datetime))
 
 
 @register.function

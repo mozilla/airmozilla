@@ -58,10 +58,13 @@ class TestPages(TestCase):
     def test_old_slug(self):
         """An old slug will redirect properly to the current event page."""
         old_event_slug = EventOldSlug.objects.get(slug='test-old-slug')
-        response = self.client.get(reverse('main:event',
-                        kwargs={'slug': old_event_slug.slug}))
-        self.assertRedirects(response, reverse('main:event',
-             kwargs={'slug': old_event_slug.event.slug}))
+        response = self.client.get(
+            reverse('main:event', kwargs={'slug': old_event_slug.slug})
+        )
+        self.assertRedirects(
+            response,
+            reverse('main:event', kwargs={'slug': old_event_slug.event.slug})
+        )
 
     def test_participant(self):
         """Participant pages always respond successfully."""
@@ -83,7 +86,7 @@ class TestPages(TestCase):
         token = str(uuid.uuid4())
         participant.clear_token = token
         participant.save()
-        url = reverse('main:participant_clear', kwargs={'clear_token': token}) 
+        url = reverse('main:participant_clear', kwargs={'clear_token': token})
         response_ok = self.client.get(url)
         eq_(response_ok.status_code, 200)
         response_changed = self.client.post(url)

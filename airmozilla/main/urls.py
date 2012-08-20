@@ -1,15 +1,16 @@
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 from django.views.generic.base import RedirectView
 
 from . import views
 
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^$', views.home, name='home'),
     url(r'^page/1/$', RedirectView.as_view(url='/'), name='first_page'),
     url(r'^page/(?P<page>\d+)/$', views.home, name='home'),
-    url(r'^presenter/(?P<slug>[-\w]+)/$', views.participant, 
-                                          name='participant'),
+    url(r'^presenter/(?P<slug>[-\w]+)/$', views.participant,
+        name='participant'),
     url(r'^presenter-clear/(?P<clear_token>[-\w]+)/$', views.participant_clear,
         name='participant_clear'),
     url(r'^login/$', views.page, name='login',

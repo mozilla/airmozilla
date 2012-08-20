@@ -59,8 +59,9 @@ class Participant(models.Model):
     cleared = models.CharField(max_length=15,
                                choices=CLEARED_CHOICES, default=CLEARED_NO)
     clear_token = models.CharField(max_length=36, blank=True)
-    creator = models.ForeignKey(User, related_name='participant_creator', blank=True,
-                                null=True, on_delete=models.SET_NULL)
+    creator = models.ForeignKey(User, related_name='participant_creator',
+                                blank=True, null=True,
+                                on_delete=models.SET_NULL)
 
     class Meta:
         permissions = (
@@ -231,7 +232,7 @@ class Event(models.Model):
     def is_upcoming(self):
         return (self.archive_time is None and
                 self.start_time > _get_live_time())
-    
+
     def is_removed(self):
         return self.status == self.STATUS_REMOVED
 

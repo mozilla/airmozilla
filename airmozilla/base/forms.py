@@ -6,9 +6,9 @@ class _BaseForm(object):
         cleaned_data = super(_BaseForm, self).clean()
         for field in cleaned_data:
             if isinstance(cleaned_data[field], basestring):
-                cleaned_data[field] = \
-                  cleaned_data[field].replace('\r\n','\n')\
-                    .replace(u'\u2018',"'").replace(u'\u2019',"'").strip()
+                cleaned_data[field] = (
+                    cleaned_data[field].replace('\r\n', '\n')
+                    .replace(u'\u2018', "'").replace(u'\u2019', "'").strip())
 
         return cleaned_data
 

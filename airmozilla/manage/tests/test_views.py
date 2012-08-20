@@ -13,13 +13,14 @@ from nose.tools import eq_, ok_
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
                                     Location, Participant, Template)
 
+
 class ManageTestCase(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def setUp(self):
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
-    
+
     def _delete_test(self, obj, remove_view, redirect_view):
         """Common test for deleting an object in the management interface,
            checking that it was deleted properly, and ensuring that an improper
@@ -77,8 +78,8 @@ class TestUsersAndGroups(ManageTestCase):
     def test_user_edit(self):
         """Add superuser and staff status via the user edit form."""
         user = User.objects.create_user('no', 'no@no.com', 'no')
-        response = self.client.post(reverse('manage:user_edit',
-                                            kwargs={'id': user.id}),
+        response = self.client.post(
+            reverse('manage:user_edit', kwargs={'id': user.id}),
             {
                 'is_superuser': 'on',
                 'is_staff': 'on',
@@ -94,7 +95,8 @@ class TestUsersAndGroups(ManageTestCase):
         """Add a group and verify its creation."""
         response = self.client.get(reverse('manage:group_new'))
         eq_(response.status_code, 200)
-        response = self.client.post(reverse('manage:group_new'),
+        response = self.client.post(
+            reverse('manage:group_new'),
             {
                 'name': 'fake_group'
             }
@@ -110,8 +112,8 @@ class TestUsersAndGroups(ManageTestCase):
         response = self.client.get(reverse('manage:group_edit',
                                            kwargs={'id': group.id}))
         eq_(response.status_code, 200)
-        response = self.client.post(reverse('manage:group_edit',
-                                            kwargs={'id': group.id}),
+        response = self.client.post(
+            reverse('manage:group_edit', kwargs={'id': group.id}),
             {
                 'name': 'newtestergroup  '
             }
@@ -127,14 +129,18 @@ class TestUsersAndGroups(ManageTestCase):
     def test_user_search(self):
         """Searching for a created user redirects properly; otherwise fail."""
         user = User.objects.create_user('t', 'testuser@mozilla.com')
-        response_ok = self.client.post(reverse('manage:users'),
+        response_ok = self.client.post(
+            reverse('manage:users'),
             {
                 'email': user.email
             }
         )
-        self.assertRedirects(response_ok, reverse('manage:user_edit',
-                                               kwargs={'id': user.id}))
-        response_fail = self.client.post(reverse('manage:users'),
+        self.assertRedirects(
+            response_ok,
+            reverse('manage:user_edit', kwargs={'id': user.id})
+        )
+        response_fail = self.client.post(
+            reverse('manage:users'),
             {
                 'email': 'bademail@mozilla.com'
             }
@@ -205,7 +211,7 @@ class TestEvents(ManageTestCase):
         parsed = json.loads(response.content)
         ok_('participants' in parsed)
         participants = [p['text'] for p in parsed['participants']
-                            if 'text' in p]
+                        if 'text' in p]
         eq_(len(participants), 1)
         ok_('Tim Mickel' in participants)
         response_fail = self.client.get(
@@ -283,9 +289,11 @@ class TestEvents(ManageTestCase):
         response_edit_page = self.client.get(url)
         eq_(response_edit_page.status_code, 200,
             'Edit page renders OK with a specified template environment.')
-        response_fail = self.client.post(url,
+        response_fail = self.client.post(
+            url,
             dict(self.event_base_data, title='template edit',
-                 template_environment='failenvironment'))
+                 template_environment='failenvironment')
+        )
         eq_(response_fail.status_code, 200)
 
     def test_timezones(self):
@@ -339,7 +347,7 @@ class TestEvents(ManageTestCase):
             datetime.datetime(2012, 12, 25, 23).replace(tzinfo=utc),
             'Modify event winter date - Pacific UTC-08 input'
         )
-    
+
     def test_event_archive(self):
         """Event archive page loads and shows correct archive_time behavior."""
         event = Event.objects.get(title='Test event')
@@ -351,7 +359,7 @@ class TestEvents(ManageTestCase):
         response_ok = self.client.post(url, {'archive_time': '120'})
         self.assertRedirects(response_ok, reverse('manage:events'))
         event_modified = Event.objects.get(id=event.id)
-        eq_(event_modified.archive_time, 
+        eq_(event_modified.archive_time,
             event_modified.start_time + datetime.timedelta(minutes=120))
 
 
@@ -366,14 +374,16 @@ class TestParticipants(ManageTestCase):
 
     def test_participant_find(self):
         """Search filters participants; returns all for bad search."""
-        response_ok = self.client.post(reverse('manage:participants'),
+        response_ok = self.client.post(
+            reverse('manage:participants'),
             {
                 'name': 'Tim'
             }
         )
         eq_(response_ok.status_code, 200)
         ok_(response_ok.content.find('Tim') >= 0)
-        response_fail = self.client.post(reverse('manage:participants'),
+        response_fail = self.client.post(
+            reverse('manage:participants'),
             {
                 'name': 'Lincoln'
             }
@@ -389,8 +399,8 @@ class TestParticipants(ManageTestCase):
         response = self.client.get(reverse('manage:participant_edit',
                                            kwargs={'id': participant.id}))
         eq_(response.status_code, 200)
-        response_ok = self.client.post(reverse('manage:participant_edit',
-                                               kwargs={'id': participant.id}),
+        response_ok = self.client.post(
+            reverse('manage:participant_edit', kwargs={'id': participant.id}),
             {
                 'name': 'George Washington',
                 'email': 'george@whitehouse.gov',
@@ -401,8 +411,8 @@ class TestParticipants(ManageTestCase):
         self.assertRedirects(response_ok, reverse('manage:participants'))
         participant_george = Participant.objects.get(id=participant.id)
         eq_(participant_george.name, 'George Washington')
-        response_fail = self.client.post(reverse('manage:participant_edit',
-                                                kwargs={'id': participant.id}),
+        response_fail = self.client.post(
+            reverse('manage:participant_edit', kwargs={'id': participant.id}),
             {
                 'name': 'George Washington',
                 'email': 'bademail'
@@ -416,7 +426,7 @@ class TestParticipants(ManageTestCase):
         participant.clear_token = ''
         participant.save()
         url = reverse('manage:participant_email',
-            kwargs={'id': participant.id})
+                      kwargs={'id': participant.id})
         response = self.client.get(url)
         eq_(response.status_code, 200)
         participant = Participant.objects.get(name='Tim Mickel')
@@ -429,7 +439,8 @@ class TestParticipants(ManageTestCase):
         response = self.client.get(reverse('manage:participant_new'))
         eq_(response.status_code, 200)
         with open('airmozilla/manage/tests/firefox.png') as fp:
-            response_ok = self.client.post(reverse('manage:participant_new'),
+            response_ok = self.client.post(
+                reverse('manage:participant_new'),
                 {
                     'name': 'Mozilla Firefox',
                     'slug': 'mozilla-firefox',
@@ -458,7 +469,8 @@ class TestCategories(ManageTestCase):
 
     def test_category_new(self):
         """ Category form adds new categories. """
-        response_ok = self.client.post(reverse('manage:category_new'),
+        response_ok = self.client.post(
+            reverse('manage:category_new'),
             {
                 'name': 'Web Dev Talks '
             }
@@ -516,7 +528,6 @@ class TestTemplates(ManageTestCase):
         template = Template.objects.get(name='test template')
         self._delete_test(template, 'manage:template_remove',
                           'manage:templates')
-
 
     def test_template_env_autofill(self):
         """The JSON autofiller responds correctly for the fixture template."""
@@ -640,7 +651,7 @@ class TestManagementRoles(ManageTestCase):
             reverse('manage:participant_edit', kwargs={'id': 1})
         )
         eq_(response_participant_edit.status_code, 200)
-    
+
     def _unprivileged_event_manager_tests(self, form_contains,
                                           form_not_contains):
         """Common tests for organizers/experienced organizers to ensure
@@ -668,7 +679,7 @@ class TestManagementRoles(ManageTestCase):
         response_participants = self.client.get(reverse('manage:participants'))
         ok_(response_participants.status_code, 200)
         participant = Participant.objects.get(id=1)
-        participant_edit_url = reverse('manage:participant_edit', 
+        participant_edit_url = reverse('manage:participant_edit',
                                        kwargs={'id': participant.id})
         response_participant_edit_fail = self.client.get(participant_edit_url)
         self.assertRedirects(
@@ -692,8 +703,8 @@ class TestManagementRoles(ManageTestCase):
         ]
         for page in pages:
             response = self.client.get(reverse(page))
-            self.assertRedirects(response, settings.LOGIN_URL + 
-                                '?next=' + reverse(page))
+            self.assertRedirects(response, settings.LOGIN_URL +
+                                 '?next=' + reverse(page))
 
     def test_event_organizer(self):
         """Event organizer: ER with unprivileged form, can only edit own

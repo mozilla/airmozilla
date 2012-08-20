@@ -25,9 +25,11 @@ class GroupEditForm(BaseModelForm):
         super(GroupEditForm, self).__init__(*args, **kwargs)
         self.fields['name'].required = True
         choices = self.fields['permissions'].choices
-        self.fields['permissions'] = forms.MultipleChoiceField(choices=choices,
-                                           widget=forms.CheckboxSelectMultiple,
-                                           required=False)
+        self.fields['permissions'] = forms.MultipleChoiceField(
+            choices=choices,
+            widget=forms.CheckboxSelectMultiple,
+            required=False
+        )
 
     class Meta:
         model = Group
@@ -50,15 +52,18 @@ class UserFindForm(BaseModelForm):
 class EventRequestForm(BaseModelForm):
     tags = forms.CharField(required=False)
     participants = forms.CharField(required=False)
-    timezone = forms.ChoiceField(choices=TIMEZONE_CHOICES,
-                     initial=settings.TIME_ZONE, label='Time zone')
+    timezone = forms.ChoiceField(
+        choices=TIMEZONE_CHOICES,
+        initial=settings.TIME_ZONE, label='Time zone'
+    )
+
     def __init__(self, *args, **kwargs):
         super(EventRequestForm, self).__init__(*args, **kwargs)
         self.fields['participants'].help_text = (
-             '<a href="%s" class="btn" target="_blank">'
-             '<i class="icon-plus-sign"></i>'
-             'New Participant'
-             '</a>' % reverse('manage:participant_new'))
+            '<a href="%s" class="btn" target="_blank">'
+            '<i class="icon-plus-sign"></i>'
+            'New Participant'
+            '</a>' % reverse('manage:participant_new'))
         self.fields['location'].help_text = (
             '<a href="%s" class="btn" target="_blank">'
             '<i class="icon-plus-sign"></i>'
@@ -99,7 +104,7 @@ class EventRequestForm(BaseModelForm):
         """Enforce unique slug across current slugs and old slugs."""
         slug = self.cleaned_data['slug']
         if (Event.objects.filter(slug=slug).exclude(pk=self.instance.id)
-                  or EventOldSlug.objects.filter(slug=slug)):
+                or EventOldSlug.objects.filter(slug=slug)):
             raise forms.ValidationError('This slug is already in use.')
         return slug
 
@@ -117,10 +122,12 @@ class EventRequestForm(BaseModelForm):
         }
         exclude = ('featured', 'status', 'archive_time', 'slug')
         # Fields specified to enforce order
-        fields = ('title', 'placeholder_img', 'description',
-        'short_description', 'location', 'start_time', 'timezone',
-        'participants', 'category', 'tags', 'call_info', 'additional_links',
-        'public')
+        fields = (
+            'title', 'placeholder_img', 'description',
+            'short_description', 'location', 'start_time', 'timezone',
+            'participants', 'category', 'tags', 'call_info',
+            'additional_links', 'public'
+        )
 
 
 class EventEditForm(EventRequestForm):
@@ -132,11 +139,13 @@ class EventEditForm(EventRequestForm):
     class Meta(EventRequestForm.Meta):
         exclude = ('archive_time',)
         # Fields specified to enforce order
-        fields = ('title', 'slug', 'status', 'public', 'featured', 'template',
-        'template_environment', 'placeholder_img', 'location', 'description',
-        'short_description', 'start_time', 'archive_time', 'timezone',
-        'participants', 'category', 'tags', 'call_info', 'additional_links',
-        'approvals')
+        fields = (
+            'title', 'slug', 'status', 'public', 'featured', 'template',
+            'template_environment', 'placeholder_img', 'location',
+            'description', 'short_description', 'start_time', 'archive_time',
+            'timezone', 'participants', 'category', 'tags', 'call_info',
+            'additional_links', 'approvals'
+        )
 
 
 class EventExperiencedRequestForm(EventEditForm):
@@ -154,12 +163,13 @@ class EventExperiencedRequestForm(EventEditForm):
 
 class EventArchiveForm(BaseModelForm):
     archive_time = forms.IntegerField()
+
     def __init__(self, *args, **kwargs):
         super(EventArchiveForm, self).__init__(*args, **kwargs)
         self.fields['archive_time'].help_text = (
             '<div id="archive_time_slider"></div>'
         )
-    
+
     class Meta(EventRequestForm.Meta):
         exclude = ()
         fields = ('template', 'template_environment')
@@ -181,6 +191,7 @@ class ParticipantEditForm(BaseModelForm):
     class Meta:
         model = Participant
         exclude = ('creator', 'clear_token')
+
 
 class ParticipantFindForm(BaseModelForm):
     class Meta:
@@ -209,6 +220,7 @@ class TemplateEditForm(BaseModelForm):
 
 class LocationEditForm(BaseModelForm):
     timezone = forms.ChoiceField(choices=TIMEZONE_CHOICES)
+
     def __init__(self, *args, **kwargs):
         super(LocationEditForm, self).__init__(*args, **kwargs)
         if 'instance' in kwargs:
@@ -216,8 +228,10 @@ class LocationEditForm(BaseModelForm):
         else:
             initial = settings.TIME_ZONE
         self.initial['timezone'] = initial
+
     class Meta:
         model = Location
+
 
 class ApprovalForm(BaseModelForm):
     class Meta:

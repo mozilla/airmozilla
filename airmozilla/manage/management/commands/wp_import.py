@@ -11,6 +11,7 @@ from django.utils.timezone import utc
 
 from airmozilla.main.models import Category, Event, Tag, Template
 
+
 class Command(BaseCommand):
     args = '<wordpress_xml_dump.xml>'
     nsmap = {
@@ -21,7 +22,7 @@ class Command(BaseCommand):
     }
     import_cache = 'media/import_cache/'
     default_thumb = import_cache + 'default.png'
-    
+
     def handle(self, *args, **options):
         attachments = {}
         try:
@@ -52,7 +53,7 @@ class Command(BaseCommand):
                     'Event %s already exists, skipping.\n' % item['slug']
                 )
                 continue
-            
+
             if item['type'] == 'attachment':
                 # The item is a thumbnail attachment; save for later
                 attachments[item['post_id']] = item['attachment']
@@ -103,7 +104,7 @@ class Command(BaseCommand):
                         event.tags.add(tag_add)
                 # Add thumbnail and save
                 thumbnail_id = 0
-                for meta in element.findall('wp:postmeta', 
+                for meta in element.findall('wp:postmeta',
                                             namespaces=self.nsmap):
                     meta_key, meta_val = meta.getchildren()
                     if meta_key.text == '_thumbnail_id':
@@ -117,7 +118,7 @@ class Command(BaseCommand):
                     )
                 event.save()
                 self.stdout.write('Saved event %s\n' % event.slug)
-    
+
     def extract_item(self, element, fields):
         """Returns a shortcut dictionary of element's children parsed
            according to fields (destination_key: source_child_tag)."""
@@ -137,7 +138,7 @@ class Command(BaseCommand):
         vidly_template = Template.objects.get(name='Vid.ly')
         ogg_tag = re.compile('<video src="([^"]*)".*?>')
         ogg_template = Template.objects.get(name='Ogg Video')
-        
+
         event.description = description_raw
         vidly_search = vidly_tag.search(description_raw)
         ogg_search = ogg_tag.search(description_raw)
