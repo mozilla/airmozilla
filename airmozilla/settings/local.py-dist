@@ -3,6 +3,9 @@
 
 from . import base
 
+# to be able to run unit tests enable django_nose
+#INSTALLED_APPS = base.INSTALLED_APPS + ['django_nose']
+
 # To extend any settings from settings/base.py here's an example:
 #INSTALLED_APPS = base.INSTALLED_APPS + ['debug_toolbar']
 
