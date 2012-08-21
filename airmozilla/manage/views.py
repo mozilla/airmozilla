@@ -41,7 +41,14 @@ def cancel_redirect(redirect_view):
 @staff_required
 def dashboard(request):
     """Management home / explanation page."""
-    return render(request, 'manage/dashboard.html')
+    admin_email_addresses = []
+    for user in User.objects.filter(is_superuser=True).exclude(email=''):
+        if user.email not in admin_email_addresses:
+            admin_email_addresses.append(user.email)
+    if not admin_email_addresses:
+        admin_email_addresses = [x[1] for x in settings.ADMINS]
+    return render(request, 'manage/dashboard.html',
+                  {'admin_email_addresses': admin_email_addresses})
 
 
 @staff_required

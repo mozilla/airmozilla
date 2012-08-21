@@ -6,6 +6,11 @@
 {% endblock %}
 
 {% block manage_content %}
-    <p>The Air Mozilla Phase 2 manager is currently in development.</p>
-    <p>If you have any questions, please contact tmickel@mozilla.com.</p>
+    <p>Welcome to the Air Mozilla Manager.</p>
+    <p>If you have any questions, please contact
+
+    {% for email in admin_email_addresses -%}
+    <a href="mailto:{{ email }}">{{ email }}</a>{% if not loop.last %}, {% endif %}
+    {%- endfor -%}.
+    </p>
 {% endblock %}

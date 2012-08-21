@@ -5,6 +5,7 @@ import pytz
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.test import TestCase
+#from django.test.utils import override_settings
 
 from funfactory.urlresolvers import reverse
 
@@ -63,6 +64,32 @@ class TestPermissions(ManageTestCase):
         response = self.client.get(reverse('manage:home'))
         self.assertRedirects(response, settings.LOGIN_URL
                              + '?next=' + reverse('manage:home'))
+
+
+class TestDashboard(ManageTestCase):
+
+    # XXX Using `override_settings` doesn't work because of a bug in `tower`.
+    # Once that's fixed start using `override_settings` in the tests instead.
+    #@override_settings(ADMINS=(('Bob', 'bob@example.com'),))
+    def test_dashboard(self):
+        self.user.is_superuser = False
+        self.user.save()
+        _admins_before = settings.ADMINS
+        settings.ADMINS = (('Bob', 'bob@example.com'),)
+        try:
+            response = self.client.get(reverse('manage:home'))
+            eq_(response.status_code, 200)
+            ok_('bob@example.com' in response.content)
+            # create a superuser
+            self.user.is_superuser = True
+            assert self.user.email
+            self.user.save()
+            response = self.client.get(reverse('manage:home'))
+            eq_(response.status_code, 200)
+            ok_('bob@example.com' not in response.content)
+            ok_(self.user.email in response.content)
+        finally:
+            settings.ADMINS = _admins_before
 
 
 class TestUsersAndGroups(ManageTestCase):
