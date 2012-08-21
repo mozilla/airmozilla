@@ -13,6 +13,23 @@ from django.utils.timezone import utc
 
 from airmozilla.main.models import Category, Event, Tag, Template
 
+DEFAULT_VIDLY_TEMPLATE = """
+<video controls width="100%" controls preload="none" poster="https://d3fenhwk93s16g.cloudfront.net/{{ tag }}/poster.jpg">
+    <source src="http://cf.cdn.vid.ly/{{ tag }}/mp4.mp4" type="video/mp4">
+    <source src="http://cf.cdn.vid.ly/{{ tag }}/webm.webm" type="video/webm">
+    <source src="http://cf.cdn.vid.ly/{{ tag }}/ogv.ogv" type="video/ogg">
+    <a target="_blank" href="http://vid.ly/{{ tag }}"><img src="https://d3fenhwk93s16g.cloudfront.net/{{ tag }}/poster.jpg" width="500" alt="Video"></a>
+</video>
+"""
+DEFAULT_VIDLY_NAME = "Vid.ly"
+
+DEFAULT_OGG_TEMPLATE = """
+<video width="620" height="350" controls="controls">
+  <source src="{{ url }}" type="video/ogg" />
+</video>
+"""
+DEFAULT_OGG_NAME = "Ogg Video"
+
 
 class Command(BaseCommand):
     args = '<wordpress_xml_dump.xml> <default_thumb>'
@@ -24,7 +41,25 @@ class Command(BaseCommand):
     }
     import_cache = tempfile.gettempdir()
 
+    def _check_video_templates(self):
+        # make sure we have some assumed Video templates in the database
+        try:
+            Template.objects.get(name=DEFAULT_VIDLY_NAME)
+        except Template.DoesNotExist:
+            Template.objects.create(
+                name=DEFAULT_VIDLY_NAME,
+                content=DEFAULT_VIDLY_TEMPLATE
+            )
+        try:
+            Template.objects.get(name=DEFAULT_OGG_NAME)
+        except Template.DoesNotExist:
+            Template.objects.create(
+                name=DEFAULT_OGG_NAME,
+                content=DEFAULT_OGG_TEMPLATE
+            )
+
     def handle(self, *args, **options):
+        self._check_video_templates()
         attachments = {}
         try:
             wordpress_xml_dump = args[0]
@@ -95,7 +130,7 @@ class Command(BaseCommand):
                 event.description = 'n/a'
                 if item['description']:
                     self.parse_description(event, item['description'])
-                event.short_description = item['short_description'] or None
+                event.short_description = item['short_description'] or ''
                 # Add categories and tags
                 event.save()
                 for category in element.findall('category'):
