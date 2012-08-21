@@ -39,7 +39,8 @@ class TestPages(TestCase):
         approval.save()
         event_page = reverse('main:event', kwargs={'slug': event.slug})
         response_fail_approval = self.client.get(event_page)
-        eq_(response_fail_approval.status_code, 404)
+        eq_(response_fail_approval.status_code, 200)
+        ok_('not approved' in response_fail_approval.content)
         approval.approved = True
         approval.processed = True
         approval.save()
@@ -53,7 +54,8 @@ class TestPages(TestCase):
         event.status = Event.STATUS_INITIATED
         event.save()
         response_fail = self.client.get(event_page)
-        eq_(response_fail.status_code, 404)
+        eq_(response_fail.status_code, 200)
+        ok_('not scheduled' in response_fail.content)
 
     def test_old_slug(self):
         """An old slug will redirect properly to the current event page."""
