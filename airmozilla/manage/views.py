@@ -262,8 +262,8 @@ def events(request):
     archiving = (Event.objects.archiving().filter(**creator_filter)
                  .order_by('-archive_time')
                  .select_related('category', 'location'))
-    archived = (Event.objects.archived(include_removed=True)
-                .filter(**creator_filter) .order_by('-archive_time')
+    archived = (Event.objects.archived_and_removed().filter(**creator_filter)
+                .order_by('-start_time')
                 .select_related('category', 'location'))
     archived_paged = paginate(archived, request.GET.get('page'), 10)
     return render(request, 'manage/events.html', {

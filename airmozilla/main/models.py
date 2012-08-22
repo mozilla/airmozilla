@@ -135,15 +135,10 @@ class EventManager(models.Manager):
                                             Q(approval__processed=False))
                     .distinct())
 
-    def approved(self, include_removed=False):
-        query_set = self.get_query_set()
-        if include_removed:
-            query_set = query_set.filter(Q(status=Event.STATUS_SCHEDULED) |
-                                         Q(status=Event.STATUS_REMOVED))
-        else:
-            query_set = query_set.filter(status=Event.STATUS_SCHEDULED)
-        return (query_set.exclude(approval__approved=False)
-                         .exclude(approval__processed=False))
+    def approved(self):
+        return (self.get_query_set().exclude(approval__approved=False)
+                    .exclude(approval__processed=False)
+                    .filter(status=Event.STATUS_SCHEDULED))
 
     def upcoming(self):
         return self.approved().filter(
@@ -163,10 +158,18 @@ class EventManager(models.Manager):
             start_time__lt=_get_live_time()
         )
 
-    def archived(self, include_removed=False):
-        return self.approved(include_removed).filter(
+    def archived(self):
+        return self.approved().filter(
             archive_time__lt=_get_now(),
             start_time__lt=_get_now()
+        )
+
+    def archived_and_removed(self):
+        return self.get_query_set().filter(
+            (Q(archive_time__lt=_get_now(), start_time__lt=_get_now())
+             & ~Q(approval__approved=False)
+             & ~Q(approval__processed=False))
+            | Q(status=Event.STATUS_REMOVED)
         )
 
 
