@@ -253,16 +253,18 @@ def events(request):
     else:
         search_form = forms.EventFindForm()
     initiated = (Event.objects.initiated().filter(**creator_filter)
-                 .order_by('start_time').select_related('category'))
+                 .order_by('start_time')
+                 .select_related('category', 'location'))
     upcoming = (Event.objects.upcoming().filter(**creator_filter)
-                .order_by('start_time').select_related('category'))
+                .order_by('start_time').select_related('category', 'location'))
     live = (Event.objects.live().filter(**creator_filter)
-            .order_by('start_time').select_related('category'))
+            .order_by('start_time').select_related('category', 'location'))
     archiving = (Event.objects.archiving().filter(**creator_filter)
-                 .order_by('-archive_time').select_related('category'))
+                 .order_by('-archive_time')
+                 .select_related('category', 'location'))
     archived = (Event.objects.archived(include_removed=True)
                 .filter(**creator_filter) .order_by('-archive_time')
-                .select_related('category'))
+                .select_related('category', 'location'))
     archived_paged = paginate(archived, request.GET.get('page'), 10)
     return render(request, 'manage/events.html', {
         'initiated': initiated,
