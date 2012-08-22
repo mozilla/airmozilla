@@ -5,7 +5,9 @@ import tempfile
 import urllib2
 
 from lxml import etree
+from optparse import make_option
 from tempfile import gettempdir
+
 
 from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
@@ -33,6 +35,13 @@ DEFAULT_OGG_NAME = "Ogg Video"
 
 class Command(BaseCommand):
     args = '<wordpress_xml_dump.xml> <default_thumb>'
+    option_list = BaseCommand.option_list + (
+        make_option('--clear',
+            action='store_true',
+            dest='clear',
+            default=False,
+            help='Clear all events before running the migration.'),
+    )
     nsmap = {
         'wp': 'http://wordpress.org/export/1.2/',
         'dc': 'http://purl.org/dc/elements/1.1/',
@@ -59,6 +68,9 @@ class Command(BaseCommand):
             )
 
     def handle(self, *args, **options):
+        if options['clear']:
+            for e in Event.objects.all():
+                e.delete()
         self._check_video_templates()
         attachments = {}
         try:
