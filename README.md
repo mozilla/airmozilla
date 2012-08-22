@@ -41,10 +41,35 @@ To apply migrations:
 
 In each command, replace airmozilla.main with the appropriate app.
 
+
 Requirements
 ------------
 See the ``requirements/`` directory for installation dependencies.
 This app requires a working install of PIL with libjpeg and libpng.
+
+
+First run
+-----------------------
+```
+./manage.py syncdb
+./manage.py migrate
+```
+
+If you'd like to create a default set of example groups with useful permissions
+(Event Organizers, Experienced Event Organizers, PR, Producer):
+
+``./manage.py create_mozilla_groups``
+
+Since we're using BrowserID for log-in, you'll need to manually set up your
+account as a superuser.  Log in to the site, then run the shell command:
+```
+./manage.py shell
+>>> from django.contrib.auth.models import User
+>>> my_user = User.objects.get(email='my@email.com')
+>>> my_user.is_superuser = True
+>>> my_user.is_staff = True
+>>> my_user.save()
+```
 
 IRC
 ---
