@@ -1,10 +1,94 @@
+import datetime
+
 from django.contrib.auth.models import Group, User
 from django.test import TestCase
+from django.utils.timezone import utc
 
 from nose.tools import ok_, eq_
 
 from airmozilla.main.models import Approval, Event, EventOldSlug
 
+
+class EventStateTests(TestCase):
+    def test_event_state(self):
+        time_now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        time_soon = time_now + datetime.timedelta(hours=1)
+        time_before = time_now - datetime.timedelta(hours=1)
+        # initiated event
+        initiated = Event.objects.create(
+            status=Event.STATUS_INITIATED,
+            start_time=time_now,
+        )
+        ok_(initiated in Event.objects.initiated())
+        # scheduled event with pending approval
+        to_approve = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=time_now,
+        )
+        ok_(to_approve not in Event.objects.initiated())
+        ok_(to_approve in Event.objects.approved())
+        app = Approval.objects.create(event=to_approve, group=None)
+        # attaching the Approval makes the event unapproved
+        ok_(to_approve not in Event.objects.approved())
+        ok_(to_approve in Event.objects.initiated())
+        app.processed = True
+        app.approved = True
+        app.save()
+        ok_(to_approve in Event.objects.approved())
+        to_approve.status = Event.STATUS_REMOVED
+        to_approve.save()
+        ok_(to_approve in Event.objects.archived_and_removed())
+        ok_(to_approve not in Event.objects.initiated())
+        # upcoming event
+        upcoming = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=time_soon,
+            archive_time=None
+        )
+        ok_(upcoming in Event.objects.approved())
+        ok_(upcoming in Event.objects.upcoming())
+        upcoming.status = Event.STATUS_REMOVED
+        upcoming.save()
+        ok_(upcoming in Event.objects.archived_and_removed())
+        ok_(upcoming not in Event.objects.upcoming())
+        # live event
+        live = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=time_now,
+            archive_time=None
+        )
+        ok_(live in Event.objects.approved())
+        ok_(live in Event.objects.live())
+        live.status = Event.STATUS_REMOVED
+        live.save()
+        ok_(live in Event.objects.archived_and_removed())
+        ok_(live not in Event.objects.live())
+        # archiving event
+        archiving = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=time_before,
+            archive_time=time_soon
+        )
+        ok_(archiving in Event.objects.approved())
+        ok_(archiving in Event.objects.archiving())
+        ok_(archiving not in Event.objects.live())
+        archiving.status = Event.STATUS_REMOVED
+        archiving.save()
+        ok_(archiving in Event.objects.archived_and_removed())
+        ok_(archiving not in Event.objects.archiving())
+        # archived event
+        archived = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=time_before,
+            archive_time=time_before
+        )
+        ok_(archived in Event.objects.approved())
+        ok_(archived in Event.objects.archived())
+        archived.status = Event.STATUS_REMOVED
+        archived.save()
+        ok_(archived in Event.objects.archived_and_removed())
+        ok_(archived not in Event.objects.archived())
+ 
 
 class ForeignKeyTests(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
