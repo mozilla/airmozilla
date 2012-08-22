@@ -30,7 +30,8 @@ def _upload_path(tag):
 class Participant(models.Model):
     """ Participants - speakers at events. """
     name = models.CharField(max_length=50)
-    slug = models.SlugField(blank=True, max_length=65, unique=True)
+    slug = models.SlugField(blank=True, max_length=65, unique=True,
+                            db_index=True)
     photo = ImageField(upload_to=_upload_path('participant-photo'), blank=True)
     email = models.EmailField(blank=True)
     department = models.CharField(max_length=50, blank=True)
@@ -57,7 +58,8 @@ class Participant(models.Model):
         (CLEARED_FINAL_CUT, 'Final Cut'),
     )
     cleared = models.CharField(max_length=15,
-                               choices=CLEARED_CHOICES, default=CLEARED_NO)
+                               choices=CLEARED_CHOICES, default=CLEARED_NO,
+                               db_index=True)
     clear_token = models.CharField(max_length=36, blank=True)
     creator = models.ForeignKey(User, related_name='participant_creator',
                                 blank=True, null=True,
@@ -171,7 +173,8 @@ class EventManager(models.Manager):
 class Event(models.Model):
     """ Events - all the essential data and metadata for publishing. """
     title = models.CharField(max_length=200)
-    slug = models.SlugField(blank=True, max_length=215, unique=True)
+    slug = models.SlugField(blank=True, max_length=215, unique=True,
+                            db_index=True)
     template = models.ForeignKey(Template, blank=True, null=True,
                                  on_delete=models.SET_NULL)
     template_environment = EnvironmentField(
@@ -188,7 +191,7 @@ class Event(models.Model):
         (STATUS_REMOVED, 'Removed')
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
-                              default=STATUS_INITIATED)
+                              default=STATUS_INITIATED, db_index=True)
     placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
     description = models.TextField()
     short_description = models.TextField(
@@ -196,8 +199,8 @@ class Event(models.Model):
         help_text='If not provided, this will be filled in by the first '
         'words of the full description.'
     )
-    start_time = models.DateTimeField()
-    archive_time = models.DateTimeField(blank=True, null=True)
+    start_time = models.DateTimeField(db_index=True)
+    archive_time = models.DateTimeField(blank=True, null=True, db_index=True)
     participants = models.ManyToManyField(
         Participant,
         help_text='Speakers or presenters for this event.'
@@ -211,9 +214,10 @@ class Event(models.Model):
     additional_links = models.TextField(blank=True)
     public = models.BooleanField(
         default=False,
-        help_text='Available to everyone (else MoCo only.)'
+        help_text='Available to everyone (else MoCo only.)',
+        db_index=True
     )
-    featured = models.BooleanField(default=False)
+    featured = models.BooleanField(default=False, db_index=True)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)
@@ -239,20 +243,20 @@ class Event(models.Model):
 
 class EventOldSlug(models.Model):
     """Used to permanently redirect old URLs to the new slug location."""
-    event = models.ForeignKey(Event)
-    slug = models.SlugField(max_length=215, unique=True)
+    event = models.ForeignKey(Event, db_index=True)
+    slug = models.SlugField(max_length=215, unique=True, db_index=True)
 
 
 class Approval(models.Model):
     """Sign events with approvals from appropriate user groups to log and
        designate that an event can be published."""
-    event = models.ForeignKey(Event)
+    event = models.ForeignKey(Event, db_index=True)
     group = models.ForeignKey(Group, blank=True, null=True,
-                              on_delete=models.SET_NULL)
+                              on_delete=models.SET_NULL, db_index=True)
     user = models.ForeignKey(User, blank=True, null=True,
                              on_delete=models.SET_NULL)
-    approved = models.BooleanField(default=False)
-    processed = models.BooleanField(default=False)
+    approved = models.BooleanField(default=False, db_index=True)
+    processed = models.BooleanField(default=False, db_index=True)
     processed_time = models.DateTimeField(auto_now=True)
     comment = models.TextField(blank=True)
 
