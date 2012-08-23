@@ -53,4 +53,8 @@
   {% endfor %}
   </ul>
   {% endif %}
+  {% if not approvals and not recent %}
+    <p>No approvals are waiting!</p>
+    <p>Check back here to review and sign off on events.</p>
+  {% endif %}
 {% endblock %}
