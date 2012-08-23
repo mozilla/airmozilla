@@ -39,9 +39,9 @@
     {% endcompress %}
 {% endblock %}
 {% block content %}
-  <div class="navbar navbar-fixed-top">
+  <div class="navbar navbar-fixed-top navbar-inverse">
     <div class="navbar-inner">
-      <div class="container">
+      <div class="container-fluid">
         <a class="brand" href="{{ url('manage:home') }}">
         <img id="logo-img" src="{{ static('img/logo-airmo-md.png') }}" alt="Air Mozilla"
              width="100">
@@ -50,11 +50,11 @@
     </div>
   </div>
     <div class="container-fluid" id="container">
-    <div class="row">
+    <div class="row-fluid">
         <div class="span12" id="logo">
-       		<div class="row">
+       		<div class="row-fluid">
             <div id="menu" class="span2">
-                <ul class="nav nav-list">
+                <ul class="nav nav-pills nav-stacked">
 					{% for view, title, id, icon, perm, badge_txt in navigation_bar %}
 						{% if perm %}
 						{% if view == '' %}

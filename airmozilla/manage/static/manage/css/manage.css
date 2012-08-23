@@ -15,19 +15,6 @@ ul {
     list-style-type: none;
 }
 
-div.controls select {
-    width: auto;
-}
-
-#container {
-    margin-left: 100px;
-}
-
-/* wide template input */
-#id_content {
-    width: 80%;
-}
-
 /* confirmation/delete button forms */
 .confirm {
     display: inline;
@@ -36,6 +23,19 @@ div.controls select {
 /* management menu badges */
 ul.nav .badge {
     float: right;
+}
+
+/* Large textareas and inputs */
+textarea {
+    width: 450px;
+}
+
+input, select {
+    width: 240px;
+}
+
+input#id_title {
+    width: 350px;
 }
 
 /* Optional forms get small bit of text */
@@ -97,4 +97,9 @@ div.required label:after {
 
 .ui_tpicker_timezone select {
     width: 150px;
+}
+
+/* Fix for archive time slider for Bootstrap 2.1 */
+#archive_time_slider {
+    font-size: 14px;
 }
