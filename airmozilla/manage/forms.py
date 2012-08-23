@@ -19,6 +19,22 @@ class UserEditForm(BaseModelForm):
         model = User
         fields = ('is_active', 'is_staff', 'is_superuser', 'groups')
 
+    def clean(self):
+        cleaned_data = super(UserEditForm, self).clean()
+        is_active = cleaned_data.get('is_active')
+        is_staff = cleaned_data.get('is_staff')
+        is_superuser = cleaned_data.get('is_superuser')
+        groups = cleaned_data.get('groups')
+        if is_superuser and not is_staff:
+            raise forms.ValidationError('Superusers must be staff.')
+        if is_staff and not is_active:
+            raise forms.ValidationError('Staff must be active.')
+        if is_staff and not is_superuser and not groups:
+            raise forms.ValidationError(
+                'Non-superuser staff must belong to a group.'
+            )
+        return cleaned_data
+
 
 class GroupEditForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
