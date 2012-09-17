@@ -12,6 +12,19 @@ $(function() {
     $('time.timeago').timeago();
 
     $('button.cancel').click(function() {
-        return confirm('Are you sure you want to cancel?');
+        if (!$(this).parents('form').data('changes')) {
+            return true;
+        }
+        return confirm('Discard changes without saving?');
     });
+
+    // assume all forms to have 0 changes
+    $('form').data('changes', 0);
+
+    // register any change so we can't decide on needing a cancel dialog later
+    $('input,textarea,select').change(function() {
+        var form = $(this).parents('form');
+        form.data('changes', form.data('changes') + 1);
+    });
+
 });
