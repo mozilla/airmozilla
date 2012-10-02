@@ -7,3 +7,10 @@
 {% block manage_content %}
   {% include 'manage/_default_form.html' %}
 {% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/user-edit.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
