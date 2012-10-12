@@ -282,7 +282,7 @@ def events(request):
 @cancel_redirect('manage:events')
 def event_edit(request, id):
     """Edit form for a particular event."""
-    event = Event.objects.get(id=id)
+    event = get_object_or_404(Event, id=id)
     if (not request.user.has_perm('main.change_event_others') and
             request.user != event.creator):
         return redirect('manage:events')
