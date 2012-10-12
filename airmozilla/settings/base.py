@@ -89,6 +89,7 @@ MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
 MIDDLEWARE_CLASSES.remove('funfactory.middleware.LocaleURLMiddleware')
 MIDDLEWARE_CLASSES.insert(0, 'airmozilla.locale_middleware.' +
                              'LocaleURLMiddleware')
+MIDDLEWARE_CLASSES.append('airmozilla.manage.middleware.CacheBustingMiddleware')
 MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
 
 # Enable timezone support for Django TZ-aware datetime objects

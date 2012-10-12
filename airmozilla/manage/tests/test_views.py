@@ -91,6 +91,16 @@ class TestDashboard(ManageTestCase):
         finally:
             settings.ADMINS = _admins_before
 
+    def test_cache_busting_headers(self):
+        # viewing any of the public pages should NOT have it
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('no-store' not in response.get('Cache-Control', ''))
+
+        response = self.client.get(reverse('manage:home'))
+        eq_(response.status_code, 200)
+        ok_('no-store' in response['Cache-Control'])
+
 
 class TestUsersAndGroups(ManageTestCase):
     def test_user_group_pages(self):
