@@ -104,7 +104,7 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = True
 
-EMAIL_FROM_ADDRESS = 'air@air.mozilla.org'
+EMAIL_FROM_ADDRESS = 'airmozilla-ops@mozilla.com'
 
 # for debugging/development
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
