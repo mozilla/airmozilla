@@ -54,7 +54,7 @@
           {% for tag in event.tags.all() %}
             <span class="tag">{{ tag.name }}</span>
           {% endfor %}
-        </p
+        </p>
       {% endif %}
       {% if event.call_info %}
         <p>{{ _('Call info') }}: {{ event.call_info }}</p>
