@@ -85,6 +85,11 @@ class EventRequestForm(BaseModelForm):
             '<i class="icon-plus-sign"></i>'
             'New location'
             '</a>' % reverse('manage:location_new'))
+        self.fields['category'].help_text = (
+            '<a href="%s" class="btn" target="_blank">'
+            '<i class="icon-plus-sign"></i>'
+            'New category'
+            '</a>' % reverse('manage:category_new'))
         self.fields['placeholder_img'].label = 'Placeholder image'
         if 'instance' in kwargs:
             event = kwargs['instance']
