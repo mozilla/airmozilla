@@ -3,8 +3,9 @@ import json
 import pytz
 
 from django.conf import settings
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, Permission
 from django.test import TestCase
+from django.core import mail
 #from django.test.utils import override_settings
 
 from funfactory.urlresolvers import reverse
@@ -215,11 +216,60 @@ class TestEvents(ManageTestCase):
                     'title': 'Test fails, not enough data!',
                 }
             )
+            response_cancel = self.client.post(
+                reverse('manage:event_request'),
+                {
+                    'cancel': 'yes'
+                }
+            )
+
         self.assertRedirects(response_ok, reverse('manage:events'))
         eq_(response_fail.status_code, 200)
         event = Event.objects.get(title='Airmozilla Launch Test')
         eq_(event.location, Location.objects.get(id=1))
         eq_(event.creator, self.user)
+        eq_(response_cancel.status_code, 302)
+        self.assertRedirects(response_cancel, reverse('manage:events'))
+
+    def test_event_request_with_approvals(self):
+        group1, = Group.objects.all()
+        group2 = Group.objects.create(name='Group2')
+        permission = Permission.objects.get(codename='change_approval')
+        group1.permissions.add(permission)
+        group2.permissions.add(permission)
+        group_user = User.objects.create_user(
+            'username',
+            'em@ail.com',
+            'secret'
+        )
+        group_user.groups.add(group2)
+
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_request'),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title='Airmozilla Launch Test',
+                     approvals=[group1.pk, group2.pk])
+            )
+            eq_(response.status_code, 302)
+        event = Event.objects.get(title='Airmozilla Launch Test')
+        approvals = event.approval_set.all()
+        eq_(approvals.count(), 2)
+        # this should send an email to all people in those groups
+        email_sent = mail.outbox[-1]
+        ok_(group_user.email in email_sent.to)
+        ok_(event.title in email_sent.subject)
+        ok_(reverse('manage:approvals') in email_sent.body)
+        # edit it and drop the second group
+        response_ok = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.id}),
+            dict(self.event_base_data, title='Different title',
+                 approvals=[group1.pk])
+        )
+        eq_(response_ok.status_code, 302)
+        event = Event.objects.get(title='Different title')
+        approvals = event.approval_set.all()
+        eq_(approvals.count(), 1)
 
     def test_tag_autocomplete(self):
         """Autocomplete makes JSON for fixture tags and a nonexistent tag."""
@@ -399,6 +449,13 @@ class TestEvents(ManageTestCase):
         eq_(event_modified.archive_time,
             event_modified.start_time + datetime.timedelta(minutes=120))
 
+    def test_event_duplication(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_duplicate', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('value="Test event"' in response.content)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):
@@ -516,6 +573,23 @@ class TestCategories(ManageTestCase):
         ok_(Category.objects.get(name='Web Dev Talks'))
         response_fail = self.client.post(reverse('manage:category_new'))
         eq_(response_fail.status_code, 200)
+
+    def test_category_edit(self):
+        """Category edit"""
+        category = Category.objects.get(name='testing')
+        response = self.client.get(
+            reverse('manage:category_edit', args=(category.pk,)),
+        )
+        eq_(response.status_code, 200)
+        ok_('value="testing"' in response.content)
+        response = self.client.post(
+            reverse('manage:category_edit', args=(category.pk,)),
+            {
+                'name': 'different',
+            }
+        )
+        eq_(response.status_code, 302)
+        category = Category.objects.get(name='different')
 
     def test_category_delete(self):
         category = Category.objects.get(name='testing')

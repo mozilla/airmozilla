@@ -19,7 +19,7 @@ Included is a set of comprehensive tests, which you can run by:
 ``./manage.py test``
 
 To see the tests' code coverage, use:
-``./manage.py test --with-coverage --cover-html --cover-package=airmozilla``
+``./manage.py test --with-coverage --cover-erase --cover-html --cover-package=airmozilla``
 
 
 Migrations
