@@ -47,6 +47,11 @@ div.control-group label:after {
     color: #999;
 }
 
+/* undo that for labels in multicheckbox widgets */
+div.control-group ul li label:after {
+    content: none;
+}
+
 div.required label:after {
     content: none;
 }

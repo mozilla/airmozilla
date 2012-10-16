@@ -155,6 +155,7 @@ class EventEditForm(EventRequestForm):
     approvals = forms.ModelMultipleChoiceField(
         queryset=Group.objects.filter(permissions__codename='change_approval'),
         required=False,
+        widget=forms.CheckboxSelectMultiple()
     )
 
     class Meta(EventRequestForm.Meta):
@@ -171,6 +172,10 @@ class EventEditForm(EventRequestForm):
 
 class EventExperiencedRequestForm(EventEditForm):
     class Meta(EventEditForm.Meta):
+        #widgets = EventRequestForm.Meta.widgets
+        #widgets['approvals'] = forms.CheckboxSelectMultiple()
+        #widgets['approvals'] = forms.Textarea()
+
         exclude = ('featured', 'archive_time', 'slug')
         # Fields specified to enforce order
         fields = (
