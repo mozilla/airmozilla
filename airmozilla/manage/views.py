@@ -13,6 +13,7 @@ from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.db import transaction
 
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
@@ -70,6 +71,7 @@ def users(request):
 @staff_required
 @permission_required('auth.change_user')
 @cancel_redirect('manage:users')
+@transaction.commit_on_success
 def user_edit(request, id):
     """Editing an individual user."""
     user = User.objects.get(id=id)
@@ -96,6 +98,7 @@ def groups(request):
 @staff_required
 @permission_required('auth.change_group')
 @cancel_redirect('manage:groups')
+@transaction.commit_on_success
 def group_edit(request, id):
     """Edit an individual group."""
     group = Group.objects.get(id=id)
@@ -113,6 +116,7 @@ def group_edit(request, id):
 
 @staff_required
 @permission_required('auth.add_group')
+@transaction.commit_on_success
 def group_new(request):
     """Add a new group."""
     group = Group()
@@ -129,6 +133,7 @@ def group_new(request):
 
 @staff_required
 @permission_required('auth.delete_group')
+@transaction.commit_on_success
 def group_remove(request, id):
     if request.method == 'POST':
         group = Group.objects.get(id=id)
@@ -185,6 +190,7 @@ def _event_process(request, form, event):
 @staff_required
 @permission_required('main.add_event')
 @cancel_redirect('manage:events')
+@transaction.commit_on_success
 def event_request(request, duplicate_id=None):
     """Event request page:  create new events to be published."""
     if (request.user.has_perm('main.add_event_scheduled')
@@ -280,6 +286,7 @@ def events(request):
 @staff_required
 @permission_required('main.change_event')
 @cancel_redirect('manage:events')
+@transaction.commit_on_success
 def event_edit(request, id):
     """Edit form for a particular event."""
     event = get_object_or_404(Event, id=id)
@@ -343,6 +350,7 @@ def participant_autocomplete(request):
 @staff_required
 @permission_required('main.change_event_others')
 @cancel_redirect('manage:events')
+@transaction.commit_on_success
 def event_archive(request, id):
     """Dedicated page for setting page template (archive) and archive time."""
     event = Event.objects.get(id=id)
@@ -394,6 +402,7 @@ def participants(request):
 @staff_required
 @permission_required('main.change_participant')
 @cancel_redirect('manage:participants')
+@transaction.commit_on_success
 def participant_edit(request, id):
     """Participant edit page:  update biographical info."""
     participant = Participant.objects.get(id=id)
@@ -418,6 +427,7 @@ def participant_edit(request, id):
 
 @staff_required
 @permission_required('main.delete_participant')
+@transaction.commit_on_success
 def participant_remove(request, id):
     if request.method == 'POST':
         participant = Participant.objects.get(id=id)
@@ -480,6 +490,7 @@ def participant_email(request, id):
 @staff_required
 @permission_required('main.add_participant')
 @cancel_redirect('manage:participants')
+@transaction.commit_on_success
 def participant_new(request):
     if request.method == 'POST':
         form = forms.ParticipantEditForm(request.POST, request.FILES,
@@ -508,6 +519,7 @@ def categories(request):
 @staff_required
 @permission_required('main.add_category')
 @cancel_redirect('manage:categories')
+@transaction.commit_on_success
 def category_new(request):
     if request.method == 'POST':
         form = forms.CategoryForm(request.POST, instance=Category())
@@ -523,6 +535,7 @@ def category_new(request):
 @staff_required
 @permission_required('main.change_category')
 @cancel_redirect('manage:categories')
+@transaction.commit_on_success
 def category_edit(request, id):
     category = Category.objects.get(id=id)
     if request.method == 'POST':
@@ -539,6 +552,7 @@ def category_edit(request, id):
 
 @staff_required
 @permission_required('main.delete_category')
+@transaction.commit_on_success
 def category_remove(request, id):
     if request.method == 'POST':
         category = Category.objects.get(id=id)
@@ -572,6 +586,7 @@ def templates(request):
 @staff_required
 @permission_required('main.change_template')
 @cancel_redirect('manage:templates')
+@transaction.commit_on_success
 def template_edit(request, id):
     template = Template.objects.get(id=id)
     if request.method == 'POST':
@@ -589,6 +604,7 @@ def template_edit(request, id):
 @staff_required
 @permission_required('main.add_template')
 @cancel_redirect('manage:templates')
+@transaction.commit_on_success
 def template_new(request):
     if request.method == 'POST':
         form = forms.TemplateEditForm(request.POST, instance=Template())
@@ -603,6 +619,7 @@ def template_new(request):
 
 @staff_required
 @permission_required('main.delete_template')
+@transaction.commit_on_success
 def template_remove(request, id):
     if request.method == 'POST':
         template = Template.objects.get(id=id)
@@ -621,6 +638,7 @@ def locations(request):
 @staff_required
 @permission_required('main.change_location')
 @cancel_redirect('manage:locations')
+@transaction.commit_on_success
 def location_edit(request, id):
     location = Location.objects.get(id=id)
     if request.method == 'POST':
@@ -638,6 +656,7 @@ def location_edit(request, id):
 @staff_required
 @permission_required('main.add_location')
 @cancel_redirect('manage:home')
+@transaction.commit_on_success
 def location_new(request):
     if request.method == 'POST':
         form = forms.LocationEditForm(request.POST, instance=Location())
@@ -655,6 +674,7 @@ def location_new(request):
 
 @staff_required
 @permission_required('main.delete_location')
+@transaction.commit_on_success
 def location_remove(request, id):
     if request.method == 'POST':
         location = Location.objects.get(id=id)
@@ -687,6 +707,7 @@ def approvals(request):
 
 @staff_required
 @permission_required('main.change_approval')
+@transaction.commit_on_success
 def approval_review(request, id):
     """Approve/deny an event on behalf of a group."""
     approval = Approval.objects.get(id=id)
