@@ -82,6 +82,9 @@ class Category(models.Model):
     """ Categories globally divide events - one category per event. """
     name = models.CharField(max_length=50)
 
+    class Meta:
+        ordering = ['name']
+
     def __unicode__(self):
         return self.name
 

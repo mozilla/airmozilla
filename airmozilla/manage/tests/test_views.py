@@ -1,6 +1,7 @@
 import datetime
 import json
 import pytz
+import random
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
@@ -230,6 +231,20 @@ class TestEvents(ManageTestCase):
         eq_(event.creator, self.user)
         eq_(response_cancel.status_code, 302)
         self.assertRedirects(response_cancel, reverse('manage:events'))
+
+    def test_event_request_sorted_dropdowns(self):
+        # first create a bunch of categories
+        names = ['Category%s' % x for x in range(5)]
+        random.shuffle(names)
+        [Category.objects.create(name=x) for x in names]
+
+        response = self.client.get(reverse('manage:event_request'))
+        # the order matters
+        c = response.content
+        ok_(-1 <
+            c.find('>Category2<') <
+            c.find('>Category3<') <
+            c.find('>Category4<'))
 
     def test_event_request_with_approvals(self):
         group1, = Group.objects.all()
