@@ -1,3 +1,5 @@
+/*global $:true */
+
 $(function() {
     'use strict';
     var process_tags = function process_tags(element) {
@@ -76,7 +78,7 @@ $(function() {
         $.getJSON('/manage/locations/tz/',
             {'location': $('#id_location').val()},
             function(data) {
-                $('#id_timezone').select2('val', data['timezone']);
+                $('#id_timezone').select2('val', data.timezone);
             }
         );
     });
@@ -87,10 +89,10 @@ $(function() {
     $('#id_template').change(function() {
         var selected = $('#id_template').val();
         if (selected) {
-            $.getJSON('/manage/templates/env-autofill',
+            $.getJSON('/manage/templates/env-autofill/',
                 {'template': selected},
                 function(data) {
-                    $('#id_template_environment').val(data['variables']);
+                    $('#id_template_environment').val(data.variables);
                 }
             );
         }

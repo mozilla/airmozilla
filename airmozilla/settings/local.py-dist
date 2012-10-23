@@ -108,3 +108,8 @@ EMAIL_FROM_ADDRESS = 'airmozilla-ops@mozilla.com'
 
 # for debugging/development
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# These need to be filled in to able to use Vid.ly's secure tokens
+# See https://bugzilla.mozilla.org/show_bug.cgi?id=798572#c2
+VIDLY_USER_ID = ''
+VIDLY_USER_KEY = ''

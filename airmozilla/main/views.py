@@ -12,7 +12,7 @@ from django.utils.timezone import utc
 from jingo import Template
 
 from airmozilla.main.models import Event, EventOldSlug, Participant
-from airmozilla.base.utils import paginate
+from airmozilla.base.utils import paginate, vidly_tokenize
 
 
 def page(request, template):
@@ -68,7 +68,8 @@ def event(request, slug):
             'md5': lambda s: hashlib.md5(s).hexdigest(),
             'event': event,
             'request': request,
-            'datetime': datetime.datetime.utcnow()
+            'datetime': datetime.datetime.utcnow(),
+            'vidly_tokenize': vidly_tokenize,
         }
         if isinstance(event.template_environment, dict):
             context.update(event.template_environment)
