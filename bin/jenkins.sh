@@ -69,6 +69,10 @@ hashers = (#'django_sha2.hashers.BcryptHMACCombinedPasswordVerifier',
 PASSWORD_HASHERS = get_password_hashers(hashers, HMAC_KEYS)
 INSTALLED_APPS += ('django_nose',)
 CELERY_ALWAYS_EAGER = True
+
+VIDLY_USER_ID = 'any...'
+VIDLY_USER_KEY = '...thing not empty'
+
 SETTINGS
 
 echo "Creating database if we need it..."
