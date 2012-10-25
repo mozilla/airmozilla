@@ -32,10 +32,10 @@ Hover         #872727
 /* Regular */
 @font-face {
   font-family: "Open Sans Regular";
-  src: url("//www.mozilla.org/css/fonts/OpenSans-Regular-webfont.eot");
-  src: url("//www.mozilla.org/css/fonts/OpenSans-Regular-webfont.eot?#iefix") format("embedded-opentype"),
-       url("//www.mozilla.org/css/fonts/OpenSans-Regular-webfont.ttf") format("truetype"),
-       url("//www.mozilla.org/css/fonts/OpenSans-Regular-webfont.woff") format("woff");
+  src: url("/static/main/fonts/OpenSans-Regular-webfont.eot");
+  src: url("/static/main/fonts/OpenSans-Regular-webfont.eot?#iefix") format("embedded-opentype"),
+       url("/static/main/fonts/OpenSans-Regular-webfont.ttf") format("truetype"),
+       url("/static/main/fonts/OpenSans-Regular-webfont.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
@@ -43,10 +43,10 @@ Hover         #872727
 /* Light */
 @font-face {
   font-family: "Open Sans Light";
-  src: url("//www.mozilla.org/css/fonts/OpenSans-Light-webfont.eot");
-  src: url("//www.mozilla.org/css/fonts/OpenSans-Light-webfont.eot?#iefix") format("embedded-opentype"),
-       url("//www.mozilla.org/css/fonts/OpenSans-Light-webfont.ttf") format("truetype"),
-       url("//www.mozilla.org/css/fonts/OpenSans-Light-webfont.woff") format("woff");
+  src: url("/static/main/fonts/OpenSans-Light-webfont.eot");
+  src: url("/static/main/fonts/OpenSans-Light-webfont.eot?#iefix") format("embedded-opentype"),
+       url("/static/main/fonts/OpenSans-Light-webfont.ttf") format("truetype"),
+       url("/static/main/fonts/OpenSans-Light-webfont.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
@@ -92,13 +92,13 @@ a:hover, a:focus, a:active { color: #962c2c; text-decoration: underline; }
 /* @Accessible @Skip links *********/
 #nav-access { position: absolute; top: -50em; }
 #foot-logo .top { position: absolute; left: -999em; }
-#nav-access a:focus, #nav-access a:active, 
+#nav-access a:focus, #nav-access a:active,
 #foot-logo .top:focus, #foot-logo .top:active { position: absolute; z-index: 99; width: 204px; padding: .25em 24px; display: block; text-decoration: none; text-align: center; outline: 0; border-radius: 4px; -o-box-shadow: 1px 1px 1px rgba(0,0,0,.1); -ms-box-shadow: 1px 1px 1px rgba(0,0,0,.1); box-shadow: 1px 1px 1px rgba(0,0,0,.1); }
 #nav-access a:focus, #nav-access a:active { left: 0; top: 51em; background: rgba(255,255,255,.5); border: 1px solid #af3232; }
 #foot-logo .top:focus, #foot-logo .top:active { left: 48px; top: -2.75em; background: #f5f1e8; border: 1px solid #67a7d0; }
 
 
-/*  @Default @Layout: 992px. 
+/*  @Default @Layout: 992px.
     Gutters: 24px.
     Outer margins: 48px.
     Leftover space for scrollbars @1024px: 32px.
@@ -209,10 +209,10 @@ px      68    160    252    344    436    528    620    712    804    896    */
 
 
 /*** Post Author */
-.entry-header .vcard { position: relative; float: left; margin: 0 0 0 -92px; width: 430px; border: 1px solid #fff; padding: 15px 22px 15px 67px; font: 1em/1 "Open Sans Light", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;  
-  -o-box-shadow: 0 1px 1px rgba(0,0,0,.1); 
-  -ms-box-shadow: 0 1px 1px rgba(0,0,0,.1); 
-  box-shadow: 0 1px 1px rgba(0,0,0,.1); 
+.entry-header .vcard { position: relative; float: left; margin: 0 0 0 -92px; width: 430px; border: 1px solid #fff; padding: 15px 22px 15px 67px; font: 1em/1 "Open Sans Light", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
+  -o-box-shadow: 0 1px 1px rgba(0,0,0,.1);
+  -ms-box-shadow: 0 1px 1px rgba(0,0,0,.1);
+  box-shadow: 0 1px 1px rgba(0,0,0,.1);
   background: #fff;
   background: -moz-linear-gradient(left, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.75) 10%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.75) 90%, rgba(255,255,255,0.75) 100%);
   background: -webkit-linear-gradient(left, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.75) 10%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.75) 90%, rgba(255,255,255,0.75) 100%);
@@ -233,7 +233,7 @@ px      68    160    252    344    436    528    620    712    804    896    */
 /*** @Edit buttons */
 .edit { font-size: .857em; }
 .edit a { display: inline-block; padding: 1px 5px; margin-top: -2px; border: 1px solid #ccc; border-radius: 4px;
-  background: #eee; 
+  background: #eee;
   background: -moz-linear-gradient(top, #fff 0, #eee 100%);
   background: -webkit-linear-gradient(top, #fff 0, #eee 100%);
   background: linear-gradient(top, #fff 0, #eee 100%);
@@ -262,15 +262,15 @@ px      68    160    252    344    436    528    620    712    804    896    */
 .entry-content tbody th { text-align: left; }
 .entry-content pre { overflow: auto; }
 .entry-content code { font-size: .857em; }
-.entry-content img, .entry-summary img { padding: 1px; background-color: #fff; border: 11px solid #fff; box-shadow: 0 1px 1px rgba(0,0,0,.1); 
+.entry-content img, .entry-summary img { padding: 1px; background-color: #fff; border: 11px solid #fff; box-shadow: 0 1px 1px rgba(0,0,0,.1);
   -moz-transition: all .1s ease-out;
   -webkit-transition: all .1s ease-out;
   -o-transition: all .1s ease-out;
   -ms-transition: all .1s ease-out;
-  transition: all .1s ease-out; 
+  transition: all .1s ease-out;
 }
-.entry-content a:hover img, .entry-content a:focus img, .entry-content a:active img { 
-  background-color: #872727; 
+.entry-content a:hover img, .entry-content a:focus img, .entry-content a:active img {
+  background-color: #872727;
   -moz-transition: all .1s ease-out;
   -webkit-transition: all .1s ease-out;
   -o-transition: all .1s ease-out;
@@ -355,8 +355,8 @@ input[type=email]:focus, input[type=url]:focus, input[type=search]:focus, input[
 	box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
 }
 
-input[type=submit], button { 
-  border-radius: .25em; 
+input[type=submit], button {
+  border-radius: .25em;
   box-shadow: 0 2px 0 0 rgba(0,0,0,0.1),inset 0 -2px 0 0 rgba(0,0,0,0.2);
   color: #fff;
   cursor: pointer;
@@ -422,8 +422,8 @@ input:-moz-placeholder { text-transform: uppercase; }
   -ms-box-shadow: 0 1px 1px rgba(0,0,0,0.1);
   box-shadow: 0 1px 1px rgba(0,0,0,0.1);
 }
-#comment-list .alt { 
-  background: #f7f7f7; 
+#comment-list .alt {
+  background: #f7f7f7;
   -o-box-shadow: inset 0 1px 3px rgba(0,0,0,.05), 0 1px 1px rgba(0,0,0,0.1);
   -ms-box-shadow: inset 0 1px 3px rgba(0,0,0,.05), 0 1px 1px rgba(0,0,0,0.1);
   box-shadow: inset 0 1px 3px rgba(0,0,0,.05), 0 1px 1px rgba(0,0,0,0.1);
@@ -445,8 +445,8 @@ input:-moz-placeholder { text-transform: uppercase; }
 #comment-list .avatar { position: absolute; left: 19px; top: 19px; border: 1px solid #fff; box-shadow: 0 1px 1px rgba(0,0,0,.1); -moz-transition: all .1s linear; -webkit-transition: all .1s linear; -o-transition: all .1s linear; -ms-transition: all .1s linear; transition: all .1s linear; }
 #comment-list a:hover .avatar, #comment-list a:focus .avatar, #comment-list a:active .avatar { border-color: inherit; }
 
-#comment-list .entry-content p, 
-#comment-list .entry-content pre, 
+#comment-list .entry-content p,
+#comment-list .entry-content pre,
 #comment-list .entry-content blockquote { margin: .75em 0 0; }
 #comment-list .mod { margin-top: 1em; border: 1px solid #f0dfc0; color: #3c3c3c; font-size: 1.07em; text-align: center; padding: .5em 15px; background: #fff2db; }
 
@@ -467,7 +467,7 @@ input:-moz-placeholder { text-transform: uppercase; }
 #comment-list .children #respond { margin-left: -50px; }
 #cancel-comment-reply { position: absolute; right: 0; font-size: .857em; top: .15em; }
 #cancel-comment-reply a { display: inline-block; margin-left: 20px; padding: 1px 5px; border: 1px solid #ccc; border-radius: 4px;
-  background: #eee; 
+  background: #eee;
   background: -moz-linear-gradient(top, #fff 0, #eee 100%);
   background: -webkit-linear-gradient(top, #fff 0, #eee 100%);
   background: linear-gradient(top, #fff 0, #eee 100%);
@@ -488,7 +488,7 @@ input:-moz-placeholder { text-transform: uppercase; }
 #foot-logo, #colophon, #nav-meta { float: left; width: 252px; margin-right: 24px; }
 #site-info a:link, #site-info a:visited { color: #67a7d0; }
 #site-info a:hover, #site-info a:focus, #site-info a:active { color: #5c94b8; }
-#foot-logo .logo { display: block; float: left; width: 92px; height: 26px; text-indent: -999em; overflow: hidden; border: 0; background: url("/static/img/logo-mozilla-lt.png") 0 0 no-repeat; opacity: .8; 
+#foot-logo .logo { display: block; float: left; width: 92px; height: 26px; text-indent: -999em; overflow: hidden; border: 0; background: url("/static/img/logo-mozilla-lt.png") 0 0 no-repeat; opacity: .8;
   -moz-transition: opacity .1s linear;
   -webkit-transition: opacity .1s linear;
   -o-transition: opacity .1s linear;
@@ -514,17 +514,17 @@ px      68    160    252    344    436    528    620    712    */
   .main { width: 528px; }
   .sub { width: 160px; }
   #content-sub .sidebar.second { float: right; }
-  
+
   #site-title { font-size: 3em; letter-spacing: -2px; margin-left: 0; }
   #site-description { font-size: 1.5em; letter-spacing: -.5px; }
-  
+
   .entry-header .vcard { width: 338px; }
   .no-comments .entry-header .vcard { width: 430px; }
 
   .wp-caption { max-width: 95%; }
 
   #foot-logo, #colophon, #nav-meta { width: 160px; margin: 0 0 1em 24px; }
-  
+
   .featured-posts .feature { width: 144px; }
   .sub .featured-posts .feature { width: 160px; }
   .sub .featured-posts .feature-img { margin-left: 0; }
@@ -553,30 +553,30 @@ px      68    160    252    */
   #site-title { font-size: 2em; letter-spacing: -.5px; margin-left: 0; }
   #site-description { font-size: 1.2em; letter-spacing: normal; }
   #nav-access a:focus, #nav-access a:active { top: 60em; }
-  
+
   .post .entry-title { min-height: 0; }
   .archive .page-title, .search-results .page-title { font-size: 1.75em; letter-spacing: -0.5px; }
   .single .entry-title, .page .entry-title { font-size: 2em; letter-spacing: -1px; margin-bottom: .5em; }
   .post.no-author .entry-title { float: none; width: auto; }
 
   .post .entry-header { padding-left: 0; }
-  
+
   .entry-posted { position: static; width: auto; text-align: left; font-size: .857em; padding: 0; margin: -.25em 0 1em; background: none; }
   .entry-posted .posted-month { display: inline; font-size: 1em; text-transform: none; }
   .entry-posted .posted-date { display: inline; font-size: 1em; line-height: 1.2; }
   .entry-posted .posted-year { display: inline; font-size: 1em; }
-  
+
   .post .entry-header .vcard { float: none; width: auto; margin: .5em 0; padding: 6px 12px; }
   .entry-header .avatar { display: none; }
-  
+
   .entry-comments { float: none; clear: both; width: auto; margin: .5em 0; }
   .entry-comments a { padding: 0; padding: 6px 0 6px 36px; background-position: 12px 8px; }
   .entry-comments a:hover, .entry-comments a:focus, .entry-comments a:active { background-position: 12px -92px; }
-  
+
   .alignleft, .alignright { max-width: 50%; height: auto; }
   .size-thumbnail { max-width: 30%; height: auto; }
   .wp-caption { max-width: 90%; }
-  
+
   #comment-list.av .comment { padding-left: 19px; }
   #comment-list ol.children .comment { margin: 0 -10px -10px; }
   #comment-list .avatar { display: none; }
@@ -587,7 +587,7 @@ px      68    160    252    */
   #nav-primary li { display: block; padding: 4px 0; }
   #nav-primary .current-menu-item { padding: 4px 0; border: 0; background-color: rgba(0,0,0,.1); }
   #nav-primary a { display: block; }
-    
+
   #site-info { padding: 24px 0; }
   #foot-logo, #colophon, #nav-meta { float: none; clear: both; width: 100%; margin: 0 0 1em; -moz-transition: width .5s linear; -webkit-transition: width .5s linear; -o-transition: width .5s linear; -ms-transition: width .5s linear; transition: width .5s linear; }
   #foot-logo a { clear: both; margin: 0 0 1em; }
@@ -597,8 +597,8 @@ px      68    160    252    */
   .featured-posts .feature-img { width: 48px; height: 48px; float: left; margin: -.5em 24px 12px 0; }
   .featured-posts .feature-img img { margin: 0; }
   .featured-posts .entry-title { padding-top: .5em; }
-  
-  .sub .featured-posts { background: #fff; padding: 24px; overflow: auto; 
+
+  .sub .featured-posts { background: #fff; padding: 24px; overflow: auto;
     -ms-box-shadow: 0 1px 1px rgba(0,0,0,0.1);
     -o-box-shadow: 0 1px 1px rgba(0,0,0,0.1);
     box-shadow: 0 1px 1px rgba(0,0,0,0.1);
@@ -621,9 +621,8 @@ px      68    160    252    344    436    */
   .wrap { width: 436px; padding: 0 22px; }
   #site-title { font-size: 2.5em; letter-spacing: -1px; margin-left: 0; }
   #site-description { font-size: 1.4em; }
-  
+
   #content-sub .sidebar { float: left; width: 205px; }
   #content-sub .sidebar.second { float: right; }
 
 }
-
