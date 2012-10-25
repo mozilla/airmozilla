@@ -11,7 +11,7 @@
 
 {% block also_live %}
   {% if also_live %}
-    {% set widget_title = _('Also live') -%} 
+    {% set widget_title = _('Also live') -%}
     {% set widget_events = also_live -%}
     {% include 'main/_side_events.html' %}
   {% endif %}
@@ -43,12 +43,24 @@
           {{ _('Watch Now') }}
         </a></p>
       </div>
-    </article> 
+    </article>
     {% endif %}
+    {% if not tags %}
     <h2 class="section-title">
       {{ _('Recent Videos') }}
     </h2>
+    {% endif %}
   {% endif %}
+
+    {% if tags %}
+    <h2 class="section-title">
+      {{ _('Videos by tags') }} -
+      {% for tag in tags %}
+      {{ tag.name }}{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </h2>
+    {% endif %}
+
   {% for event in events %}
     {% set href = url('main:event', slug=event.slug) %}
     <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry">
@@ -59,7 +71,7 @@
       </header>
       <div class="entry-summary">
         <p class="event-date">{{ event.start_time|js_date }}</p>
-        {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}        
+        {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
         <a href="{{ href }}">
           <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
                alt="{{ event.title }}" class="attachment-68x68 wp-post-image">
@@ -75,14 +87,14 @@
     <ul role="navigation">
       {% if events.has_next() %}
         <li class="prev">
-          <a href="{{ url('main:home', events.next_page_number()) }}">
+          <a href="{{ url('main:home', events.next_page_number()) }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
             {{ _('Older videos') }}
           </a>
         </li>
       {% endif %}
       {% if events.has_previous() %}
         <li class="next">
-          <a href="{{ url('main:home', events.previous_page_number()) }}">
+          <a href="{{ url('main:home', events.previous_page_number()) }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
             {{ _('Newer videos') }}
           </a>
         </li>

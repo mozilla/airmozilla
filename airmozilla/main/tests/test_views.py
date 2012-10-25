@@ -8,7 +8,13 @@ from django.utils.timezone import utc
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
-from airmozilla.main.models import Approval, Event, EventOldSlug, Participant
+from airmozilla.main.models import (
+    Approval,
+    Event,
+    EventOldSlug,
+    Participant,
+    Tag
+)
 
 
 class TestPages(TestCase):
@@ -110,3 +116,65 @@ class TestPages(TestCase):
         response_changed = self.client.get(reverse('main:calendar'))
         ok_(response_changed.content != response_public.content)
         ok_('cache clear' in response_changed.content)
+
+    def test_filter_by_tags(self):
+        url = reverse('main:home')
+        delay = datetime.timedelta(days=1)
+
+        event1 = Event.objects.get(title='Test event')
+        event1.status = Event.STATUS_SCHEDULED
+        event1.start_time -= delay
+        event1.archive_time = event1.start_time
+        event1.save()
+        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().count(), 1)
+
+        event2 = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            public=True,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+        )
+
+        eq_(Event.objects.approved().count(), 2)
+        eq_(Event.objects.archived().count(), 2)
+
+        tag1 = Tag.objects.create(name='tag1')
+        tag2 = Tag.objects.create(name='tag2')
+        tag3 = Tag.objects.create(name='tag3')
+        event1.tags.add(tag1)
+        event1.tags.add(tag2)
+        event2.tags.add(tag2)
+        event2.tags.add(tag3)
+
+        # check that both events appear
+        response = self.client.get(url)
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        response = self.client.get(url, {'tag': 'tag2'})
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        response = self.client.get(url, {'tag': 'tag1'})
+        ok_('Test event' in response.content)
+        ok_('Second test event' not in response.content)
+
+        response = self.client.get(url, {'tag': 'tag3'})
+        ok_('Test event' not in response.content)
+        ok_('Second test event' in response.content)
+
+        response = self.client.get(url, {'tag': ['tag1', 'tag3']})
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        response = self.client.get(url, {'tag': 'Bogus'})
+        eq_(response.status_code, 301)
+
+        response = self.client.get(url, {'tag': ['tag1', 'Bogus']})
+        eq_(response.status_code, 301)
+        # the good tag stays
+        ok_('?tag=tag1' in response['Location'])

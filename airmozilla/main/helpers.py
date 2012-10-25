@@ -1,4 +1,5 @@
 import datetime
+import urllib
 import jinja2
 
 from django.utils.text import truncate_words
@@ -40,3 +41,8 @@ def thumbnail(filename, geometry, **options):
         return get_thumbnail(filename, geometry, **options)
     except IOError:
         return None
+
+
+@register.function
+def tags_query_string(tags):
+    return urllib.urlencode({'tag': [x.name for x in tags]}, True)

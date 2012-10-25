@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import urllib
 import vobject
 
 from django import http
@@ -9,9 +10,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
 from django.utils.timezone import utc
 
+from funfactory.urlresolvers import reverse
 from jingo import Template
 
-from airmozilla.main.models import Event, EventOldSlug, Participant
+from airmozilla.main.models import Event, EventOldSlug, Participant, Tag
 from airmozilla.base.utils import paginate, vidly_tokenize
 
 
@@ -28,8 +30,33 @@ def home(request, page=1):
         public_filter = {'public': True}
     archived_events = (Event.objects.archived().filter(**public_filter)
                        .order_by('-archive_time'))
-    live_events = (Event.objects.live().filter(**public_filter)
-                   .order_by('start_time'))
+    tags = None
+    if request.GET.getlist('tag'):
+        requested_tags = request.GET.getlist('tag')
+        found_tags = []
+        not_found_tags = False
+        for each in requested_tags:
+            try:
+                found_tags.append(Tag.objects.get(name__iexact=each).name)
+            except Tag.DoesNotExist:
+                not_found_tags = True
+        if not_found_tags:
+            # invalid tags were used in the query string
+            url = reverse('main:home')
+            if found_tags:
+                # some were good
+                url += '?%s' % urllib.urlencode({
+                    'tag': found_tags
+                }, True)
+            return redirect(url, permanent=True)
+        tags = Tag.objects.filter(name__in=found_tags)
+        archived_events = archived_events.filter(tags__in=tags)
+    if tags:
+        # no live events when filtering by tag
+        live_events = Event.objects.none()
+    else:
+        live_events = (Event.objects.live().filter(**public_filter)
+                       .order_by('start_time'))
     archived_paged = paginate(archived_events, page, 10)
     live = None
     also_live = []
@@ -38,7 +65,8 @@ def home(request, page=1):
     return render(request, 'main/home.html', {
         'events': archived_paged,
         'live': live,
-        'also_live': also_live
+        'also_live': also_live,
+        'tags': tags
     })
 
 

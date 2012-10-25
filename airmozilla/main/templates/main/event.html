@@ -52,7 +52,7 @@
         <p>
           {{ _('Tags') }}:
           {% for tag in event.tags.all() %}
-            <span class="tag">{{ tag.name }}</span>
+            <a href="{{ url('main:home') }}?tag={{ tag.name | urlencode }}" class="tag">{{ tag.name }}</a>
           {% endfor %}
         </p>
       {% endif %}
