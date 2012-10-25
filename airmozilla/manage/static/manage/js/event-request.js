@@ -39,7 +39,7 @@ $(function() {
         var $id_archive_time = $('#id_archive_time');
         var $id_archive_time_parent = $id_archive_time.parent();
         $id_archive_time_parent.addClass('input-prepend');
-        $id_archive_time.before('<span class="add-on">Start time + </span>');
+        $id_archive_time.before('<span class="add-on">Now + </span>');
         $id_archive_time_parent.addClass('input-append');
         $id_archive_time.after('<span class="add-on"> minutes</span>');
         $('#id_archive_time').datetimepicker('destroy');

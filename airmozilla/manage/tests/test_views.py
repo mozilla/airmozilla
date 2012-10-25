@@ -1,6 +1,5 @@
 import datetime
 import json
-import pytz
 import random
 
 from django.conf import settings
@@ -8,6 +7,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.contrib.flatpages.models import FlatPage
 from django.test import TestCase
 from django.core import mail
+from django.utils.timezone import utc
 
 from funfactory.urlresolvers import reverse
 
@@ -400,7 +400,6 @@ class TestEvents(ManageTestCase):
 
     def test_timezones(self):
         """Event requests/edits demonstrate correct timezone math."""
-        utc = pytz.timezone('UTC')
 
         def _tz_test(url, tzdata, correct_date, msg):
             with open(self.placeholder) as fp:
@@ -461,8 +460,10 @@ class TestEvents(ManageTestCase):
         response_ok = self.client.post(url, {'archive_time': '120'})
         self.assertRedirects(response_ok, reverse('manage:events'))
         event_modified = Event.objects.get(id=event.id)
+        now = (datetime.datetime.utcnow()
+               .replace(tzinfo=utc, microsecond=0))
         eq_(event_modified.archive_time,
-            event_modified.start_time + datetime.timedelta(minutes=120))
+            now + datetime.timedelta(minutes=120))
 
     def test_event_duplication(self):
         event = Event.objects.get(title='Test event')

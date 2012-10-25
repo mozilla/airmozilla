@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.db import transaction
 from django.contrib.flatpages.models import FlatPage
+from django.utils.timezone import utc
 
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
@@ -361,8 +362,10 @@ def event_archive(request, id):
         if form.is_valid():
             event = form.save(commit=False)
             minutes = form.cleaned_data['archive_time']
+            now = (datetime.datetime.utcnow()
+                   .replace(tzinfo=utc, microsecond=0))
             event.archive_time = (
-                event.start_time + datetime.timedelta(minutes=minutes)
+                now + datetime.timedelta(minutes=minutes)
             )
             event.save()
             messages.info(request, 'Event "%s" saved.' % event.title)
