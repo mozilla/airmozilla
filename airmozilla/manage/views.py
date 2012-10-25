@@ -50,7 +50,8 @@ def dashboard(request):
     if not admin_email_addresses:
         admin_email_addresses = [x[1] for x in settings.ADMINS]
     return render(request, 'manage/dashboard.html',
-                  {'admin_email_addresses': admin_email_addresses})
+                  {'admin_email_addresses': admin_email_addresses,
+                   'git_revision': settings.GIT_REVISION})
 
 
 @staff_required
