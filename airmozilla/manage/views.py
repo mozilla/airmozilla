@@ -14,6 +14,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.db import transaction
+from django.contrib.flatpages.models import FlatPage
 
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
@@ -729,3 +730,61 @@ def approval_review(request, id):
         form = forms.ApprovalForm(instance=approval)
     return render(request, 'manage/approval_review.html',
                   {'approval': approval, 'form': form})
+
+
+@staff_required
+@permission_required('flatpages.change_flatpage')
+def flatpages(request):
+    flatpages_paged = paginate(FlatPage.objects.all(),
+                               request.GET.get('page'), 10)
+    return render(request, 'manage/flatpages.html',
+                  {'paginate': flatpages_paged})
+
+
+@staff_required
+@permission_required('flatpages.change_flatpage')
+@cancel_redirect('manage:flatpages')
+@transaction.commit_on_success
+def flatpage_new(request):
+    if request.method == 'POST':
+        form = forms.FlatPageEditForm(request.POST, instance=FlatPage())
+        if form.is_valid():
+            instance = form.save()
+            instance.sites.add(settings.SITE_ID)
+            instance.save()
+            messages.success(request, 'Page created.')
+            return redirect('manage:flatpages')
+    else:
+        form = forms.FlatPageEditForm()
+        form.fields['url'].help_text = "for example '/my-page'"
+    return render(request, 'manage/flatpage_new.html', {'form': form})
+
+
+@staff_required
+@permission_required('flatpages.change_flatpage')
+@cancel_redirect('manage:flatpages')
+@transaction.commit_on_success
+def flatpage_edit(request, id):
+    """Editing an flatpage."""
+    page = FlatPage.objects.get(id=id)
+    if request.method == 'POST':
+        form = forms.FlatPageEditForm(request.POST, instance=page)
+        if form.is_valid():
+            form.save()
+            messages.info(request, 'Page %s saved.' % page.url)
+            return redirect('manage:flatpages')
+    else:
+        form = forms.FlatPageEditForm(instance=page)
+    return render(request, 'manage/flatpage_edit.html',
+                  {'form': form, 'flatpage': page})
+
+
+@staff_required
+@permission_required('flatpages.delete_flatpage')
+@transaction.commit_on_success
+def flatpage_remove(request, id):
+    if request.method == 'POST':
+        flatpage = FlatPage.objects.get(id=id)
+        flatpage.delete()
+        messages.info(request, 'Page "%s" removed.' % flatpage.title)
+    return redirect('manage:flatpages')

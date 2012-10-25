@@ -1,0 +1,22 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+{{ flatpage.title }} | Air Mozilla
+{% endblock %}
+
+{% block banner %}
+  {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block content_main %}
+  <article class="post type-post status-publish format-standard hentry no-author no-comments">
+    <header class="entry-header">
+      <h1 class="entry-title">
+        {{ flatpage.title }}
+      </h1>
+    </header>
+    <div class="entry-content">
+    {{ flatpage.content|safe }}
+    </div>
+  </article>
+{% endblock %}

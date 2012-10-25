@@ -3,6 +3,7 @@ import pytz
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User, Group
+from django.contrib.flatpages.models import FlatPage
 
 from funfactory.urlresolvers import reverse
 
@@ -266,3 +267,9 @@ class ApprovalForm(BaseModelForm):
         widgets = {
             'comment': forms.Textarea(attrs={'rows': 3})
         }
+
+
+class FlatPageEditForm(BaseModelForm):
+    class Meta:
+        model = FlatPage
+        fields = ('url', 'title', 'content')

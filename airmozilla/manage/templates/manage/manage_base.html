@@ -27,7 +27,12 @@
     ('manage:locations', 'Locations', 'locations', 'icon-globe',
      perms.main.change_location, ''),
     ('manage:templates', 'Video templates', 'templates', 'icon-film',
-     perms.main.change_template, '')
+     perms.main.change_template, ''),
+
+    ('', 'Other configuration', '', '', perms.flatpages.change_flatpage, ''),
+    ('manage:flatpages', 'Static pages', 'flatpages', 'icon-file',
+     perms.flatpages.change_flatpage, ''),
+
 ] -%}
 {% block page_title %}
     Air Mozilla Management

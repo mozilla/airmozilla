@@ -5,9 +5,9 @@ import random
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
+from django.contrib.flatpages.models import FlatPage
 from django.test import TestCase
 from django.core import mail
-#from django.test.utils import override_settings
 
 from funfactory.urlresolvers import reverse
 
@@ -861,3 +861,55 @@ class TestManagementRoles(ManageTestCase):
         )
         response_approvals = self.client.get(reverse('manage:approvals'))
         eq_(response_approvals.status_code, 200)
+
+
+class TestFlatPages(ManageTestCase):
+    def test_flatpages(self):
+        response = self.client.get(reverse('manage:flatpages'))
+        eq_(response.status_code, 200)
+
+    def test_flatpage_new(self):
+        url = reverse('manage:flatpage_new')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'url': '/cool-page',
+            'title': 'Cool title',
+            'content': '<h4>Hello</h4>'
+        })
+        self.assertRedirects(response_ok, reverse('manage:flatpages'))
+        flatpage = FlatPage.objects.get(url='/cool-page')
+        ok_(flatpage)
+        site, = flatpage.sites.all()
+        eq_(site.pk, settings.SITE_ID)
+        response_fail = self.client.post(url)
+        eq_(response_fail.status_code, 200)
+
+    def test_flatpage_edit(self):
+        flatpage = FlatPage.objects.get(title='Test page')
+        url = reverse('manage:flatpage_edit', kwargs={'id': flatpage.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'url': flatpage.url,
+            'title': 'New test page',
+            'content': '<p>New content</p>'
+        })
+        self.assertRedirects(response_ok, reverse('manage:flatpages'))
+        flatpage = FlatPage.objects.get(id=flatpage.id)
+        eq_(flatpage.content, '<p>New content</p>')
+        response_fail = self.client.post(url, {
+            'url': 'no title',
+        })
+        eq_(response_fail.status_code, 200)
+
+    def test_flatpage_remove(self):
+        flatpage = FlatPage.objects.get(title='Test page')
+        self._delete_test(flatpage, 'manage:flatpage_remove',
+                          'manage:flatpages')
+
+    def test_view_flatpage(self):
+        flatpage = FlatPage.objects.get(title='Test page')
+        response = self.client.get('/pages%s' % flatpage.url)
+        eq_(response.status_code, 200)
+        ok_('Test page' in response.content)

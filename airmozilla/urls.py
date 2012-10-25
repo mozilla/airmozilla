@@ -10,6 +10,7 @@ urlpatterns = patterns(
     (r'^manage/', include('airmozilla.manage.urls', namespace='manage')),
     (r'', include('airmozilla.auth.urls', namespace='auth')),
     (r'', include('airmozilla.main.urls', namespace='main')),
+    ('^pages/', include('django.contrib.flatpages.urls')),
 )
 
 ## In DEBUG mode, serve media files through Django.

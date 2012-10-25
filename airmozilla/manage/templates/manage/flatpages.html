@@ -1,0 +1,52 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "flatpages" %}
+
+{% block manage_title %}
+    Edit static pages
+{% endblock %}
+
+{% block manage_content %}
+    <table id="current_flatpages" class="table table-striped table-bordered">
+    <thead>
+    <tr>
+        <th>URL</th>
+        <th>Title</th>
+        <th>Content</th>
+        <th>&nbsp;</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for p in paginate %}
+        <tr>
+            <td><a href="/pages{{ p.url }}">{{ p.url }}</a></td>
+            <td>{{ p.title }}
+            </td>
+            <td>{{ p.content | striptags | truncate(length=70) }}
+            </td>
+            <td><a href="{{ url('manage:flatpage_edit', p.id) }} " class="btn">
+                <i class="icon-edit"></i>
+                Edit
+                </a>
+              <form method="post" class="confirm"
+                    action="{{ url('manage:flatpage_remove', p.id) }}">
+                {{ csrf() }}
+                <button class="btn btn-danger" type="submit">
+                  <i class="icon-trash"></i>
+                  Delete
+                </button>
+              </form>
+            </td>
+
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+    {% include 'manage/_paginate.html' %}
+    <p>
+      <a class="btn" href="{{ url('manage:flatpage_new') }}">
+        <i class="icon-plus-sign"></i>
+        New static page
+      </a>
+    </p>
+{% endblock %}

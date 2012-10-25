@@ -55,5 +55,10 @@ urlpatterns = patterns(
     url(r'^locations/$', views.locations, name='locations'),
     url(r'^approvals/$', views.approvals, name='approvals'),
     url(r'^approvals/(?P<id>\d+)/$', views.approval_review,
-        name='approval_review')
+        name='approval_review'),
+    url(r'^pages/$', views.flatpages, name='flatpages'),
+    url(r'^pages/new/$', views.flatpage_new, name='flatpage_new'),
+    url(r'^pages/(?P<id>\d+)/$', views.flatpage_edit, name='flatpage_edit'),
+    url(r'^pages/remove/(?P<id>\d+)/$', views.flatpage_remove,
+        name='flatpage_remove'),
 )
