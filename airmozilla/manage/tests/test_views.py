@@ -742,6 +742,10 @@ class TestLocations(ManageTestCase):
     def test_location_timezone(self):
         """Test timezone-ajax autofill."""
         url = reverse('manage:location_timezone')
+        response_fail = self.client.get(url)
+        eq_(response_fail.status_code, 404)
+        response_fail = self.client.get(url, {'location': ''})
+        eq_(response_fail.status_code, 404)
         response_fail = self.client.get(url, {'location': '23323'})
         eq_(response_fail.status_code, 404)
         response_ok = self.client.get(url, {'location': '1'})

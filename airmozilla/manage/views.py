@@ -5,6 +5,7 @@ import re
 import uuid
 
 from django.conf import settings
+from django.http import Http404
 from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
@@ -696,6 +697,8 @@ def location_remove(request, id):
 def location_timezone(request):
     """Responds with the timezone for the requested Location.  Used to
        auto-fill the timezone form in event requests/edits."""
+    if not request.GET.get('location'):
+        raise Http404('no location')
     location = get_object_or_404(Location, id=request.GET['location'])
     return {'timezone': location.timezone}
 
