@@ -107,6 +107,7 @@ class TestPages(TestCase):
         """Calendars respond successfully."""
         response_public = self.client.get(reverse('main:calendar'))
         eq_(response_public.status_code, 200)
+        ok_('LOCATION:Mountain View' in response_public.content)
         response_private = self.client.get(reverse('main:private_calendar'))
         eq_(response_private.status_code, 200)
         # Cache tests
@@ -116,6 +117,18 @@ class TestPages(TestCase):
         response_changed = self.client.get(reverse('main:calendar'))
         ok_(response_changed.content != response_public.content)
         ok_('cache clear' in response_changed.content)
+
+    def test_calendars_description(self):
+        event = Event.objects.get(title='Test event')
+        event.description = """
+        Check out the <a href="http://example.com">Example</a> page
+        and <strong>THIS PAGE</strong> here.
+        """.strip()
+        event.save()
+        response_public = self.client.get(reverse('main:calendar'))
+        eq_(response_public.status_code, 200)
+        ok_('Check out the Example page' in response_public.content)
+        ok_('and THIS PAGE here' in response_public.content)
 
     def test_filter_by_tags(self):
         url = reverse('main:home')

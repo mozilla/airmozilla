@@ -80,3 +80,10 @@ class TestVidlyTokenize(TestCase):
         p_logging.error.asert_called_with(
             "Unable fetch token for tag 'abc123'"
         )
+
+
+class TestMisc(TestCase):
+
+    def test_unhtml(self):
+        input_ = 'A <a href="">FOO</a> BAR'
+        eq_(utils.unhtml(input_), 'A FOO BAR')

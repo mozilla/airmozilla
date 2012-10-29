@@ -1,3 +1,4 @@
+import re
 import urllib
 import urllib2
 import functools
@@ -129,3 +130,7 @@ def vidly_tokenize(tag, expiration_seconds):
         logging.info(response_content)
 
     return token
+
+
+def unhtml(text_with_html):
+    return re.sub('<.*?>', '', text_with_html)

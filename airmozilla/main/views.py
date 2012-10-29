@@ -14,7 +14,7 @@ from funfactory.urlresolvers import reverse
 from jingo import Template
 
 from airmozilla.main.models import Event, EventOldSlug, Participant, Tag
-from airmozilla.base.utils import paginate, vidly_tokenize
+from airmozilla.base.utils import paginate, vidly_tokenize, unhtml
 
 
 def page(request, template):
@@ -156,7 +156,7 @@ def events_calendar(request, public=True):
         vevent.add('dtstart').value = event.start_time
         vevent.add('dtend').value = (event.start_time +
                                      datetime.timedelta(hours=1))
-        vevent.add('description').value = event.description
+        vevent.add('description').value = unhtml(event.description)
         if event.location:
             vevent.add('location').value = event.location.name
         vevent.add('url').value = base_url + event.slug + '/'
