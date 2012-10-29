@@ -462,8 +462,13 @@ class TestEvents(ManageTestCase):
         event_modified = Event.objects.get(id=event.id)
         now = (datetime.datetime.utcnow()
                .replace(tzinfo=utc, microsecond=0))
-        eq_(event_modified.archive_time,
-            now + datetime.timedelta(minutes=120))
+        # because this `now` can potentially be different in the tests
+        # compared (if the tests run slow) to the views,
+        # it's safer to not look at the seconds
+        eq_(
+            event_modified.archive_time.strftime('%d %H:%M'),
+            (now + datetime.timedelta(minutes=120)).strftime('%d %H:%M')
+        )
 
     def test_event_duplication(self):
         event = Event.objects.get(title='Test event')
