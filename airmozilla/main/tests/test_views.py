@@ -123,12 +123,26 @@ class TestPages(TestCase):
         event.description = """
         Check out the <a href="http://example.com">Example</a> page
         and <strong>THIS PAGE</strong> here.
+
+        Lorem Ipsum is simply dummy text of the printing and typesetting
+        industry. Lorem Ipsum has been the industry's standard dummy text
+        ever since the 1500s, when an unknown printer took a galley of type
+        and scrambled it to make a type specimen book.
+        If the text is getting really long it will be truncated.
         """.strip()
         event.save()
         response_public = self.client.get(reverse('main:calendar'))
         eq_(response_public.status_code, 200)
         ok_('Check out the Example page' in response_public.content)
         ok_('and THIS PAGE here' in response_public.content)
+        ok_('will be truncated' not in response_public.content)
+
+        event.short_description = 'One-liner'
+        event.save()
+        response_public = self.client.get(reverse('main:calendar'))
+        eq_(response_public.status_code, 200)
+        ok_('Check out the' not in response_public.content)
+        ok_('One-liner' in response_public.content)
 
     def test_filter_by_tags(self):
         url = reverse('main:home')

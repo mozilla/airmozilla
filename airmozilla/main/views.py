@@ -15,6 +15,7 @@ from jingo import Template
 
 from airmozilla.main.models import Event, EventOldSlug, Participant, Tag
 from airmozilla.base.utils import paginate, vidly_tokenize, unhtml
+from airmozilla.main.helpers import short_desc
 
 
 def page(request, template):
@@ -136,7 +137,7 @@ def participant_clear(request, clear_token):
 def events_calendar(request, public=True):
     cache_key = 'calendar_%s' % ('public' if public else 'private')
     cached = cache.get(cache_key)
-    if 0 and cached:
+    if cached:
         return cached
     cal = vobject.iCalendar()
     cal.add('X-WR-CALNAME').value = ('Air Mozilla Public Events' if public
@@ -156,7 +157,7 @@ def events_calendar(request, public=True):
         vevent.add('dtstart').value = event.start_time
         vevent.add('dtend').value = (event.start_time +
                                      datetime.timedelta(hours=1))
-        vevent.add('description').value = unhtml(event.description)
+        vevent.add('description').value = unhtml(short_desc(event))
         if event.location:
             vevent.add('location').value = event.location.name
         vevent.add('url').value = base_url + event.slug + '/'
