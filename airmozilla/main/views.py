@@ -136,7 +136,7 @@ def participant_clear(request, clear_token):
 def events_calendar(request, public=True):
     cache_key = 'calendar_%s' % ('public' if public else 'private')
     cached = cache.get(cache_key)
-    if cached:
+    if 0 and cached:
         return cached
     cal = vobject.iCalendar()
     cal.add('X-WR-CALNAME').value = ('Air Mozilla Public Events' if public
