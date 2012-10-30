@@ -72,6 +72,7 @@ CELERY_ALWAYS_EAGER = True
 
 VIDLY_USER_ID = 'any...'
 VIDLY_USER_KEY = '...thing not empty'
+EDGECAST_SECURE_KEY = 'anythingheretoo'
 
 SETTINGS
 
