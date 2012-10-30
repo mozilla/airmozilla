@@ -113,3 +113,6 @@ EMAIL_FROM_ADDRESS = 'airmozilla-ops@mozilla.com'
 # See https://bugzilla.mozilla.org/show_bug.cgi?id=798572#c2
 VIDLY_USER_ID = ''
 VIDLY_USER_KEY = ''
+
+# And this is needed for EdgeCast
+EDGECAST_SECURE_KEY = ''

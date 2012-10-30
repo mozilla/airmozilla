@@ -106,7 +106,10 @@ class Template(models.Model):
         ' <code>{{ any_variable_name }}</code> for per-event'
         ' tags. Other Jinja2 constructs are available, along with the related'
         ' <code>request</code>, <code>datetime</code>, and <code>event</code>'
-        ' objects, and the <code>md5</code> function. Warning! Changes affect'
+        ' objects, and the <code>md5</code> function. '
+        ' Additionally we have <code>vidly_tokenize(tag, seconds)</code> and'
+        ' <code>edgecast_tokenize([seconds], **kwargs)</code>.<br>'
+        ' Warning! Changes affect'
         ' all events associated with this template.')
 
     def __unicode__(self):

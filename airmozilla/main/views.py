@@ -14,7 +14,9 @@ from funfactory.urlresolvers import reverse
 from jingo import Template
 
 from airmozilla.main.models import Event, EventOldSlug, Participant, Tag
-from airmozilla.base.utils import paginate, vidly_tokenize, unhtml
+from airmozilla.base.utils import (
+    paginate, vidly_tokenize, edgecast_tokenize, unhtml
+)
 from airmozilla.main.helpers import short_desc
 
 
@@ -99,6 +101,7 @@ def event(request, slug):
             'request': request,
             'datetime': datetime.datetime.utcnow(),
             'vidly_tokenize': vidly_tokenize,
+            'edgecast_tokenize': edgecast_tokenize,
         }
         if isinstance(event.template_environment, dict):
             context.update(event.template_environment)

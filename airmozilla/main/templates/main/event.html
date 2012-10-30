@@ -38,7 +38,7 @@
     </header>
     <div class="entry-content">
       {% if video %}
-        <p>{{ video|safe }}</p>
+        {{ video|safe }}
       {% else %}
         {% set thumb = thumbnail(event.placeholder_img, '120x120') %}
         <img src="{{ thumb.url }}" width="{{ thumb.width }}"

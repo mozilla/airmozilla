@@ -1,9 +1,12 @@
+import time
+import datetime
 import re
 import urllib
 import urllib2
 import functools
 import logging
 import json
+import subprocess
 import xml.etree.ElementTree as ET
 
 from django import http
@@ -11,6 +14,11 @@ from django.core.cache import cache
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.defaultfilters import slugify
+from django.core.exceptions import ImproperlyConfigured
+
+
+class EdgecastEncryptionError(Exception):
+    pass
 
 
 def unique_slugify(data, models, duplicate_key=''):
@@ -29,11 +37,11 @@ def unique_slugify(data, models, duplicate_key=''):
     return slug
 
 
-def tz_apply(datetime, tz):
+def tz_apply(dt, tz):
     """Returns a datetime with tz applied, timezone-aware.
        Strips the Django-inserted timezone from settings.TIME_ZONE."""
-    datetime = datetime.replace(tzinfo=None)
-    return tz.normalize(tz.localize(datetime))
+    dt = dt.replace(tzinfo=None)
+    return tz.normalize(tz.localize(dt))
 
 
 # From socorro-crashstats
@@ -75,7 +83,7 @@ def paginate(objects, page, count):
     return objects_paged
 
 
-def vidly_tokenize(tag, expiration_seconds):
+def vidly_tokenize(tag, seconds):
     cache_key = 'vidly_tokenize:%s' % tag
     token = cache.get(cache_key)
     if token is not None:
@@ -89,14 +97,14 @@ def vidly_tokenize(tag, expiration_seconds):
         <UserID>%(user_id)s</UserID>
         <UserKey>%(user_key)s</UserKey>
         <MediaShortLink>%(tag)s</MediaShortLink>
-        <ExpirationTimeSeconds>%(expiration_seconds)s</ExpirationTimeSeconds>
+        <ExpirationTimeSeconds>%(seconds)s</ExpirationTimeSeconds>
     </Query>
     """
     xml = query % {
         'user_id': settings.VIDLY_USER_ID,
         'user_key': settings.VIDLY_USER_KEY,
         'tag': tag,
-        'expiration_seconds': expiration_seconds,
+        'seconds': seconds,
     }
 
     req = urllib2.Request(
@@ -134,3 +142,40 @@ def vidly_tokenize(tag, expiration_seconds):
 
 def unhtml(text_with_html):
     return re.sub('<.*?>', '', text_with_html)
+
+
+def edgecast_tokenize(seconds=None, **kwargs):
+    if not settings.EDGECAST_SECURE_KEY:  # pragma: no cover
+        raise ImproperlyConfigured(
+            "'EDGECAST_SECURE_KEY' not set up"
+        )
+
+    if seconds:
+        expires = (
+            datetime.datetime.utcnow() +
+            datetime.timedelta(seconds=seconds)
+        )
+        expires_timestamp = time.mktime(expires.timetuple())
+        kwargs['ec_expire'] = int(expires_timestamp)
+
+    key = settings.EDGECAST_SECURE_KEY
+    binary_location = getattr(
+        settings,
+        'BINARY_LOCATION',
+        'ec_encrypt'
+    )
+    command = [
+        binary_location,
+        key,
+        urllib.urlencode(kwargs)
+    ]
+    out, err = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    ).communicate()
+
+    if not out and err:
+        raise EdgecastEncryptionError(err)
+
+    return out.strip()
