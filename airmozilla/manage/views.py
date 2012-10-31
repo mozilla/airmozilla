@@ -578,7 +578,7 @@ def template_env_autofill(request):
     env = Environment()
     ast = env.parse(template.content)
 
-    exceptions = ('vidly_tokenize',)
+    exceptions = ('vidly_tokenize', 'edgecast_tokenize')
     undeclared_variables = [x for x in meta.find_undeclared_variables(ast)
                             if x not in exceptions]
     var_templates = ["%s=" % v for v in undeclared_variables]
