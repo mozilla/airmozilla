@@ -3,7 +3,8 @@ from django.contrib import auth
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from django_browserid.auth import get_audience, verify
+from django_browserid.base import get_audience
+from django_browserid.auth import verify
 from django_browserid.forms import BrowserIDForm
 
 
