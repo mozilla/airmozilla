@@ -477,6 +477,27 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 200)
         ok_('value="Test event"' in response.content)
 
+    def test_event_preview_shortcut(self):
+        # become anonymous (reverse what setUp() does)
+        self.client.logout()
+
+        # view it anonymously
+        event = Event.objects.get(title='Test event')
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        edit_url = reverse('manage:event_edit', args=(event.pk,))
+        ok_(edit_url not in response.content)
+        # now log in
+        assert self.client.login(username='fake', password='fake')
+        # check that you can view the edit page
+        response = self.client.get(edit_url)
+        eq_(response.status_code, 200)
+        # and now the real test
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(edit_url in response.content)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):

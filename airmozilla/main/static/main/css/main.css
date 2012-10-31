@@ -1,6 +1,6 @@
 /*
 Theme Name:     Air Mozilla
-Description:    Site theme for air.mozilla.org. This theme is a child of the One Mozilla WordPress theme. 
+Description:    Site theme for air.mozilla.org. This theme is a child of the One Mozilla WordPress theme.
 Author:         Craig Cook
 Template:       OneMozilla
 Version:        1.0
@@ -167,7 +167,7 @@ div.warning { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A00
 
 .wp-caption { background-color: #2d373b; }
 .entry-content img, .entry-summary img { background-color: #2d373b; border-color: #2d373b; }
-.entry-content a:hover img, .entry-content a:focus img, .entry-content a:active img, 
+.entry-content a:hover img, .entry-content a:focus img, .entry-content a:active img,
 .entry-summary a:hover img, .entry-summary a:focus img, .entry-summary a:active img { background-color: #2592e6; }
 
 .entry-summary { padding-left: 120px; position: relative; min-height: 92px; }
@@ -208,8 +208,8 @@ body a:link, body a:visited { color: #1e77bb; }
 body a:hover, body a:focus, body a:active { color: #2592e6; }
 
 a.button:link,
-a.button:visited { 
-  border-radius: .25em; 
+a.button:visited {
+  border-radius: .25em;
   box-shadow: 0 2px 0 0 rgba(0,0,0,0.1),inset 0 -2px 0 0 rgba(0,0,0,0.2);
   color: #fff;
   cursor: pointer;
@@ -235,7 +235,7 @@ a.button:hover, a.button:focus, a.button:active { box-shadow:0 2px 0 0 rgba(0,0,
 /* @Accessible @Skip links *********/
 #nav-access a:focus, #nav-access a:active { background: rgba(0,0,0,.2); border-color: #fed325; }
 #foot-logo .top:focus, #foot-logo .top:active { background: rgba(0,0,0,.2); border-color: #4090c4; }
- 
+
 /* @Forms *********/
 input[type=email], input[type=url], input[type=password], input[type=text], textarea {
   border-color: #2e404e;
@@ -246,7 +246,7 @@ input[type=email]:hover, input[type=url]:hover, input[type=password]:hover, inpu
   border-color: #516e83;
 }
 input[type=email]:focus, input[type=url]:focus, input[type=password]:focus, input[type=text]:focus, textarea:focus {
-  background-color: #516e83; 
+  background-color: #516e83;
   color: #c5ccd2;
   border-color: #62869f;
 	-moz-box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
@@ -276,16 +276,16 @@ time.timeago {
 /*** Tag display */
 span.tag {
     background-color: rgb(45, 55, 59);
-    border: 1px solid #506168; 
-    border-radius: 3px;   
-} 
+    border: 1px solid #506168;
+    border-radius: 3px;
+}
 
 /*** Entry @Header */
 .post .entry-header { padding-left: 0; }
 .entry-title { min-height: 0; }
 .show-comments.no-author .entry-title { float: none; width: auto; }
 .single-post .entry-title, .page .entry-title { font-size: 1.75em; letter-spacing: -0.5px; }
-
+.entry-edit-shortcut { float: right; }
 
 /*** Post Author */
 .entry-header .vcard { margin-left: 0; border: 0; background: #2d373b; }
@@ -307,8 +307,8 @@ span.tag {
 .entry-comments a { background-image: url("icn-comment.png"); border: 0; }
 
 /*** Link buttons */
-body .edit a, body #cancel-comment-reply a { border-color: #45555b; color: #ddd; 
-  background: #2d373b; 
+body .edit a, body #cancel-comment-reply a { border-color: #45555b; color: #ddd;
+  background: #2d373b;
   background: -moz-linear-gradient(top, #3d4b50 0, #2d373b 100%);
   background: -webkit-linear-gradient(top, #3d4b50 0, #2d373b 100%);
   background: linear-gradient(top, #3d4b50 0, #2d373b 100%);
@@ -337,7 +337,7 @@ body #cancel-comment-reply a:hover, body #cancel-comment-reply a:focus, body #ca
 #comment-list .avatar { border-color: #5d83a0; }
 
 /* @Paging @Navigation ***/
-#nav-primary, .nav-paging { background-color: #2d373b; 
+#nav-primary, .nav-paging { background-color: #2d373b;
 	-webkit-box-shadow: inset rgba(0,0,0, 0.1) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
 	-o-box-shadow: inset rgba(0,0,0,0.1) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
   box-shadow: inset rgba(0,0,0,0.1) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
@@ -385,13 +385,13 @@ cols    1     2      3
 px      68    160    252    */
 
 @media only screen and (max-width: 767px) {
-  
+
   .main-feature { padding: 240px 12px 12px; margin: 0 -12px 48px -12px; }
   .main-feature .feature-type { left: 12px; }
   .main-feature .entry-title { font-size: 24px; }
   .main-feature .entry-summary { position: static; padding: 0 24px 0 0; }
   .main-feature .entry-summary .wp-post-image { left: 12px; top: 60px; border: 0; margin: 0; }
-  
+
   .entry-summary { padding-left: 0; position: static; min-height: 92px; }
   .entry-summary .wp-post-image { position: static; float: left; margin: 0 12px .5em 0; }
 
@@ -400,7 +400,7 @@ px      68    160    252    */
   .more-posts .hentry { padding: 0 0 10px 68px; min-height: 48px; }
   .more-posts .video-thumb { position: absolute; left: 0; top: 0; width: 48px; height: 48px; }
   .more-posts .video-thumb img { margin-top:0; width: 48px; height: 48px; }
- 
+
 }
 
 /*	@Wide @Mobile @Layout: 480px.
@@ -418,6 +418,5 @@ px      68    160    252    344    436    */
   .main-feature .entry-title { font-size: 24px; }
   .main-feature .entry-summary { position: static; padding: 0 24px 0 0; }
   .main-feature .entry-summary .wp-post-image { width: 148px; }
-    
-}
 
+}

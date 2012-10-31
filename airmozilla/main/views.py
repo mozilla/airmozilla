@@ -107,12 +107,19 @@ def event(request, slug):
             context.update(event.template_environment)
         template = Template(event.template.content)
         template_tagged = template.render(context)
+
+    can_edit_event = (
+        request.user.is_active and
+        request.user.has_perm('main.change_event')
+    )
+
     participants = event.participants.filter(cleared=Participant.CLEARED_YES)
     return render(request, 'main/event.html', {
         'event': event,
         'video': template_tagged,
         'participants': participants,
-        'warning': warning
+        'warning': warning,
+        'can_edit_event': can_edit_event
     })
 
 
