@@ -13,9 +13,4 @@
     <a href="mailto:{{ email }}">{{ email }}</a>{% if not loop.last %}, {% endif %}
     {%- endfor -%}.
     </p>
-
-    {% if git_revision %}
-    <p><a href="https://github.com/mozilla/airmozilla/commit/{{ git_revision }}">Current version of airmozilla installed.</a></p>
-    {% endif %}
-
 {% endblock %}

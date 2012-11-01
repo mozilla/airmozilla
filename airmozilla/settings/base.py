@@ -127,15 +127,3 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 # Always use secure cookies
 COOKIES_SECURE = True
-
-
-try:
-    import subprocess
-    GIT_REVISION = subprocess.Popen(
-        'git rev-parse HEAD'.split(),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT
-    ).communicate()[0].strip()
-except:
-    # it might be a tarball or something
-    GIT_REVISION = None
