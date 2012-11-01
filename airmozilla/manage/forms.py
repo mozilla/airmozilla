@@ -273,3 +273,31 @@ class FlatPageEditForm(BaseModelForm):
     class Meta:
         model = FlatPage
         fields = ('url', 'title', 'content')
+
+
+class VidlyURLForm(forms.Form):
+    url = forms.URLField(
+        required=True,
+        label='URL',
+        widget=forms.widgets.TextInput(attrs={
+            'placeholder': 'E.g. http://videos.mozilla.org/.../file.flv',
+            'class': 'input-xxlarge',
+        })
+    )
+    email = forms.EmailField(
+        required=False,
+        help_text="To send you a notification when it's complete"
+    )
+    token_protection = forms.BooleanField(required=False)
+
+    def clean_url(self):
+        value = self.cleaned_data['url']
+        # because the URL when found is likely to be different from how it
+        # instead should be accessed for vid.ly
+        if 'https://videos-origin.' in value:
+            value = value.replace('/manage/', '/serv/')
+        value = value.replace(
+            'https://videos-origin.mozilla',
+            'http://videos.mozilla'
+        )
+        return value

@@ -1,6 +1,7 @@
 import datetime
 import json
 import random
+from cStringIO import StringIO
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
@@ -12,6 +13,7 @@ from django.utils.timezone import utc
 from funfactory.urlresolvers import reverse
 
 from nose.tools import eq_, ok_
+from mock import patch
 
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
                                     Location, Participant, Template)
@@ -497,6 +499,47 @@ class TestEvents(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_(edit_url in response.content)
+
+    @patch('airmozilla.base.utils.urllib2')
+    def test_vidly_url_to_shortcode(self, p_urllib2):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>All medias have been added.</Message>
+              <MessageCode>2.1</MessageCode>
+              <BatchID>47520</BatchID>
+              <Success>
+                <MediaShortLink>
+                  <SourceFile>http://www.com/file.flv</SourceFile>
+                  <ShortLink>8oxv6x</ShortLink>
+                  <MediaID>13969839</MediaID>
+                  <QRCode>http://vid.ly/8oxv6x/qrcodeimg</QRCode>
+                  <HtmlEmbed>code code</HtmlEmbed>
+                  <EmailEmbed>more code code</EmailEmbed>
+                </MediaShortLink>
+              </Success>
+            </Response>
+            """)
+        p_urllib2.urlopen = mocked_urlopen
+
+        response = self.client.get(url)
+        eq_(response.status_code, 405)
+
+        response = self.client.post(url, {
+            'url': 'not a url'
+        })
+        eq_(response.status_code, 400)
+
+        response = self.client.post(url, {
+            'url': 'http://www.com/'
+        })
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content['shortcode'], '8oxv6x')
 
 
 class TestParticipants(ManageTestCase):

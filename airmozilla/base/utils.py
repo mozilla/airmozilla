@@ -179,3 +179,35 @@ def edgecast_tokenize(seconds=None, **kwargs):
         raise EdgecastEncryptionError(err)
 
     return out.strip()
+
+
+def vidly_add_media(url, email=None, token_protection=None):
+    root = ET.Element('query')
+    ET.SubElement(root, 'action').text = 'AddMedia'
+    ET.SubElement(root, 'userid').text = settings.VIDLY_USER_ID
+    ET.SubElement(root, 'userkey').text = settings.VIDLY_USER_KEY
+    if email:
+        ET.SubElement(root, 'notify').text = email
+    source = ET.SubElement(root, 'Source')
+    ET.SubElement(source, 'SourceFile').text = url
+    ET.SubElement(source, 'HD').text = 'yes'
+    ET.SubElement(source, 'CDN').text = 'AWS'
+    if token_protection:
+        protect = ET.SubElement(source, 'Protect')
+        ET.SubElement(protect, 'Token')
+
+    xml = ET.tostring(root)
+    req = urllib2.Request(
+        'http://m.vid.ly/api/',
+        urllib.urlencode({'xml': xml.strip()})
+    )
+    response = urllib2.urlopen(req)
+    response_content = response.read().strip()
+    root = ET.fromstring(response_content)
+    success = root.find('Success')
+    if success is not None:
+        # great!
+        return success.find('MediaShortLink').find('ShortLink').text, None
+    logging.error(response_content)
+    # error!
+    return None, response_content

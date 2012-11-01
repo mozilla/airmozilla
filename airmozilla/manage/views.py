@@ -5,13 +5,14 @@ import re
 import uuid
 
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest
 from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.db import transaction
@@ -21,7 +22,8 @@ from django.utils.timezone import utc
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 
-from airmozilla.base.utils import json_view, paginate, tz_apply
+from airmozilla.base.utils import (json_view, paginate, tz_apply,
+                                   vidly_add_media)
 from airmozilla.main.models import (Approval, Category, Event, Location,
                                     Participant, Tag, Template)
 from airmozilla.manage import forms
@@ -373,9 +375,13 @@ def event_archive(request, id):
             return redirect('manage:events')
     else:
         form = forms.EventArchiveForm(instance=event)
-
+    vidly_shortcut_form = forms.VidlyURLForm(
+        initial=dict(email=request.user.email)
+    )
     return render(request, 'manage/event_archive.html',
-                  {'form': form, 'event': event})
+                  {'form': form,
+                   'event': event,
+                   'vidly_shortcut_form': vidly_shortcut_form})
 
 
 @staff_required
@@ -795,3 +801,26 @@ def flatpage_remove(request, id):
         flatpage.delete()
         messages.info(request, 'Page "%s" removed.' % flatpage.title)
     return redirect('manage:flatpages')
+
+
+@require_POST
+@staff_required
+@permission_required('main.change_event_others')
+@json_view
+def vidly_url_to_shortcode(request, id):
+    get_object_or_404(Event, id=id)
+    form = forms.VidlyURLForm(data=request.POST)
+    if form.is_valid():
+        url = form.cleaned_data['url']
+        email = form.cleaned_data['email']
+        token_protection = form.cleaned_data['token_protection']
+        shortcode, error = vidly_add_media(
+            url,
+            email=email,
+            token_protection=token_protection
+        )
+        if shortcode:
+            return {'shortcode': shortcode}
+        else:
+            HttpResponseBadRequest(error)
+    return HttpResponseBadRequest(str(form.errors))
