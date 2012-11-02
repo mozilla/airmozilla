@@ -265,3 +265,35 @@ class TestPages(TestCase):
         response = self.client.get(url)
         ok_('Test event' in response.content)
         ok_('Totally different' not in response.content)
+
+    def test_rendering_additional_links(self):
+        event = Event.objects.get(title='Test event')
+        event.additional_links = 'Google'
+        event.save()
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Google' in response.content)
+
+        event.additional_links = """
+        Google http://google.com
+        """.strip()
+        event.save()
+        response = self.client.get(url)
+        ok_(
+            'Google <a href="http://google.com">http://google.com</a>' in
+            response.content
+        )
+
+        event.additional_links = """
+        Google http://google.com\nYahii http://yahii.com
+        """.strip()
+        event.save()
+        response = self.client.get(url)
+
+        ok_(
+            'Google <a href="http://google.com">http://google.com</a><br>'
+            'Yahii <a href="http://yahii.com">http://yahii.com</a>'
+            in response.content
+        )
