@@ -205,3 +205,42 @@ class TestPages(TestCase):
         eq_(response.status_code, 301)
         # the good tag stays
         ok_('?tag=tag1' in response['Location'])
+
+    def test_feed(self):
+        delay = datetime.timedelta(days=1)
+
+        event1 = Event.objects.get(title='Test event')
+        event1.status = Event.STATUS_SCHEDULED
+        event1.start_time -= delay
+        event1.archive_time = event1.start_time
+        event1.save()
+        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().count(), 1)
+
+        Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            public=False,  # Note!
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+        )
+
+        eq_(Event.objects.approved().count(), 2)
+        eq_(Event.objects.archived().count(), 2)
+
+        url = reverse('main:feed', args=('public',))
+        response = self.client.get(url)
+        ok_('Test event' in response.content)
+        ok_('Second test event' not in response.content)
+
+        url = reverse('main:feed', args=('both',))
+        response = self.client.get(url)
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        url = reverse('main:feed', args=('private',))
+        response = self.client.get(url)
+        ok_('Test event' not in response.content)
+        ok_('Second test event' in response.content)

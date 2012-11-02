@@ -116,6 +116,9 @@ ARCHIVING_MARGIN = 60
 # and half from the future) will be output.
 CALENDAR_SIZE = 30
 
+# How many events should appear in the syndication feeds
+FEED_SIZE = 20
+
 # Use PNG for thumbnailing
 THUMBNAIL_FORMAT = 'PNG'
 

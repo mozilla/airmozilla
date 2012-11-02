@@ -9,6 +9,7 @@ from django.contrib.sites.models import RequestSite
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
 from django.utils.timezone import utc
+from django.contrib.syndication.views import Feed
 
 from funfactory.urlresolvers import reverse
 from jingo import Template
@@ -179,3 +180,43 @@ def events_calendar(request, public=True):
         'inline; filename=%s' % filename)
     cache.set(cache_key, response)
     return response
+
+
+class EventsFeed(Feed):
+    title = "AirMozilla"
+
+    description_template = 'main/feeds/event_description.html'
+
+    def get_object(self, request, private_or_public):
+        self.private_or_public = private_or_public
+        prefix = request.is_secure() and 'https' or 'http'
+        self._root_url = '%s://%s' % (prefix, RequestSite(request).domain)
+
+    def link(self):
+        return self._root_url + '/'
+
+    def feed_url(self):
+        return self.link()
+
+    def items(self):
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+
+        qs = (
+            Event.objects.approved()
+            .filter(start_time__lt=now)
+            .order_by('-start_time')
+        )
+        if self.private_or_public == 'private':
+            qs = qs.filter(public=False)
+        elif self.private_or_public == 'public':
+            qs = qs.filter(public=True)
+        return qs[:settings.FEED_SIZE]
+
+    def item_title(self, event):
+        return event.title
+
+    def item_link(self, event):
+        return self._root_url + reverse('main:event', args=(event.slug,))
+
+    def item_pubdate(self, event):
+        return event.start_time
