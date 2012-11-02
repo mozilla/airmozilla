@@ -235,7 +235,7 @@ class TestPages(TestCase):
         ok_('Test event' in response.content)
         ok_('Second test event' not in response.content)
 
-        url = reverse('main:feed', args=('both',))
+        url = reverse('main:feed')
         response = self.client.get(url)
         ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
@@ -244,3 +244,24 @@ class TestPages(TestCase):
         response = self.client.get(url)
         ok_('Test event' not in response.content)
         ok_('Second test event' in response.content)
+
+    def test_feed_cache(self):
+        delay = datetime.timedelta(days=1)
+
+        event = Event.objects.get(title='Test event')
+        event.start_time -= delay
+        event.archive_time = event.start_time
+        event.save()
+
+        url = reverse('main:feed')
+        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().count(), 1)
+        response = self.client.get(url)
+        ok_('Test event' in response.content)
+
+        event.title = 'Totally different'
+        event.save()
+
+        response = self.client.get(url)
+        ok_('Test event' in response.content)
+        ok_('Totally different' not in response.content)

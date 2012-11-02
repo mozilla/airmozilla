@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import patterns, url
 from django.views.generic.base import RedirectView
+from django.views.decorators.cache import cache_page
 
 from . import views
 
@@ -22,6 +23,7 @@ urlpatterns = patterns(
     url(r'^calendar/$', views.events_calendar, name='calendar'),
     url(r'^calendar/private/$', views.events_calendar,
         kwargs={'public': False}, name='private_calendar'),
-    url(r'^feed/(public|private|both)/$', views.EventsFeed(), name='feed'),
+    url(r'^feed/(public|private)?/?$', cache_page(views.EventsFeed(), 60 * 60),
+        name='feed'),
     url(r'^(?P<slug>[-\w]+)/$', views.event, name='event'),
 )

@@ -11,6 +11,10 @@
 Air Mozilla | Mozilla, in Video
 {% endblock %}
 
+{% block extra_head %}
+<link rel="alternate" title="AirMozilla RSS" href="/feed/" type="application/rss+xml">
+{% endblock %}
+
 {% block site_css %}
   {% compress css %}
     <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
