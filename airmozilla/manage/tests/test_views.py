@@ -261,10 +261,26 @@ class TestEvents(ManageTestCase):
         )
         group_user.groups.add(group2)
 
+        long_description_with_html = (
+            'The researchers took a "theoretical" approach instead, using '
+            'something known as the no-signalling conditions. They '
+            'considered an entangled system with a set of independent '
+            'physical attributes, some observable, some hidden variables. '
+            '\n\n'
+            'Next, they allowed the state of the hidden variables '
+            'to propagate faster than the speed of light, which let '
+            'them influence the measurements on the separated pieces of '
+            'the experiment. '
+            '\n\n'
+            'Baskin & Robbins'
+        )
+
         with open(self.placeholder) as fp:
             response = self.client.post(
                 reverse('manage:event_request'),
-                dict(self.event_base_data, placeholder_img=fp,
+                dict(self.event_base_data,
+                     description=long_description_with_html,
+                     placeholder_img=fp,
                      title='Airmozilla Launch Test',
                      approvals=[group1.pk, group2.pk])
             )
@@ -277,6 +293,7 @@ class TestEvents(ManageTestCase):
         ok_(group_user.email in email_sent.to)
         ok_(event.title in email_sent.subject)
         ok_(reverse('manage:approvals') in email_sent.body)
+        ok_('Baskin & Robbins' in email_sent.body)  # & not &amp;
         # edit it and drop the second group
         response_ok = self.client.post(
             reverse('manage:event_edit', kwargs={'id': event.id}),
