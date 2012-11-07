@@ -74,6 +74,9 @@ VIDLY_USER_ID = 'any...'
 VIDLY_USER_KEY = '...thing not empty'
 EDGECAST_SECURE_KEY = 'anythingheretoo'
 
+MOZILLIANS_API_APPNAME = 'some_app_name'
+MOZILLIANS_API_KEY = 'any018273012873019283key'
+
 SETTINGS
 
 echo "Creating database if we need it..."
