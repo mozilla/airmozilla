@@ -52,6 +52,16 @@ Air Mozilla | Mozilla, in Video
 
   <div id="content">
     <div id="content-main" class="main" role="main">
+      {% if messages %}
+          {% for message in messages %}
+            <div class="alert
+             {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+              <a href="#" class="close">&times;</a>
+              {{ message }}
+            </div>
+          {% endfor %}
+      {% endif %}
+
       {% block content_main %}{% endblock %}
     </div>
     <div id="content-sub" class="sub sidebar widgets" role="complementary">
@@ -65,7 +75,7 @@ Air Mozilla | Mozilla, in Video
       {% if not request.user.is_active %}
         <a href="#" class="persona-button dark" id="browserid"
            title="Sign in with Persona">
-          <span>Employee Sign In</span>
+          <span>Sign In</span>
         </a>
         <form method="post" action="{{ url('auth:mozilla_browserid_verify') }}">
           {{ csrf() }}

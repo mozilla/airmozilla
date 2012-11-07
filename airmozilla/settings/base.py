@@ -28,6 +28,9 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     'django.contrib.flatpages',
 ]
 
+# our session storage is all memcache so using it instead of FallbackStorage
+# which uses CookieStorage by default so sessions are better
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Because Jinja2 is the default template loader, add any non-Jinja templated
 # apps here:
@@ -130,3 +133,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 # Always use secure cookies
 COOKIES_SECURE = True
+
+# Defaults for Mozillians
+MOZILLIANS_API_BASE = 'https://mozillians.org'

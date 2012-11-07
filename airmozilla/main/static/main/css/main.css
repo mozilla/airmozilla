@@ -84,6 +84,36 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
     padding-bottom: 48px;
 }
 
+.alert {
+    padding: 10px;
+    margin: 20px;
+    border-radius: 6px;
+}
+.alert .close {
+    float: right;
+    position: relative;
+    top: -6px;
+    right: -1px;
+    line-height: 20px;
+}
+.alert-danger,
+.alert-error {
+    color: #b94a48;
+    background-color: #f2dede;
+    border-color: #eed3d7;
+}
+.alert-success {
+    color: #468847;
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+}
+.alert-info,
+.alert-warning {
+    color: #3a87ad;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
+}
+
 @media only screen and (max-width: 768px) {
     #masthead {
         padding-top: 5px;

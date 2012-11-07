@@ -1,3 +1,4 @@
+/*global $ moment confirm */
 $(function() {
     'use strict';
     $('time.jstime').each(function(i, time) {
@@ -25,6 +26,11 @@ $(function() {
     $('input,textarea,select').change(function() {
         var form = $(this).parents('form');
         form.data('changes', form.data('changes') + 1);
+    });
+
+    $('.alert .close').click(function() {
+        $(this).parent('.alert').fadeOut(400);
+        return false;
     });
 
 });
