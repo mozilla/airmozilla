@@ -148,7 +148,7 @@ class EventRequestForm(BaseModelForm):
             'title', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time', 'timezone',
             'participants', 'category', 'tags', 'call_info',
-            'additional_links', 'public'
+            'additional_links', 'privacy'
         )
 
 
@@ -163,7 +163,7 @@ class EventEditForm(EventRequestForm):
         exclude = ('archive_time',)
         # Fields specified to enforce order
         fields = (
-            'title', 'slug', 'status', 'public', 'featured', 'template',
+            'title', 'slug', 'status', 'privacy', 'featured', 'template',
             'template_environment', 'placeholder_img', 'location',
             'description', 'short_description', 'start_time', 'archive_time',
             'timezone', 'participants', 'category', 'tags', 'call_info',
@@ -180,11 +180,11 @@ class EventExperiencedRequestForm(EventEditForm):
         exclude = ('featured', 'archive_time', 'slug')
         # Fields specified to enforce order
         fields = (
-            'title', 'status', 'public', 'template',
+            'title', 'status', 'privacy', 'template',
             'template_environment', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time', 'timezone',
             'participants', 'category', 'tags', 'call_info',
-            'additional_links', 'public', 'approvals'
+            'additional_links', 'approvals'
         )
 
 

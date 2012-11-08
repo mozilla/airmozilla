@@ -16,7 +16,7 @@
     ('Category', approval.event.category),
     ('Call info', approval.event.call_info),
     ('Additional links', approval.event.additional_links),
-    ('Public', 'Yes' if approval.event.public else 'No (MoCo Only)'),
+    ('Public', 'Yes' if approval.event.is_public() else 'No (MoCo Only)'),
     ('Creator', approval.event.creator.get_full_name() +
                 ' <' + approval.event.creator.email + '>'),
     ('Created', approval.event.created|js_date),

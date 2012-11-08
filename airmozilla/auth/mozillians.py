@@ -1,3 +1,4 @@
+import logging
 import urllib
 import json
 import requests
@@ -9,6 +10,10 @@ class BadStatusCodeError(Exception):
 
 
 def is_vouched(email):
+    if not getattr(settings, 'MOZILLIANS_API_KEY', None):  # pragma no cover
+        logging.warning("'MOZILLIANS_API_KEY' not set up.")
+        return False
+
     # /api/v1/users/?app_name=foobar&app_key=12345&email=test@example.com
     url = settings.MOZILLIANS_API_BASE + '/api/v1/users/'
     data = {

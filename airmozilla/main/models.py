@@ -15,6 +15,19 @@ from airmozilla.main.fields import EnvironmentField
 from sorl.thumbnail import ImageField
 
 
+class UserProfile(models.Model):
+    user = models.ForeignKey(User)
+    contributor = models.BooleanField(default=False)
+
+
+def get_profile_safely(user, create_if_necessary=False):
+    try:
+        return user.get_profile()
+    except UserProfile.DoesNotExist:
+        if create_if_necessary:
+            return UserProfile.objects.create(user=user)
+
+
 def _upload_path(tag):
     def _upload_path_tagged(instance, filename):
         now = datetime.datetime.now()
@@ -221,11 +234,17 @@ class Event(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     call_info = models.TextField(blank=True)
     additional_links = models.TextField(blank=True)
-    public = models.BooleanField(
-        default=False,
-        help_text='Available to everyone (else MoCo only.)',
-        db_index=True
+
+    PRIVACY_PUBLIC = 'public'
+    PRIVACY_COMPANY = 'company'
+    PRIVACY_CONTRIBUTORS = 'contributors'
+    PRIVACY_CHOICES = (
+        (PRIVACY_PUBLIC, 'Public'),
+        (PRIVACY_CONTRIBUTORS, 'Employees and contributors only'),
+        (PRIVACY_COMPANY, 'Employees only'),
     )
+    privacy = models.CharField(max_length=40, choices=PRIVACY_CHOICES,
+                               default=PRIVACY_PUBLIC, db_index=True)
     featured = models.BooleanField(default=False, db_index=True)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
@@ -248,6 +267,9 @@ class Event(models.Model):
 
     def is_removed(self):
         return self.status == self.STATUS_REMOVED
+
+    def is_public(self):
+        return self.privacy == self.PRIVACY_PUBLIC
 
 
 class EventOldSlug(models.Model):

@@ -14,7 +14,9 @@ from django.contrib.syndication.views import Feed
 from funfactory.urlresolvers import reverse
 from jingo import Template
 
-from airmozilla.main.models import Event, EventOldSlug, Participant, Tag
+from airmozilla.main.models import (
+    Event, EventOldSlug, Participant, Tag, get_profile_safely
+)
 from airmozilla.base.utils import (
     paginate, vidly_tokenize, edgecast_tokenize, unhtml
 )
@@ -28,12 +30,22 @@ def page(request, template):
 
 def home(request, page=1):
     """Paginated recent videos and live videos."""
+    privacy_filter = {}
+    privacy_exclude = {}
     if request.user.is_active:
-        public_filter = {}
+        profile = get_profile_safely(request.user)
+        if profile and profile.contributor:
+            privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
     else:
-        public_filter = {'public': True}
-    archived_events = (Event.objects.archived().filter(**public_filter)
-                       .order_by('-archive_time'))
+        privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+
+    archived_events = Event.objects.archived()
+    if privacy_filter:
+        archived_events = archived_events.filter(**privacy_filter)
+    elif privacy_exclude:
+        archived_events = archived_events.exclude(**privacy_exclude)
+    archived_events = archived_events.order_by('-archive_time')
+
     tags = None
     if request.GET.getlist('tag'):
         requested_tags = request.GET.getlist('tag')
@@ -59,8 +71,13 @@ def home(request, page=1):
         # no live events when filtering by tag
         live_events = Event.objects.none()
     else:
-        live_events = (Event.objects.live().filter(**public_filter)
+
+        live_events = (Event.objects.live()
                        .order_by('start_time'))
+        if privacy_filter:
+            live_events = live_events.filter(**privacy_filter)
+        elif privacy_exclude:
+            live_events = live_events.exclude(**privacy_exclude)
     archived_paged = paginate(archived_events, page, 10)
     live = None
     also_live = []
@@ -74,6 +91,23 @@ def home(request, page=1):
     })
 
 
+def can_view_event(event, user):
+    """return True if the current user has right to view this event"""
+    if event.privacy == Event.PRIVACY_PUBLIC:
+        return True
+    elif not user.is_active:
+        return False
+
+    # you're logged in
+    if event.privacy == Event.PRIVACY_COMPANY:
+        # but then it's not good enough to be contributor
+        profile = get_profile_safely(user)
+        if profile and profile.contributor:
+            return False
+
+    return True
+
+
 def event(request, slug):
     """Video, description, and other metadata."""
     try:
@@ -81,14 +115,16 @@ def event(request, slug):
     except Event.DoesNotExist:
         old_slug = get_object_or_404(EventOldSlug, slug=slug)
         return redirect('main:event', slug=old_slug.event.slug)
-    if not event.public and not request.user.is_active:
+    if not can_view_event(event, request.user):
         return redirect('main:login')
+
     warning = None
     if event.status != Event.STATUS_SCHEDULED:
         if not request.user.is_active:
             return http.HttpResponse('Event not scheduled')
         else:
             warning = "Event is not publicly visible - not scheduled."
+
     if event.approval_set.filter(approved=False).exists():
         if not request.user.is_active:
             return http.HttpResponse('Event not approved')
@@ -154,12 +190,17 @@ def events_calendar(request, public=True):
     cal.add('X-WR-CALNAME').value = ('Air Mozilla Public Events' if public
                                      else 'Air Mozilla Private Events')
     now = datetime.datetime.utcnow().replace(tzinfo=utc)
-    events = list(Event.objects.approved()
-                  .filter(start_time__lt=now, public=public)
+    base_qs = Event.objects.approved()
+    if public:
+        base_qs = base_qs.filter(privacy=Event.PRIVACY_PUBLIC)
+    else:
+        base_qs = base_qs.exclude(privacy=Event.PRIVACY_PUBLIC)
+    events = list(base_qs
+                  .filter(start_time__lt=now)
                   .order_by('-start_time')[:settings.CALENDAR_SIZE])
-    events += list(Event.objects.approved()
-                        .filter(start_time__gte=now, public=public)
-                        .order_by('start_time')[:settings.CALENDAR_SIZE])
+    events += list(base_qs
+                   .filter(start_time__gte=now)
+                   .order_by('start_time')[:settings.CALENDAR_SIZE])
     base_url = '%s://%s/' % (request.is_secure() and 'https' or 'http',
                              RequestSite(request).domain)
     for event in events:
@@ -207,9 +248,9 @@ class EventsFeed(Feed):
             .order_by('-start_time')
         )
         if self.private_or_public == 'private':
-            qs = qs.filter(public=False)
+            qs = qs.exclude(privacy=Event.PRIVACY_PUBLIC)
         elif self.private_or_public == 'public':
-            qs = qs.filter(public=True)
+            qs = qs.filter(privacy=Event.PRIVACY_PUBLIC)
         return qs[:settings.FEED_SIZE]
 
     def item_title(self, event):

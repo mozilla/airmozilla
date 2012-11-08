@@ -46,6 +46,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+AUTH_PROFILE_MODULE = 'main.UserProfile'
+
 # Domains allowed for log in
 ALLOWED_BID = ['mozilla.com', 'mozillafoundation.org']
 

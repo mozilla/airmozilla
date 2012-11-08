@@ -79,7 +79,7 @@
                 1
             ],
             "archive_time": "2012-06-21T20:00:00Z",
-            "public": true,
+            "privacy": "public",
             "location": 1,
             "slug": "test-event",
             "status": "scheduled",

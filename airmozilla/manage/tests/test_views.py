@@ -194,6 +194,7 @@ class TestEvents(ManageTestCase):
         'status': Event.STATUS_SCHEDULED,
         'description': '...',
         'participants': 'Tim Mickel',
+        'privacy': 'public',
         'location': '1',
         'category': '7',
         'tags': 'xxx',

@@ -1,7 +1,7 @@
 import datetime
 import uuid
 
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User, AnonymousUser
 from django.test import TestCase
 from django.utils.timezone import utc
 
@@ -13,7 +13,8 @@ from airmozilla.main.models import (
     Event,
     EventOldSlug,
     Participant,
-    Tag
+    Tag,
+    UserProfile
 )
 
 
@@ -26,6 +27,50 @@ class TestPages(TestCase):
         event.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
         event.archive_time = None
         event.save()
+
+    def test_can_view_event(self):
+        event = Event.objects.get(title='Test event')
+        assert event.privacy == Event.PRIVACY_PUBLIC  # default
+
+        anonymous = AnonymousUser()
+        employee_wo_profile = User.objects.create_user(
+            'worker', 'worker@mozilla.com', 'secret'
+        )
+        employee_w_profile = User.objects.create_user(
+            'worker2', 'worker2@mozilla.com', 'secret'
+        )
+        assert not UserProfile.objects.filter(user=employee_wo_profile)
+        UserProfile.objects.create(
+            user=employee_w_profile,
+            contributor=False
+        )
+        contributor = User.objects.create_user(
+            'nigel', 'nigel@live.com', 'secret'
+        )
+        UserProfile.objects.create(
+            user=contributor,
+            contributor=True
+        )
+
+        from airmozilla.main.views import can_view_event
+        ok_(can_view_event(event, anonymous))
+        ok_(can_view_event(event, contributor))
+        ok_(can_view_event(event, employee_wo_profile))
+        ok_(can_view_event(event, employee_w_profile))
+
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        ok_(not can_view_event(event, anonymous))
+        ok_(not can_view_event(event, contributor))
+        ok_(can_view_event(event, employee_wo_profile))
+        ok_(can_view_event(event, employee_w_profile))
+
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+        ok_(not can_view_event(event, anonymous))
+        ok_(can_view_event(event, contributor))
+        ok_(can_view_event(event, employee_wo_profile))
+        ok_(can_view_event(event, employee_w_profile))
 
     def test_home(self):
         """Index page loads and paginates correctly."""
@@ -52,16 +97,39 @@ class TestPages(TestCase):
         approval.save()
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
-        event.public = False
+        event.privacy = Event.PRIVACY_COMPANY
         event.save()
         response_fail = self.client.get(event_page)
         self.assertRedirects(response_fail, reverse('main:login'))
-        event.public = True
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+        response_fail = self.client.get(event_page)
+        self.assertRedirects(response_fail, reverse('main:login'))
+        event.privacy = Event.PRIVACY_PUBLIC
         event.status = Event.STATUS_INITIATED
         event.save()
         response_fail = self.client.get(event_page)
         eq_(response_fail.status_code, 200)
         ok_('not scheduled' in response_fail.content)
+
+        self.client.logout()
+        event.privacy = Event.PRIVACY_COMPANY
+        event.status = Event.STATUS_SCHEDULED
+        event.save()
+        response_fail = self.client.get(event_page)
+        self.assertRedirects(response_fail, reverse('main:login'))
+
+        nigel = User.objects.create_user('nigel', 'n@live.in', 'secret')
+        UserProfile.objects.create(user=nigel, contributor=True)
+        assert self.client.login(username='nigel', password='secret')
+
+        response_fail = self.client.get(event_page)
+        self.assertRedirects(response_fail, reverse('main:login'))
+
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+        response_ok = self.client.get(event_page)
+        eq_(response_ok.status_code, 200)
 
     def test_old_slug(self):
         """An old slug will redirect properly to the current event page."""
@@ -161,7 +229,7 @@ class TestPages(TestCase):
             description='Anything',
             start_time=event1.start_time,
             archive_time=event1.archive_time,
-            public=True,
+            privacy=Event.PRIVACY_PUBLIC,
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
@@ -222,7 +290,7 @@ class TestPages(TestCase):
             description='Anything',
             start_time=event1.start_time,
             archive_time=event1.archive_time,
-            public=False,  # Note!
+            privacy=Event.PRIVACY_COMPANY,  # Note!
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )

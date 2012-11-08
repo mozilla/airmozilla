@@ -9,6 +9,7 @@ from django_browserid.base import get_audience
 from django_browserid.auth import verify
 from django_browserid.forms import BrowserIDForm
 from .mozillians import is_vouched, BadStatusCodeError
+from airmozilla.main.models import UserProfile
 
 
 @require_POST
@@ -20,16 +21,33 @@ def mozilla_browserid_verify(request):
         audience = get_audience(request)
         result = verify(assertion, audience)
         try:
-            if result and (
-                result['email'].split('@')[-1]
-                in settings.ALLOWED_BID
-                or is_vouched(result['email'])
-            ):
+            _ok_assertion = False
+            _is_contributor = False
+            if result:
+                _domain = result['email'].split('@')[-1]
+                if _domain in settings.ALLOWED_BID:
+                    _ok_assertion = True
+                elif is_vouched(result['email']):
+                    _ok_assertion = True
+                    _is_contributor = True
+
+            if _ok_assertion:
                 user = auth.authenticate(
                     assertion=assertion,
                     audience=audience
                 )
                 auth.login(request, user)
+                if _is_contributor:
+                    try:
+                        profile = user.get_profile()
+                        if not profile.contributor:
+                            profile.contributor = True
+                            profile.save()
+                    except UserProfile.DoesNotExist:
+                        profile = UserProfile.objects.create(
+                            user=user,
+                            contributor=True
+                        )
                 return redirect(settings.LOGIN_REDIRECT_URL)
             elif result:
                 messages.error(
