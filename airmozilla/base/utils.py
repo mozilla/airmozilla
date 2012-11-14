@@ -9,6 +9,8 @@ import json
 import subprocess
 import xml.etree.ElementTree as ET
 
+import pytz
+
 from django import http
 from django.core.cache import cache
 from django.conf import settings
@@ -169,6 +171,12 @@ def edgecast_tokenize(seconds=None, **kwargs):
             datetime.datetime.utcnow() +
             datetime.timedelta(seconds=seconds)
         )
+        # EdgeCast unfortunately do their timestamps for `ec_expire` based on
+        # a local time rather than UTC.
+        # So you have to subtract 8 hours (or 7 depending on season) to get
+        # a timestamp that works.
+        tz = pytz.timezone('America/Los_Angeles')
+        expires += tz.utcoffset(expires)
         expires_timestamp = time.mktime(expires.timetuple())
         kwargs['ec_expire'] = int(expires_timestamp)
 
