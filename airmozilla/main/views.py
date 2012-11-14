@@ -18,7 +18,8 @@ from airmozilla.main.models import (
     Event, EventOldSlug, Participant, Tag, get_profile_safely
 )
 from airmozilla.base.utils import (
-    paginate, vidly_tokenize, edgecast_tokenize, unhtml
+    paginate, vidly_tokenize, edgecast_tokenize, unhtml,
+    VidlyTokenizeError
 )
 from airmozilla.main.helpers import short_desc
 
@@ -143,7 +144,10 @@ def event(request, slug):
         if isinstance(event.template_environment, dict):
             context.update(event.template_environment)
         template = Template(event.template.content)
-        template_tagged = template.render(context)
+        try:
+            template_tagged = template.render(context)
+        except VidlyTokenizeError, msg:
+            template_tagged = '<code style="color:red">%s</code>' % msg
 
     can_edit_event = (
         request.user.is_active and

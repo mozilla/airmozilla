@@ -21,6 +21,10 @@ class EdgecastEncryptionError(Exception):
     pass
 
 
+class VidlyTokenizeError(Exception):
+    pass
+
+
 def unique_slugify(data, models, duplicate_key=''):
     """Returns a unique slug string.  If duplicate_key is provided, this is
        appended for non-unique slugs before adding a count."""
@@ -89,7 +93,6 @@ def vidly_tokenize(tag, seconds):
     if token is not None:
         return token
 
-    URL = 'http://m.vid.ly/api/'
     query = """
     <?xml version="1.0"?>
     <Query>
@@ -108,10 +111,16 @@ def vidly_tokenize(tag, seconds):
     }
 
     req = urllib2.Request(
-        URL,
+        settings.VIDLY_API_URL,
         urllib.urlencode({'xml': xml.strip()})
     )
-    response = urllib2.urlopen(req)
+    try:
+        response = urllib2.urlopen(req)
+    except urllib2.URLError:
+        logging.error('URLError on opening request', exc_info=True)
+        raise VidlyTokenizeError(
+            'Temporary network error when trying to fetch Vid.ly token'
+        )
     response_content = response.read().strip()
     root = ET.fromstring(response_content)
 
@@ -133,7 +142,12 @@ def vidly_tokenize(tag, seconds):
         cache.set(cache_key, '', 60 * 60 * 24)
         return ''
 
-    if not token:
+    if token:
+        # save it for a very short time.
+        # it's safer and at least protects us from possible excessive hits
+        # over the network.
+        cache.set(cache_key, token, 60)
+    else:
         logging.error('Unable fetch token for tag %r' % tag)
         logging.info(response_content)
 

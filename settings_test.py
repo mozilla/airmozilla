@@ -8,3 +8,5 @@ PASSWORD_HASHERS = (
 
 MOZILLIANS_API_BASE = 'https://shouldneveractuallybeused.net'
 MOZILLIANS_API_KEY = 'supersecret'
+
+VIDLY_API_URL = 'http://vidly.shouldneveractuallybeused.com/api/'

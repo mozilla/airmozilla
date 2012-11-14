@@ -138,3 +138,6 @@ COOKIES_SECURE = True
 
 # Defaults for Mozillians
 MOZILLIANS_API_BASE = 'https://mozillians.org'
+
+# API base URL
+VIDLY_API_URL = 'http://m.vid.ly/api/'

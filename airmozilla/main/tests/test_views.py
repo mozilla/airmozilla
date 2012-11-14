@@ -1,5 +1,6 @@
 import datetime
 import uuid
+import urllib2
 
 from django.contrib.auth.models import Group, User, AnonymousUser
 from django.test import TestCase
@@ -7,6 +8,7 @@ from django.utils.timezone import utc
 
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
+from mock import patch
 
 from airmozilla.main.models import (
     Approval,
@@ -365,3 +367,26 @@ class TestPages(TestCase):
             'Yahii <a href="http://yahii.com">http://yahii.com</a>'
             in response.content
         )
+
+    @patch('airmozilla.base.utils.urllib2.urlopen')
+    def test_event_with_vidly_token_urlerror(self, p_urlopen):
+        # based on https://bugzilla.mozilla.org/show_bug.cgi?id=811476
+        event = Event.objects.get(title='Test event')
+
+        # first we need a template that uses `vidly_tokenize()`
+        template = event.template
+        template.content = """
+        {% set token = vidly_tokenize(tag, 90) %}
+        <iframe src="http://s.vid.ly/embeded.html?
+        link={{ tag }}{% if token %}&token={{ token }}{% endif %}"></iframe>
+        """
+        template.save()
+        event.template_environment = "tag=abc123"
+        event.save()
+
+        p_urlopen.side_effect = urllib2.URLError('ANGER!')
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Temporary network error' in response.content)
