@@ -297,6 +297,7 @@ class Approval(models.Model):
 def event_clear_cache(sender, **kwargs):
     cache.delete('calendar_public')
     cache.delete('calendar_private')
+    cache.delete('autocomplete:patterns')
 
 
 @receiver(models.signals.pre_save, sender=Event)

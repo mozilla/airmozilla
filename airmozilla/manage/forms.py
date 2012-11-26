@@ -7,7 +7,7 @@ from django.contrib.flatpages.models import FlatPage
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.base.forms import BaseModelForm
+from airmozilla.base.forms import BaseModelForm, BaseForm
 from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
                                     Location, Participant, Tag, Template)
 
@@ -206,6 +206,9 @@ class EventFindForm(BaseModelForm):
     class Meta:
         model = Event
         fields = ('title',)
+        widgets = {
+            'title': forms.TextInput(attrs={'autocomplete': 'off'})
+        }
 
     def clean_title(self):
         title = self.cleaned_data['title']
@@ -301,3 +304,9 @@ class VidlyURLForm(forms.Form):
             'http://videos.mozilla'
         )
         return value
+
+
+class EventsAutocompleteForm(BaseForm):
+
+    q = forms.CharField(required=True, max_length=200)
+    max = forms.IntegerField(required=False, min_value=1, max_value=20)

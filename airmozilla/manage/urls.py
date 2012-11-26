@@ -25,6 +25,8 @@ urlpatterns = patterns(
     url(r'^events/$', views.events, name='events'),
     url(r'^tag-autocomplete/$', views.tag_autocomplete,
         name='tag_autocomplete'),
+    url(r'^events-autocomplete/$', views.event_autocomplete,
+        name='event_autocomplete'),
     url(r'^participant-autocomplete/$', views.participant_autocomplete,
         name='participant_autocomplete'),
     url(r'^participants/new/$', views.participant_new, name='participant_new'),

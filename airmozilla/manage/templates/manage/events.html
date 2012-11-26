@@ -123,3 +123,12 @@
         </button>
     </form>
 {% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/bootstrap-typeahead.js') }}"></script>
+    <script src="{{ static('manage/js/events.js') }}"></script>
+  {% endcompress %}
+{% endblock %}

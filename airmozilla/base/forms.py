@@ -15,3 +15,7 @@ class _BaseForm(object):
 
 class BaseModelForm(_BaseForm, forms.ModelForm):
     pass
+
+
+class BaseForm(_BaseForm, forms.Form):
+    pass

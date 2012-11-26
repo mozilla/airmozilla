@@ -1,4 +1,6 @@
+import collections
 import datetime
+import hashlib
 import functools
 import pytz
 import re
@@ -9,6 +11,7 @@ from django.http import Http404, HttpResponseBadRequest
 from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
+from django.core.cache import cache
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect, get_object_or_404
@@ -30,6 +33,19 @@ from airmozilla.manage import forms
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
+
+STOPWORDS = (
+    "a able about across after all almost also am among an and "
+    "any are as at be because been but by can cannot could dear "
+    "did do does either else ever every for from get got had has "
+    "have he her hers him his how however i if in into is it its "
+    "just least let like likely may me might most must my "
+    "neither no nor not of off often on only or other our own "
+    "rather said say says she should since so some than that the "
+    "their them then there these they this tis to too twas us "
+    "wants was we were what when where which while who whom why "
+    "will with would yet you your".split()
+)
 
 
 def cancel_redirect(redirect_view):
@@ -334,6 +350,57 @@ def tag_autocomplete(request):
     # for new tags - the first tag is the query
     tag_names.insert(0, {'id': query, 'text': query})
     return {'tags': tag_names}
+
+
+@staff_required
+@json_view
+def event_autocomplete(request):
+    form = forms.EventsAutocompleteForm(request.GET)
+    if not form.is_valid():
+        return HttpResponseBadRequest(str(form.errors))
+    max_results = form.cleaned_data['max'] or 10
+    query = form.cleaned_data['q']
+    query = query.lower()
+    if len(query) < 2:
+        return []
+
+    _cache_key = 'autocomplete:%s' % hashlib.md5(query).hexdigest()
+    result = cache.get(_cache_key)
+    if result:
+        return result
+
+    patterns = cache.get('autocomplete:patterns')
+    directory = cache.get('autocomplete:directory')
+    if patterns is None or directory is None:
+        patterns = collections.defaultdict(list)
+        directory = {}
+        for pk, title in Event.objects.all().values_list('id', 'title'):
+            directory[pk] = title
+            for word in re.split('[^\w]+', title.lower()):
+                if word in STOPWORDS:
+                    continue
+                patterns[word].append(pk)
+        cache.set('autocomplete:patterns', patterns, 60 * 60 * 24)
+        cache.set('autocomplete:directory', directory, 60 * 60 * 24)
+
+    pks = set()
+    _search = re.compile('^%s' % re.escape(query))
+    for key in patterns.iterkeys():
+        if _search.match(key):
+            pks.update(patterns[key])
+            if len(pks) > max_results:
+                break
+
+    # get rid of dups
+    titles = set([directory[x] for x in pks])
+    # sort
+    titles = sorted(titles)
+    # chop
+    titles = titles[:max_results]
+
+    # save it for later
+    cache.set(_cache_key, titles, 60)
+    return titles
 
 
 @staff_required
@@ -821,5 +888,5 @@ def vidly_url_to_shortcode(request, id):
         if shortcode:
             return {'shortcode': shortcode}
         else:
-            HttpResponseBadRequest(error)
+            return HttpResponseBadRequest(error)
     return HttpResponseBadRequest(str(form.errors))

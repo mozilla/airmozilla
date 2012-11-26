@@ -559,6 +559,67 @@ class TestEvents(ManageTestCase):
         content = json.loads(response.content)
         eq_(content['shortcode'], '8oxv6x')
 
+    def test_events_autocomplete(self):
+        event = Event.objects.get(title='Test event')
+        event2 = Event.objects.create(
+            title='The Other Cool Title Event',
+            description=event.description,
+            start_time=event.start_time,
+        )
+        eq_(Event.objects.all().count(), 2)
+        url = reverse('manage:event_autocomplete')
+
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {'q': 'something', 'max': 'nan'})
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {'q': 'eVEnt'})
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content, ['Test event', 'The Other Cool Title Event'])
+
+        response = self.client.get(url, {'q': 'EVen', 'max': 1})
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content, ['Test event'])
+
+        response = self.client.get(url, {'q': 'E'})
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content, [])
+
+        response = self.client.get(url, {'q': 'COOL'})
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content, ['The Other Cool Title Event'])
+
+        response = self.client.get(url, {'q': 'COO'})
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content, ['The Other Cool Title Event'])
+
+        response = self.client.get(url, {'q': 'THE'})
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content, [])
+
+        # the autocomplete caches the same search
+        event2.title = event2.title.replace('Cool', 'Brilliant')
+        event2.save()
+
+        response = self.client.get(url, {'q': 'COol'})
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content, ['The Other Cool Title Event'])
+
+        # but if the query is different it should work
+        response = self.client.get(url, {'q': 'brill'})
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content, ['The Other Brilliant Title Event'])
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):
