@@ -45,7 +45,7 @@ def home(request, page=1):
         archived_events = archived_events.filter(**privacy_filter)
     elif privacy_exclude:
         archived_events = archived_events.exclude(**privacy_exclude)
-    archived_events = archived_events.order_by('-archive_time')
+    archived_events = archived_events.order_by('-start_time')
 
     tags = None
     if request.GET.getlist('tag'):
