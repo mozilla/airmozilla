@@ -6,6 +6,15 @@
 {% endblock %}
 
 {% block manage_content %}
+
+  {% if not user_groups.count() %}
+  <div class="alert alert-block">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <h4>Note!</h4>
+    You are not a member of any group that could have approvals.
+  </div>
+  {% endif %}
+
   {% if approvals %}
   <table class="table table-striped">
     <thead>
@@ -27,7 +36,7 @@
         <td>{{ approval.event.creator.get_full_name() }}</td>
         <td>{{ approval.event.created|js_date }}</td>
         <td>
-          <a class="btn" 
+          <a class="btn"
              href="{{ url('manage:approval_review', approval.id) }}">
             <i class="icon-wrench"></i>
             Review

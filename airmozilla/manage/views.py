@@ -779,13 +779,26 @@ def location_timezone(request):
 @permission_required('main.change_approval')
 def approvals(request):
     user = request.user
-    approvals = Approval.objects.filter(group__in=user.groups.all(),
-                                        processed=False)
-    recent = (Approval.objects.filter(group__in=user.groups.all(),
-                                      processed=True)
-                      .order_by('-processed_time')[:25])
-    return render(request, 'manage/approvals.html', {'approvals': approvals,
-                                                     'recent': recent})
+    groups = user.groups.all()
+    if groups.count():
+        approvals = (Approval.objects.filter(
+            group__in=user.groups.all(),
+            processed=False)
+            .exclude(event__status=Event.STATUS_REMOVED)
+        )
+        recent = (Approval.objects.filter(
+            group__in=user.groups.all(),
+            processed=True)
+            .order_by('-processed_time')[:25]
+        )
+    else:
+        approvals = recent = Approval.objects.none()
+    data = {
+        'approvals': approvals,
+        'recent': recent,
+        'user_groups': groups,
+    }
+    return render(request, 'manage/approvals.html', data)
 
 
 @staff_required

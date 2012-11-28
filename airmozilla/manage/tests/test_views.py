@@ -817,13 +817,36 @@ class TestTemplates(ManageTestCase):
 
 class TestApprovals(ManageTestCase):
     def test_approvals(self):
+        event = Event.objects.get(title='Test event')
+        group = Group.objects.get(name='testapprover')
+        Approval.objects.create(event=event, group=group)
+
         response = self.client.get(reverse('manage:approvals'))
         eq_(response.status_code, 200)
+        # if you access the approvals page without belonging to any group
+        # you'll get a warning alert
+        ok_('You are not a member of any group' in response.content)
+        ok_('Test event' not in response.content)
+
+        # belong to a group
+        self.user.groups.add(group)
+        response = self.client.get(reverse('manage:approvals'))
+        eq_(response.status_code, 200)
+        ok_('You are not a member of any group' not in response.content)
+        ok_('Test event' in response.content)
+
+        # but it shouldn't appear if it's removed
+        event.status = Event.STATUS_REMOVED
+        event.save()
+        response = self.client.get(reverse('manage:approvals'))
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
 
     def test_approval_review(self):
-        app = Approval(event=Event.objects.get(id=22),
-                       group=Group.objects.get(id=1))
-        app.save()
+        event = Event.objects.get(title='Test event')
+        group = Group.objects.get(name='testapprover')
+        app = Approval.objects.create(event=event, group=group)
+
         url = reverse('manage:approval_review', kwargs={'id': app.id})
         response_not_in_group = self.client.get(url)
         self.assertRedirects(response_not_in_group,

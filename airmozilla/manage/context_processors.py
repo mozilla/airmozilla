@@ -12,10 +12,12 @@ def badges(request):
             context['badges']['events'] = events
     # Approval inbox badge
     if request.user.has_perm('main.change_approval'):
-        approvals = Approval.objects.filter(
+        approvals = (Approval.objects.filter(
             group__in=request.user.groups.all(),
-            processed=False
-        ).count()
+            processed=False)
+            .exclude(event__status=Event.STATUS_REMOVED)
+            .count()
+        )
         if approvals > 0:
             context['badges']['approvals'] = approvals
     # Uncleared participants badge
