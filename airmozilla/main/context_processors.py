@@ -4,7 +4,8 @@ from airmozilla.main.models import Event
 
 
 def sidebar(request):
-    featured = Event.objects.approved().filter(featured=True)
+    featured = (Event.objects.approved()
+                .filter(featured=True).order_by('-start_time'))
     upcoming = Event.objects.upcoming().order_by('start_time')
     if not request.user.is_active:
         featured = featured.filter(privacy=Event.PRIVACY_PUBLIC)
