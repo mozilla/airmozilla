@@ -1,9 +1,11 @@
+import time
 import datetime
 import urllib
 import jinja2
 
 from django.utils.text import truncate_words
 from django.utils.timezone import utc
+from django.db.utils import IntegrityError
 
 from jingo import register
 from sorl.thumbnail import get_thumbnail
@@ -41,6 +43,13 @@ def thumbnail(filename, geometry, **options):
         return get_thumbnail(filename, geometry, **options)
     except IOError:
         return None
+    except IntegrityError:
+        # annoyingly, this happens sometimes because kvstore in sorl
+        # doesn't check before writing properly
+        # see https://bugzilla.mozilla.org/show_bug.cgi?id=817765
+        # try again
+        time.sleep(1)
+        return thumbnail(filename, geometry, **options)
 
 
 @register.function
