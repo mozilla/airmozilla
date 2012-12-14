@@ -74,6 +74,50 @@ class TestPages(TestCase):
         ok_(can_view_event(event, employee_wo_profile))
         ok_(can_view_event(event, employee_w_profile))
 
+    def test_view_private_events_with_notices(self):
+        # for https://bugzilla.mozilla.org/show_bug.cgi?id=821458
+        event = Event.objects.get(title='Test event')
+        assert event.privacy == Event.PRIVACY_PUBLIC  # default
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        self.assertRedirects(response, reverse('main:login'))
+
+        contributor = User.objects.create_user(
+            'nigel', 'nigel@live.com', 'secret'
+        )
+        UserProfile.objects.create(
+            user=contributor,
+            contributor=True
+        )
+
+        assert self.client.login(username='nigel', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(
+            'This video is restricted to Mozillians and Mozilla employees'
+            in response.content
+        )
+
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+
+        response = self.client.get(url)
+        self.assertRedirects(response, reverse('main:login'))
+
+        User.objects.create_user(
+            'worker', 'worker@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='worker', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(
+            'This video is restricted to Mozilla employees'
+            in response.content
+        )
+
     def test_home(self):
         """Index page loads and paginates correctly."""
         response = self.client.get(reverse('main:home'))

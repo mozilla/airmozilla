@@ -88,7 +88,8 @@ def home(request, page=1):
         'events': archived_paged,
         'live': live,
         'also_live': also_live,
-        'tags': tags
+        'tags': tags,
+        'Event': Event,
     })
 
 
@@ -160,7 +161,8 @@ def event(request, slug):
         'video': template_tagged,
         'participants': participants,
         'warning': warning,
-        'can_edit_event': can_edit_event
+        'can_edit_event': can_edit_event,
+        'Event': Event,
     })
 
 

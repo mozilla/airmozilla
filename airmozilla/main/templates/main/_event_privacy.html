@@ -1,0 +1,10 @@
+      {% if event.privacy != Event.PRIVACY_PUBLIC %}
+      <h5 class="entry-privacy">
+      {% if event.privacy == Event.PRIVACY_COMPANY %}
+      This video is restricted to Mozilla employees
+      {% endif %}
+      {% if event.privacy == Event.PRIVACY_CONTRIBUTORS %}
+      This video is restricted to Mozillians and Mozilla employees
+      {% endif %}
+      </h5>
+      {% endif %}

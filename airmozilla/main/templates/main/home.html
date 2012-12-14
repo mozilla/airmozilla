@@ -28,6 +28,8 @@
           <h3 class="entry-title">
             <a href="{{ href }}" rel="bookmark">{{ live.title }}</a>
           </h3>
+          {% set event = live %}
+          {% include 'main/_event_privacy.html' %}
         </hgroup>
         <p class="event-date">{{ _('Started') }} {{ live.start_time|js_date }}</p>
       </header>
@@ -68,6 +70,7 @@
         <h2 class="entry-title">
           <a href="{{ href }}">{{ event.title }}</a>
         </h2>
+        {% include 'main/_event_privacy.html' %}
       </header>
       <div class="entry-summary">
         <p class="event-date">{{ event.start_time|js_date }}</p>

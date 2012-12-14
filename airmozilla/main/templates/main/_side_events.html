@@ -4,7 +4,17 @@
     {% for event in widget_events %}
       <li class="hentry">
         <h4 class="entry-title">
-          <a href="{{ url('main:event', event.slug) }}">
+          <a href="{{ url('main:event', event.slug) }}"
+
+      {% if event.privacy != Event.PRIVACY_PUBLIC %}
+      {% if event.privacy == Event.PRIVACY_COMPANY %}
+      title="This video is restricted to Mozilla employees"
+      {% endif %}
+      {% if event.privacy == Event.PRIVACY_CONTRIBUTORS %}
+      title="This video is restricted to Mozillians and Mozilla employees"
+      {% endif %}
+      {% endif %}
+             >
             <span class="video-thumb">
               {% set thumb = thumbnail(event.placeholder_img, '64x64', crop='center') %}
               <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"

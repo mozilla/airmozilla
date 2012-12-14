@@ -148,6 +148,7 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
 .main-feature { background: #eee; color: #506168; padding: 60px 48px 48px 232px; margin: 0 -48px 48px; position: relative; min-height: 160px; }
 .main-feature .feature-type { font-size: 16px; text-transform: uppercase; position: absolute; left: 48px; top: 24px; }
 .main-feature .entry-title { width: 100%; float: none; }
+.main-feature .entry-privacy { font-size: 1em; margin-bottom: 10px; color: #506168; }
 .main-feature .entry-summary { position: static; padding: 0; min-height: 0; }
 .main-feature .entry-meta { border: 0; border-top: 1px dotted #ccc; padding: 1em 0 0; background: transparent; box-shadow: none; }
 .main-feature .entry-summary .wp-post-image { position: absolute; left: 48px; top: 60px; border: 0; margin: 0; }
@@ -313,6 +314,7 @@ span.tag {
 /*** Entry @Header */
 .post .entry-header { padding-left: 0; }
 .entry-title { min-height: 0; }
+.entry-privacy { font-size: 1em; }
 .show-comments.no-author .entry-title { float: none; width: auto; }
 .single-post .entry-title, .page .entry-title { font-size: 1.75em; letter-spacing: -0.5px; }
 .entry-edit-shortcut { float: right; }
