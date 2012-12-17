@@ -18,7 +18,7 @@
       <h1 class="entry-title">
         {{ event.title }}
       </h1>
-      {% include 'main/_entry_privacy.html' %}
+      {% include 'main/_event_privacy.html' %}
       {% if can_edit_event %}
       <p class="entry-edit-shortcut">
         <a href="{{ url('manage:event_edit', event.pk) }}" title="Shortcut to edit this event">Edit event &raquo;</a>
