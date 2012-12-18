@@ -13,5 +13,6 @@ def sidebar(request):
     upcoming = upcoming[:settings.UPCOMING_SIDEBAR_COUNT]
     return {
         'upcoming': upcoming,
-        'featured': featured
+        'featured': featured,
+        'Event': Event,
     }

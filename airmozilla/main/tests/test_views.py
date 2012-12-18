@@ -434,3 +434,50 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('Temporary network error' in response.content)
+
+    def test_404_page_with_side_events(self):
+        """404 pages should work when there's stuff in the side bar"""
+        event1 = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+
+        Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=now + datetime.timedelta(days=10),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+        )
+
+        Event.objects.create(
+            title='Third test event',
+            description='Anything',
+            start_time=now + datetime.timedelta(days=20),
+            privacy=Event.PRIVACY_COMPANY,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+        )
+
+        response = self.client.get(reverse('main:home'))
+        eq_(response.status_code, 200)
+        ok_('Second test event' in response.content)
+        ok_('Third test event' not in response.content)
+
+        response = self.client.get('/doesnotexist/')
+        eq_(response.status_code, 404)
+        ok_('Second test event' in response.content)
+        ok_('Third test event' not in response.content)
+
+        User.objects.create_user(
+            'worker', 'worker@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='worker', password='secret')
+        response = self.client.get(reverse('main:home'))
+        eq_(response.status_code, 200)
+        ok_('Second test event' in response.content)
+        ok_('Third test event' in response.content)
+
+        response = self.client.get('/doesnotexist/')
+        eq_(response.status_code, 404)
+        ok_('Second test event' in response.content)
+        ok_('Third test event' in response.content)
