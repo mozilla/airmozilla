@@ -8,6 +8,8 @@ patch()
 urlpatterns = patterns(
     '',
     (r'^manage/', include('airmozilla.manage.urls', namespace='manage')),
+    ('^(?P<path>favicon\.ico)$', 'django.views.static.serve',
+     {'document_root': settings.ROOT + '/airmozilla/base/static/img'}),
     (r'', include('airmozilla.auth.urls', namespace='auth')),
     (r'', include('airmozilla.main.urls', namespace='main')),
     ('^pages/', include('django.contrib.flatpages.urls')),

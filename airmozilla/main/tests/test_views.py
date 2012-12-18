@@ -481,3 +481,9 @@ class TestPages(TestCase):
         eq_(response.status_code, 404)
         ok_('Second test event' in response.content)
         ok_('Third test event' in response.content)
+
+    def test_render_favicon(self):
+        # because /favicon.ico isn't necessarily set up in Apache
+        response = self.client.get('/favicon.ico')
+        eq_(response.status_code, 200)
+        eq_(response['Content-Type'], 'image/x-icon')
