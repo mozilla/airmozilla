@@ -486,4 +486,8 @@ class TestPages(TestCase):
         # because /favicon.ico isn't necessarily set up in Apache
         response = self.client.get('/favicon.ico')
         eq_(response.status_code, 200)
-        eq_(response['Content-Type'], 'image/x-icon')
+        ok_content_types = ('image/vnd.microsoft.icon', 'image/x-icon')
+        # it's potentially differnet content type depending on how different
+        # servers guess .ico files
+        # On my OSX it's image/x-icon
+        ok_(response['Content-Type'] in ok_content_types)
