@@ -292,6 +292,7 @@ class VidlyURLForm(forms.Form):
         help_text="To send you a notification when it's complete"
     )
     token_protection = forms.BooleanField(required=False)
+    hd = forms.BooleanField(required=False, label='HD')
 
     def clean_url(self):
         value = self.cleaned_data['url']

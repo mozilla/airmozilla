@@ -203,7 +203,7 @@ def edgecast_tokenize(seconds=None, **kwargs):
     return out.strip()
 
 
-def vidly_add_media(url, email=None, token_protection=None):
+def vidly_add_media(url, email=None, token_protection=None, hd=False):
     root = ET.Element('query')
     ET.SubElement(root, 'action').text = 'AddMedia'
     ET.SubElement(root, 'userid').text = settings.VIDLY_USER_ID
@@ -212,7 +212,7 @@ def vidly_add_media(url, email=None, token_protection=None):
         ET.SubElement(root, 'notify').text = email
     source = ET.SubElement(root, 'Source')
     ET.SubElement(source, 'SourceFile').text = url
-    ET.SubElement(source, 'HD').text = 'yes'
+    ET.SubElement(source, 'HD').text = hd and 'YES' or 'NO'
     ET.SubElement(source, 'CDN').text = 'AWS'
     if token_protection:
         protect = ET.SubElement(source, 'Protect')

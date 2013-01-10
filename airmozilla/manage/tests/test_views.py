@@ -1,3 +1,4 @@
+import cgi
 import datetime
 import json
 import random
@@ -558,6 +559,58 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 200)
         content = json.loads(response.content)
         eq_(content['shortcode'], '8oxv6x')
+
+        arguments = list(p_urllib2.Request.mock_calls[0])[1]
+        # the first argument is the URL
+        ok_('vid.ly' in arguments[0])
+        # the second argument is querystring containing the XML used
+        data = cgi.parse_qs(arguments[1])
+        xml = data['xml'][0]
+        ok_('<HD>YES</HD>' not in xml)
+        ok_('<HD>NO</HD>' in xml)
+
+    @patch('airmozilla.base.utils.urllib2')
+    def test_vidly_url_to_shortcode_with_hd(self, p_urllib2):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>All medias have been added.</Message>
+              <MessageCode>2.1</MessageCode>
+              <BatchID>47520</BatchID>
+              <Success>
+                <MediaShortLink>
+                  <SourceFile>http://www.com/file.flv</SourceFile>
+                  <ShortLink>8oxv6x</ShortLink>
+                  <MediaID>13969839</MediaID>
+                  <QRCode>http://vid.ly/8oxv6x/qrcodeimg</QRCode>
+                  <HtmlEmbed>code code</HtmlEmbed>
+                  <EmailEmbed>more code code</EmailEmbed>
+                </MediaShortLink>
+              </Success>
+            </Response>
+            """)
+        p_urllib2.urlopen = mocked_urlopen
+
+        response = self.client.post(url, {
+            'url': 'http://www.com/',
+            'hd': True,
+        })
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content['shortcode'], '8oxv6x')
+
+        arguments = list(p_urllib2.Request.mock_calls[0])[1]
+        # the first argument is the URL
+        ok_('vid.ly' in arguments[0])
+        # the second argument is querystring containing the XML used
+        data = cgi.parse_qs(arguments[1])
+        xml = data['xml'][0]
+        ok_('<HD>YES</HD>' in xml)
+        ok_('<HD>NO</HD>' not in xml)
 
     def test_events_autocomplete(self):
         event = Event.objects.get(title='Test event')

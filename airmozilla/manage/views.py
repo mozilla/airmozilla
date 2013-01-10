@@ -25,8 +25,10 @@ from django.utils.timezone import utc
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 
-from airmozilla.base.utils import (json_view, paginate, tz_apply,
-                                   vidly_add_media)
+from airmozilla.base.utils import (
+    json_view, paginate, tz_apply,
+    vidly_add_media
+)
 from airmozilla.main.models import (Approval, Category, Event, Location,
                                     Participant, Tag, Template)
 from airmozilla.manage import forms
@@ -893,10 +895,12 @@ def vidly_url_to_shortcode(request, id):
         url = form.cleaned_data['url']
         email = form.cleaned_data['email']
         token_protection = form.cleaned_data['token_protection']
+        hd = form.cleaned_data['hd']
         shortcode, error = vidly_add_media(
             url,
             email=email,
-            token_protection=token_protection
+            token_protection=token_protection,
+            hd=hd,
         )
         if shortcode:
             return {'shortcode': shortcode}
