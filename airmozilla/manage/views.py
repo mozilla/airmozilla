@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Q
 from django.contrib.flatpages.models import FlatPage
 from django.utils.timezone import utc
 
@@ -87,8 +88,21 @@ def users(request):
     else:
         form = forms.UserFindForm()
     users_paged = paginate(User.objects.all(), request.GET.get('page'), 10)
+
+    _mozilla_email_filter = (
+        Q(email__endswith='@mozillafoundation.org') |
+        Q(email__endswith='@mozilla.com')
+    )
+    users_stats = {
+        'total': User.objects.all().count(),
+        'total_mozilla_email': (
+            User.objects.filter(_mozilla_email_filter).count()
+        ),
+    }
     return render(request, 'manage/users.html',
-                  {'paginate': users_paged, 'form': form})
+                  {'paginate': users_paged,
+                   'form': form,
+                   'users_stats': users_stats})
 
 
 @staff_required

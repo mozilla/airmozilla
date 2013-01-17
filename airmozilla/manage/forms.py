@@ -52,17 +52,19 @@ class GroupEditForm(BaseModelForm):
         model = Group
 
 
-class UserFindForm(BaseModelForm):
-    class Meta:
-        model = User
-        fields = ('email',)
+class UserFindForm(BaseForm):
+
+    email = forms.CharField(max_length=200)
 
     def clean_email(self):
         email = self.cleaned_data['email']
         try:
             user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
-            raise forms.ValidationError('User with this email not found.')
+            try:
+                user = User.objects.get(email__istartswith=email)
+            except User.DoesNotExist:
+                raise forms.ValidationError('User with this email not found.')
         return user.email
 
 

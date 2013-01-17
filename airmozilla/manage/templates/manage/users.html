@@ -5,6 +5,17 @@
     Edit users
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  <style type="text/css">
+  #users-stats {
+      float: right;
+      font-size: 80%;
+  }
+  </style>
+{% endblock %}
+
+
 {% block manage_content %}
     <table id="current_users" class="table table-striped table-bordered">
     <thead>
@@ -42,6 +53,14 @@
     {% endfor %}
     </tbody>
     </table>
+
+    <div id="users-stats">
+      <p>
+        <strong>Total:</strong> {{ users_stats.total }}
+        ({{ users_stats.total_mozilla_email }} with a Mozilla email address)
+      </p>
+    </div>
+
     {% include 'manage/_paginate.html' %}
     <form class="well form-search" method="post">
         Find user:
