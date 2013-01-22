@@ -8,8 +8,17 @@ from django.contrib.flatpages.models import FlatPage
 from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm, BaseForm
-from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
-                                    Location, Participant, Tag, Template)
+from airmozilla.main.models import (
+    Approval,
+    Category,
+    Event,
+    EventOldSlug,
+    Location,
+    Participant,
+    Tag,
+    Template,
+    Channel
+)
 
 
 TIMEZONE_CHOICES = [(tz, tz.replace('_', ' ')) for tz in pytz.common_timezones]
@@ -93,6 +102,11 @@ class EventRequestForm(BaseModelForm):
             '<i class="icon-plus-sign"></i>'
             'New category'
             '</a>' % reverse('manage:category_new'))
+        self.fields['channels'].help_text = (
+            '<a href="%s" class="btn" target="_blank">'
+            '<i class="icon-plus-sign"></i>'
+            'New channel'
+            '</a>' % reverse('manage:channel_new'))
         self.fields['placeholder_img'].label = 'Placeholder image'
         if 'instance' in kwargs:
             event = kwargs['instance']
@@ -149,7 +163,7 @@ class EventRequestForm(BaseModelForm):
         fields = (
             'title', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time', 'timezone',
-            'participants', 'category', 'tags', 'call_info',
+            'participants', 'channels', 'category', 'tags', 'call_info',
             'additional_links', 'privacy'
         )
 
@@ -168,8 +182,8 @@ class EventEditForm(EventRequestForm):
             'title', 'slug', 'status', 'privacy', 'featured', 'template',
             'template_environment', 'placeholder_img', 'location',
             'description', 'short_description', 'start_time', 'archive_time',
-            'timezone', 'participants', 'category', 'tags', 'call_info',
-            'additional_links', 'approvals'
+            'timezone', 'participants', 'channels', 'category', 'tags',
+            'call_info', 'additional_links', 'approvals'
         )
 
 
@@ -185,7 +199,7 @@ class EventExperiencedRequestForm(EventEditForm):
             'title', 'status', 'privacy', 'template',
             'template_environment', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time', 'timezone',
-            'participants', 'category', 'tags', 'call_info',
+            'participants', 'channels', 'category', 'tags', 'call_info',
             'additional_links', 'approvals'
         )
 
@@ -240,6 +254,12 @@ class ParticipantFindForm(BaseModelForm):
 class CategoryForm(BaseModelForm):
     class Meta:
         model = Category
+
+
+class ChannelForm(BaseModelForm):
+    class Meta:
+        model = Channel
+        exclude = ('created',)
 
 
 class TemplateEditForm(BaseModelForm):

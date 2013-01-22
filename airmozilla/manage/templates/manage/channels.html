@@ -1,0 +1,46 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "channels" %}
+
+{% block manage_title %}
+    Channels
+{% endblock %}
+
+{% block manage_content %}
+  <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Channel</th>
+        <th>Events</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for channel in channels %}
+        <tr>
+          <td>{{ channel.name }}</td>
+          <td>{{ channel.event_set.count() }}</td>
+          <td>
+            <a class="btn" href="{{ url('manage:channel_edit', channel.id) }}">
+            <i class="icon-edit"></i>
+              Edit
+            </a>
+            <form method="post" class="confirm"
+                  action="{{ url('manage:channel_remove', channel.id) }}">
+              {{ csrf() }}
+              <button class="btn btn-danger" type="submit">
+                <i class="icon-trash"></i>
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    <a class="btn" href="{{ url('manage:channel_new') }}">
+      <i class="icon-plus-sign"></i>
+      New channel
+    </a>
+  </p>
+{% endblock %}

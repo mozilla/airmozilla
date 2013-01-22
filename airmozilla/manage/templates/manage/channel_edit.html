@@ -1,0 +1,46 @@
+{% extends 'manage/channels.html' %}
+
+{% block manage_title %}
+  Editing channel "{{ channel.name }}"
+{% endblock %}
+
+{% block manage_content %}
+  {% include 'manage/_default_form_upload.html' %}
+
+  <p>
+  {% if use_ace %}
+  <a href="?use_ace=0">Disable fancy HTML editor</a>
+  {% else %}
+  <a href="?use_ace=1">Enable fancy HTML editor</a>
+  {% endif %}
+  </p>
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% if use_ace %}
+  <style>
+  .editor-container {
+      clear: both;
+      height: 300px;
+  }
+  #editor {
+      width: 640px;
+      height: 300px;
+  }
+  </style>
+  {% endif %}
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+
+  {% if use_ace %}
+  {% compress js %}
+    <script src="{{ static('manage/js/channel-html-edit.js') }}"></script>
+  {% endcompress %}
+  <!-- http://ace.ajax.org/#nav=embedding -->
+  <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+  {% endif %}
+{% endblock %}

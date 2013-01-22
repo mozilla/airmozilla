@@ -34,6 +34,23 @@
         }
     },
     {
+        "pk": 1,
+        "model": "main.channel",
+        "fields": {
+            "name": "Main",
+            "slug": "main"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "main.channel",
+        "fields": {
+            "name": "Testing",
+            "slug": "testing",
+            "description": "<p>Stuff!</p>"
+        }
+    },
+    {
         "pk": 8,
         "model": "main.category",
         "fields": {
@@ -67,6 +84,7 @@
         "fields": {
             "placeholder_img": "placeholders/Strawberry.gif",
             "category": 7,
+            "channels": [1],
             "description": "sadfasdf",
             "title": "Test event",
             "start_time": "2012-06-21T19:30:00Z",

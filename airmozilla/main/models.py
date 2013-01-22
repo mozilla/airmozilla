@@ -15,6 +15,15 @@ from airmozilla.main.fields import EnvironmentField
 from sorl.thumbnail import ImageField
 
 
+def _get_now():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
+
+
+def _get_live_time():
+    return (_get_now() +
+            datetime.timedelta(minutes=settings.LIVE_MARGIN))
+
+
 class UserProfile(models.Model):
     user = models.ForeignKey(User)
     contributor = models.BooleanField(default=False)
@@ -102,6 +111,22 @@ class Category(models.Model):
         return self.name
 
 
+class Channel(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=100, unique=True,
+                            db_index=True)
+    image = ImageField(upload_to=_upload_path('channels'), blank=True)
+    image_is_banner = models.BooleanField(default=False)
+    description = models.TextField()
+    created = models.DateTimeField(default=_get_now)
+
+    class Meta:
+        ordering = ['name']
+
+    def __unicode__(self):
+        return self.name
+
+
 class Tag(models.Model):
     """ Tags are flexible; events can have multiple tags. """
     name = models.CharField(max_length=50)
@@ -136,15 +161,6 @@ class Location(models.Model):
 
     def __unicode__(self):
         return self.name
-
-
-def _get_now():
-    return datetime.datetime.utcnow().replace(tzinfo=utc)
-
-
-def _get_live_time():
-    return (_get_now() +
-            datetime.timedelta(minutes=settings.LIVE_MARGIN))
 
 
 class EventManager(models.Manager):
@@ -232,6 +248,7 @@ class Event(models.Model):
     category = models.ForeignKey(Category, blank=True, null=True,
                                  on_delete=models.SET_NULL)
     tags = models.ManyToManyField(Tag, blank=True)
+    channels = models.ManyToManyField(Channel)
     call_info = models.TextField(blank=True)
     additional_links = models.TextField(blank=True)
 

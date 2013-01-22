@@ -1,0 +1,26 @@
+{% extends 'main/main_base.html' %}
+{% set page='channels' %}
+
+{% block page_title %}
+Channels | {{ super() }}
+{% endblock %}
+
+
+{% block banner %}
+    {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block content_main %}
+  <h2 class="section-title">Channels</h2>
+  <div class="channels">
+  {% for channel, event_count in channels %}
+    <h3><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a></h3>
+    <p>{{ event_count }} archived events</p>
+    <ul>
+      <li><a href="{{ url('main:channel_feed', channel.slug, 'public') }}">Public feed</a></li>
+      <li><a href="{{ url('main:channel_feed', channel.slug, 'private') }}">Private feed</a></li>
+      <li><a href="{{ url('main:channel_feed', channel.slug) }}">Private &amp Public feed</a></li>
+    </ul>
+  {% endfor %}
+  </div>
+{% endblock %}

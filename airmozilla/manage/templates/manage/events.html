@@ -15,7 +15,7 @@
       <th style="width: 8%">Location</th>
       <th style="width: 19%">Start time</th>
       <th style="width: 17%">Archive time</th>
-      <th style="width: 12%">Category</th>
+      <th style="width: 12%">Category/Channel</th>
       <th style="width: 8%">Visibility</th>
       <th style="width: 12%"></th>
     </tr>
@@ -48,7 +48,12 @@
             {% endif %}
           {% endif %}
         </td>
-        <td>{{ event.category }}</td>
+        <td>
+            {{ event.category }}<br>
+            {% for channel in event.channels.all() %}
+              {{ channel.name }}
+            {% endfor %}
+        </td>
         <td>{% if event.is_public() %}
               <span class="label">Public</span>
             {% else %}

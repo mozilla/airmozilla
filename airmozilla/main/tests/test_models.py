@@ -88,7 +88,7 @@ class EventStateTests(TestCase):
         archived.save()
         ok_(archived in Event.objects.archived_and_removed())
         ok_(archived not in Event.objects.archived())
- 
+
 
 class ForeignKeyTests(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
@@ -125,6 +125,14 @@ class ForeignKeyTests(TestCase):
         """Deleting a Category does not delete associated Event."""
         event = Event.objects.get(id=22)
         self._successful_delete(event.category)
+        self._refresh_ok(event)
+
+    def test_channel_remove(self):
+        """Deleting a Channel does not delete associated Event."""
+        event = Event.objects.get(id=22)
+        assert event.channels.all().count()
+        for channel in event.channels.all():
+            self._successful_delete(channel)
         self._refresh_ok(event)
 
     def test_user_creator_remove(self):

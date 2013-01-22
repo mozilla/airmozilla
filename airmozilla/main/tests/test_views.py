@@ -5,6 +5,7 @@ import urllib2
 from django.contrib.auth.models import Group, User, AnonymousUser
 from django.test import TestCase
 from django.utils.timezone import utc
+from django.conf import settings
 
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
@@ -16,7 +17,8 @@ from airmozilla.main.models import (
     EventOldSlug,
     Participant,
     Tag,
-    UserProfile
+    UserProfile,
+    Channel
 )
 
 
@@ -29,6 +31,10 @@ class TestPages(TestCase):
         event.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
         event.archive_time = None
         event.save()
+
+        self.main_channel = Channel.objects.get(
+            slug=settings.DEFAULT_CHANNEL_SLUG
+        )
 
     def test_can_view_event(self):
         event = Event.objects.get(title='Test event')
@@ -267,6 +273,7 @@ class TestPages(TestCase):
         event1.start_time -= delay
         event1.archive_time = event1.start_time
         event1.save()
+
         eq_(Event.objects.approved().count(), 1)
         eq_(Event.objects.archived().count(), 1)
 
@@ -279,6 +286,7 @@ class TestPages(TestCase):
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
+        event2.channels.add(self.main_channel)
 
         eq_(Event.objects.approved().count(), 2)
         eq_(Event.objects.archived().count(), 2)
@@ -331,7 +339,7 @@ class TestPages(TestCase):
         eq_(Event.objects.approved().count(), 1)
         eq_(Event.objects.archived().count(), 1)
 
-        Event.objects.create(
+        event = Event.objects.create(
             title='Second test event',
             description='Anything',
             start_time=event1.start_time,
@@ -340,22 +348,26 @@ class TestPages(TestCase):
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
+        event.channels.add(self.main_channel)
 
         eq_(Event.objects.approved().count(), 2)
         eq_(Event.objects.archived().count(), 2)
 
         url = reverse('main:feed', args=('public',))
         response = self.client.get(url)
+        eq_(response.status_code, 200)
         ok_('Test event' in response.content)
         ok_('Second test event' not in response.content)
 
         url = reverse('main:feed')
         response = self.client.get(url)
+        eq_(response.status_code, 200)
         ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
 
         url = reverse('main:feed', args=('private',))
         response = self.client.get(url)
+        eq_(response.status_code, 200)
         ok_('Test event' not in response.content)
         ok_('Second test event' in response.content)
 
@@ -440,7 +452,7 @@ class TestPages(TestCase):
         event1 = Event.objects.get(title='Test event')
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
 
-        Event.objects.create(
+        event = Event.objects.create(
             title='Second test event',
             description='Anything',
             start_time=now + datetime.timedelta(days=10),
@@ -448,8 +460,9 @@ class TestPages(TestCase):
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
+        event.channels.add(self.main_channel)
 
-        Event.objects.create(
+        event = Event.objects.create(
             title='Third test event',
             description='Anything',
             start_time=now + datetime.timedelta(days=20),
@@ -457,6 +470,7 @@ class TestPages(TestCase):
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
+        event.channels.add(self.main_channel)
 
         response = self.client.get(reverse('main:home'))
         eq_(response.status_code, 200)
@@ -491,3 +505,245 @@ class TestPages(TestCase):
         # servers guess .ico files
         # On my OSX it's image/x-icon
         ok_(response['Content-Type'] in ok_content_types)
+
+    def test_channels_page(self):
+        channel = Channel.objects.create(
+            name='Culture & Context',
+            slug='culture-and-context',
+        )
+
+        # create an archived event that can belong to this channel
+        event1 = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event = Event.objects.create(
+            title='Third test event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=20),
+            archive_time=now - datetime.timedelta(days=19),
+            privacy=Event.PRIVACY_COMPANY,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event1.placeholder_img,
+        )
+        assert event in list(Event.objects.archived().all())
+        event.channels.add(channel)
+
+        response = self.client.get(reverse('main:channels'))
+        eq_(response.status_code, 200)
+        ok_('Main' not in response.content)
+        ok_('Culture &amp; Context' in response.content)
+        channel_url = reverse('main:home_channels', args=(channel.slug,))
+        ok_(channel_url in response.content)
+        ok_('0 archived events' in response.content)
+
+        event.privacy = Event.PRIVACY_PUBLIC
+        event.save()
+
+        response = self.client.get(reverse('main:channels'))
+        eq_(response.status_code, 200)
+        ok_('1 archived events' in response.content)
+
+        # make it private again
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        assert Event.objects.archived().all().count() == 1
+
+        # let's say you log in
+        User.objects.create_user(
+            'worker', 'worker@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='worker', password='secret')
+        response = self.client.get(reverse('main:channels'))
+        eq_(response.status_code, 200)
+        ok_('1 archived event' in response.content)
+
+        # suppose you log in as a contributor
+        contributor = User.objects.create_user(
+            'nigel', 'nigel@live.com', 'secret'
+        )
+        UserProfile.objects.create(
+            user=contributor,
+            contributor=True
+        )
+        assert self.client.login(username='nigel', password='secret')
+        response = self.client.get(reverse('main:channels'))
+        eq_(response.status_code, 200)
+        ok_('0 archived events' in response.content)
+
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+        response = self.client.get(reverse('main:channels'))
+        eq_(response.status_code, 200)
+        ok_('1 archived event' in response.content)
+
+    def test_channel_page(self):
+        event1 = Event.objects.get(title='Test event')
+        event1.featured = True
+        event1.save()
+
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+
+        channel = Channel.objects.create(
+            name='Culture & Context',
+            slug='culture-and-context',
+            description="""
+            <p>The description</p>
+            """,
+            image='animage.png',
+        )
+
+        event = Event.objects.create(
+            title='Second test event',
+            slug='second-event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=20),
+            archive_time=now - datetime.timedelta(days=19),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event1.placeholder_img,
+        )
+        assert event in list(Event.objects.archived().all())
+        event.channels.add(channel)
+
+        event = Event.objects.create(
+            title='Third test event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=10),
+            archive_time=now - datetime.timedelta(days=9),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event1.placeholder_img,
+            featured=True,
+        )
+        assert event in list(Event.objects.archived().all())
+        event.channels.add(channel)
+
+        event = Event.objects.create(
+            title='Fourth test event',
+            description='Anything',
+            start_time=now + datetime.timedelta(days=10),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event1.placeholder_img,
+        )
+        assert event in list(Event.objects.upcoming().all())
+        event.channels.add(channel)
+
+        url = reverse('main:home_channels', args=(channel.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('>Culture &amp; Context<' in response.content)
+        ok_(channel.description in response.content)
+        ok_('alt="Culture &amp; Context"' in response.content)
+
+        ok_('Test event' not in response.content)
+        ok_('Second test event' in response.content)
+        ok_('Third test event' in response.content)
+
+        # because the third event is featured, we'll expect to see it
+        # also in the sidebar
+        # ...but because it's in the alt text too, multiple by 2
+        eq_(response.content.count('Third test event'), 2 * 2)
+
+        # because it's Upcoming
+        ok_('Fourth test event' in response.content)
+        # ...but because it's in the alt text too, multiple by 2
+        eq_(response.content.count('Fourth test event'), 1 * 2)
+
+        # view one of them from the channel
+        url = reverse('main:event', args=('second-event',))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # featured but not this channel
+        ok_('Test event' not in response.content)
+        # featured
+        ok_('Third test event' in response.content)
+        # upcoming
+        ok_('Fourth test event' in response.content)
+
+    def test_render_home_without_channel(self):
+        # if there is no "main" channel it gets automatically created
+        self.main_channel.delete()
+        ok_(not Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG))
+        response = self.client.get(reverse('main:home'))
+        eq_(response.status_code, 200)
+        ok_(Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG))
+
+    def test_render_invalid_channel(self):
+        url = reverse('main:home_channels', args=('junk',))
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+    def test_channel_page_with_pagination(self):
+        event1 = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        channel = Channel.objects.create(
+            name='Culture & Context',
+            slug='culture-and-context',
+            description="""
+            <p>The description</p>
+            """,
+            image='animage.png',
+        )
+
+        for i in range(1, 40):
+            event = Event.objects.create(
+                title='%d test event' % i,
+                description='Anything',
+                start_time=now - datetime.timedelta(days=100 - i),
+                archive_time=now - datetime.timedelta(days=99 - i),
+                privacy=Event.PRIVACY_PUBLIC,
+                status=Event.STATUS_SCHEDULED,
+                placeholder_img=event1.placeholder_img,
+            )
+            #assert event in list(Event.objects.archived().all())
+            event.channels.add(channel)
+
+        url = reverse('main:home_channels', args=(channel.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        prev_url = reverse('main:home_channels', args=(channel.slug, 2))
+        next_url = reverse('main:home_channels', args=(channel.slug, 1))
+        ok_(prev_url in response.content)
+        ok_(next_url not in response.content)
+
+        # go to page 2
+        response = self.client.get(prev_url)
+        eq_(response.status_code, 200)
+        prev_url = reverse('main:home_channels', args=(channel.slug, 3))
+        next_url = reverse('main:home_channels', args=(channel.slug, 1))
+
+        ok_(prev_url in response.content)
+        ok_(next_url in response.content)
+
+    def test_home_page_with_pagination(self):
+        event1 = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+
+        for i in range(1, 40):
+            event = Event.objects.create(
+                title='%d test event' % i,
+                description='Anything',
+                start_time=now - datetime.timedelta(days=100 - i),
+                archive_time=now - datetime.timedelta(days=99 - i),
+                privacy=Event.PRIVACY_PUBLIC,
+                status=Event.STATUS_SCHEDULED,
+                placeholder_img=event1.placeholder_img,
+            )
+            event.channels.add(self.main_channel)
+
+        url = reverse('main:home')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        prev_url = reverse('main:home', args=(2,))
+        next_url = reverse('main:home', args=(1,))
+        ok_(prev_url in response.content)
+        ok_(next_url not in response.content)
+
+        # go to page 2
+        response = self.client.get(prev_url)
+        eq_(response.status_code, 200)
+        prev_url = reverse('main:home', args=(3,))
+        next_url = reverse('main:home', args=(1,))
+
+        ok_(prev_url in response.content)
+        ok_(next_url in response.content)

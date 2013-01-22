@@ -3,6 +3,7 @@
 {% set nav_main = [
     ('Home', 'main:home', 'home', True),
     ('About', 'main:about', 'about', True),
+    ('Channels', 'main:channels', 'channels', True),
     ('Management', 'manage:home', '', request.user.is_staff),
     ('Sign out', 'auth:logout', '', request.user.is_active),
 ] -%}
@@ -12,7 +13,7 @@ Air Mozilla | Mozilla, in Video
 {% endblock %}
 
 {% block extra_head %}
-<link rel="alternate" title="AirMozilla RSS" href="/feed/" type="application/rss+xml">
+<link rel="alternate" title="{{ feed_title }}" href="{{ feed_url }}" type="application/rss+xml">
 {% endblock %}
 
 {% block site_css %}

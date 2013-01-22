@@ -15,7 +15,7 @@ from funfactory.urlresolvers import reverse
 from jingo import Template
 
 from airmozilla.main.models import (
-    Event, EventOldSlug, Participant, Tag, get_profile_safely
+    Event, EventOldSlug, Participant, Tag, get_profile_safely, Channel
 )
 from airmozilla.base.utils import (
     paginate, vidly_tokenize, edgecast_tokenize, unhtml,
@@ -29,8 +29,22 @@ def page(request, template):
     return render(request, template)
 
 
-def home(request, page=1):
+def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
     """Paginated recent videos and live videos."""
+    channels = Channel.objects.filter(slug=channel_slug)
+    if not channels.count():
+        if channel_slug == settings.DEFAULT_CHANNEL_SLUG:
+            # then, the Main channel hasn't been created yet
+            Channel.objects.create(
+                name=settings.DEFAULT_CHANNEL_NAME,
+                slug=settings.DEFAULT_CHANNEL_SLUG
+            )
+            channels = Channel.objects.filter(slug=channel_slug)
+        else:
+            raise http.Http404('Channel not found')
+
+    request.channels = channels
+
     privacy_filter = {}
     privacy_exclude = {}
     if request.user.is_active:
@@ -72,24 +86,61 @@ def home(request, page=1):
         # no live events when filtering by tag
         live_events = Event.objects.none()
     else:
-
         live_events = (Event.objects.live()
                        .order_by('start_time'))
         if privacy_filter:
             live_events = live_events.filter(**privacy_filter)
         elif privacy_exclude:
             live_events = live_events.exclude(**privacy_exclude)
+
+    # apply the mandatory channels filter
+    live_events = live_events.filter(channels=channels)
+    archived_events = archived_events.filter(channels=channels)
+
     archived_paged = paginate(archived_events, page, 10)
     live = None
     also_live = []
     if live_events:
         live, also_live = live_events[0], live_events[1:]
+
+    # to simplify the complexity of the template when it tries to make the
+    # pagination URLs, we just figure it all out here
+    next_page_url = prev_page_url = None
+    channel = channels[0]
+    if archived_paged.has_next():
+        if channel.slug == settings.DEFAULT_CHANNEL_SLUG:
+            next_page_url = reverse(
+                'main:home',
+                args=(archived_paged.next_page_number(),)
+            )
+        else:
+            next_page_url = reverse(
+                'main:home_channels',
+                args=(channel.slug,
+                      archived_paged.next_page_number())
+            )
+    if archived_paged.has_previous():
+        if channel.slug == settings.DEFAULT_CHANNEL_SLUG:
+            prev_page_url = reverse(
+                'main:home',
+                args=(archived_paged.previous_page_number(),)
+            )
+        else:
+            prev_page_url = reverse(
+                'main:home_channels',
+                args=(channel.slug,
+                      archived_paged.previous_page_number())
+            )
+
     return render(request, 'main/home.html', {
         'events': archived_paged,
         'live': live,
         'also_live': also_live,
         'tags': tags,
         'Event': Event,
+        'channel': channel,
+        'next_page_url': next_page_url,
+        'prev_page_url': prev_page_url,
     })
 
 
@@ -154,6 +205,8 @@ def event(request, slug):
         request.user.is_active and
         request.user.has_perm('main.change_event')
     )
+
+    request.channels = event.channels.all()
 
     participants = event.participants.filter(cleared=Participant.CLEARED_YES)
     return render(request, 'main/event.html', {
@@ -234,10 +287,12 @@ class EventsFeed(Feed):
 
     description_template = 'main/feeds/event_description.html'
 
-    def get_object(self, request, private_or_public):
+    def get_object(self, request, private_or_public='',
+                   channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         self.private_or_public = private_or_public
         prefix = request.is_secure() and 'https' or 'http'
         self._root_url = '%s://%s' % (prefix, RequestSite(request).domain)
+        self._channel = get_object_or_404(Channel, slug=channel_slug)
 
     def link(self):
         return self._root_url + '/'
@@ -250,7 +305,8 @@ class EventsFeed(Feed):
 
         qs = (
             Event.objects.approved()
-            .filter(start_time__lt=now)
+            .filter(start_time__lt=now,
+                    channels=self._channel)
             .order_by('-start_time')
         )
         if self.private_or_public == 'private':
@@ -267,3 +323,28 @@ class EventsFeed(Feed):
 
     def item_pubdate(self, event):
         return event.start_time
+
+
+def channels(request):
+    channels = []
+
+    privacy_filter = {}
+    privacy_exclude = {}
+    if request.user.is_active:
+        profile = get_profile_safely(request.user)
+        if profile and profile.contributor:
+            privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
+    else:
+        privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+
+    events = Event.objects.archived().all()
+    if privacy_filter:
+        events = events.filter(**privacy_filter)
+    elif privacy_exclude:
+        events = events.exclude(**privacy_exclude)
+
+    for channel in Channel.objects.exclude(slug=settings.DEFAULT_CHANNEL_SLUG):
+        event_count = events.filter(channels=channel).count()
+        channels.append((channel, event_count))
+
+    return render(request, 'main/channels.html', {'channels': channels})

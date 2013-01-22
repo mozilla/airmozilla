@@ -84,6 +84,7 @@ $(function() {
     });
     $('#id_timezone').select2();
     $('#id_category').select2();
+    $('#id_channels').select2();
 
     // Autofill template environments
     $('#id_template').change(function() {

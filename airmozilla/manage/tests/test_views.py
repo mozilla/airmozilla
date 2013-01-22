@@ -1,3 +1,4 @@
+import re
 import cgi
 import datetime
 import json
@@ -16,8 +17,16 @@ from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 from mock import patch
 
-from airmozilla.main.models import (Approval, Category, Event, EventOldSlug,
-                                    Location, Participant, Template)
+from airmozilla.main.models import (
+    Approval,
+    Category,
+    Event,
+    EventOldSlug,
+    Location,
+    Participant,
+    Template,
+    Channel
+)
 
 
 class ManageTestCase(TestCase):
@@ -198,6 +207,7 @@ class TestEvents(ManageTestCase):
         'privacy': 'public',
         'location': '1',
         'category': '7',
+        'channels': '1',
         'tags': 'xxx',
         'template': '1',
         'start_time': '2012-3-4 12:00',
@@ -378,11 +388,13 @@ class TestEvents(ManageTestCase):
         event = Event.objects.get(title='Test event')
         response = self.client.get(reverse('manage:event_edit',
                                            kwargs={'id': event.id}))
+
         eq_(response.status_code, 200)
         response_ok = self.client.post(
             reverse('manage:event_edit', kwargs={'id': event.id}),
             dict(self.event_base_data, title='Tested event')
         )
+        #print response_ok.content
         self.assertRedirects(response_ok, reverse('manage:events'))
         ok_(EventOldSlug.objects.get(slug='test-event', event=event))
         event = Event.objects.get(title='Tested event')
@@ -497,6 +509,30 @@ class TestEvents(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('value="Test event"' in response.content)
+
+    def test_event_duplication_custom_channels(self):
+        ch = Channel.objects.create(
+            name='Custom Culture',
+            slug='custom-culture'
+        )
+        event = Event.objects.get(title='Test event')
+        event.channels.filter(slug=settings.DEFAULT_CHANNEL_SLUG).delete()
+        event.channels.add(ch)
+        event.save()
+
+        url = reverse('manage:event_duplicate', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('value="Test event"' in response.content)
+        # expect a <option> tag selected with this name
+        tags = re.findall(
+            '<option (.*?)>([\w\s]+)</option>',
+            response.content,
+            flags=re.M
+        )
+        for attrs, value in tags:
+            if value == ch.name:
+                ok_('selected' in attrs)
 
     def test_event_preview_shortcut(self):
         # become anonymous (reverse what setUp() does)
@@ -780,6 +816,9 @@ class TestCategories(ManageTestCase):
 
     def test_category_new(self):
         """ Category form adds new categories. """
+        response = self.client.get(reverse('manage:category_new'))
+        eq_(response.status_code, 200)
+
         response_ok = self.client.post(
             reverse('manage:category_new'),
             {
@@ -812,6 +851,61 @@ class TestCategories(ManageTestCase):
         category = Category.objects.get(name='testing')
         self._delete_test(category, 'manage:category_remove',
                           'manage:categories')
+
+
+class TestChannels(ManageTestCase):
+    def test_channels(self):
+        """ Channels listing responds OK. """
+        response = self.client.get(reverse('manage:channels'))
+        eq_(response.status_code, 200)
+
+    def test_channel_new(self):
+        """ Channel form adds new channels. """
+        # render the form
+        response = self.client.get(reverse('manage:channel_new'))
+        eq_(response.status_code, 200)
+
+        response_ok = self.client.post(
+            reverse('manage:channel_new'),
+            {
+                'name': ' Web Dev ',
+                'slug': 'web-dev',
+                'description': '<h1>Stuff</h1>',
+                'image_is_banner': True
+            }
+        )
+        self.assertRedirects(response_ok, reverse('manage:channels'))
+        ok_(Channel.objects.get(name='Web Dev'))
+        ok_(Channel.objects.get(name='Web Dev').image_is_banner)
+        response_fail = self.client.post(reverse('manage:channel_new'))
+        eq_(response_fail.status_code, 200)
+
+    def test_channel_edit(self):
+        """Channel edit"""
+        channel = Channel.objects.get(slug='testing')
+        response = self.client.get(
+            reverse('manage:channel_edit', args=(channel.pk,)),
+        )
+        eq_(response.status_code, 200)
+        ok_('value="testing"' in response.content)
+        response = self.client.post(
+            reverse('manage:channel_edit', args=(channel.pk,)),
+            {
+                'name': 'Different',
+                'slug': 'different',
+                'description': '<p>Other things</p>'
+            }
+        )
+        eq_(response.status_code, 302)
+        channel = Channel.objects.get(slug='different')
+
+    def test_channel_delete(self):
+        channel = Channel.objects.create(
+            name='How Tos',
+            slug='how-tos',
+        )
+        self._delete_test(channel, 'manage:channel_remove',
+                          'manage:channels')
 
 
 class TestTemplates(ManageTestCase):

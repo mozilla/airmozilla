@@ -48,9 +48,23 @@
     </article>
     {% endif %}
     {% if not tags %}
-    <h2 class="section-title">
-      {{ _('Recent Videos') }}
-    </h2>
+      {% if channel.slug == 'main' %}
+        <h2 class="section-title">{{ _('Recent Videos') }}</h2>
+      {% else %}
+        {% if channel.image and channel.image_is_banner %}
+          {% set thumb = thumbnail(channel.image, '650') %}
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+               alt="{{ channel.name }}">
+        {% else %}
+          {% if channel.image %}
+            {% set thumb = thumbnail(channel.image, '100x100') %}
+            <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+                 alt="{{ channel.name }}" class="channel-thumbnail">
+            {% endif %}
+            <h2 class="section-title">{{ channel.name }}</h2>
+            {{ channel.description|safe }}
+        {% endif %}
+      {% endif %}
     {% endif %}
   {% endif %}
 
@@ -86,22 +100,25 @@
       </div>
     </article>
   {% endfor %}
+
+  {% if next_page_url or prev_page_url %}
   <nav class="nav-paging">
     <ul role="navigation">
-      {% if events.has_next() %}
+      {% if next_page_url %}
         <li class="prev">
-          <a href="{{ url('main:home', events.next_page_number()) }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
+          <a href="{{ next_page_url }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
             {{ _('Older videos') }}
           </a>
         </li>
       {% endif %}
-      {% if events.has_previous() %}
+      {% if prev_page_url %}
         <li class="next">
-          <a href="{{ url('main:home', events.previous_page_number()) }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
+          <a href="{{ prev_page_url }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
             {{ _('Newer videos') }}
           </a>
         </li>
       {% endif %}
     </ul>
   </nav>
+  {% endif %}
 {% endblock %}
