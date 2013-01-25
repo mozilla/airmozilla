@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <title>Air Mozilla Temporarily Unavailable</title>
+    <style type="text/css">
+      body {
+        font-family: "Open Sans Light","Lucida Sans","Lucida Grande","Lucida Sans Unicode",Verdana,sans-serif;
+        background-color: rgb(32, 39, 42);
+        color: rgb(255, 255, 255);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Air Mozilla Temporarily Unavailable</h1>
+    <p>Please try again in a couple of seconds. It's probably just a temporary glitch.</p>
+    <p>Automatically trying again in <strong><span id="seconds"></span> seconds</strong>.</p>
+    <script type="text/javascript">
+    var retry_after = {{ retry_after }};
+    (function() {
+      var e = document.getElementById('seconds');
+      console.log(e);
+      e.innerHTML = retry_after;
+      function decr() {
+        if (retry_after <= 1) {
+          window.location.reload(true);
+        } else {
+          retry_after--;
+          e.innerHTML = retry_after;
+          setTimeout(decr, 1000);
+        }
+      }
+      setTimeout(decr, 1000);
+
+    })();
+    </script>
+  </body>
+</html>

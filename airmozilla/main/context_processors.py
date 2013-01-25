@@ -9,6 +9,10 @@ def sidebar(request):
     if '/manage/' in request.path_info:
         return {}
 
+#    if not getattr(request, 'user', None):
+#        # abnormal Django request
+#        return {}
+
     data = {
         'Event': Event,
     }

@@ -5,6 +5,10 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from funfactory.monkeypatches import patch
 patch()
 
+
+handler500 = 'airmozilla.base.views.handler500'
+
+
 urlpatterns = patterns(
     '',
     (r'^manage/', include('airmozilla.manage.urls', namespace='manage')),
