@@ -103,7 +103,7 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_(
-            'This video is restricted to Mozillians and Mozilla employees'
+            'This video is available only to Mozilla volunteers and staff'
             in response.content
         )
 
@@ -120,7 +120,7 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_(
-            'This video is restricted to Mozilla employees'
+            'This video is available only to Mozilla staff'
             in response.content
         )
 
