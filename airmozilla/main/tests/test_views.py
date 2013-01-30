@@ -18,7 +18,8 @@ from airmozilla.main.models import (
     Participant,
     Tag,
     UserProfile,
-    Channel
+    Channel,
+    Location
 )
 
 
@@ -223,20 +224,69 @@ class TestPages(TestCase):
         eq_(participant.clear_token, '')
         eq_(participant.cleared, Participant.CLEARED_YES)
 
-    def test_calendars(self):
-        """Calendars respond successfully."""
-        response_public = self.client.get(reverse('main:calendar'))
+    def test_calendar(self):
+        url = reverse('main:calendar')
+        response_public = self.client.get(url)
         eq_(response_public.status_code, 200)
         ok_('LOCATION:Mountain View' in response_public.content)
-        response_private = self.client.get(reverse('main:private_calendar'))
+        private_url = reverse('main:calendar', args=('company',))
+        response_private = self.client.get(private_url)
         eq_(response_private.status_code, 200)
         # Cache tests
         event_change = Event.objects.get(id=22)
         event_change.title = 'Hello cache clear!'
         event_change.save()
-        response_changed = self.client.get(reverse('main:calendar'))
+        response_changed = self.client.get(url)
         ok_(response_changed.content != response_public.content)
-        ok_('cache clear' in response_changed.content)
+        ok_('cache clear!' in response_changed.content)
+
+    def test_calendar_with_location(self):
+        london = Location.objects.create(
+            name='London',
+            timezone='Europe/London'
+        )
+        event1 = Event.objects.get(title='Test event')
+        # know your fixtures
+        assert event1.location.name == 'Mountain View'
+
+        event2 = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+            location=london
+        )
+        event2.channels.add(self.main_channel)
+        assert event1.location != event2.location
+
+        url = reverse('main:calendar')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        response = self.client.get(url, {'location': 'bla bla'})
+        eq_(response.status_code, 404)
+
+        response = self.client.get(url, {'location': event1.location.name})
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' not in response.content)
+
+        response = self.client.get(url, {'location': event2.location.name})
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+        ok_('Second test event' in response.content)
+
+        # test the calendars page
+        url = reverse('main:calendars')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('London' in response.content)
+        ok_('Mountain View' in response.content)
 
     def test_calendars_description(self):
         event = Event.objects.get(title='Test event')

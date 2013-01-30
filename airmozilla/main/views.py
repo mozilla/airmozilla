@@ -15,7 +15,8 @@ from funfactory.urlresolvers import reverse
 from jingo import Template
 
 from airmozilla.main.models import (
-    Event, EventOldSlug, Participant, Tag, get_profile_safely, Channel
+    Event, EventOldSlug, Participant, Tag, get_profile_safely, Channel,
+    Location
 )
 from airmozilla.base.utils import (
     paginate, vidly_tokenize, edgecast_tokenize, unhtml,
@@ -240,20 +241,38 @@ def participant_clear(request, clear_token):
         })
 
 
-def events_calendar(request, public=True):
-    cache_key = 'calendar_%s' % ('public' if public else 'private')
-    cached = cache.get(cache_key)
+def events_calendar(request, privacy=None):
+    cache_key = 'calendar'
+    if privacy:
+        cache_key += '_%s' % privacy
+    if request.GET.get('location'):
+        location = get_object_or_404(
+            Location,
+            name=request.GET.get('location')
+        )
+        cache_key += str(location.pk)
+        cached = None
+    else:
+        location = None
+        cached = cache.get(cache_key)
+
     if cached:
         return cached
     cal = vobject.iCalendar()
-    cal.add('X-WR-CALNAME').value = ('Air Mozilla Public Events' if public
-                                     else 'Air Mozilla Private Events')
+
     now = datetime.datetime.utcnow().replace(tzinfo=utc)
     base_qs = Event.objects.approved()
-    if public:
+    if privacy == 'public':
         base_qs = base_qs.filter(privacy=Event.PRIVACY_PUBLIC)
-    else:
+        title = 'Air Mozilla Public Events'
+    elif privacy == 'private':
         base_qs = base_qs.exclude(privacy=Event.PRIVACY_PUBLIC)
+        title = 'Air Mozilla Private Events'
+    else:
+        title = 'Air Mozilla Events'
+    if location:
+        base_qs = base_qs.filter(location=location)
+    cal.add('X-WR-CALNAME').value = title
     events = list(base_qs
                   .filter(start_time__lt=now)
                   .order_by('-start_time')[:settings.CALENDAR_SIZE])
@@ -273,12 +292,16 @@ def events_calendar(request, public=True):
             vevent.add('location').value = event.location.name
         vevent.add('url').value = base_url + event.slug + '/'
     icalstream = cal.serialize()
+    #response = http.HttpResponse(icalstream,
+    #                          mimetype='text/plain; charset=utf-8')
+
     response = http.HttpResponse(icalstream,
                                  mimetype='text/calendar; charset=utf-8')
-    filename = 'AirMozillaEvents%s.ics' % ('Public' if public else 'Private')
+    filename = 'AirMozillaEvents%s.ics' % (privacy and privacy or '')
     response['Content-Disposition'] = (
         'inline; filename=%s' % filename)
-    cache.set(cache_key, response)
+    if not location:
+        cache.set(cache_key, response)
     return response
 
 
@@ -348,3 +371,16 @@ def channels(request):
         channels.append((channel, event_count))
 
     return render(request, 'main/channels.html', {'channels': channels})
+
+
+def calendars(request):
+    data = {}
+    locations = []
+    for location in Location.objects.all().order_by('name'):
+        count = Event.objects.filter(location=location).count()
+        locations.append((
+            location,
+            count
+        ))
+    data['locations'] = locations
+    return render(request, 'main/calendars.html', data)
