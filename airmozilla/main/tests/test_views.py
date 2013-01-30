@@ -1,6 +1,7 @@
 import datetime
 import uuid
 import urllib2
+import urllib
 
 from django.contrib.auth.models import Group, User, AnonymousUser
 from django.test import TestCase
@@ -36,6 +37,14 @@ class TestPages(TestCase):
         self.main_channel = Channel.objects.get(
             slug=settings.DEFAULT_CHANNEL_SLUG
         )
+
+    def _calendar_url(self, privacy, location=None):
+        url = reverse('main:calendar', args=(privacy,))
+        if location:
+            if 'name' in location:
+                location = location.name
+            url += '?location=%s' % urllib.quote_plus(location)
+        return url
 
     def test_can_view_event(self):
         event = Event.objects.get(title='Test event')
@@ -225,11 +234,11 @@ class TestPages(TestCase):
         eq_(participant.cleared, Participant.CLEARED_YES)
 
     def test_calendar(self):
-        url = reverse('main:calendar')
+        url = self._calendar_url('public')
         response_public = self.client.get(url)
         eq_(response_public.status_code, 200)
         ok_('LOCATION:Mountain View' in response_public.content)
-        private_url = reverse('main:calendar', args=('company',))
+        private_url = self._calendar_url('company')
         response_private = self.client.get(private_url)
         eq_(response_private.status_code, 200)
         # Cache tests
@@ -262,7 +271,7 @@ class TestPages(TestCase):
         event2.channels.add(self.main_channel)
         assert event1.location != event2.location
 
-        url = reverse('main:calendar')
+        url = self._calendar_url('public')
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('Test event' in response.content)
@@ -281,12 +290,130 @@ class TestPages(TestCase):
         ok_('Test event' not in response.content)
         ok_('Second test event' in response.content)
 
-        # test the calendars page
+    def test_calendars_page(self):
+        london = Location.objects.create(
+            name='London',
+            timezone='Europe/London'
+        )
+        event1 = Event.objects.get(title='Test event')
+        # know your fixtures
+        assert event1.location.name == 'Mountain View'
+
+        event2 = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+            location=london
+        )
+        event2.channels.add(self.main_channel)
+        assert event1.location != event2.location
+
         url = reverse('main:calendars')
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('London' in response.content)
         ok_('Mountain View' in response.content)
+
+        # we can expect three URLs to calendar feeds to be in there
+        url_all = self._calendar_url('public')
+        url_lon = self._calendar_url('public', 'London')
+        url_mv = self._calendar_url('public', 'Mountain View')
+        ok_(url_all in response.content)
+        ok_(url_lon in response.content)
+        ok_(url_mv in response.content)
+
+        # now, log in as a contributor
+        contributor = User.objects.create_user(
+            'nigel', 'nigel@live.com', 'secret'
+        )
+        UserProfile.objects.create(
+            user=contributor,
+            contributor=True
+        )
+        assert self.client.login(username='nigel', password='secret')
+        url = reverse('main:calendars')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        url_all = self._calendar_url('contributors')
+        url_lon = self._calendar_url('contributors', 'London')
+        url_mv = self._calendar_url('contributors', 'Mountain View')
+        ok_(url_all in response.content)
+        ok_(url_lon in response.content)
+        ok_(url_mv in response.content)
+
+        # now log in as an employee
+        User.objects.create_user(
+            'peterbe', 'peterbe@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='peterbe', password='secret')
+        url = reverse('main:calendars')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        url_all = self._calendar_url('company')
+        url_lon = self._calendar_url('company', 'London')
+        url_mv = self._calendar_url('company', 'Mountain View')
+        ok_(url_all in response.content)
+        ok_(url_lon in response.content)
+        ok_(url_mv in response.content)
+
+    def test_calendars_page_locations_disappear(self):
+        london = Location.objects.create(
+            name='London',
+            timezone='Europe/London'
+        )
+        event1 = Event.objects.get(title='Test event')
+        # know your fixtures
+        assert event1.location.name == 'Mountain View'
+
+        event2 = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+            location=london
+        )
+        event2.channels.add(self.main_channel)
+        assert event1.location != event2.location
+
+        url = reverse('main:calendars')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('London' in response.content)
+        ok_('Mountain View' in response.content)
+        # we can expect three URLs to calendar feeds to be in there
+        url_all = self._calendar_url('public')
+        url_lon = self._calendar_url('public', 'London')
+        url_mv = self._calendar_url('public', 'Mountain View')
+        ok_(url_all in response.content)
+        ok_(url_lon in response.content)
+        ok_(url_mv in response.content)
+
+        # but, suppose the events belonging to MV is far future
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event1.start_time = now + datetime.timedelta(days=20)
+        event1.save()
+        # and, suppose the events belong to London is very very old
+        event2.start_time = now - datetime.timedelta(days=100)
+        event2.archive_time = now - datetime.timedelta(days=99)
+        event2.save()
+        assert event2 in Event.objects.archived().all()
+
+        url = reverse('main:calendars')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('London' not in response.content)
+        ok_('Mountain View' in response.content)
+        # we can expect three URLs to calendar feeds to be in there
+        ok_(url_all in response.content)
+        ok_(url_lon not in response.content)
+        ok_(url_mv in response.content)
 
     def test_calendars_description(self):
         event = Event.objects.get(title='Test event')
@@ -301,7 +428,7 @@ class TestPages(TestCase):
         If the text is getting really long it will be truncated.
         """.strip()
         event.save()
-        response_public = self.client.get(reverse('main:calendar'))
+        response_public = self.client.get(self._calendar_url('public'))
         eq_(response_public.status_code, 200)
         ok_('Check out the Example page' in response_public.content)
         ok_('and THIS PAGE here' in response_public.content)
@@ -309,7 +436,7 @@ class TestPages(TestCase):
 
         event.short_description = 'One-liner'
         event.save()
-        response_public = self.client.get(reverse('main:calendar'))
+        response_public = self.client.get(self._calendar_url('public'))
         eq_(response_public.status_code, 200)
         ok_('Check out the' not in response_public.content)
         ok_('One-liner' in response_public.content)

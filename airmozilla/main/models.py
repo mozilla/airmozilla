@@ -194,14 +194,16 @@ class EventManager(models.Manager):
         )
 
     def archived(self):
+        _now = _get_now()
         return self.approved().filter(
-            archive_time__lt=_get_now(),
-            start_time__lt=_get_now()
+            archive_time__lt=_now,
+            start_time__lt=_now
         )
 
     def archived_and_removed(self):
+        _now = _get_now()
         return self.get_query_set().filter(
-            (Q(archive_time__lt=_get_now(), start_time__lt=_get_now())
+            (Q(archive_time__lt=_now, start_time__lt=_now)
              & ~Q(approval__approved=False)
              & ~Q(approval__processed=False))
             | Q(status=Event.STATUS_REMOVED)

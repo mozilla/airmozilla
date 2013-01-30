@@ -1,5 +1,5 @@
 {% extends 'main/main_base.html' %}
-{% set page='channels' %}
+{% set page='calendars' %}
 
 {% block page_title %}
 Calendar feeds | {{ super() }}
@@ -14,19 +14,11 @@ Calendar feeds | {{ super() }}
   <h2 class="section-title">Calendar feeds</h2>
   <ul>
     <li>
-      <a href="{{ url('main:calendar') }}">All events</a>
-      <ul>
-        <li><a href="{{ url('main:calendar', 'public') }}">only public events</a></li>
-        <li><a href="{{ url('main:calendar', 'company') }}">only company events</a></li>
+      <a href="{{ url('main:calendar', calendar_privacy) }}">All events</a>
     </li>
-    {% for location, count in locations %}
-    <li><a href="{{ url('main:calendar') }}?location={{ location.name|urlencode }}"
+    {% for location in locations %}
+    <li><a href="{{ url('main:calendar', calendar_privacy) }}?location={{ location.name|urlencode }}"
     >All events in <strong>{{ location }}</strong></a>
-    {% if count == 1 %}
-    (1 event)
-    {% else %}
-    ({{ count }} events)
-    {% endif %}
     </li>
     {% endfor %}
   </ul>

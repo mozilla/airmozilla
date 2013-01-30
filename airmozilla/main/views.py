@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
 from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
+from django.template.defaultfilters import slugify
 
 from funfactory.urlresolvers import reverse
 from jingo import Template
@@ -297,7 +298,10 @@ def events_calendar(request, privacy=None):
 
     response = http.HttpResponse(icalstream,
                                  mimetype='text/calendar; charset=utf-8')
-    filename = 'AirMozillaEvents%s.ics' % (privacy and privacy or '')
+    filename = 'AirMozillaEvents%s' % (privacy and privacy or '')
+    if location:
+        filename += '_%s' % slugify(location.name)
+    filename += '.ics'
     response['Content-Disposition'] = (
         'inline; filename=%s' % filename)
     if not location:
@@ -376,11 +380,20 @@ def channels(request):
 def calendars(request):
     data = {}
     locations = []
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    time_ago = now - datetime.timedelta(days=30)
+    base_qs = Event.objects.filter(start_time__gte=time_ago)
     for location in Location.objects.all().order_by('name'):
-        count = Event.objects.filter(location=location).count()
-        locations.append((
-            location,
-            count
-        ))
+        count = base_qs.filter(location=location).count()
+        if count:
+            locations.append(location)
     data['locations'] = locations
+    if request.user.is_active:
+        profile = get_profile_safely(request.user)
+        if profile and profile.contributor:
+            data['calendar_privacy'] = 'contributors'
+        else:
+            data['calendar_privacy'] = 'company'
+    else:
+        data['calendar_privacy'] = 'public'
     return render(request, 'main/calendars.html', data)

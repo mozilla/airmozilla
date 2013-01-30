@@ -26,7 +26,6 @@ urlpatterns = patterns(
     url(r'^about/$', views.page, name='about',
         kwargs={'template': 'main/about.html'}),
     url(r'^calendars/$', views.calendars, name='calendars'),
-    url(r'^calendar/$', views.events_calendar, name='calendar'),
     url(r'^calendar/(company|contributors|public)/$',
         views.events_calendar, name='calendar'),
     url(r'^feed/(public|private|both)?/?$',
