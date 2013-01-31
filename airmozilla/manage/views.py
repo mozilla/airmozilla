@@ -927,12 +927,26 @@ def flatpage_new(request):
             instance = form.save()
             instance.sites.add(settings.SITE_ID)
             instance.save()
+            if instance.url.startswith('sidebar_'):
+                __, location, channel_slug = instance.url.split('_', 2)
+                channel = Channel.objects.get(
+                    slug=channel_slug
+                )
+                instance.title = 'Sidebar (%s) %s' % (location, channel.name)
+                instance.save()
             messages.success(request, 'Page created.')
             return redirect('manage:flatpages')
     else:
         form = forms.FlatPageEditForm()
-        form.fields['url'].help_text = "for example '/my-page'"
-    return render(request, 'manage/flatpage_new.html', {'form': form})
+        form.fields['url'].help_text = (
+            "for example '/my-page' or 'sidebar_top_main' (see below)"
+        )
+    return render(
+        request,
+        'manage/flatpage_new.html',
+        {'form': form,
+         'channels': Channel.objects.all().order_by('slug')}
+    )
 
 
 @staff_required
@@ -945,7 +959,14 @@ def flatpage_edit(request, id):
     if request.method == 'POST':
         form = forms.FlatPageEditForm(request.POST, instance=page)
         if form.is_valid():
-            form.save()
+            instance = form.save()
+            if instance.url.startswith('sidebar_'):
+                __, location, channel_slug = instance.url.split('_', 2)
+                channel = Channel.objects.get(
+                    slug=channel_slug
+                )
+                instance.title = 'Sidebar (%s) %s' % (location, channel.name)
+                instance.save()
             messages.info(request, 'Page %s saved.' % page.url)
             return redirect('manage:flatpages')
     else:

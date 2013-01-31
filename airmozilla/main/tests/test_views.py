@@ -3,6 +3,7 @@ import uuid
 import urllib2
 import urllib
 
+from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser
 from django.test import TestCase
 from django.utils.timezone import utc
@@ -924,3 +925,35 @@ class TestPages(TestCase):
 
         ok_(prev_url in response.content)
         ok_(next_url in response.content)
+
+    def test_sidebar_static_content(self):
+        # create some flat pages
+        FlatPage.objects.create(
+            url='sidebar_top_main',
+            content='<p>Sidebar Top Main</p>'
+        )
+        FlatPage.objects.create(
+            url='sidebar_bottom_main',
+            content='<p>Sidebar Bottom Main</p>'
+        )
+        FlatPage.objects.create(
+            url='sidebar_top_testing',
+            content='<p>Sidebar Top Testing</p>'
+        )
+        FlatPage.objects.create(
+            url='sidebar_bottom_testing',
+            content='<p>Sidebar Bottom Testing</p>'
+        )
+
+        response = self.client.get('/')
+        ok_('<p>Sidebar Top Main</p>' in response.content)
+        ok_('<p>Sidebar Bottom Main</p>' in response.content)
+        ok_('<p>Sidebar Top Testing</p>' not in response.content)
+        ok_('<p>Sidebar Bottom Testing</p>' not in response.content)
+
+        url = reverse('main:home_channels', args=('testing',))
+        response = self.client.get(url)
+        ok_('<p>Sidebar Top Main</p>' not in response.content)
+        ok_('<p>Sidebar Bottom Main</p>' not in response.content)
+        ok_('<p>Sidebar Top Testing</p>' in response.content)
+        ok_('<p>Sidebar Bottom Testing</p>' in response.content)

@@ -1237,6 +1237,60 @@ class TestFlatPages(ManageTestCase):
         eq_(response.status_code, 200)
         ok_('Test page' in response.content)
 
+    def test_flatpage_new_with_sidebar(self):
+        url = reverse('manage:flatpage_new')
+        # not split by at least 2 `_`
+        response_fail = self.client.post(url, {
+            'url': 'sidebar_incorrectformat',
+            'title': 'whatever',
+            'content': '<h4>Hello</h4>'
+        })
+        eq_(response_fail.status_code, 200)
+        ok_('Form errors!' in response_fail.content)
+
+        # unrecognized slug
+        response_fail = self.client.post(url, {
+            'url': 'sidebar_east_never_heard_of',
+            'title': 'whatever',
+            'content': '<h4>Hello</h4>'
+        })
+        eq_(response_fail.status_code, 200)
+        ok_('Form errors!' in response_fail.content)
+
+        Channel.objects.create(
+            name='Heard Of',
+            slug='heard_of'
+        )
+
+        # should work now
+        response_ok = self.client.post(url, {
+            'url': 'sidebar_east_heard_of',
+            'title': 'whatever',
+            'content': '<h4>Hello</h4>'
+        })
+        self.assertRedirects(response_ok, reverse('manage:flatpages'))
+
+        flatpage = FlatPage.objects.get(
+            url='sidebar_east_heard_of'
+        )
+        # the title would automatically become auto generated
+        ok_('Heard Of' in flatpage.title)
+
+    def test_flatpage_edit_with_sidebar(self):
+        flatpage = FlatPage.objects.get(title='Test page')
+        url = reverse('manage:flatpage_edit', kwargs={'id': flatpage.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'url': 'sidebar_bottom_main',
+            'title': 'New test page',
+            'content': '<p>New content</p>'
+        })
+        self.assertRedirects(response_ok, reverse('manage:flatpages'))
+        flatpage = FlatPage.objects.get(id=flatpage.id)
+        eq_(flatpage.content, '<p>New content</p>')
+        eq_('Sidebar (bottom) Main', flatpage.title)
+
 
 class TestErrorAlerts(ManageTestCase):
 

@@ -1,0 +1,24 @@
+<div id="about-sidebar-slugs">
+  <h4>About using the <code>sidebar_</code> URL</h4>
+  <p>
+    If you want to use this static page for use in the sidebar,
+    set the URL to something like this: <code>sidebar_LOCATION_CHANNELSLUG</code>.<br>
+    For example, <code>sidebar_top_how-tos</code>.
+  </p>
+  {% if channels %}
+  <p>
+  You can use one of these channel slugs:
+  </p>
+  <ul>
+    {% for channel in channels %}
+    <li><code>{{ channel.slug }}</code>
+      {% if loop.first %}
+        <span style="font-size:80%">
+        (for example <code style="font-size:80%">sidebar_bottom_{{ channel.slug }}</code>)
+        </span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>

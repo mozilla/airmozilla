@@ -83,6 +83,13 @@ Air Mozilla | Mozilla, in Video
           {{ browserid_form.as_p() }}
         </form>
       {% endif %}
+
+      {% if sidebar_top %}
+      <div class="sidebar-top">
+      {{ sidebar_top.content|safe }}
+      </div>
+      {% endif %}
+
       {% block also_live %}{% endblock %}
         {% if featured %}
           {% set widget_title = _('Featured Videos') -%}
@@ -96,6 +103,13 @@ Air Mozilla | Mozilla, in Video
           {% include 'main/_side_events.html' %}
         {% endif %}
       {% endblock %}
+
+      {% if sidebar_bottom %}
+      <div class="sidebar-bottom">
+      {{ sidebar_bottom.content|safe }}
+      </div>
+      {% endif %}
+
     </div>
   </div>
 

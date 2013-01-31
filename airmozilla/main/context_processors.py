@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.contrib.flatpages.models import FlatPage
+
 from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import (
@@ -39,11 +41,13 @@ def sidebar(request):
     if settings.DEFAULT_CHANNEL_SLUG in [x.slug for x in channels]:
         feed_title = 'AirMozilla RSS'
         feed_url = reverse('main:feed', args=(feed_privacy,))
+        sidebar_channel = settings.DEFAULT_CHANNEL_SLUG
     else:
         _channel = channels[0]
         feed_title = 'AirMozilla - %s - RSS' % _channel.name
         feed_url = reverse('main:channel_feed',
                            args=(_channel.slug, feed_privacy))
+        sidebar_channel = _channel.slug
     data['feed_title'] = feed_title
     data['feed_url'] = feed_url
 
@@ -56,5 +60,18 @@ def sidebar(request):
     upcoming = upcoming[:settings.UPCOMING_SIDEBAR_COUNT]
     data['upcoming'] = upcoming
     data['featured'] = featured
+
+    try:
+        data['sidebar_top'] = FlatPage.objects.get(
+            url='sidebar_top_%s' % sidebar_channel
+        )
+    except FlatPage.DoesNotExist:
+        data['sidebar_top'] = None
+    try:
+        data['sidebar_bottom'] = FlatPage.objects.get(
+            url='sidebar_bottom_%s' % sidebar_channel
+        )
+    except FlatPage.DoesNotExist:
+        data['sidebar_bottom'] = None
 
     return data

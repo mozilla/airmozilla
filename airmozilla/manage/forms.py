@@ -299,6 +299,26 @@ class FlatPageEditForm(BaseModelForm):
         model = FlatPage
         fields = ('url', 'title', 'content')
 
+    def clean_url(self):
+        value = self.cleaned_data['url']
+        if value.startswith('sidebar'):
+            # expect it to be something like
+            # 'sidebar_bottom_how-tos'
+            try:
+                __, __, channel_slug = value.split('_', 2)
+            except ValueError:
+                raise forms.ValidationError(
+                    "Must be format like `sidebar_bottom_channel-slug`"
+                )
+            try:
+                Channel.objects.get(slug=channel_slug)
+            except Channel.DoesNotExist:
+                raise forms.ValidationError(
+                    "No channel slug found called `%s`" % channel_slug
+                )
+
+        return value
+
 
 class VidlyURLForm(forms.Form):
     url = forms.URLField(
