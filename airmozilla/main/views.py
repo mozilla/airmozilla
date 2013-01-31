@@ -316,6 +316,9 @@ class EventsFeed(Feed):
 
     def get_object(self, request, private_or_public='',
                    channel_slug=settings.DEFAULT_CHANNEL_SLUG):
+        if private_or_public == 'private':
+            # old URL
+            private_or_public = 'company'
         self.private_or_public = private_or_public
         prefix = request.is_secure() and 'https' or 'http'
         self._root_url = '%s://%s' % (prefix, RequestSite(request).domain)
@@ -336,10 +339,10 @@ class EventsFeed(Feed):
                     channels=self._channel)
             .order_by('-start_time')
         )
-        if self.private_or_public == 'private':
-            qs = qs.exclude(privacy=Event.PRIVACY_PUBLIC)
-        elif self.private_or_public == 'public':
+        if not self.private_or_public or self.private_or_public == 'public':
             qs = qs.filter(privacy=Event.PRIVACY_PUBLIC)
+        elif self.private_or_public == 'contributors':
+            qs = qs.exclude(privacy=Event.PRIVACY_COMPANY)
         return qs[:settings.FEED_SIZE]
 
     def item_title(self, event):
@@ -360,10 +363,13 @@ def channels(request):
     if request.user.is_active:
         profile = get_profile_safely(request.user)
         if profile and profile.contributor:
+            feed_privacy = 'contributors'
             privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
+        else:
+            feed_privacy = 'company'
     else:
         privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
-
+        feed_privacy = 'public'
     events = Event.objects.archived().all()
     if privacy_filter:
         events = events.filter(**privacy_filter)
@@ -373,8 +379,11 @@ def channels(request):
     for channel in Channel.objects.exclude(slug=settings.DEFAULT_CHANNEL_SLUG):
         event_count = events.filter(channels=channel).count()
         channels.append((channel, event_count))
-
-    return render(request, 'main/channels.html', {'channels': channels})
+    data = {
+        'channels': channels,
+        'feed_privacy': feed_privacy,
+    }
+    return render(request, 'main/channels.html', data)
 
 
 def calendars(request):

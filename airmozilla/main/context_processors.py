@@ -1,7 +1,11 @@
 from django.conf import settings
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Event, Channel
+from airmozilla.main.models import (
+    Event,
+    Channel,
+    get_profile_safely
+)
 
 
 def sidebar(request):
@@ -9,11 +13,8 @@ def sidebar(request):
     if '/manage/' in request.path_info:
         return {}
 
-#    if not getattr(request, 'user', None):
-#        # abnormal Django request
-#        return {}
-
     data = {
+        # used for things like {% if event.attr == Event.ATTR1 %}
         'Event': Event,
     }
     featured = (Event.objects.approved()
@@ -25,13 +26,24 @@ def sidebar(request):
         channels = request.channels
     else:
         channels = Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG)
+
+    if request.user.is_active:
+        profile = get_profile_safely(request.user)
+        if profile and profile.contributor:
+            feed_privacy = 'contributors'
+        else:
+            feed_privacy = 'company'
+    else:
+        feed_privacy = 'public'
+
     if settings.DEFAULT_CHANNEL_SLUG in [x.slug for x in channels]:
         feed_title = 'AirMozilla RSS'
-        feed_url = reverse('main:feed')
+        feed_url = reverse('main:feed', args=(feed_privacy,))
     else:
         _channel = channels[0]
         feed_title = 'AirMozilla - %s - RSS' % _channel.name
-        feed_url = reverse('main:channel_feed', args=(_channel.slug, 'public'))
+        feed_url = reverse('main:channel_feed',
+                           args=(_channel.slug, feed_privacy))
     data['feed_title'] = feed_title
     data['feed_url'] = feed_url
 

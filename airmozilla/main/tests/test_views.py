@@ -536,16 +536,16 @@ class TestPages(TestCase):
         ok_('Test event' in response.content)
         ok_('Second test event' not in response.content)
 
-        url = reverse('main:feed')
+        url = reverse('main:feed')  # public feed
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('Test event' in response.content)
-        ok_('Second test event' in response.content)
+        ok_('Second test event' not in response.content)
 
-        url = reverse('main:feed', args=('private',))
+        url = reverse('main:feed', args=('company',))
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Test event' not in response.content)
+        ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
 
     def test_feed_cache(self):

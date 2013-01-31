@@ -5,6 +5,12 @@
 Channels | {{ super() }}
 {% endblock %}
 
+{% block site_css %}
+{{ super() }}
+<style type="text/css">
+p.feed { float: right; }
+</style>
+{% endblock %}
 
 {% block banner %}
     {% include 'main/_banner_small.html' %}
@@ -14,13 +20,11 @@ Channels | {{ super() }}
   <h2 class="section-title">Channels</h2>
   <div class="channels">
   {% for channel, event_count in channels %}
+    <p class="feed">
+      <a href="{{ url('main:channel_feed', channel.slug, feed_privacy) }}">Feed</a>
+    </p>
     <h3><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a></h3>
     <p>{{ event_count }} archived events</p>
-    <ul>
-      <li><a href="{{ url('main:channel_feed', channel.slug, 'public') }}">Public feed</a></li>
-      <li><a href="{{ url('main:channel_feed', channel.slug, 'private') }}">Private feed</a></li>
-      <li><a href="{{ url('main:channel_feed', channel.slug) }}">Private &amp Public feed</a></li>
-    </ul>
   {% endfor %}
   </div>
 {% endblock %}
