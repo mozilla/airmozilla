@@ -1,0 +1,15 @@
+Hi,
+
+Your suggested event, with title "{{ event.title }}" could not be accepted.
+{{ request.user.email }} left the following comment:
+
+{{ line_indent(event.review_comments) }}
+
+
+Now it's back to being available for you to edit:
+
+  {{ base_url }}{{ url('suggest:summary', event.pk) }}
+
+--
+Air Mozilla
+{{ base_url }}

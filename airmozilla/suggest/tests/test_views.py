@@ -1,0 +1,531 @@
+import datetime
+import pytz
+
+from django.test import TestCase
+from django.contrib.auth.models import User, Group, Permission
+from django.conf import settings
+from django.utils.timezone import utc
+from django.core import mail
+
+from funfactory.urlresolvers import reverse
+from nose.tools import eq_, ok_
+
+from airmozilla.main.models import (
+    SuggestedEvent,
+    Event,
+    Location,
+    Channel,
+    Category,
+    Tag
+)
+
+
+class TestPages(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    placeholder = 'airmozilla/manage/tests/firefox.png'
+
+    def setUp(self):
+        self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
+        assert self.client.login(username='fake', password='fake')
+
+    def _make_suggested_event(self,
+                              title='Cool Title',
+                              slug='cool-title',
+                              description='Some long description',
+                              short_description='Short description',
+                              additional_links='http://www.peterbe.com\n',
+                              location=None,
+                              start_time=None,
+                              category=None,
+                              ):
+        location = location or Location.objects.get(name='Mountain View')
+        start_time = start_time or datetime.datetime(
+            2014, 1, 1, 12, 0, 0
+        )
+        start_time = start_time.replace(tzinfo=utc)
+        category = category or Category.objects.create(name='CategoryX')
+
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title=title,
+            slug=slug,
+            description=description,
+            short_description=short_description,
+            location=location,
+            start_time=start_time,
+            additional_links=additional_links,
+            category=category,
+        )
+        tag1 = Tag.objects.create(name='Tag1')
+        tag2 = Tag.objects.create(name='Tag2')
+        event.tags.add(tag1)
+        event.tags.add(tag2)
+        channel = Channel.objects.create(name='ChannelX', slug='channelx')
+        event.channels.add(channel)
+
+        return event
+
+    def test_unauthorized(self):
+        """ Client with no log in - should be rejected. """
+        self.client.logout()
+        response = self.client.get(reverse('suggest:start'))
+        self.assertRedirects(response, settings.LOGIN_URL
+                             + '?next=' + reverse('suggest:start'))
+
+    def test_start(self):
+        url = reverse('suggest:start')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        response = self.client.post(url, {'title': 'A New World'})
+        eq_(response.status_code, 302)
+
+        event = SuggestedEvent.objects.get(title='A New World')
+        url = reverse('suggest:description', args=(event.pk,))
+        eq_(event.slug, 'a-new-world')
+        self.assertRedirects(response, url)
+
+    def test_start_duplicate_slug(self):
+        event = Event.objects.get(slug='test-event')
+        event.title = 'Some Other Title'
+        event.save()
+        url = reverse('suggest:start')
+        response = self.client.post(url, {'title': 'TEST Event'})
+        eq_(response.status_code, 302)
+        suggested_event, = SuggestedEvent.objects.all()
+        today = datetime.datetime.utcnow()
+        eq_(
+            suggested_event.slug,
+            today.strftime('test-event-%Y%m%d')
+        )
+
+    def test_start_duplicate_slug_desperate(self):
+        today = datetime.datetime.utcnow()
+        event = Event.objects.get(slug='test-event')
+        event.title = 'Some Other Title'
+        event.save()
+
+        Event.objects.create(
+            title='Entirely Different',
+            slug=today.strftime('test-event-%Y%m%d'),
+            start_time=today.replace(tzinfo=utc),
+        )
+        url = reverse('suggest:start')
+        response = self.client.post(url, {'title': 'TEST Event'})
+        eq_(response.status_code, 302)
+        suggested_event, = SuggestedEvent.objects.all()
+        eq_(
+            suggested_event.slug,
+            today.strftime('test-event-%Y%m%d-2')
+        )
+
+    def test_start_duplicate_title(self):
+        SuggestedEvent.objects.create(
+            user=self.user,
+            title='A New World',
+            slug='a-new-world',
+            short_description='Short Description',
+            description='Long Description',
+        )
+        url = reverse('suggest:start')
+        response = self.client.post(url, {'title': 'A New World'})
+        eq_(response.status_code, 200)
+        ok_(
+            'You already have a suggest event with this title'
+            in response.content
+        )
+
+    def test_start_invalid_entry(self):
+        # you can either get a form error if the slug is already
+        # taken by an event or if only a title is entered and no slug,
+        # but the autogenerated slug is taken
+
+        # know thee fixtures
+        Event.objects.get(title='Test event', slug='test-event')
+        url = reverse('suggest:start')
+
+        response = self.client.post(url, {'title': 'TEST Event'})
+        eq_(response.status_code, 200)
+        ok_('Form error' in response.content)
+
+        response = self.client.post(
+            url,
+            {'title': 'Cool Title'}
+        )
+        eq_(response.status_code, 302)
+        suggested_event, = SuggestedEvent.objects.all()
+        eq_(suggested_event.title, 'Cool Title')
+        eq_(suggested_event.slug, 'cool-title')
+
+    def test_title(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+        )
+        url = reverse('suggest:title', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = {
+            'title': '',
+            'slug': 'contains spaces'
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('Form errors' in response.content)
+
+        data = {
+            'title': 'New Title',
+            'slug': 'new-slug',
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:description', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+
+    def test_upload_placeholder(self):
+        today = datetime.datetime.utcnow()
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            short_description='Short Description',
+            description='Description',
+            start_time=today.replace(tzinfo=utc),
+        )
+        url = reverse('suggest:placeholder', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        with open(self.placeholder) as fp:
+            data = {'placeholder_img': fp}
+            response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:summary', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+
+    def test_not_yours_to_edit(self):
+        jane = User.objects.create_user('jane')
+        event = SuggestedEvent.objects.create(
+            user=jane,
+            title='Cool Title',
+            slug='cool-title',
+        )
+        url = reverse('suggest:title', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        url = reverse('suggest:description', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        url = reverse('suggest:placeholder', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        url = reverse('suggest:summary', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        # and not yours to delete
+        url = reverse('suggest:delete', args=(event.pk,))
+        response = self.client.post(url)
+        eq_(response.status_code, 400)
+
+    def test_description(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+        )
+        url = reverse('suggest:description', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = {
+            'description': 'This is my cool description ',
+            'short_description': ' '
+        }
+
+        response = self.client.post(url, data)
+        next_url = reverse('suggest:details', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(event.description, data['description'].strip())
+        eq_(event.short_description, data['short_description'].strip())
+
+        data['short_description'] = 'Really cool '
+        response = self.client.post(url, data)
+        self.assertRedirects(response, next_url)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(event.description, data['description'].strip())
+        eq_(event.short_description, data['short_description'].strip())
+
+        # XXX should there be some length restrictions
+        # on `description` or `short_description`?
+
+    def test_details(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            description='Some long description',
+            short_description=''
+        )
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        mv = Location.objects.get(name='Mountain View')
+        category = Category.objects.get(name='Testing')
+        channel = Channel.objects.create(
+            name='Security',
+            slug='security'
+        )
+        tag1 = Tag.objects.create(
+            name='foo'
+        )
+        tag2 = Tag.objects.create(
+            name='bar'
+        )
+
+        future = (
+            datetime.datetime(2021, 1, 1, 10, 0)
+        )
+        tz = pytz.timezone('US/Pacific')
+        future = future.replace(tzinfo=tz)
+
+        data = {
+            'start_time': future.strftime('%Y-%m-%d %H:%M'),
+            'timezone': 'US/Pacific',
+            'location': mv.pk,
+            'privacy': Event.PRIVACY_CONTRIBUTORS,
+            'category': category.pk,
+            'tags': tag1.name + ', ' + tag2.name,
+            'channels': channel.pk,
+            'additional_links': 'http://www.peterbe.com\n',
+        }
+
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:placeholder', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+
+        event = SuggestedEvent.objects.get(pk=event.pk)
+
+        # XXX Incomplete. I need to think about this a bit more.
+        #_fmt = '%Y/%m/%d %H:%M'
+        #eq_(
+        #    event.start_time.strftime(_fmt),
+        #    future.strftime(_fmt)
+        #)
+        eq_(event.location, mv)
+        eq_(event.category, category)
+        eq_([x.name for x in event.tags.all()], ['foo', 'bar'])
+        eq_(event.channels.all()[0], channel)
+        eq_(event.additional_links, data['additional_links'].strip())
+
+        # do it again, but now with different tags
+        data['tags'] = 'buzz, bar'
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(
+            sorted(x.name for x in event.tags.all()),
+            sorted(['bar', 'buzz'])
+        )
+
+    def test_details_default_channel(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            description='Some long description',
+            short_description=''
+        )
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        mv = Location.objects.get(name='Mountain View')
+        future = (
+            datetime.datetime(2021, 1, 1, 10, 0)
+        )
+        tz = pytz.timezone('US/Pacific')
+        future = future.replace(tzinfo=tz)
+        data = {
+            'start_time': future.strftime('%Y-%m-%d %H:%M'),
+            'timezone': 'US/Pacific',
+            'location': mv.pk,
+            'privacy': Event.PRIVACY_CONTRIBUTORS,
+            'category': '',
+            'tags': '',
+        }
+        assert 'channel' not in data
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(event.channels.all().count(), 1)
+        eq_(
+            [x.pk for x in event.channels.all()],
+            [x.pk for x in
+             Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG)]
+        )
+
+    def test_summary(self):
+        event = self._make_suggested_event()
+        url = reverse('suggest:summary', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Cool Title' in response.content)
+        ok_('cool-title' in response.content)
+        ok_('Some long description' in response.content)
+        ok_('Short description' in response.content)
+        ok_('Mountain View' in response.content)
+        ok_('US/Pacific' in response.content)
+        ok_('12:00' in response.content)
+        ok_('Tag1' in response.content)
+        ok_('Tag2' in response.content)
+        ok_('CategoryX' in response.content)
+        ok_('ChannelX' in response.content)
+        ok_(
+            '<a href="http://www.peterbe.com">http://www.peterbe.com</a>'
+            in response.content
+        )
+        # there should also be links to edit things
+        ok_(reverse('suggest:title', args=(event.pk,)) in response.content)
+        ok_(reverse('suggest:description', args=(event.pk,))
+            in response.content)
+        ok_(reverse('suggest:details', args=(event.pk,)) in response.content)
+        ok_(reverse('suggest:placeholder', args=(event.pk,))
+            in response.content)
+        # the event is not submitted yet
+        ok_('Submit for review' in response.content)
+
+    def test_delete(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            description='Some long description',
+            short_description=''
+        )
+
+        url = reverse('suggest:delete', args=(event.pk,))
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:start')
+        self.assertRedirects(response, next_url)
+        ok_(not SuggestedEvent.objects.all().count())
+
+    def test_view_someone_elses_suggested_summary(self):
+        event = self._make_suggested_event()
+        event.user = User.objects.create_user('lonnen')
+        event.save()
+        url = reverse('suggest:summary', args=(event.pk,))
+
+        richard = User.objects.create_user('richard', password='secret')
+        # but it should be ok if self.user had the add_event permission
+        assert self.client.login(username='richard', password='secret')
+
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+        # give Richard the add_event permission
+        permission = Permission.objects.get(codename='add_event')
+        richard.user_permissions.add(permission)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+        # because it's not submitted
+        event.submitted = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.save()
+
+        # finally
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+    def test_submit_event(self):
+        event = self._make_suggested_event()
+        ok_(not event.submitted)
+        url = reverse('suggest:summary', args=(event.pk,))
+        assert self.client.get(url).status_code == 200
+
+        # before we submit it, we need to create some users
+        # who should get the email notification
+        approvers = Group.objects.get(name='testapprover')
+        richard = User.objects.create_user(
+            'richard',
+            email='richard@mozilla.com'
+        )
+        richard.groups.add(approvers)
+        permission = Permission.objects.get(codename='add_event')
+        approvers.permissions.add(permission)
+
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Submitted' in response.content)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        ok_(event.submitted)
+
+        # that should have sent out some emails
+        email_sent = mail.outbox[-1]
+        ok_(event.title in email_sent.subject)
+        eq_(email_sent.from_email, settings.EMAIL_FROM_ADDRESS)
+        ok_('richard@mozilla.com' in email_sent.recipients())
+        ok_('US/Pacific' in email_sent.body)
+        ok_(event.title in email_sent.body)
+        ok_(event.location.name in email_sent.body)
+        ok_('12:00' in email_sent.body)
+        summary_url = reverse('suggest:summary', args=(event.pk,))
+        ok_(summary_url in email_sent.body)
+        manage_url = reverse('manage:suggestions')
+        ok_(manage_url in email_sent.body)
+
+        # if you do it a second time, it'll un-submit
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        ok_(not event.submitted)
+
+    def test_title_edit(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+        )
+        url = reverse('suggest:title', args=(event.pk,))
+
+        real_event, = Event.objects.all()
+        data = {
+            'title': real_event.title.upper(),
+            'slug': ''
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('Form errors' in response.content)
+
+        data = {
+            'title': 'Something entirely different',
+            'slug': real_event.slug.upper()
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('Form errors' in response.content)
+
+        data = {
+            'title': 'Something entirely different',
+            'slug': ''
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(event.slug, 'something-entirely-different')

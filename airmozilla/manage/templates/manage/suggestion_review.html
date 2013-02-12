@@ -1,0 +1,66 @@
+{% extends 'manage/suggestions.html' %}
+
+{% block manage_title %}
+  Reviewing suggested event "{{ event.title }}"
+{% endblock %}
+
+{% block manage_content %}
+  {% set data = [
+    ('Title', event.title),
+    ('Slug', event.slug),
+    ('Placeholder image',
+     '<a href="{url}">View</a>'|fe(url=event.placeholder_img.url)),
+    ('Description', event.description),
+    ('Short description', event.short_description),
+    ('Start time', event.start_time|js_date),
+    ('Location', event.location),
+    ('Privacy', event.get_privacy_display()),
+    ('Category', event.category),
+    ('Additional links', event.additional_links),
+    ('Creator', event.user.email),
+    ('Submitted', event.submitted|js_date),
+  ] -%}
+  <table class="table">
+    {% for row in data %}
+      <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+      </tr>
+    {% endfor %}
+      <tr>
+        <td>Tags</td>
+        <td>
+          {% for tag in event.tags.all() %}
+            &bull; {{ tag.name }}
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>Channels</td>
+        <td>
+          {% for channel in event.channels.all() %}
+            &bull; {{ channel.name }}
+          {% endfor %}
+        </td>
+      </tr>
+  </table>
+  {% if real_event_form %}
+  {{ real_event_form.errors }}
+  {% endif %}
+  <form method="post" class="form-horizontal">
+  {{ csrf() }}
+  {{ bootstrapform(form) }}
+  <div class="form-actions">
+    <button type="submit" class="btn btn-success btn-large"
+            name="approve" value="approve" id="submit_approve">
+      <i class="icon-ok"></i>
+      Approve
+    </button>
+    <button type="submit" class="btn btn-danger btn-large" title="Saying 'Reject' is too harsh"
+            name="reject" value="reject" id="submit_reject">
+      <i class="icon-remove"></i>
+      Bounce back
+    </button>
+  </div>
+  </form>
+{% endblock %}

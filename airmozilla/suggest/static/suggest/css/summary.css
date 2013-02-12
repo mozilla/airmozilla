@@ -1,0 +1,26 @@
+td.edit-link {
+    text-align: right;
+}
+
+th {
+    text-align: left;
+    vertical-align: top;
+}
+
+form.submission {
+    padding: 10px;
+    border: 4px solid rgb(50,50,50);
+    text-align: center;
+}
+
+form.unsubmission,
+.accepted {
+    padding: 20px;
+    margin: 20px;
+    border: 4px solid rgb(50,50,50);
+}
+
+
+.main table {
+    width: 100%;
+}

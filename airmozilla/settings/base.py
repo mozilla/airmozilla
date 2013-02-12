@@ -19,6 +19,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     '%s.main' % PROJECT_MODULE,
     '%s.auth' % PROJECT_MODULE,
     '%s.manage' % PROJECT_MODULE,
+    '%s.suggest' % PROJECT_MODULE,
 
     'bootstrapform',
     'sorl.thumbnail',

@@ -1,0 +1,9 @@
+{% include 'suggest/_alert_form_errors.html' %}
+<form method="post" class="form-horizontal suggest">
+    {{ csrf() }}
+    {{ bootstrapform(form) }}
+
+    {% if (event and not event.submitted) or not event %}
+    {% include 'suggest/_form_buttons.html' %}
+    {% endif %}
+</form>

@@ -20,6 +20,7 @@ class EventStateTests(TestCase):
             start_time=time_now,
         )
         ok_(initiated in Event.objects.initiated())
+        ok_(not initiated.needs_approval())
         # scheduled event with pending approval
         to_approve = Event.objects.create(
             status=Event.STATUS_SCHEDULED,
@@ -27,10 +28,14 @@ class EventStateTests(TestCase):
         )
         ok_(to_approve not in Event.objects.initiated())
         ok_(to_approve in Event.objects.approved())
+        ok_(not to_approve.needs_approval())
+
         app = Approval.objects.create(event=to_approve, group=None)
         # attaching the Approval makes the event unapproved
         ok_(to_approve not in Event.objects.approved())
         ok_(to_approve in Event.objects.initiated())
+        ok_(to_approve.needs_approval())
+
         app.processed = True
         app.approved = True
         app.save()
@@ -88,6 +93,18 @@ class EventStateTests(TestCase):
         archived.save()
         ok_(archived in Event.objects.archived_and_removed())
         ok_(archived not in Event.objects.archived())
+
+    def test_needs_approval_if_not_approved(self):
+        time_now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        to_approve = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=time_now,
+        )
+        app = Approval.objects.create(event=to_approve, group=None)
+        ok_(to_approve.needs_approval())
+        app.processed = True
+        app.save()
+        ok_(not to_approve.needs_approval())
 
 
 class ForeignKeyTests(TestCase):

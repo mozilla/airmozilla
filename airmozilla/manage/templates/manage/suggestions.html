@@ -1,0 +1,57 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='suggestions' -%}
+
+{% block manage_title %}
+  Submitted suggested events
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/jquery-ui-1.10.1.highlight.min.js') }}"></script>
+    <script src="{{ static('manage/js/suggestions.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+
+{% block manage_content %}
+
+  {% if events %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Event title</th>
+        <th>Start time</th>
+        <th>Location</th>
+        <th>Creator</th>
+        <th>Submitted</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in events %}
+      <tr data-id="{{ event.pk }}">
+        <td>{{ event.title }}</td>
+        <td>{{ event.start_time|js_date }}</td>
+        <td>{{ event.location }}</td>
+        <td>{{ event.user.email }}</td>
+        <td>{{ event.submitted|js_date }}</td>
+        <td>
+          <a class="btn"
+             href="{{ url('manage:suggestion_review', event.id) }}">
+            <i class="icon-wrench"></i>
+            Review
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if not events %}
+    <p>No suggested events are waiting!</p>
+  {% endif %}
+
+{% endblock %}

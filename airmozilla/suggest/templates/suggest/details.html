@@ -1,0 +1,36 @@
+{% extends 'suggest/suggest_base.html' %}
+
+{% block page_title %}
+Event details | {{ super() }}
+{% endblock %}
+
+{% block banner %}
+    {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('suggest/select2/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('suggest/jquery-ui/css/smoothness/jquery-ui-1.10.1.custom.min.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('suggest/select2/select2.min.js') }}"></script>
+    <script src="{{ static('suggest/jquery-ui/js/jquery-ui-1.10.1.custom.min.js') }}"></script>
+    <script src="{{ static('suggest/js/jquery-ui-timepicker-addon.js') }}"></script>
+    <script src="{{ static('suggest/js/details.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+{% block content_main %}
+  {% include 'suggest/_breadcrumb.html' %}
+  <h2 class="section-title">Event details</h2>
+
+  {% include 'suggest/_default_form.html' %}
+
+{% endblock %}

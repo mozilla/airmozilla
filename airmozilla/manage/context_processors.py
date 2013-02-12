@@ -1,4 +1,9 @@
-from airmozilla.main.models import Approval, Event, Participant
+from airmozilla.main.models import (
+    Approval,
+    Event,
+    Participant,
+    SuggestedEvent
+)
 
 
 def badges(request):
@@ -27,4 +32,14 @@ def badges(request):
         )
         if participants > 0:
             context['badges']['part_edit'] = participants
+
+    if request.user.has_perm('main.add_event'):
+        suggestions = (
+            SuggestedEvent.objects
+            .filter(accepted=None)
+            .exclude(submitted=None)
+            .count()
+        )
+        if suggestions > 0:
+            context['badges']['suggestions'] = suggestions
     return context

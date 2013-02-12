@@ -1,0 +1,17 @@
+{% extends 'suggest/suggest_base.html' %}
+
+{% block page_title %}
+Event picture | {{ super() }}
+{% endblock %}
+
+{% block banner %}
+    {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block content_main %}
+  {% include 'suggest/_breadcrumb.html' %}
+  <h2 class="section-title">Event picture</h2>
+
+  {% include 'suggest/_default_form_upload.html' %}
+
+{% endblock %}

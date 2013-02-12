@@ -1,0 +1,22 @@
+A new event suggestion has been submitted.
+
+*Title:*
+  {{ event.title }}
+
+*Location:*
+  {{ event.location }}
+
+*Start time:*
+  {{ event.start_time.strftime('%d %B %Y - %H:%M') }} ({{ event.location.timezone }})
+
+
+To see all details go to:
+  {{ base_url }}{{ url('suggest:summary', event.pk) }}
+
+To review it and to turn it into a real event go to:
+  {{ base_url }}{{ url('manage:suggestions') }}#s{{ event.pk }}
+
+
+--
+You are receiving this automated email because you have permission to add
+events on Air Mozilla {{ base_url }}

@@ -1,0 +1,94 @@
+{% extends 'suggest/suggest_base.html' %}
+{% set page='suggest' %}
+
+{% block page_title %}
+Suggest a new event | {{ super() }}
+{% endblock %}
+
+{% block banner %}
+    {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block breadcrumb %}
+   {# deliberately empty #}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('suggest/css/start.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+  <script src="{{ static('suggest/js/start.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+{% block content_main %}
+
+{% for event in suggestions %}
+  {% if loop.first %}
+  <h2 class="section-title">Incomplete event suggestions</h2>
+  <table class="suggestions">
+    <thead>
+      <tr>
+        <th>Event title</th>
+        <th>Status</th>
+        <th>&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody>
+  {% endif %}
+
+  <tr>
+    <td>
+      <a href="{{ next_url(event) }}">{{ event.title }}</a>
+    </td>
+    <td>
+      {{ state_description(event) }}
+    </td>
+    <td class="delete" data-id="{{ event.pk }}">
+      {% if event.accepted %}
+        {% if event.accepted.status == Event.STATUS_INITIATED %}
+          not yet scheduled
+        {% elif event.accepted.status == Event.STATUS_SCHEDULED %}
+          {% if event.accepted.needs_approval() %}
+          accepted but pending approval
+          {% else %}
+          <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>
+          {% endif %}
+        {% elif event.accepted.status == Event.STATUS_REMOVED %}
+          accepted but removed
+        {% endif %}
+      {% else %}
+      <button class="delete-button">Delete</button>
+      <span class="delete-confirm-question">Are you sure?</span>
+      <button class="delete-confirm">Yes</button>
+      <button class="delete-cancel">No</button>
+      {% endif %}
+    </td>
+  </tr>
+
+  {% if loop.last %}
+    </tbody>
+  </table>
+  {% endif %}
+
+{% endfor %}
+
+
+  <h2 class="section-title">Suggest a new event</h2>
+  <h3 class="section-sub-title">What are you going to call it?</h3>
+
+  {% include 'suggest/_default_form.html' %}
+
+  <p class="start-tooltip">
+  Once you've picked a suitable title you'll proceed to fill in
+  all the other various details about your suggested event.
+  </p>
+
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'suggest/suggest_base.html' %}
+
+{% block page_title %}
+Event summary | {{ super() }}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('suggest/css/summary.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+{% block banner %}
+    {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block content_main %}
+  {% include 'suggest/_breadcrumb.html' %}
+  <h2 class="section-title">Event summary</h2>
+
+  {% if event.accepted %}
+  <div class="accepted">
+    <h3>Accepted!</h3>
+    <p>
+        {% if event.accepted.status == Event.STATUS_INITIATED %}
+          This event has been accepted but not yet scheduled.
+        {% elif event.accepted.status == Event.STATUS_SCHEDULED %}
+          {% if event.accepted.needs_approval() %}
+          This event has been accepted but is pending approval.
+          {% else %}
+          This event is
+	  <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.
+          {% endif %}
+        {% elif event.accepted.status == Event.STATUS_REMOVED %}
+          This event was accepted but was later removed.
+        {% endif %}
+    </p>
+  </div>
+  {% elif event.submitted %}
+  <form action="" method="post" class="unsubmission">{{ csrf() }}
+    <h3>Submitted!</h3>
+    <p>This was submitted by <strong>{{ event.user.email }}</strong>
+    <strong>{{ event.submitted|js_date }}</strong>.</p>
+
+    {% if request.user == event.user %}
+    <p>Now you can wait for it to be turned into a scheduled event or to receive
+    comments about the submission.</p>
+    <button type="submit" class="btn btn-primary submit" name="unsubmit">Retract submission</button>
+    {% else %}
+    <p><a href="{{ url('manage:suggestions') }}#s{{ event.pk }}">Suggestions Management &raquo;</a></p>
+    {% endif %}
+  </form>
+  {% endif %}
+
+  <table>
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:title', event.pk) }}">Change title</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Title</th>
+      <td>{{ event.title }}</td>
+    </tr>
+    <tr>
+      <th>Slug</th>
+      <td>{{ event.slug }}</td>
+    </tr>
+
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:description', event.pk) }}">Change description</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Description</th>
+      <td>{{ event.description|urlize|nl2br }}</td>
+    </tr>
+    <tr>
+      <th>Short description</th>
+      <td>{{ event.short_description|urlize|nl2br }}</td>
+    </tr>
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:details', event.pk) }}">Change details</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Location</th>
+      <td>{{ event.location }} ({{ event.location.timezone }})</td>
+    </tr>
+    <tr>
+      <th>Start time</th>
+      <td>{{ event.location_time.strftime('%d %B %Y - %H:%M') }}  ({{ event.start_time|js_date }})</td>
+    </tr>
+    <tr>
+      <th>Privacy</th>
+      <td>{{ event.get_privacy_display() }}</td>
+    </tr>
+    <tr>
+      <th>Category</th>
+      <td>{{ event.category }}</td>
+    </tr>
+    <tr>
+      <th>Tags</th>
+      <td>{% for tag in event.tags.all() %}
+      {{ tag }}{% if not loop.last %}, {% endif %}
+      {% endfor %}
+      </td>
+    </tr>
+    <tr>
+      <th>Channels</th>
+      <td>{% for channel in event.channels.all() %}
+      {{ channel.name }}{% if not loop.last %}, {% endif %}
+      {% endfor %}
+      </td>
+    </tr>
+    <tr>
+      <th>Additional links</th>
+      <td>{{ event.additional_links|urlize|nl2br }}</td>
+    </tr>
+
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:placeholder', event.pk) }}">Change placeholder</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Placeholder picture</th>
+      <td>
+          {% if event.placeholder_img %}
+          {% set thumb = thumbnail(event.placeholder_img, '160x160', crop='center') %}
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+               alt="{{ event.title }}" class="wp-post-image">
+          {% endif %}
+      </td>
+    </tr>
+
+    {% if event.submitted %}
+    <tr>
+      <th>Submitted</th>
+      <td>{{ event.submitted|js_date }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Review comments</th>
+      <td>
+        {{ event.review_comments|urlize|nl2br }}
+      </td>
+    </tr>
+  </table>
+
+
+  {% if not event.submitted %}
+  <form action="" method="post" class="submission">{{ csrf() }}
+    <h3>Is it ready?</h3>
+    <button type="submit" class="btn btn-primary submit" name="submit">Submit for review</button>
+  </form>
+  {% endif %}
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'main/main_base.html' %}
+{% set page='suggest' %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('suggest/tooltipster/css/tooltipster.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('suggest/css/suggest.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('suggest/tooltipster/js/jquery.tooltipster.min.js') }}"></script>
+    <script src="{{ static('suggest/js/suggest.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+{% block banner %}
+    {% include 'main/_banner_small.html' %}
+{% endblock %}

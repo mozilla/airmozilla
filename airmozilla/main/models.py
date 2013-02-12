@@ -74,10 +74,12 @@ class Participant(models.Model):
     CLEARED_YES = 'yes'
     CLEARED_NO = 'no'
     CLEARED_FINAL_CUT = 'final-cut'
+    CLEARED_SUGGESTED = 'suggested'
     CLEARED_CHOICES = (
         (CLEARED_YES, 'Yes'),
         (CLEARED_NO, 'No'),
         (CLEARED_FINAL_CUT, 'Final Cut'),
+        (CLEARED_SUGGESTED, 'Suggested'),
     )
     cleared = models.CharField(max_length=15,
                                choices=CLEARED_CHOICES, default=CLEARED_NO,
@@ -289,6 +291,58 @@ class Event(models.Model):
 
     def is_public(self):
         return self.privacy == self.PRIVACY_PUBLIC
+
+    def needs_approval(self):
+        if self.status == self.STATUS_SCHEDULED:
+            for approval in Approval.objects.filter(event=self):
+                if approval.processed:
+                    return False
+                if not approval.approved:
+                    return True
+        return False
+
+
+class SuggestedEvent(models.Model):
+    user = models.ForeignKey(User)
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(blank=True, max_length=215, unique=True,
+                            db_index=True)
+    placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
+    description = models.TextField()
+    short_description = models.TextField(
+        blank=True,
+        help_text='If not provided, this will be filled in by the first '
+        'words of the full description.'
+    )
+    start_time = models.DateTimeField(db_index=True, blank=True, null=True)
+    location = models.ForeignKey(Location, blank=True, null=True,
+                                 on_delete=models.SET_NULL)
+    category = models.ForeignKey(Category, blank=True, null=True,
+                                 on_delete=models.SET_NULL)
+    tags = models.ManyToManyField(Tag, blank=True)
+    channels = models.ManyToManyField(Channel)
+    call_info = models.TextField(blank=True)
+    additional_links = models.TextField(blank=True)
+
+    privacy = models.CharField(max_length=40, choices=Event.PRIVACY_CHOICES,
+                               default=Event.PRIVACY_PUBLIC)
+    featured = models.BooleanField(default=False)
+    created = models.DateTimeField(default=_get_now)
+    modified = models.DateTimeField(auto_now=True)
+
+    participants = models.ManyToManyField(
+        Participant,
+        help_text='Speakers or presenters for this event.'
+    )
+
+    submitted = models.DateTimeField(blank=True, null=True)
+    accepted = models.ForeignKey(Event, blank=True, null=True)
+    review_comments = models.TextField(blank=True, null=True)
+
+    objects = EventManager()
+
+    def __unicode__(self):
+        return self.title
 
 
 class EventOldSlug(models.Model):

@@ -21,7 +21,7 @@
           {{ approval.processed_time|js_date }}<br>{{ approval.user.email }}
           {% if approval.comment %}
             - {{ approval.comment }}
-          {% endif %} 
+          {% endif %}
         {% else %}
           Needs review from {{ approval.group }}
         {% endif %}
@@ -35,6 +35,14 @@
         <span class="badge badge-info">Created</span>
         {{ event.created|js_date }}<br>{{ event.creator.email }}</li>
     </ul>
+    {% if suggested_event %}
+    <p>This event was originally suggested by
+      <strong>{{ suggested_event.user.email }}</strong>
+      {{ suggested_event.submitted|js_date }}.
+    </p>
+    {% endif %}
+
   </div>
   {% include 'manage/_default_form_upload.html' %}
+
 {% endblock %}

@@ -22,6 +22,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.contrib.flatpages.models import FlatPage
 from django.utils.timezone import utc
+from django.contrib.sites.models import RequestSite
 
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
@@ -38,7 +39,8 @@ from airmozilla.main.models import (
     Participant,
     Tag,
     Template,
-    Channel
+    Channel,
+    SuggestedEvent
 )
 from airmozilla.manage import forms
 
@@ -359,8 +361,17 @@ def event_edit(request, id):
         form = form_class(instance=event, initial={
             'timezone': timezone.get_current_timezone()  # UTC
         })
-    return render(request, 'manage/event_edit.html',
-                  {'form': form, 'event': event})
+    data = {
+        'form': form,
+        'event': event,
+        'suggested_event': None,
+    }
+    try:
+        suggested_event = SuggestedEvent.objects.get(accepted=event)
+        data['suggested_event'] = suggested_event
+    except SuggestedEvent.DoesNotExist:
+        pass
+    return render(request, 'manage/event_edit.html', data)
 
 
 @staff_required
@@ -889,7 +900,7 @@ def approvals(request):
 @transaction.commit_on_success
 def approval_review(request, id):
     """Approve/deny an event on behalf of a group."""
-    approval = Approval.objects.get(id=id)
+    approval = get_object_or_404(Approval, id=id)
     if approval.group not in request.user.groups.all():
         return redirect('manage:approvals')
     if request.method == 'POST':
@@ -1009,3 +1020,145 @@ def vidly_url_to_shortcode(request, id):
         else:
             return HttpResponseBadRequest(error)
     return HttpResponseBadRequest(str(form.errors))
+
+
+@staff_required
+@permission_required('main.add_event')
+def suggestions(request):
+    data = {}
+    events = (
+        SuggestedEvent.objects
+        .filter(accepted=None)
+        .exclude(submitted=None)
+        .order_by('submitted')
+    )
+    data['events'] = events
+    return render(request, 'manage/suggestions.html', data)
+
+
+@staff_required
+@permission_required('main.add_event')
+@transaction.commit_on_success
+def suggestion_review(request, id):
+    event = get_object_or_404(SuggestedEvent, pk=id)
+    real_event_form = None
+    if request.method == 'POST':
+        form = forms.AcceptSuggestedEventForm(
+            request.POST,
+            instance=event,
+        )
+        reject = request.POST.get('reject')
+        if reject:
+            form.fields['review_comments'].required = True
+
+        if form.is_valid():
+            form.save()
+            if reject:
+                event.submitted = None
+                event.save()
+                _email_about_rejected_suggestion(event, request)
+                messages.info(
+                    request,
+                    'Suggested event bounced back and %s has been emailed'
+                    % (event.user.email,)
+                )
+                url = reverse('manage:suggestions')
+                return redirect(url)
+            else:
+                dict_event = {
+                    'title': event.title,
+                    'description': event.description,
+                    'short_description': event.short_description,
+                    'creator': event.user.pk,
+                    'start_time': event.start_time,
+                    'timezone': event.location.timezone,
+                    'location': event.location.pk,
+                    'category': event.category and event.category.pk or None,
+                    'channels': [x.pk for x in event.channels.all()],
+                    'call_info': event.call_info,
+                    'additional_links': event.additional_links,
+                    'privacy': event.privacy,
+                }
+                real_event_form = forms.EventRequestForm(
+                    data=dict_event,
+                )
+                real_event_form.fields['placeholder_img'].required = False
+                if real_event_form.is_valid():
+                    real = real_event_form.save(commit=False)
+                    real.placeholder_img = event.placeholder_img
+
+                    real.slug = event.slug
+                    real.save()
+                    [real.tags.add(x) for x in event.tags.all()]
+                    [real.channels.add(x) for x in event.channels.all()]
+                    event.accepted = real
+                    event.save()
+                    _email_about_accepted_suggestion(event, real, request)
+                    messages.info(
+                        request,
+                        'New event created from suggestion.'
+                    )
+                    url = reverse('manage:event_edit', args=(real.pk,))
+                    return redirect(url)
+                else:
+                    print real_event_form.errors
+    else:
+        form = forms.AcceptSuggestedEventForm(instance=event)
+    data = {
+        'event': event,
+        'form': form,
+        'real_event_form': real_event_form,
+    }
+    return render(request, 'manage/suggestion_review.html', data)
+
+
+def _email_about_accepted_suggestion(event, real, request):
+    emails = (event.user.email,)
+    subject = (
+        '[Air Mozilla] Suggested event accepted!'
+    )
+    base_url = (
+        '%s://%s' % (request.is_secure() and 'https' or 'http',
+                     RequestSite(request).domain)
+    )
+    message = render_to_string(
+        'manage/_email_suggested_accepted.html',
+        {
+            'event': event,
+            'base_url': base_url,
+            'request': request,
+        }
+    )
+    email = EmailMessage(
+        subject,
+        message,
+        settings.EMAIL_FROM_ADDRESS,
+        emails
+    )
+    email.send()
+
+
+def _email_about_rejected_suggestion(event, request):
+    emails = (event.user.email,)
+    subject = (
+        '[Air Mozilla] Suggested event not accepted'
+    )
+    base_url = (
+        '%s://%s' % (request.is_secure() and 'https' or 'http',
+                     RequestSite(request).domain)
+    )
+    message = render_to_string(
+        'manage/_email_suggested_rejected.html',
+        {
+            'event': event,
+            'base_url': base_url,
+            'request': request,
+        }
+    )
+    email = EmailMessage(
+        subject,
+        message,
+        settings.EMAIL_FROM_ADDRESS,
+        emails
+    )
+    email.send()

@@ -17,7 +17,8 @@ from airmozilla.main.models import (
     Participant,
     Tag,
     Template,
-    Channel
+    Channel,
+    SuggestedEvent
 )
 
 
@@ -353,3 +354,10 @@ class EventsAutocompleteForm(BaseForm):
 
     q = forms.CharField(required=True, max_length=200)
     max = forms.IntegerField(required=False, min_value=1, max_value=20)
+
+
+class AcceptSuggestedEventForm(BaseModelForm):
+
+    class Meta:
+        model = SuggestedEvent
+        fields = ('review_comments',)

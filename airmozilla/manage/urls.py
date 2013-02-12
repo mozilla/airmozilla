@@ -72,4 +72,7 @@ urlpatterns = patterns(
     url(r'^pages/(?P<id>\d+)/$', views.flatpage_edit, name='flatpage_edit'),
     url(r'^pages/remove/(?P<id>\d+)/$', views.flatpage_remove,
         name='flatpage_remove'),
+    url(r'^suggestions/$', views.suggestions, name='suggestions'),
+    url(r'^suggestions/(?P<id>\d+)/$', views.suggestion_review,
+        name='suggestion_review'),
 )
