@@ -3,6 +3,7 @@ import datetime
 import re
 import urllib
 import urllib2
+import httplib
 import functools
 import logging
 import json
@@ -118,8 +119,8 @@ def vidly_tokenize(tag, seconds):
     )
     try:
         response = urllib2.urlopen(req)
-    except urllib2.URLError:
-        logging.error('URLError on opening request', exc_info=True)
+    except (urllib2.URLError, httplib.BadStatusLine):
+        logging.error('Error on opening request', exc_info=True)
         raise VidlyTokenizeError(
             'Temporary network error when trying to fetch Vid.ly token'
         )

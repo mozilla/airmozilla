@@ -2,6 +2,7 @@ import datetime
 import uuid
 import urllib2
 import urllib
+import httplib
 
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser
@@ -624,6 +625,30 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('Temporary network error' in response.content)
+
+    @patch('airmozilla.base.utils.urllib2.urlopen')
+    def test_event_with_vidly_token_badstatusline(self, p_urlopen):
+        # based on https://bugzilla.mozilla.org/show_bug.cgi?id=842588
+        event = Event.objects.get(title='Test event')
+
+        # first we need a template that uses `vidly_tokenize()`
+        template = event.template
+        template.content = """
+        {% set token = vidly_tokenize(tag, 90) %}
+        <iframe src="http://s.vid.ly/embeded.html?
+        link={{ tag }}{% if token %}&token={{ token }}{% endif %}"></iframe>
+        """
+        template.save()
+        event.template_environment = "tag=abc123"
+        event.save()
+
+        p_urlopen.side_effect = httplib.BadStatusLine('TroubleX')
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Temporary network error' in response.content)
+        ok_('TroubleX' not in response.content)
 
     def test_404_page_with_side_events(self):
         """404 pages should work when there's stuff in the side bar"""
