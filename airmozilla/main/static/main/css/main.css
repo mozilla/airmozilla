@@ -311,6 +311,18 @@ span.tag {
     border-radius: 3px;
 }
 
+/*** Home/Channel index ***/
+.channel-description {
+    padding-bottom: 5px;
+    border-bottom: 1px dotted #48585e;
+    margin-bottom: 20px;
+}
+.channel-thumbnail {
+    float: right;
+    margin-left: 15px;
+    margin-bottom: 15px;
+}
+
 /*** Entry @Header */
 .post .entry-header { padding-left: 0; }
 .entry-title { min-height: 0; }
