@@ -59,7 +59,8 @@ LOGIN_REDIRECT_URL_FAILURE = 'main:login_failure'
 TEMPLATE_CONTEXT_PROCESSORS += (
     'django_browserid.context_processors.browserid_form',
     'airmozilla.manage.context_processors.badges',
-    'airmozilla.main.context_processors.sidebar'
+    'airmozilla.main.context_processors.sidebar',
+    'airmozilla.main.context_processors.analytics',
 )
 
 # Always generate a CSRF token for anonymous users.

@@ -75,3 +75,13 @@ def sidebar(request):
         data['sidebar_bottom'] = None
 
     return data
+
+
+def analytics(request):
+    # unless specified, the analytics is include if DEBUG = False
+    include = getattr(
+        settings,
+        'INCLUDE_ANALYTICS',
+        not settings.DEBUG
+    )
+    return {'INCLUDE_ANALYTICS': include}
