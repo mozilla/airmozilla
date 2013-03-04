@@ -17,7 +17,7 @@
     <tbody>
       {% for channel in channels %}
         <tr>
-          <td>{{ channel.name }}</td>
+          <td><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a></td>
           <td>{{ channel.event_set.count() }}</td>
           <td>
             <a class="btn" href="{{ url('manage:channel_edit', channel.id) }}">

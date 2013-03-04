@@ -317,6 +317,10 @@ span.tag {
     border-bottom: 1px dotted #48585e;
     margin-bottom: 20px;
 }
+.channel-description ul,
+.channel-description ol {
+    padding-left: 30px;
+}
 .channel-thumbnail {
     float: right;
     margin-left: 15px;

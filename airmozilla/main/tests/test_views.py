@@ -835,6 +835,7 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('>Culture &amp; Context<' in response.content)
+        ok_('<p>The description</p>' in response.content)
         ok_(channel.description in response.content)
         ok_('alt="Culture &amp; Context"' in response.content)
 
@@ -851,6 +852,13 @@ class TestPages(TestCase):
         ok_('Fourth test event' in response.content)
         # ...but because it's in the alt text too, multiple by 2
         eq_(response.content.count('Fourth test event'), 1 * 2)
+
+        # view the channel page when the image is a banner
+        channel.image_is_banner = True
+        channel.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('<p>The description</p>' in response.content)
 
         # view one of them from the channel
         url = reverse('main:event', args=('second-event',))

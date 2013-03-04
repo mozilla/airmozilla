@@ -2,7 +2,7 @@
 {% set front_page = (events.number == 1) %}
 
 {% block banner %}
-  {% if front_page %}
+  {% if front_page and channel.slug == 'main' %}
     {% include 'main/_banner_large.html' %}
   {% else %}
     {% include 'main/_banner_small.html' %}
@@ -62,10 +62,10 @@
                  alt="{{ channel.name }}" class="channel-thumbnail">
           {% endif %}
             <h2 class="section-title">{{ channel.name }}</h2>
-	    <div class="channel-description">
-            {{ channel.description|safe }}
-	    </div>
         {% endif %}
+        <div class="channel-description">
+        {{ channel.description|safe }}
+        </div>
       {% endif %}
     {% endif %}
   {% endif %}
