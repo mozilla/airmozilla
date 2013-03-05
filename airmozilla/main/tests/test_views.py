@@ -990,3 +990,15 @@ class TestPages(TestCase):
         ok_('<p>Sidebar Bottom Main</p>' not in response.content)
         ok_('<p>Sidebar Top Testing</p>' in response.content)
         ok_('<p>Sidebar Bottom Testing</p>' in response.content)
+
+    def test_view_event_belonging_to_multiple_channels(self):
+        event = Event.objects.get(title='Test event')
+        fosdem = Channel.objects.create(
+            name='Fosdem',
+            slug='fosdem'
+        )
+        event.channels.add(fosdem)
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
