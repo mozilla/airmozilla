@@ -2,7 +2,7 @@ import datetime
 from django import http
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, User
 from django.template.defaultfilters import slugify
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -189,6 +189,10 @@ def _email_about_suggested_event(event, request):
     emails = set()
     for group in permission.group_set.all():
         emails.update([u.email for u in group.user_set.all()])
+    # and all superusers
+    for superuser in User.objects.filter(is_superuser=True):
+        if superuser.email:
+            emails.add(superuser.email)
     subject = (
         '[Air Mozilla] New suggested event: %s' % event.title
     )

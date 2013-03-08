@@ -451,6 +451,14 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
 
     def test_submit_event(self):
+        # create a superuser who will automatically get all notifications
+        User.objects.create(
+            username='zandr',
+            email='zandr@mozilla.com',
+            is_staff=True,
+            is_superuser=True
+        )
+
         event = self._make_suggested_event()
         ok_(not event.submitted)
         url = reverse('suggest:summary', args=(event.pk,))
@@ -481,6 +489,7 @@ class TestPages(TestCase):
         ok_(event.title in email_sent.subject)
         eq_(email_sent.from_email, settings.EMAIL_FROM_ADDRESS)
         ok_('richard@mozilla.com' in email_sent.recipients())
+        ok_('zandr@mozilla.com' in email_sent.recipients())
         ok_('US/Pacific' in email_sent.body)
         ok_(event.title in email_sent.body)
         ok_(event.location.name in email_sent.body)
