@@ -31,7 +31,11 @@ urlpatterns = patterns(
     url(r'^feed/(company|public|private|contributors)?/?$',
         cache_page(views.EventsFeed(), 60 * 60),
         name='feed'),
-    url(r'^feed/(?P<channel_slug>[-\w]+)/(company|contributors|public)?/?$',
+    url(r'^feed/(?P<channel_slug>[-\w]+)/$',
+        cache_page(views.EventsFeed(), 60 * 60),
+        name='channel_feed_default'),
+    url(r'^feed/(?P<channel_slug>[-\w]+)/'
+        r'(?P<private_or_public>company|public|private|contributors)/?$',
         cache_page(views.EventsFeed(), 60 * 60),
         name='channel_feed'),
     url(r'^(?P<slug>[-\w]+)/$', views.event, name='event'),

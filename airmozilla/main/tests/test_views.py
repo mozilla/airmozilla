@@ -571,6 +571,67 @@ class TestPages(TestCase):
         ok_('Test event' in response.content)
         ok_('Totally different' not in response.content)
 
+    def test_private_feeds_by_channel(self):
+        channel = Channel.objects.create(
+            name='Culture and Context',
+            slug='culture-and-context',
+        )
+        delay = datetime.timedelta(days=1)
+
+        event1 = Event.objects.get(title='Test event')
+        event1.status = Event.STATUS_SCHEDULED
+        event1.start_time -= delay
+        event1.archive_time = event1.start_time
+        event1.save()
+        event1.channels.clear()
+        event1.channels.add(channel)
+
+        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().count(), 1)
+
+        event = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=Event.PRIVACY_COMPANY,  # Note!
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+        )
+        event.channels.add(channel)
+
+        eq_(Event.objects.approved().count(), 2)
+        eq_(Event.objects.archived().count(), 2)
+        eq_(Event.objects.filter(channels=channel).count(), 2)
+
+        url = reverse(
+            'main:channel_feed',
+            args=('culture-and-context', 'public')
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' not in response.content)
+
+        # public feed
+        url = reverse(
+            'main:channel_feed_default',
+            args=('culture-and-context',)
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' not in response.content)
+
+        url = reverse(
+            'main:channel_feed',
+            args=('culture-and-context', 'company')
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
     def test_rendering_additional_links(self):
         event = Event.objects.get(title='Test event')
         event.additional_links = 'Google'

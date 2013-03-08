@@ -333,7 +333,6 @@ class EventsFeed(Feed):
 
     def items(self):
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
-
         qs = (
             Event.objects.approved()
             .filter(start_time__lt=now,
