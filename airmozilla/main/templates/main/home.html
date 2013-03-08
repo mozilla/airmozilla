@@ -2,7 +2,7 @@
 {% set front_page = (events.number == 1) %}
 
 {% block banner %}
-  {% if front_page and channel.slug == 'main' %}
+  {% if front_page and channel.slug == 'main' and not tags %}
     {% include 'main/_banner_large.html' %}
   {% else %}
     {% include 'main/_banner_small.html' %}

@@ -95,9 +95,10 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         elif privacy_exclude:
             live_events = live_events.exclude(**privacy_exclude)
 
-    # apply the mandatory channels filter
-    live_events = live_events.filter(channels=channels)
-    archived_events = archived_events.filter(channels=channels)
+        # apply the mandatory channels filter
+        # but only do this if it's not filtered by tags
+        live_events = live_events.filter(channels=channels)
+        archived_events = archived_events.filter(channels=channels)
 
     archived_paged = paginate(archived_events, page, 10)
     live = None
