@@ -143,12 +143,14 @@ Event summary | {{ super() }}
       <td>{{ event.submitted|js_date }}</td>
     </tr>
     {% endif %}
+    {% if event.review_comments %}
     <tr>
       <th>Review comments</th>
       <td>
         {{ event.review_comments|urlize|nl2br }}
       </td>
     </tr>
+    {% endif %}
   </table>
 
 
