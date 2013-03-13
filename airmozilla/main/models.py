@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 import os
+import unicodedata
 
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -39,6 +40,12 @@ def get_profile_safely(user, create_if_necessary=False):
 
 def _upload_path(tag):
     def _upload_path_tagged(instance, filename):
+        if isinstance(filename, unicode):
+            filename = (
+                unicodedata
+                .normalize('NFD', filename)
+                .encode('ascii', 'ignore')
+            )
         now = datetime.datetime.now()
         path = os.path.join(now.strftime('%Y'), now.strftime('%m'),
                             now.strftime('%d'))
