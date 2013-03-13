@@ -712,6 +712,65 @@ class TestEvents(ManageTestCase):
         content = json.loads(response.content)
         eq_(content, ['The Other Brilliant Title Event'])
 
+    def test_overwrite_old_slug(self):
+        # you create an event, change the slug and change it back
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_request'),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title='Launch')
+            )
+            eq_(response.status_code, 302)
+        event = Event.objects.get(slug='launch')
+        url = reverse('main:event', args=('launch',))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # now edit the slug
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title='Different title',
+                 slug='different',)
+        )
+        eq_(response.status_code, 302)
+        assert Event.objects.get(slug='different')
+
+        old_url = url
+        url = reverse('main:event', args=('different',))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        response = self.client.get(old_url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, url)
+
+        # but suppose we change our mind back
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title='Launch title',
+                 slug='launch',)
+        )
+        eq_(response.status_code, 302)
+        event = Event.objects.get(slug='launch')
+
+        old_url = url
+        url = reverse('main:event', args=('launch',))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        response = self.client.get(old_url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, url)
+
+        event.delete()
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        response = self.client.get(old_url)
+        eq_(response.status_code, 404)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):

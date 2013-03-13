@@ -289,6 +289,9 @@ class Event(models.Model):
             ('add_event_scheduled', 'Can create events with scheduled status')
         )
 
+    def __unicode__(self):
+        return self.title
+
     def is_upcoming(self):
         return (self.archive_time is None and
                 self.start_time > _get_live_time())
@@ -356,6 +359,9 @@ class EventOldSlug(models.Model):
     """Used to permanently redirect old URLs to the new slug location."""
     event = models.ForeignKey(Event, db_index=True)
     slug = models.SlugField(max_length=215, unique=True, db_index=True)
+
+    def __unicode__(self):
+        return "%r -> %r" % (self.slug, self.event.slug)
 
 
 class Approval(models.Model):

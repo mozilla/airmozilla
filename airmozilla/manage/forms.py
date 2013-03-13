@@ -12,7 +12,6 @@ from airmozilla.main.models import (
     Approval,
     Category,
     Event,
-    EventOldSlug,
     Location,
     Participant,
     Tag,
@@ -142,8 +141,7 @@ class EventRequestForm(BaseModelForm):
     def clean_slug(self):
         """Enforce unique slug across current slugs and old slugs."""
         slug = self.cleaned_data['slug']
-        if (Event.objects.filter(slug=slug).exclude(pk=self.instance.id)
-                or EventOldSlug.objects.filter(slug=slug)):
+        if Event.objects.filter(slug=slug).exclude(pk=self.instance.id):
             raise forms.ValidationError('This slug is already in use.')
         return slug
 
