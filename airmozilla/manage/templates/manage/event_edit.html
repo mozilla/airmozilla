@@ -5,6 +5,21 @@
   Editing event "{{ event.title }}"
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('manage/css/event-edit.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/event-edit.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
 {% block manage_content %}
   <div class="event-status span4 well">
     <strong>Event status: {{ event.status }}</strong>
