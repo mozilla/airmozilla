@@ -14,7 +14,7 @@ from django.conf import settings
 from django.contrib.sites.models import RequestSite
 
 from funfactory.urlresolvers import reverse
-from airmozilla.main.models import SuggestedEvent, Event
+from airmozilla.main.models import SuggestedEvent, Event, Channel
 from . import forms
 
 
@@ -46,6 +46,9 @@ def start(request):
                 user=request.user,
                 title=form.cleaned_data['title'],
                 slug=slug,
+            )
+            event.channels.add(
+                Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
             )
             # XXX use next_url() instead?
             url = reverse('suggest:description', args=(event.pk,))

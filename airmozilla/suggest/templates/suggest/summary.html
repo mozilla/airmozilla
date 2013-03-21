@@ -44,8 +44,8 @@ Event summary | {{ super() }}
     <strong>{{ event.submitted|js_date }}</strong>.</p>
 
     {% if request.user == event.user %}
-    <p>Now you can wait for it to be turned into a scheduled event or to receive
-    comments about the submission.</p>
+    <p>An Air Mozilla producer will review your event and either schedule
+    it for broadcast or request additional information from you.</p>
     <button type="submit" class="btn btn-primary submit" name="unsubmit">Retract submission</button>
     {% else %}
     <p><a href="{{ url('manage:suggestions') }}#s{{ event.pk }}">Suggestions Management &raquo;</a></p>

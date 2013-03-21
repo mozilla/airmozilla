@@ -9,4 +9,5 @@ $(function() {
     $('.tooltip').tooltipster({
        position: 'top'
     });
+
 });

@@ -70,7 +70,20 @@ class DescriptionForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         super(DescriptionForm, self).__init__(*args, **kwargs)
         self.fields['description'].help_text = (
-            "Richard! Can you think of a more appropriate text here?"
+            "Write a description of your event that will entice viewers to "
+            "watch.&lt;br&gt;"
+            "An interesting description improves the chances of your "
+            "presentation being picked up by bloggers and other websites."
+            "&lt;br&gt;"
+            "Please phrase your description in the present tense. "
+        )
+        self.fields['short_description'].help_text = (
+            "This Short Description is used in public feeds and tweets.  "
+            "&lt;br&gt;If your event is non-public be careful "
+            "&lt;b&gt;not to "
+            "disclose sensitive information here&lt;/b&gt;."
+            "&lt;br&gt;If left blank the system will use the first few "
+            "words of the description above."
         )
 
 
@@ -102,6 +115,26 @@ class DetailsForm(BaseModelForm):
                 tags_formatted = tag_format(event.tags.all())
                 self.initial['tags'] = tags_formatted
 
+        self.fields['location'].help_text = (
+            "Choose an Air Mozilla origination point. &lt;br&gt;"
+            "If the location of your event isn't on the list, "
+            "choose Live Remote.  &lt;br&gt;"
+            "Note that live remote dates and times are UTC."
+        )
+        self.fields['tags'].help_text = (
+            "Enter some keywords to help viewers find the recording of your "
+            "event. &lt;br&gt;Press return between keywords"
+        )
+        self.fields['channels'].help_text = (
+            "Should your event appear in one or more particular "
+            "Air Mozilla Channels? &lt;br&gt;If in doubt, select Main."
+        )
+        self.fields['additional_links'].help_text = (
+            "If you have links to slides, the presenter's blog, or other "
+            "relevant links, list them here and they will appear on "
+            "the event page."
+        )
+
     def clean_tags(self):
         tags = self.cleaned_data['tags']
         split_tags = [t.strip() for t in tags.split(',') if t.strip()]
@@ -126,6 +159,13 @@ class PlaceholderForm(BaseModelForm):
         model = SuggestedEvent
         fields = ('placeholder_img',)
 
+    def __init__(self, *args, **kwargs):
+        super(PlaceholderForm, self).__init__(*args, **kwargs)
+        self.fields['placeholder_img'].help_text = (
+            "We need a placeholder image for your event. &lt;br&gt;"
+            "A recent head-shot of the speaker is preferred. &lt;br&gt;"
+            "Placeholder images should be 200 x 200 px or larger."
+        )
 
 #class ParticipantsForm(BaseModelForm):
 #

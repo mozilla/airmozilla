@@ -47,4 +47,15 @@ $(function() {
     $('#id_category').select2();
     $('#id_channels').select2();
 
+    $('div.select2-container').each(function() {
+        var $controls = $(this).parents('.control-group');
+        var help_text = $('p.help-block', $controls).text();
+
+        if (help_text && $.trim(help_text)) {
+            $(this).attr('title', help_text).tooltipster({
+               position: 'right'
+            });
+        }
+    });
+
 });

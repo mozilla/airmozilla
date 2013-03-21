@@ -6,7 +6,7 @@
     ('auth:logout', 'Sign out', '', 'icon-off', True, ''),
 
       ('', 'Event Tools', '', '', perms.main.add_event, ''),
-    ('manage:event_request', 'Event request', 'erequest', 'icon-calendar',
+    ('manage:event_request', 'Initiate event', 'erequest', 'icon-calendar',
      perms.main.add_event, ''),
     ('manage:participants', 'Participants', 'part_edit', 'icon-picture',
      perms.main.change_participant, '%s participant(s) need clearing'),
@@ -14,7 +14,7 @@
      perms.main.change_approval, '%s event(s) requiring your approval'),
     ('manage:events', 'Event manager', 'events', 'icon-facetime-video',
      perms.main.change_event, '%s new unapproved or unscheduled event(s)'),
-    ('manage:suggestions', 'Event suggestions', 'suggestions', 'icon-question-sign',
+    ('manage:suggestions', 'Event requests', 'suggestions', 'icon-question-sign',
      perms.main.add_event, '%s new suggested event(s)'),
 
     ('', 'Users and groups', '', '', perms.auth.change_user, ''),

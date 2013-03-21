@@ -2,7 +2,7 @@
 {% set page='suggest' %}
 
 {% block page_title %}
-Suggest a new event | {{ super() }}
+Request | {{ super() }}
 {% endblock %}
 
 {% block banner %}
@@ -32,7 +32,7 @@ Suggest a new event | {{ super() }}
 
 {% for event in suggestions %}
   {% if loop.first %}
-  <h2 class="section-title">Incomplete event suggestions</h2>
+  <h2 class="section-title">Pending Event Requests</h2>
   <table class="suggestions">
     <thead>
       <tr>
@@ -81,14 +81,14 @@ Suggest a new event | {{ super() }}
 {% endfor %}
 
 
-  <h2 class="section-title">Suggest a new event</h2>
+  <h2 class="section-title">Schedule an Event</h2>
   <h3 class="section-sub-title">What are you going to call it?</h3>
 
   {% include 'suggest/_default_form.html' %}
 
   <p class="start-tooltip">
-  Once you've picked a suitable title you'll proceed to fill in
-  all the other various details about your suggested event.
+  Your event's title will appear in public feeds.
+  Titles for non-public events <b>should <i>not</i> contain confidential information</b>.
   </p>
 
 {% endblock %}
