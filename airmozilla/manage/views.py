@@ -1162,3 +1162,51 @@ def _email_about_rejected_suggestion(event, request):
         emails
     )
     email.send()
+
+
+@staff_required
+@permission_required('main.change_event')
+def tags(request):
+    if request.GET.get('clear'):
+        return redirect(reverse('manage:tags'))
+    tags = Tag.objects.all()
+    search = request.GET.get('search', '').strip()
+    if search:
+        tags = tags.filter(name__icontains=search)
+    paged = paginate(tags, request.GET.get('page'), 10)
+    data = {
+        'paginate': paged,
+        'search': search,
+    }
+    return render(request, 'manage/tags.html', data)
+
+
+@staff_required
+@permission_required('main.change_event')
+@cancel_redirect('manage:tags')
+@transaction.commit_on_success
+def tag_edit(request, id):
+    tag = get_object_or_404(Tag, id=id)
+    if request.method == 'POST':
+        form = forms.TagEditForm(request.POST, instance=tag)
+        if form.is_valid():
+            form.save()
+            messages.info(request, 'Tag "%s" saved.' % tag)
+            return redirect('manage:tags')
+    else:
+        form = forms.TagEditForm(instance=tag)
+    return render(request, 'manage/tag_edit.html', {'form': form,
+                                                    'tag': tag})
+
+
+@staff_required
+@permission_required('main.change_event')
+@transaction.commit_on_success
+def tag_remove(request, id):
+    if request.method == 'POST':
+        tag = get_object_or_404(Tag, id=id)
+        for event in Event.objects.filter(tags=tag):
+            event.tags.remove(tag)
+        messages.info(request, 'Tag "%s" removed.' % tag.name)
+        tag.delete()
+    return redirect(reverse('manage:tags'))

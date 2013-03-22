@@ -1135,6 +1135,56 @@ class TestLocations(ManageTestCase):
         eq_(data['timezone'], 'US/Pacific')
 
 
+class TestTags(ManageTestCase):
+    def test_tags(self):
+        """Tag management pages return successfully."""
+        response = self.client.get(reverse('manage:tags'))
+        eq_(response.status_code, 200)
+
+    def test_tag_remove(self):
+        """Removing a tag works correctly and leaves associated events
+           with null tags."""
+        event = Event.objects.get(id=22)
+        tag = Tag.objects.get(id=1)
+        assert tag in event.tags.all()
+        event.tags.add(Tag.objects.create(name='othertag'))
+        eq_(event.tags.all().count(), 2)
+        self._delete_test(tag, 'manage:tag_remove', 'manage:tags')
+        event = Event.objects.get(id=22)
+        eq_(event.tags.all().count(), 1)
+
+    def test_tag_edit(self):
+        """Test tag editor; timezone switch works correctly."""
+        tag = Tag.objects.get(id=1)
+        url = reverse('manage:tag_edit', kwargs={'id': 1})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'name': 'different',
+        })
+        self.assertRedirects(response_ok, reverse('manage:tags'))
+        tag = Tag.objects.get(id=1)
+        eq_(tag.name, 'different')
+
+        Tag.objects.create(name='alreadyinuse')
+        response_fail = self.client.post(url, {
+            'name': 'ALREADYINUSE',
+        })
+        eq_(response_fail.status_code, 200)
+
+        # repeat
+        response_ok = self.client.post(url, {
+            'name': 'different',
+        })
+        self.assertRedirects(response_ok, reverse('manage:tags'))
+
+        # change it back
+        response_ok = self.client.post(url, {
+            'name': 'testing',
+        })
+        self.assertRedirects(response_ok, reverse('manage:tags'))
+
+
 class TestManagementRoles(ManageTestCase):
     """Basic tests to ensure management roles / permissions are working."""
     fixtures = ['airmozilla/manage/tests/main_testdata.json',

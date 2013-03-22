@@ -1,0 +1,9 @@
+{% extends 'manage/tags.html' %}
+
+{% block manage_title %}
+  Editing tag "{{ tag.name }}"
+{% endblock %}
+
+{% block manage_content %}
+  {% include 'manage/_default_form.html' %}
+{% endblock %}

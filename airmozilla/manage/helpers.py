@@ -1,7 +1,10 @@
+import cgi
+import urllib
 import textwrap
 from jingo import register
 from django.template import Context
 from django.template.loader import get_template
+from airmozilla.main.models import Event
 
 
 @register.function
@@ -22,3 +25,16 @@ def line_indent(text, indent=' ' * 4):
     return '\n'.join(textwrap.wrap(text,
                                    initial_indent=indent,
                                    subsequent_indent=indent))
+
+
+@register.function
+def count_events_with_tag(tag):
+    return Event.objects.filter(tags=tag).count()
+
+
+@register.function
+def query_string(request, **kwargs):
+    current = request.META.get('QUERY_STRING')
+    parsed = cgi.parse_qs(current)
+    parsed.update(kwargs)
+    return urllib.urlencode(parsed, True)
