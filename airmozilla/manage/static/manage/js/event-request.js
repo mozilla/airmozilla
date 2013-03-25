@@ -30,7 +30,7 @@ $(function() {
         stepHour: 1,
         stepMinute: 15,
         dateFormat: 'yy-mm-dd',
-        timeFormat: 'hh:mm'
+        timeFormat: 'HH:mm'
     });
 
     // Slider for archive time (jQuery UI)
