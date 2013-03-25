@@ -771,6 +771,49 @@ class TestEvents(ManageTestCase):
         response = self.client.get(old_url)
         eq_(response.status_code, 404)
 
+    def test_overwrite_old_slug_twice(self):
+        # based on https://bugzilla.mozilla.org/show_bug.cgi?id=850742#c3
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_request'),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title='Champagne')
+            )
+            eq_(response.status_code, 302)
+        event = Event.objects.get(slug='champagne')
+        # now edit the slug
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title=event.title,
+                 slug='somethingelse')
+        )
+
+        # back again
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title=event.title,
+                 slug='champagne')
+        )
+
+        # one last time
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title=event.title,
+                 slug='somethingelse')
+        )
+
+        url = reverse('main:event', args=('somethingelse',))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        old_url = reverse('main:event', args=('champagne',))
+        response = self.client.get(old_url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, url)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):

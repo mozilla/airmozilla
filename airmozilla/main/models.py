@@ -398,6 +398,7 @@ def event_update_slug(sender, instance, raw, *args, **kwargs):
     try:
         old = Event.objects.get(id=instance.id)
         if instance.slug != old.slug:
+            [x.delete() for x in EventOldSlug.objects.filter(slug=old.slug)]
             EventOldSlug.objects.create(slug=old.slug, event=instance)
     except Event.DoesNotExist:
         pass
