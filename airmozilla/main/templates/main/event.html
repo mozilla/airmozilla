@@ -51,7 +51,7 @@
         <img src="{{ thumb.url }}" width="{{ thumb.width }}"
              height="{{ thumb.height }}" alt="{{ event.title }}">
       {% endif %}
-      <p>{{ event.description|safe }}</p>
+      <p>{{ event.description|carefulnl2br|safe }}</p>
       {% if event.category %}
         <p>{{ _('Category') }}: {{ event.category.name }}</p>
       {% endif %}

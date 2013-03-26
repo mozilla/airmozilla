@@ -10,6 +10,8 @@ from django.db.utils import IntegrityError
 from jingo import register
 from sorl.thumbnail import get_thumbnail
 
+from airmozilla.base.utils import html_to_text
+
 
 @register.filter
 def js_date(dt, format='ddd, MMM D, YYYY, h:mma UTCZZ', enable_timeago=True):
@@ -32,9 +34,14 @@ def date_now():
 
 
 @register.function
-def short_desc(event, words=25):
+def short_desc(event, words=25, strip_html=False):
     """Takes an event object and returns a shortened description."""
-    return event.short_description or truncate_words(event.description, words)
+    if event.short_description:
+        return event.short_description
+    description = event.description
+    if strip_html:
+        description = html_to_text(description)
+    return truncate_words(description, words)
 
 
 @register.function
@@ -55,3 +62,13 @@ def thumbnail(filename, geometry, **options):
 @register.function
 def tags_query_string(tags):
     return urllib.urlencode({'tag': [x.name for x in tags]}, True)
+
+
+@register.filter
+def carefulnl2br(string):
+    # if the string contains existing paragraphs or line breaks
+    # in html...
+    if '<p' in string or '<br' in string:
+        # ...then dare not
+        return string
+    return string.replace('\n', '<br>')
