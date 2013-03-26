@@ -10,6 +10,7 @@ import json
 import subprocess
 import xml.etree.ElementTree as ET
 
+import html2text
 import pytz
 
 from django import http
@@ -234,3 +235,12 @@ def vidly_add_media(url, email=None, token_protection=None, hd=False):
     logging.error(response_content)
     # error!
     return None, response_content
+
+
+def html_to_text(html):
+    # in case the HTML doesn't already do all its newlines by
+    # paragraphs or <br> tags, then convert newlines to <br>
+    # tags
+    if not ('<p' in html or '<br' in html):
+        html = html.replace('\n\n', '<br>')
+    return html2text.html2text(html)

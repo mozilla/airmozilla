@@ -29,7 +29,7 @@ from jinja2 import Environment, meta
 
 from airmozilla.base.utils import (
     json_view, paginate, tz_apply,
-    vidly_add_media
+    vidly_add_media, html_to_text
 )
 from airmozilla.main.models import (
     Approval,
@@ -223,7 +223,7 @@ def _event_process(request, form, event):
                     'title': event.title,
                     'creator': event.creator.email,
                     'datetime': event.start_time,
-                    'description': event.description
+                    'description': html_to_text(event.description),
                 }
             )
             email = EmailMessage(subject, message,

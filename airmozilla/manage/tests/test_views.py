@@ -287,6 +287,11 @@ class TestEvents(ManageTestCase):
             'them influence the measurements on the separated pieces of '
             'the experiment. '
             '\n\n'
+            '<ul>'
+            '<li>One</li>'
+            '<li>Two</li>'
+            '</ul>'
+            '\n\n'
             'Baskin & Robbins'
         )
 
@@ -309,6 +314,8 @@ class TestEvents(ManageTestCase):
         ok_(event.title in email_sent.subject)
         ok_(reverse('manage:approvals') in email_sent.body)
         ok_('Baskin & Robbins' in email_sent.body)  # & not &amp;
+        ok_('<li>One</li>' not in email_sent.body)
+        ok_('* One\n' in email_sent.body)
         # edit it and drop the second group
         response_ok = self.client.post(
             reverse('manage:event_edit', kwargs={'id': event.id}),
