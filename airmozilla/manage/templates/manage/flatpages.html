@@ -18,7 +18,23 @@
     <tbody>
     {% for p in paginate %}
         <tr>
-            <td><a href="/pages{{ p.url }}">{{ p.url }}</a></td>
+            <td>
+              {% if p.url.startswith('sidebar_') %}
+              <code>{{ p.url }}</code>
+              {% else %}
+                {% with event=clashes_with_event(p.url) %}
+                  {% if event %}
+                    <a href="/pages{{ p.url }}">{{ p.url }}</a><br>
+                    <small>clashes with
+                    <a href="{{ url('main:event', event.slug) }}"
+                       title="{{ event.title }}"
+                       >{{ event.title|truncate(20, killwords=True) }}</a></small>
+                  {% else %}
+                    <a href="{{ p.url }}">{{ p.url }}</a>
+                  {% endif %}
+                {% endwith %}
+              {% endif %}
+            </td>
             <td>{{ p.title }}
             </td>
             <td>{{ p.content | striptags | truncate(length=70) }}

@@ -11,6 +11,7 @@ from django.core.cache import cache
 from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
 from django.template.defaultfilters import slugify
+from django.contrib.flatpages.views import flatpage
 
 from funfactory.urlresolvers import reverse
 from jingo import Template
@@ -169,8 +170,16 @@ def event(request, slug):
     try:
         event = Event.objects.get(slug=slug)
     except Event.DoesNotExist:
-        old_slug = get_object_or_404(EventOldSlug, slug=slug)
-        return redirect('main:event', slug=old_slug.event.slug)
+        try:
+            event = Event.objects.get(slug__iexact=slug)
+        except Event.DoesNotExist:
+            try:
+                old_slug = EventOldSlug.objects.get(slug=slug)
+                return redirect('main:event', slug=old_slug.event.slug)
+            except EventOldSlug.DoesNotExist:
+                # does it exist as a static page
+                return flatpage(request, slug)
+
     if not can_view_event(event, request.user):
         return redirect('main:login')
 

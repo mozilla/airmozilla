@@ -6,6 +6,7 @@ import httplib
 
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser
+from django.contrib.sites.models import Site
 from django.test import TestCase
 from django.utils.timezone import utc
 from django.conf import settings
@@ -1077,8 +1078,8 @@ class TestPages(TestCase):
         # show the featured events
         response = self.client.get('/about/')
         assert response.status_code == 200, response.status_code
-        self.assertTrue('Test event' in response.content)
-        self.assertTrue(
+        ok_('Test event' in response.content)
+        ok_(
             reverse('main:event', args=(event.slug,))
             in response.content
         )
@@ -1088,4 +1089,58 @@ class TestPages(TestCase):
         event.save()
         response = self.client.get('/about/')
         assert response.status_code == 200, response.status_code
-        self.assertTrue('Test event' not in response.content)
+        ok_('Test event' not in response.content)
+
+    def test_event_flatpage_fallback(self):
+        flatpage = FlatPage.objects.create(
+            url='/test-page',
+            title='Flat Test page',
+            content='<p>Hi</p>'
+        )
+        this_site = Site.objects.get(id=settings.SITE_ID)
+        flatpage.sites.add(this_site)
+
+        # you can always reach the flatpage by the long URL
+        response = self.client.get('/pages/test-page')
+        eq_(response.status_code, 200)
+
+        # or from the root
+        response = self.client.get('/test-page')
+        eq_(response.status_code, 301)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=('test-page',)),
+            status_code=301
+
+        )
+        response = self.client.get('/test-page/')
+        eq_(response.status_code, 200)
+        ok_('Flat Test page' in response.content)
+
+        event = Event.objects.get(slug='test-event')
+        response = self.client.get('/test-event/')
+        eq_(response.status_code, 200)
+
+        # but if the event takes on a slug that clashes with the
+        # flatpage, the flatpage will have to step aside
+        event.slug = 'test-page'
+        event.save()
+        response = self.client.get('/test-page/')
+        eq_(response.status_code, 200)
+        ok_('Flat Test page' not in response.content)
+        ok_(event.title in response.content)
+
+        # but you can still use
+        response = self.client.get('/pages/test-page')
+        eq_(response.status_code, 200)
+        ok_('Flat Test page' in response.content)
+
+        event.slug = 'other-page'
+        event.save()
+        assert EventOldSlug.objects.get(slug='test-page')
+        response = self.client.get('/test-page/')
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=('other-page',))
+        )

@@ -4,7 +4,7 @@ import textwrap
 from jingo import register
 from django.template import Context
 from django.template.loader import get_template
-from airmozilla.main.models import Event
+from airmozilla.main.models import Event, EventOldSlug
 
 
 @register.function
@@ -38,3 +38,18 @@ def query_string(request, **kwargs):
     parsed = cgi.parse_qs(current)
     parsed.update(kwargs)
     return urllib.urlencode(parsed, True)
+
+
+@register.function
+def clashes_with_event(url):
+    """used for URLs belonging to Flatpages to see if their
+    URL is possibly clashing with an event.
+    """
+    possible = url.split('/', 2)[1]
+    try:
+        return Event.objects.get(slug=possible)
+    except Event.DoesNotExist:
+        try:
+            return EventOldSlug.objects.get(slug=possible).event
+        except EventOldSlug.DoesNotExist:
+            return False

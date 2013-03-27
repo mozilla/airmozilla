@@ -821,6 +821,58 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 302)
         self.assertRedirects(response, url)
 
+    def test_event_request_with_clashing_flatpage(self):
+        FlatPage.objects.create(
+            url='/egg-plants/',
+            title='Egg Plants',
+        )
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_request'),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title='Egg Plants')
+            )
+            eq_(response.status_code, 200)
+            ok_('Form errors' in response.content)
+
+    def test_event_edit_with_clashing_flatpage(self):
+        # if you edit the event and its slug already clashes with a
+        # FlatPage, there's little we can do, the FlatPage was added
+        # after
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_request'),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title='Champagne')
+            )
+            eq_(response.status_code, 302)
+
+        FlatPage.objects.create(
+            url='/egg-plants/',
+            title='Egg Plants',
+        )
+
+        event = Event.objects.get(slug='champagne')
+        # now edit the event without changing the slug
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title="New Title",
+                 slug=event.slug)
+        )
+        # should be ok
+        eq_(response.status_code, 302)
+
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title="New Title",
+                 slug='egg-plants')
+        )
+        # should NOT be ok
+        eq_(response.status_code, 200)
+        ok_('Form errors' in response.content)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):
@@ -1452,6 +1504,19 @@ class TestFlatPages(ManageTestCase):
         flatpage = FlatPage.objects.get(id=flatpage.id)
         eq_(flatpage.content, '<p>New content</p>')
         eq_('Sidebar (bottom) Main', flatpage.title)
+
+    def test_flatpage_with_url_that_clashes(self):
+        event = Event.objects.get(slug='test-event')
+        FlatPage.objects.create(
+            url='/' + event.slug,
+            title='Some Page',
+        )
+        response = self.client.get(reverse('manage:flatpages'))
+        eq_(response.status_code, 200)
+        # there should now be a link to event it clashes with
+        ok_('/pages/%s' % event.slug in response.content)
+        event_url = reverse('main:event', args=(event.slug,))
+        ok_(event_url in response.content)
 
 
 class TestErrorAlerts(ManageTestCase):

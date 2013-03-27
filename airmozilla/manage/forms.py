@@ -4,6 +4,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.flatpages.models import FlatPage
+from django.template.defaultfilters import slugify
 
 from funfactory.urlresolvers import reverse
 
@@ -144,6 +145,28 @@ class EventRequestForm(BaseModelForm):
         if Event.objects.filter(slug=slug).exclude(pk=self.instance.id):
             raise forms.ValidationError('This slug is already in use.')
         return slug
+
+    @staticmethod
+    def _check_flatpage_slug(slug):
+        if FlatPage.objects.filter(url__startswith='/%s' % slug).count():
+            raise forms.ValidationError(
+                "The default slug for event would clash with an existing "
+                "static page with the same URL. It might destroy existing "
+                "URLs that people depend on."
+            )
+
+    def clean(self):
+        data = super(EventRequestForm, self).clean()
+        if data.get('title') and not data.get('slug'):
+            # this means you have submitted a form without being explicit
+            # about what the slug will be
+            self._check_flatpage_slug(slugify(data.get('title')))
+        elif data.get('slug'):
+            # are you trying to change it?
+            if self.instance.slug != data['slug']:
+                # apparently, you want to change to a new slug
+                self._check_flatpage_slug(data['slug'])
+        return data
 
     class Meta:
         model = Event
