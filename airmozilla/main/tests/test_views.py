@@ -1063,3 +1063,29 @@ class TestPages(TestCase):
         url = reverse('main:event', args=(event.slug,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
+
+    def test_featured_but_actively_archived_not_in_sidebar(self):
+        # See https://bugzilla.mozilla.org/show_bug.cgi?id=809147
+        event = Event.objects.get(title='Test event')
+        event.featured = True
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.archive_time = now - datetime.timedelta(hours=1)
+        event.start_time = now - datetime.timedelta(hours=2)
+        event.save()
+
+        # if you go to a static page, the sidebar will be there and
+        # show the featured events
+        response = self.client.get('/about/')
+        assert response.status_code == 200, response.status_code
+        self.assertTrue('Test event' in response.content)
+        self.assertTrue(
+            reverse('main:event', args=(event.slug,))
+            in response.content
+        )
+
+        # now, let's pretend it's not archived for another hour
+        event.archive_time = now + datetime.timedelta(hours=1)
+        event.save()
+        response = self.client.get('/about/')
+        assert response.status_code == 200, response.status_code
+        self.assertTrue('Test event' not in response.content)

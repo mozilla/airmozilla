@@ -19,8 +19,9 @@ def sidebar(request):
         # used for things like {% if event.attr == Event.ATTR1 %}
         'Event': Event,
     }
-    featured = (Event.objects.approved()
+    featured = (Event.objects.archived()
                 .filter(featured=True).order_by('-start_time'))
+
     upcoming = Event.objects.upcoming().order_by('start_time')
     # if viewing a specific page is limited by channel, apply that filtering
     # here too
