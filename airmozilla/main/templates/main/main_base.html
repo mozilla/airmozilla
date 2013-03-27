@@ -2,7 +2,7 @@
 {% set page = page|default('home') -%}
 {% set nav_main = [
     ('Home', 'main:home', 'home', True),
-    ('About', 'main:about', 'about', True),
+    ('About', '/about/', 'about', True),
     ('Channels', 'main:channels', 'channels', True),
     ('Management', 'manage:home', '', request.user.is_staff),
     ('Sign out', 'auth:logout', '', request.user.is_active),
@@ -34,7 +34,7 @@ Air Mozilla | Mozilla, in Video
         {% for title, view, id, show in nav_main %}
           {% if show %}
           <li>
-            <a href="{{ url(view) }}"
+            <a href="{% if '/' in view %}{{ view }}{% else %}{{ url(view) }}{% endif %}"
               {% if id == page %} class="current"{% endif %}>
             {{ title }}
             </a>

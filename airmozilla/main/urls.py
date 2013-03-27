@@ -23,8 +23,6 @@ urlpatterns = patterns(
         kwargs={'template': 'main/login.html'}),
     url(r'^login-failure/$', views.page, name='login_failure',
         kwargs={'template': 'main/login_failure.html'}),
-    url(r'^about/$', views.page, name='about',
-        kwargs={'template': 'main/about.html'}),
     url(r'^calendars/$', views.calendars, name='calendars'),
     url(r'^calendar/(company|contributors|public)/$',
         views.events_calendar, name='calendar'),

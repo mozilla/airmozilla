@@ -1076,6 +1076,12 @@ class TestPages(TestCase):
 
         # if you go to a static page, the sidebar will be there and
         # show the featured events
+        flatpage = FlatPage.objects.create(
+            url='/about',
+            title='About',
+            content='About this page',
+        )
+        flatpage.sites.add(Site.objects.get(id=settings.SITE_ID))
         response = self.client.get('/about/')
         assert response.status_code == 200, response.status_code
         ok_('Test event' in response.content)
