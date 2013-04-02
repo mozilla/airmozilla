@@ -147,3 +147,6 @@ VIDLY_API_URL = 'http://m.vid.ly/api/'
 # Name of the default Channel
 DEFAULT_CHANNEL_SLUG = 'main'
 DEFAULT_CHANNEL_NAME = 'Main'
+
+# How often, maximum are approval pester emails sent
+PESTER_INTERVAL_DAYS = 7  # days

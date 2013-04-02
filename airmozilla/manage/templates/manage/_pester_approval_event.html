@@ -1,0 +1,9 @@
+Title: {{ event.title }}
+Time left: {{ time_left }}
+Creator: {{ event.creator.email }}
+{% if participants %}Presenter(s): {{ participants }}{% endif %}
+Date and time: {{ event.start_time.strftime('%d %B %Y %H:%M') }}
+Location: {{ event.location }} ({{ event.location.timezone}})
+Description: {{ event.description|safe }}
+
+To approve or reject: {{ manage_url }}

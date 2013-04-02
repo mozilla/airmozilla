@@ -1,0 +1,15 @@
+You are receiving this reminder because you're part of the {{ group_names }} group.
+
+The following events need your approval:
+
+{% for text in texts %}
+
+{{ text|safe }}
+
+{% if not loop.last %}- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -{% endif %}
+
+{% endfor %}
+
+--
+{{ approvals_url }}
+Air Mozilla
