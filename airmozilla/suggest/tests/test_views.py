@@ -29,7 +29,7 @@ class TestPages(TestCase):
         assert self.client.login(username='fake', password='fake')
 
     def _make_suggested_event(self,
-                              title='Cool Title',
+                              title="Cool O'Title",
                               slug='cool-title',
                               description='Some long description',
                               short_description='Short description',
@@ -383,7 +383,7 @@ class TestPages(TestCase):
         url = reverse('suggest:summary', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Cool Title' in response.content)
+        ok_("Cool O&#39;Title" in response.content)
         ok_('cool-title' in response.content)
         ok_('Some long description' in response.content)
         ok_('Short description' in response.content)
@@ -491,6 +491,7 @@ class TestPages(TestCase):
         ok_('richard@mozilla.com' in email_sent.recipients())
         ok_('zandr@mozilla.com' in email_sent.recipients())
         ok_('US/Pacific' in email_sent.body)
+        ok_(event.user.email in email_sent.body)
         ok_(event.title in email_sent.body)
         ok_(event.location.name in email_sent.body)
         ok_('12:00' in email_sent.body)
