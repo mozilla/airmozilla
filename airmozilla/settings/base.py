@@ -149,4 +149,4 @@ DEFAULT_CHANNEL_SLUG = 'main'
 DEFAULT_CHANNEL_NAME = 'Main'
 
 # How often, maximum are approval pester emails sent
-PESTER_INTERVAL_DAYS = 7  # days
+PESTER_INTERVAL_DAYS = 3  # days
