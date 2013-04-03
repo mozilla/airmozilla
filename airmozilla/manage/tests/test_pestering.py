@@ -3,6 +3,7 @@ import datetime
 from django.test import TestCase
 from django.core import mail
 from django.contrib.auth.models import Group, User
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.utils.timezone import utc
 
@@ -20,6 +21,12 @@ from airmozilla.main.models import (
 class PesteringTestCase(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
+    def _age_event_created(self, event, save=True):
+        extra_seconds = settings.PESTER_INTERVAL_DAYS * 24 * 60 * 60 + 1
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.created = now - datetime.timedelta(seconds=extra_seconds)
+        save and event.save()
+
     def test_nothing_happens(self):
         result = pester()
         ok_(not result)
@@ -34,6 +41,12 @@ class PesteringTestCase(TestCase):
         )
         bob.groups.add(group)
         event = Event.objects.get(title='Test event')
+
+        # first pretend that the event was created now
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.created = now
+        event.save()
+
         approval = Approval.objects.create(
             event=event,
             group=group,
@@ -42,7 +55,16 @@ class PesteringTestCase(TestCase):
         site = Site.objects.get_current()
         result = pester(dry_run=True)
         eq_(len(mail.outbox), 0)
+        eq_(len(result), 0)
+
+        # nothing because the event is too new
+        # let's pretend it's older
+        self._age_event_created(event)
+
+        result = pester(dry_run=True)
+        eq_(len(mail.outbox), 0)
         eq_(len(result), 1)
+
         email, subject, message = result[0]
         eq_(email, bob.email)
         ok_('[Air Mozilla]' in subject)
@@ -113,6 +135,9 @@ class PesteringTestCase(TestCase):
             location=event.location,
             creator=event.creator
         )
+        # let's pretend it's older
+        self._age_event_created(event)
+        self._age_event_created(event2)
 
         Approval.objects.create(
             event=event,

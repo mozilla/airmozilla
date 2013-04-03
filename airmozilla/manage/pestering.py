@@ -33,9 +33,15 @@ def pester(dry_run=False, force_run=False):
     # pestered about
     users = collections.defaultdict(list)
 
+    # we only want to bother with approvals of events that are
+    # of a minimum age
+    now = datetime.datetime.utcnow().replace(tzinfo=utc, microsecond=0)
+    minimum_created_date = now - datetime.timedelta(seconds=INTERVAL)
+
     approvals = (
         Approval.objects
-        .filter(processed=False)
+        .filter(processed=False,
+                event__created__lt=minimum_created_date)
         .exclude(event__status=Event.STATUS_REMOVED)
         .select_related('event', 'group')
         .order_by('event__created')  # oldest first ???
@@ -49,7 +55,6 @@ def pester(dry_run=False, force_run=False):
                 users[user].append(approval)
 
     approval_texts = {}
-    now = datetime.datetime.utcnow().replace(tzinfo=utc, microsecond=0)
 
     emails_sent = []
     for user, approvals in users.items():
