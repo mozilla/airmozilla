@@ -31,7 +31,7 @@
           {% set event = live %}
           {% include 'main/_event_privacy.html' %}
         </hgroup>
-        <p class="event-date">{{ _('Started') }} {{ live.start_time|js_date }}</p>
+        <p class="event-date">{{ _('Start time:') }} {{ live.start_time|js_date }}</p>
       </header>
       <div class="entry-summary">
         <a href="{{ href }}">
