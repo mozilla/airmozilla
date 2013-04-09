@@ -27,14 +27,17 @@ from django.contrib.sites.models import RequestSite
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 
+from airmozilla.main.helpers import short_desc
 from airmozilla.base.utils import (
     json_view, paginate, tz_apply,
-    vidly_add_media, html_to_text
+    vidly_add_media, html_to_text,
+    unhtml
 )
 from airmozilla.main.models import (
     Approval,
     Category,
     Event,
+    EventTweet,
     Location,
     Participant,
     Tag,
@@ -43,6 +46,7 @@ from airmozilla.main.models import (
     SuggestedEvent
 )
 from airmozilla.manage import forms
+from airmozilla.manage.tweeter import send_tweet
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -365,6 +369,7 @@ def event_edit(request, id):
         'form': form,
         'event': event,
         'suggested_event': None,
+        'tweets': EventTweet.objects.filter(event=event).order_by('id'),
     }
     try:
         suggested_event = SuggestedEvent.objects.get(accepted=event)
@@ -372,6 +377,82 @@ def event_edit(request, id):
     except SuggestedEvent.DoesNotExist:
         pass
     return render(request, 'manage/event_edit.html', data)
+
+
+@staff_required
+@permission_required('main.change_event')
+@transaction.commit_on_success
+def event_tweets(request, id):
+    """Summary of tweets and submission of tweets"""
+    data = {}
+    event = get_object_or_404(Event, id=id)
+
+    if request.method == 'POST':
+        if request.POST.get('cancel'):
+            tweet = get_object_or_404(
+                EventTweet,
+                pk=request.POST.get('cancel')
+            )
+            tweet.delete()
+            messages.info(request, 'Tweet cancelled')
+        elif request.POST.get('send'):
+            tweet = get_object_or_404(
+                EventTweet,
+                pk=request.POST.get('send')
+            )
+            send_tweet(tweet)
+            if tweet.error:
+                messages.warning(request, 'Failed to send tweet!')
+            else:
+                messages.info(request, 'Tweet sent!')
+        else:
+            raise NotImplementedError
+        url = reverse('manage:event_tweets', args=(event.pk,))
+        return redirect(url)
+
+    data['event'] = event
+    data['tweets'] = EventTweet.objects.filter(event=event).order_by('id')
+
+    return render(request, 'manage/event_tweets.html', data)
+
+
+@staff_required
+@permission_required('main.change_event')
+@cancel_redirect('manage:events')
+@transaction.commit_on_success
+def new_event_tweet(request, id):
+    data = {}
+    event = get_object_or_404(Event, id=id)
+
+    if request.method == 'POST':
+        form = forms.EventTweetForm(event, data=request.POST)
+        if form.is_valid():
+            event_tweet = form.save(commit=False)
+            if event_tweet.send_date:
+                assert event.location, "event must have a location"
+                tz = pytz.timezone(event.location.timezone)
+                event_tweet.send_date = tz_apply(event_tweet.send_date, tz)
+            else:
+                now = datetime.datetime.utcnow().replace(tzinfo=utc)
+                event_tweet.send_date = now
+            event_tweet.event = event
+            event_tweet.creator = request.user
+            event_tweet.save()
+            messages.info(request, 'Tweet saved')
+            url = reverse('manage:event_edit', args=(event.pk,))
+            return redirect(url)
+    else:
+        initial = {}
+        initial['text'] = unhtml(short_desc(event))
+        initial['include_placeholder'] = bool(event.placeholder_img)
+        initial['send_date'] = ''
+        form = forms.EventTweetForm(initial=initial, event=event)
+
+    data['event'] = event
+    data['form'] = form
+    data['tweets'] = EventTweet.objects.filter(event=event)
+
+    return render(request, 'manage/new_event_tweet.html', data)
 
 
 @staff_required

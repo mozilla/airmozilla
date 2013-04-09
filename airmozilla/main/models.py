@@ -302,8 +302,11 @@ class Event(models.Model):
     def is_public(self):
         return self.privacy == self.PRIVACY_PUBLIC
 
+    def is_scheduled(self):
+        return self.status == self.STATUS_SCHEDULED
+
     def needs_approval(self):
-        if self.status == self.STATUS_SCHEDULED:
+        if self.is_scheduled():
             for approval in Approval.objects.filter(event=self):
                 if approval.processed:
                     return False
@@ -362,6 +365,27 @@ class EventOldSlug(models.Model):
 
     def __unicode__(self):
         return "%r -> %r" % (self.slug, self.event.slug)
+
+
+class EventTweet(models.Model):
+    """Used for prepareing a tweet and possibly sending it later."""
+    event = models.ForeignKey(Event, db_index=True)
+    text = models.CharField(max_length=140)
+    include_placeholder = models.BooleanField(default=False)
+    creator = models.ForeignKey(User, blank=True, null=True,
+                                on_delete=models.SET_NULL)
+    # when to send it
+    send_date = models.DateTimeField(default=_get_now)
+    # when it was sent
+    sent_date = models.DateTimeField(blank=True, null=True)
+    error = models.TextField(blank=True, null=True)
+    tweet_id = models.CharField(max_length=20, blank=True, null=True)
+
+    def __unicode__(self):
+        return self.text
+
+    def __repr__(self):
+        return "<%s: %r>" % (self.__class__.__name__, self.text)
 
 
 class Approval(models.Model):

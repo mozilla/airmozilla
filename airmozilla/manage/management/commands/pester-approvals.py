@@ -3,7 +3,7 @@ from django.core.management.base import NoArgsCommand
 from airmozilla.manage.pestering import pester
 
 
-class Command(NoArgsCommand):
+class Command(NoArgsCommand):  # pragma: no cover
 
     option_list = NoArgsCommand.option_list + (
         make_option('-n', '--dry-run', action='store_true', dest='dry_run',

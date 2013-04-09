@@ -13,6 +13,7 @@ from airmozilla.main.models import (
     Approval,
     Category,
     Event,
+    EventTweet,
     Location,
     Participant,
     Tag,
@@ -253,6 +254,65 @@ class EventFindForm(BaseModelForm):
         if not Event.objects.filter(title__icontains=title):
             raise forms.ValidationError('No event with this title found.')
         return title
+
+
+class EventTweetForm(BaseModelForm):
+    class Meta:
+        model = EventTweet
+        fields = (
+            'text',
+            'include_placeholder',
+            'send_date',
+        )
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'autocomplete': 'off',
+                'data-maxlength': 140,
+                'rows': 2,
+            })
+        }
+
+    def __init__(self, event, *args, **kwargs):
+        super(EventTweetForm, self).__init__(*args, **kwargs)
+        self.fields['text'].help_text = (
+            '<b class="char-counter">140</b> characters left'
+        )
+        # it's a NOT NULL field but it defaults to NOW()
+        # in the views code
+        self.fields['send_date'].required = False
+
+        if event.tags.all():
+
+            def pack_tags(tags):
+                return '[%s]' % (','.join('"%s"' % x for x in tags))
+
+            self.fields['text'].help_text += (
+                '<br><a href="#" class="include-event-tags" '
+                'data-tags=\'%s\'>include all event tags</a>'
+                % pack_tags([x.name for x in event.tags.all()])
+            )
+
+        if event.placeholder_img:
+            from airmozilla.main.helpers import thumbnail
+            thumb = thumbnail(event.placeholder_img, '100x100')
+
+            #from sorl.thumbnail import get_thumbnail
+            self.fields['include_placeholder'].help_text = (
+                '<img src="%(url)s" alt="placeholder" class="thumbnail" '
+                'width="%(width)s" width="%(height)s">' %
+                {
+                    'url': thumb.url,
+                    'width': thumb.width,
+                    'height': thumb.height
+                }
+            )
+        else:
+            del self.fields['include_placeholder']
+
+        if event.location:
+            self.fields['send_date'].help_text = (
+                'Timezone is %s' % event.location.timezone
+            )
 
 
 class ParticipantEditForm(BaseModelForm):

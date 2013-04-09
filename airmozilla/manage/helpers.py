@@ -4,6 +4,8 @@ import textwrap
 from jingo import register
 from django.template import Context
 from django.template.loader import get_template
+from django.conf import settings
+
 from airmozilla.main.models import Event, EventOldSlug
 
 
@@ -53,3 +55,14 @@ def clashes_with_event(url):
             return EventOldSlug.objects.get(slug=possible).event
         except EventOldSlug.DoesNotExist:
             return False
+
+
+@register.function
+def full_tweet_url(tweet_id):
+    return (
+        'https://twitter.com/%s/status/%s'
+        % (
+            settings.TWITTER_USERNAME,
+            tweet_id
+        )
+    )

@@ -10,3 +10,10 @@ MOZILLIANS_API_BASE = 'https://shouldneveractuallybeused.net'
 MOZILLIANS_API_KEY = 'supersecret'
 
 VIDLY_API_URL = 'http://vidly.shouldneveractuallybeused.com/api/'
+
+# So that we never accidentally send tweets during tests
+TWITTER_CONSUMER_KEY = \
+TWITTER_CONSUMER_SECRET = \
+TWITTER_ACCESS_TOKEN = \
+TWITTER_ACCESS_TOKEN_SECRET = "test"
+TWEETER_BACKEND = None

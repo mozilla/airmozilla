@@ -22,7 +22,7 @@
 
 {% block manage_content %}
   <div class="event-status span4 well">
-    <strong>Event status: {{ event.status }}</strong>
+    <p><strong>Event status: {{ event.status }}</strong></p>
     <ul>
       {% for approval in event.approval_set.all() %}
         <li>
@@ -57,7 +57,41 @@
     </p>
     {% endif %}
 
+    <p style="margin-top:25px"><strong>Tweets:</strong></p>
+    {% for tweet in tweets %}
+      {% if loop.first %}
+      <ul>
+      {% endif %}
+      <li>
+        "{{ truncate_words(tweet.text, 10) }}"<br>
+
+        {% if tweet.sent_date %}
+          <a href="{{ full_tweet_url(tweet.tweet_id) }}">Sent {{ tweet.sent_date|js_date }}</a>
+          {% if tweet.include_placeholder %}
+          <small>(with placeholder image)</small>
+          {% endif %}
+        {% else %}
+          {% if not tweet.event.is_scheduled() %}
+            Needs to be scheduled first
+          {% elif tweet.event.needs_approval() %}
+            Needs to be approved first
+          {% else %}
+            Not yet sent
+            ({{ tweet.send_date|js_date }})
+          {% endif %}
+
+        {% endif %}
+      </li>
+      {% if loop.last %}</ul>{% endif %}
+    {% endfor %}
+
+    {% if tweets %}
+    <p><a href="{{ url('manage:event_tweets', event.pk) }}" class="btn">Manage tweets</a></p>
+    {% else %}
+    <p><a href="{{ url('manage:new_event_tweet', event.pk) }}" class="btn">Prepare a new tweet</a></p>
+    {% endif %}
   </div>
+
   {% include 'manage/_default_form_upload.html' %}
 
 {% endblock %}

@@ -122,3 +122,10 @@ MOZILLIANS_API_KEY = ''
 MOZILLIANS_API_APPNAME = 'air_mozilla'
 # optional
 #MOZILLIANS_API_BASE = 'https://mozillians.allizom.org'
+
+# needed to be able to tweet
+TWITTER_USERNAME = 'airmozilla'
+TWITTER_CONSUMER_SECRET = ''
+TWITTER_CONSUMER_KEY = ''
+TWITTER_ACCESS_TOKEN = ''
+TWITTER_ACCESS_TOKEN_SECRET = ''

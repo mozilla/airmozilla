@@ -27,6 +27,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     'django.contrib.messages',
     'django.contrib.sites',
     'django.contrib.flatpages',
+    'cronjobs',
 ]
 
 # our session storage is all memcache so using it instead of FallbackStorage

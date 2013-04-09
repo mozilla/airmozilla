@@ -1,0 +1,61 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  New Event Tweet for "{{ event.title }}"
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('manage/css/jquery-ui-1.10.1.custom.min.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/jquery-ui-1.10.1.custom.min.js') }}"></script>
+    <script src="{{ static('manage/js/jquery-ui-timepicker-addon.js') }}"></script>
+    <script src="{{ static('manage/js/event-tweets.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+{% block manage_content %}
+  <input type="hidden" name="event_edit_url" value="{{ url('manage:event_edit', event.pk) }}">
+
+  {% set count_tweets=tweets.count() %}
+  {% if count_tweets %}
+  <div class="alert alert-block">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <h4>Note!</h4>
+    <p><a href="{{ url('manage:event_tweets', event.pk) }}">
+    This event already has
+    {% if count_tweets == 1 %}a tweet{% else %}{{ count_tweets }} tweets{% endif %}</a>.
+    </p>
+  </div>
+  {% endif %}
+
+
+  {% include 'manage/_default_form.html' %}
+
+  <p><strong>About when the tweet will be sent</strong></p>
+  <p>If the event needs approval, it will not be sent until it has been approved.<br>
+  If you enter a date and time, it will not be sent till after that.<br>
+  If you don't enter a date and time and the event does not need approval, the tweet
+  will be sent as soon as you save it.</p>
+
+  <p>This event: <strong>
+  {% if not event.is_scheduled() %}
+    Needs to be scheduled first
+  {% elif event.needs_approval() %}
+    Needs to be approved first
+  {% else %}
+    Does not need approval first
+  {% endif %}
+  </strong>
+
+  </p>
+
+{% endblock %}

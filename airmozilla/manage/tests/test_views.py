@@ -22,6 +22,7 @@ from airmozilla.main.models import (
     Approval,
     Category,
     Event,
+    EventTweet,
     EventOldSlug,
     Location,
     Participant,
@@ -1710,3 +1711,231 @@ class TestSuggestions(ManageTestCase):
         ok_('You suck!' in email_sent.body)
         summary_url = reverse('suggest:summary', args=(event.pk,))
         ok_(summary_url in email_sent.body)
+
+
+class TestEventTweets(ManageTestCase):
+
+    event_base_data = {
+        'status': Event.STATUS_SCHEDULED,
+        'description': '...',
+        'participants': 'Tim Mickel',
+        'privacy': 'public',
+        'location': '1',
+        'category': '7',
+        'channels': '1',
+        'tags': 'xxx',
+        'template': '1',
+        'start_time': '2012-3-4 12:00',
+        'timezone': 'US/Pacific'
+    }
+    placeholder = 'airmozilla/manage/tests/firefox.png'
+
+    def test_prepare_new_tweet(self):
+        event = Event.objects.get(title='Test event')
+        # the event must have a real placeholder image
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_edit', args=(event.pk,)),
+                dict(self.event_base_data,
+                     title=event.title,
+                     short_description="Check out <b>This!</b>",
+                     description="Something longer",
+                     placeholder_img=fp)
+            )
+            assert response.status_code == 302, response.status_code
+
+        # on the edit page, there should be a link
+        response = self.client.get(
+            reverse('manage:event_edit', args=(event.pk,))
+        )
+        assert response.status_code == 200
+        url = reverse('manage:new_event_tweet', args=(event.pk,))
+        ok_(url in response.content)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        textarea = (
+            response.content
+            .split('<textarea')[1]
+            .split('>')[1]
+            .split('</textarea')[0]
+        )
+        eq_(textarea, 'Check out This!')
+
+        # try to submit it with longer than 140 characters
+        response = self.client.post(url, {
+            'text': 'x' * 141,
+            'include_placeholder': True,
+        })
+        eq_(response.status_code, 200)
+        assert not EventTweet.objects.all().count()
+        ok_('it has 141' in response.content)
+
+        # try again
+        response = self.client.post(url, {
+            'text': 'Bla bla #tag',
+            'include_placeholder': True,
+        })
+        print response.content
+        eq_(response.status_code, 302)
+        ok_(EventTweet.objects.all().count())
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event_tweet, = EventTweet.objects.all()
+        eq_(
+            event_tweet.send_date.replace(microsecond=0),
+            now.replace(microsecond=0)
+        )
+        ok_(not event_tweet.sent_date)
+        ok_(not event_tweet.error)
+        ok_(not event_tweet.tweet_id)
+
+    def test_event_tweets_empty(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_tweets', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+    def test_event_tweets_states(self):
+        event = Event.objects.get(title='Test event')
+        assert event in Event.objects.approved()
+        group = Group.objects.get(name='testapprover')
+        Approval.objects.create(
+            event=event,
+            group=group,
+        )
+        assert event not in Event.objects.approved()
+        url = reverse('manage:event_tweets', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        tweet = EventTweet.objects.create(
+            event=event,
+            text='Bla bla',
+            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Bla bla' in response.content)
+        ok_('Needs to be approved first' in response.content)
+        from airmozilla.main.helpers import js_date
+        ok_(
+            js_date(tweet.send_date.replace(microsecond=0))
+            not in response.content
+        )
+
+        # also check that 'Bla bla' is shown on the Edit Event page
+        edit_url = reverse('manage:event_edit', args=(event.pk,))
+        response = self.client.get(edit_url)
+        eq_(response.status_code, 200)
+        ok_('Bla bla' in response.content)
+
+        tweet.tweet_id = '1234567890'
+        tweet.sent_date = (
+            datetime.datetime.utcnow().replace(tzinfo=utc)
+            - datetime.timedelta(days=1)
+        )
+        tweet.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Bla bla' in response.content)
+        ok_(
+            'https://twitter.com/%s/status/1234567890'
+            % settings.TWITTER_USERNAME
+            in response.content
+        )
+        ok_(
+            js_date(tweet.sent_date.replace(microsecond=0))
+            in response.content
+        )
+
+        tweet.tweet_id = None
+        tweet.error = "Some error"
+        tweet.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Bla bla' in response.content)
+        ok_(
+            'https://twitter.com/%s/status/1234567890'
+            % settings.TWITTER_USERNAME
+            not in response.content
+        )
+        ok_(
+            js_date(tweet.sent_date.replace(microsecond=0))
+            in response.content
+        )
+        ok_('Failed to send' in response.content)
+
+    @patch('airmozilla.manage.views.send_tweet')
+    def test_force_send_now(self, mocked_send_tweet):
+        event = Event.objects.get(title='Test event')
+
+        tweet = EventTweet.objects.create(
+            event=event,
+            text='Bla bla',
+            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+        )
+
+        def mock_send_tweet(event_tweet):
+            event_tweet.tweet_id = '1234567890'
+            event_tweet.save()
+        mocked_send_tweet.side_effect = mock_send_tweet
+
+        url = reverse('manage:event_tweets', args=(event.pk,))
+        response = self.client.post(url, {
+            'send': tweet.pk,
+        })
+        eq_(response.status_code, 302)
+        tweet = EventTweet.objects.get(pk=tweet.pk)
+        eq_(tweet.tweet_id, '1234567890')
+
+    def test_cancel_event_tweet(self):
+        event = Event.objects.get(title='Test event')
+
+        tweet = EventTweet.objects.create(
+            event=event,
+            text='Bla bla',
+            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+        )
+
+        url = reverse('manage:event_tweets', args=(event.pk,))
+        response = self.client.post(url, {
+            'cancel': tweet.pk,
+        })
+        eq_(response.status_code, 302)
+        ok_(not EventTweet.objects.all().count())
+
+    def test_create_event_tweet_with_location_timezone(self):
+        location = Location.objects.create(
+            name='Paris',
+            timezone='Europe/Paris'
+        )
+        event = Event.objects.get(title='Test event')
+        event.location = location
+        event.save()
+
+        # the event must have a real placeholder image
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_edit', args=(event.pk,)),
+                dict(self.event_base_data,
+                     title=event.title,
+                     short_description="Check out <b>This!</b>",
+                     description="Something longer",
+                     placeholder_img=fp)
+            )
+            assert response.status_code == 302, response.status_code
+
+        url = reverse('manage:new_event_tweet', args=(event.pk,))
+        now = datetime.datetime.utcnow()
+        response = self.client.post(url, {
+            'text': 'Bla bla #tag',
+            'include_placeholder': True,
+            'send_date': now.strftime('%Y-%m-%d 12:00'),
+        })
+        eq_(response.status_code, 302)
+        event_tweet, = EventTweet.objects.all()
+        # we specified it as noon in Paris, but the save time
+        # will be UTC
+        ok_(event_tweet.send_date.hour != 12)
+        assert event_tweet.send_date.strftime('%Z') == 'UTC'

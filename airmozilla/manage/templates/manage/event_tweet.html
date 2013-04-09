@@ -1,0 +1,38 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Event Tweets for "{{ event.title }}"
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('manage/css/jquery-ui-1.10.1.custom.min.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/jquery-ui-1.10.1.custom.min.js') }}"></script>
+    <script src="{{ static('manage/js/jquery-ui-timepicker-addon.js') }}"></script>
+    <script src="{{ static('manage/js/event-tweets.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+{% block manage_content %}
+  <input type="hidden" name="event_edit_url" value="{{ url('manage:event_edit', event.pk) }}">
+
+  {% include 'manage/_default_form.html' %}
+
+  <p><strong>About when the tweet will be sent</strong></p>
+  <p>If you select a date and time, it will be sent then.<br>
+  If you select "Send after approval" it will be sent as soon as the event is approved
+  (if applicable).<br>
+  If neither, it will be sent as soon as you save it.
+  </p>
+
+
+{% endblock %}

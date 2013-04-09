@@ -1,0 +1,64 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Event Tweets for "{{ event.title }}"
+{% endblock %}
+
+
+{% block manage_content %}
+  <form action="" method="post">
+  {{ csrf() }}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Text</th>
+        <th>Sent/Sending</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tweet in tweets %}
+      <tr>
+        <td><code>{{ tweet.text }}</code></td>
+        <td>
+          {% if tweet.tweet_id %}
+            <a href="{{ full_tweet_url(tweet.tweet_id) }}"><i class="icon-ok"></i> {{ tweet.sent_date|js_date }}</a>
+          {% elif tweet.sent_date %}
+            <i class="icon-warning-sign"></i> Failed to send {{ tweet.sent_date|js_date }}
+          {% else %}
+            {% if not tweet.event.is_scheduled() %}
+              Needs to be scheduled first
+            {% elif tweet.event.needs_approval() %}
+              Needs to be approved first
+            {% else %}
+              Not yet sent
+              <i class="icon-time"></i> {{ tweet.send_date|js_date }}
+            {% endif %}
+          {% endif %}
+        </td>
+        <td>
+          <button name="send" class="btn btn-mini" value="{{ tweet.pk }}">
+            <i class="icon-forward"></i>
+            {% if tweet.sent_date %}
+            Resend now
+            {% else %}
+            Send now
+            {% endif %}
+          </button>
+          <button name="cancel" class="btn btn-danger btn-mini" value="{{ tweet.pk }}">
+            <i class="icon-trash"></i>
+            Cancel
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </form>
+
+  <p>
+    <a href="new/">Prepare a new tweet &rarr;</a><br>
+    <a href="..">&larr; Return to event</a>
+  </p>
+{% endblock %}
