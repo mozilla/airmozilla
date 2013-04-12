@@ -2,18 +2,25 @@
 # {{ header }}
 #
 
-# MAILTO=some-email-list
+# MAILTO=peterbe@mozilla.com
 
 HOME=/tmp
 
 # Every minute!
-* * * * * {{ cron }}
+#* * * * * {{ cron }}
 
 # Every hour.
-42 * * * * {{ django }} cleanup
+#42 * * * * {{ django }} cleanup
+
+# Every 5 minutes
+*/5 * * * * {{ cron }} send_unsent_tweets
+
+# Daily
+7 0 * * * {{ cron }} pester_approvals
+
 
 # Every 2 hours.
-1 */2 * * * {{ cron }} something
+#1 */2 * * * {{ cron }} something
 
 # Etc...
 
