@@ -87,7 +87,7 @@ To fire off the pestering emails about events that need approval all
 you need to do is execute this management command:
 
 ```
-$ ./manage.py pester-approvals
+$ ./manage.py cron pester_approvals
 ```
 
 That will send an emails to all people in the relevant groups. Ie.
@@ -99,3 +99,35 @@ Every time a user is pestered about an event, that gets locked for
 ``settings.PESTER_INTERVAL_DAYS`` days (at the time of writing, this
 is by default 7 days). So you can hit this management command every
 day but it will be internally locked for 7 days.
+
+
+Twitter
+-------
+
+To test tweeting locally, what you need to do is set up some fake
+authentication credentials and lastly enable a debugging backend. So,
+add this to your settings/local.py:
+
+    TWITTER_USERNAME = 'airmozilla_dev'
+    TWITTER_CONSUMER_KEY = 'something'
+    TWITTER_CONSUMER_SECRET = 'something'
+    TWITTER_ACCESS_TOKEN = 'something'
+    TWITTER_ACCESS_TOKEN_SECRET = 'something'
+
+Now, to avoid actually using HTTP to post this message to
+api.twitter.com instead add this to your settings/local.py:
+
+    TWEETER_BACKEND = 'airmozilla.manage.tweeter.ConsoleTweeter'
+
+That means that all tweets will be sent to stdout instead of actually
+being attempted.
+
+To send unsent tweets, you need to call:
+
+    ./manage.py cron send_unsent_tweets
+
+This can be called again and again and internally it will take care of
+not sending the same tweet twice.
+
+If errors occur when trying to send, the tweet will be re-attempted
+till the error finally goes away.
