@@ -1866,6 +1866,77 @@ class TestEventTweets(ManageTestCase):
         )
         ok_('Failed to send' in response.content)
 
+    def test_all_event_tweets_states(self):
+        event = Event.objects.get(title='Test event')
+        assert event in Event.objects.approved()
+        group = Group.objects.get(name='testapprover')
+        Approval.objects.create(
+            event=event,
+            group=group,
+        )
+        assert event not in Event.objects.approved()
+        url = reverse('manage:all_event_tweets')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        tweet = EventTweet.objects.create(
+            event=event,
+            text='Bla bla',
+            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Bla bla' in response.content)
+        ok_('Needs to be approved first' in response.content)
+        from airmozilla.main.helpers import js_date
+        ok_(
+            js_date(tweet.send_date.replace(microsecond=0))
+            not in response.content
+        )
+
+        # also check that 'Bla bla' is shown on the Edit Event page
+        edit_url = reverse('manage:event_edit', args=(event.pk,))
+        response = self.client.get(edit_url)
+        eq_(response.status_code, 200)
+        ok_('Bla bla' in response.content)
+
+        tweet.tweet_id = '1234567890'
+        tweet.sent_date = (
+            datetime.datetime.utcnow().replace(tzinfo=utc)
+            - datetime.timedelta(days=1)
+        )
+        tweet.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Bla bla' in response.content)
+        ok_(
+            'https://twitter.com/%s/status/1234567890'
+            % settings.TWITTER_USERNAME
+            in response.content
+        )
+        ok_(
+            js_date(tweet.sent_date.replace(microsecond=0))
+            in response.content
+        )
+
+        tweet.tweet_id = None
+        tweet.error = "Some error"
+        tweet.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Bla bla' in response.content)
+        ok_(
+            'https://twitter.com/%s/status/1234567890'
+            % settings.TWITTER_USERNAME
+            not in response.content
+        )
+        ok_(
+            js_date(tweet.sent_date.replace(microsecond=0))
+            in response.content
+        )
+        ok_('Failed to send' in response.content)
+
     @patch('airmozilla.manage.views.send_tweet')
     def test_force_send_now(self, mocked_send_tweet):
         event = Event.objects.get(title='Test event')

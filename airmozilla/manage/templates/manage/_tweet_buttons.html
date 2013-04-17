@@ -1,0 +1,12 @@
+          <button name="send" class="btn btn-mini" value="{{ tweet.pk }}">
+            <i class="icon-forward"></i>
+            {% if tweet.sent_date %}
+            Resend now
+            {% else %}
+            Send now
+            {% endif %}
+          </button>
+          <button name="cancel" class="btn btn-danger btn-mini" value="{{ tweet.pk }}">
+            <i class="icon-trash"></i>
+            Cancel
+          </button>

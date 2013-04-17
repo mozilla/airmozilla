@@ -27,12 +27,12 @@ def send_unsent_tweets():
         )
 
     now = datetime.datetime.utcnow().replace(tzinfo=utc)
-    query2 = Q(sent_date__isnull=True) | Q(error__isnull=False)
+    query = Q(sent_date__isnull=True) | Q(error__isnull=False)
     qs = (
         EventTweet.objects
         .filter(event__status=Event.STATUS_SCHEDULED)
         .filter(send_date__lte=now)
-        .filter(query2)
+        .filter(query)
         .order_by('id')
     )
 

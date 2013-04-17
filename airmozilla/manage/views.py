@@ -456,6 +456,24 @@ def new_event_tweet(request, id):
 
 
 @staff_required
+@permission_required('main.change_event')
+@transaction.commit_on_success
+def all_event_tweets(request):
+    """Summary of tweets and submission of tweets"""
+    tweets = (
+        EventTweet.objects
+        .filter()
+        .select_related('event')
+        .order_by('-send_date')
+    )
+    paged = paginate(tweets, request.GET.get('page'), 10)
+    data = {
+        'paginate': paged,
+    }
+    return render(request, 'manage/all_event_tweets.html', data)
+
+
+@staff_required
 @permission_required('main.add_event')
 @json_view
 def tag_autocomplete(request):

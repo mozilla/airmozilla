@@ -19,6 +19,8 @@ urlpatterns = patterns(
         name='event_tweets'),
     url(r'^events/(?P<id>\d+)/tweets/new/$', views.new_event_tweet,
         name='new_event_tweet'),
+    url(r'^events/all/tweets/$', views.all_event_tweets,
+        name='all_event_tweets'),
     url(r'^events/archive/(?P<id>\d+)/$', views.event_archive,
         name='event_archive'),
     url(r'^events/duplicate/(?P<duplicate_id>\d+)/$', views.event_request,

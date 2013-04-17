@@ -1,0 +1,14 @@
+          {% if tweet.tweet_id %}
+            <a href="{{ full_tweet_url(tweet.tweet_id) }}"><i class="icon-ok"></i> {{ tweet.sent_date|js_date }}</a>
+          {% elif tweet.sent_date %}
+            <i class="icon-warning-sign"></i> Failed to send {{ tweet.sent_date|js_date }}
+          {% else %}
+            {% if not tweet.event.is_scheduled() %}
+              Needs to be scheduled first
+            {% elif tweet.event.needs_approval() %}
+              Needs to be approved first
+            {% else %}
+              Not yet sent
+              <i class="icon-time"></i> {{ tweet.send_date|js_date }}
+            {% endif %}
+          {% endif %}

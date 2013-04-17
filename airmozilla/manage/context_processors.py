@@ -1,8 +1,10 @@
+from django.db.models import Q
 from airmozilla.main.models import (
     Approval,
     Event,
     Participant,
-    SuggestedEvent
+    SuggestedEvent,
+    EventTweet
 )
 
 
@@ -32,6 +34,17 @@ def badges(request):
         )
         if participants > 0:
             context['badges']['part_edit'] = participants
+
+    # Unsent tweets
+    if request.user.has_perm('main.change'):
+        tweets = (
+            EventTweet.objects.filter(
+                Q(sent_date__isnull=True) | Q(error__isnull=False)
+            )
+            .count()
+        )
+        if tweets:
+            context['badges']['tweets'] = tweets
 
     if request.user.has_perm('main.add_event'):
         suggestions = (
