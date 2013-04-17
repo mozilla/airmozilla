@@ -10,6 +10,7 @@
     <thead>
       <tr>
         <th>Name</th>
+        <th># Events using this</th>
         <th></th>
       </tr>
     </thead>
@@ -17,6 +18,7 @@
     {% for template in templates %}
       <tr>
         <td>{{ template.name }}</td>
+	<td>{{ count_events_with_template(template) }}</td>
         <td>
           <a class="btn" href="{{ url('manage:template_edit', template.id) }}">
             <i class="icon-edit"></i>

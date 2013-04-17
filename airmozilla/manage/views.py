@@ -835,8 +835,14 @@ def template_env_autofill(request):
 @staff_required
 @permission_required('main.change_template')
 def templates(request):
-    templates = Template.objects.all()
-    return render(request, 'manage/templates.html', {'templates': templates})
+    data = {}
+    data['templates'] = Template.objects.all()
+
+    def count_events_with_template(template):
+        return Event.objects.filter(template=template).count()
+
+    data['count_events_with_template'] = count_events_with_template
+    return render(request, 'manage/templates.html', data)
 
 
 @staff_required
