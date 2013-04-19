@@ -16,7 +16,7 @@ from django.utils.timezone import utc
 from funfactory.urlresolvers import reverse
 
 from nose.tools import eq_, ok_
-from mock import patch
+import mock
 
 from airmozilla.main.models import (
     Approval,
@@ -31,6 +31,8 @@ from airmozilla.main.models import (
     Tag,
     SuggestedEvent
 )
+
+from .test_vidly import SAMPLE_XML, SAMPLE_MEDIALIST_XML
 
 
 class ManageTestCase(TestCase):
@@ -566,7 +568,7 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 200)
         ok_(edit_url in response.content)
 
-    @patch('airmozilla.base.utils.urllib2')
+    @mock.patch('airmozilla.base.utils.urllib2')
     def test_vidly_url_to_shortcode(self, p_urllib2):
         event = Event.objects.get(title='Test event')
         url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
@@ -616,7 +618,7 @@ class TestEvents(ManageTestCase):
         ok_('<HD>YES</HD>' not in xml)
         ok_('<HD>NO</HD>' in xml)
 
-    @patch('airmozilla.base.utils.urllib2')
+    @mock.patch('airmozilla.base.utils.urllib2')
     def test_vidly_url_to_shortcode_with_hd(self, p_urllib2):
         event = Event.objects.get(title='Test event')
         url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
@@ -1937,7 +1939,7 @@ class TestEventTweets(ManageTestCase):
         )
         ok_('Failed to send' in response.content)
 
-    @patch('airmozilla.manage.views.send_tweet')
+    @mock.patch('airmozilla.manage.views.send_tweet')
     def test_force_send_now(self, mocked_send_tweet):
         event = Event.objects.get(title='Test event')
 
@@ -2010,3 +2012,121 @@ class TestEventTweets(ManageTestCase):
         # will be UTC
         ok_(event_tweet.send_date.hour != 12)
         assert event_tweet.send_date.strftime('%Z') == 'UTC'
+
+
+class TestVidlyMedia(ManageTestCase):
+
+    def test_vidly_media(self):
+        url = reverse('manage:vidly_media')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        event = Event.objects.get(title='Test event')
+        ok_(event.title not in response.content)
+
+        event.template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<iframe>'
+        )
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+    @mock.patch('urllib2.urlopen')
+    def test_vidly_media_with_status(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_MEDIALIST_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        url = reverse('manage:vidly_media')
+        response = self.client.get(url, {'status': 'Error'})
+        eq_(response.status_code, 200)
+
+        event = Event.objects.get(title='Test event')
+        ok_(event.title not in response.content)
+
+        event.template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<iframe>'
+        )
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        response = self.client.get(url, {'status': 'Error'})
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+    @mock.patch('urllib2.urlopen')
+    def test_vidly_media_status(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:vidly_media_status')
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        event.template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<iframe>'
+        )
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        response = self.client.get(url, {'id': 9999})
+        eq_(response.status_code, 404)
+
+        response = self.client.get(url, {'id': event.pk})
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        ok_(data['success'])
+        ok_(not data['errored'])
+
+    @mock.patch('urllib2.urlopen')
+    def test_vidly_media_info(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:vidly_media_info')
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        event.template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<iframe>'
+        )
+        event.template_environment = {'foo': 'bar'}
+        event.save()
+
+        response = self.client.get(url, {'id': 9999})
+        eq_(response.status_code, 404)
+
+        response = self.client.get(url, {'id': event.pk})
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        fields = data['fields']
+        ok_([x for x in fields if x['key'] == '*Note*'])
+
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        response = self.client.get(url, {'id': event.pk})
+        eq_(response.status_code, 200)
+
+        data = json.loads(response.content)
+        fields = data['fields']
+        ok_(
+            [x for x in fields
+             if x['key'] == 'Status' and x['value'] == 'Finished']
+        )

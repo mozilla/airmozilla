@@ -2,6 +2,7 @@ import collections
 import datetime
 import hashlib
 import functools
+import logging
 import pytz
 import re
 import uuid
@@ -47,9 +48,11 @@ from airmozilla.main.models import (
 )
 from airmozilla.manage import forms
 from airmozilla.manage.tweeter import send_tweet
+from airmozilla.manage.vidly import query as vidly_query, medialist
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
+superuser_required = user_passes_test(lambda u: u.is_superuser)
 
 STOPWORDS = (
     "a able about across after all almost also am among an and "
@@ -1315,3 +1318,100 @@ def tag_remove(request, id):
         messages.info(request, 'Tag "%s" removed.' % tag.name)
         tag.delete()
     return redirect(reverse('manage:tags'))
+
+
+@superuser_required
+def vidly_media(request):
+    data = {}
+    events = Event.objects.filter(
+        template__name__contains='Vid.ly'
+    )
+    status = request.GET.get('status')
+    if status:
+        if status not in ('New', 'Processing', 'Finished', 'Error'):
+            return HttpResponseBadRequest("Invalid 'status' value")
+
+        # make a list of all tags -> events
+        _tags = {}
+        for event in events:
+            environment = event.template_environment
+            if not environment.get('tag') or environment.get('tag') == 'None':
+                continue
+            _tags[environment['tag']] = event.id
+
+        event_ids = []
+        for tag in medialist(status):
+            try:
+                event_ids.append(_tags[tag])
+            except KeyError:
+                # it's on vid.ly but not in this database
+                logging.debug("Unknown event with tag=%r", tag)
+
+        events = events.filter(id__in=event_ids)
+
+    paged = paginate(events, request.GET.get('page'), 10)
+    data = {
+        'paginate': paged,
+        'status': status,
+    }
+    return render(request, 'manage/vidly_media.html', data)
+
+
+@superuser_required
+@json_view
+def vidly_media_status(request):
+    if not request.GET.get('id'):
+        return HttpResponseBadRequest("No 'id'")
+    event = get_object_or_404(Event, pk=request.GET['id'])
+    environment = event.template_environment
+    if not environment.get('tag') or environment.get('tag') == 'None':
+        return {}
+    tag = environment['tag']
+    cache_key = 'vidly-query-%s' % tag
+    force = request.GET.get('refresh', False)
+    if force:
+        results = None  # force a refresh
+    else:
+        results = cache.get(cache_key)
+    if not results:
+        results = vidly_query(tag)[tag]
+        cache.set(cache_key, results, 60 * 60)
+
+    _status = results.get('Status')
+    return {
+        'errored': _status == 'Error',
+        'success': _status == 'Finished',
+        'status': _status,
+    }
+
+
+@superuser_required
+@json_view
+def vidly_media_info(request):
+    if not request.GET.get('id'):
+        return HttpResponseBadRequest("No 'id'")
+    event = get_object_or_404(Event, pk=request.GET['id'])
+    environment = event.template_environment
+    if not environment.get('tag') or environment.get('tag') == 'None':
+        results = {
+            '*Note*': "Not a valid tag in template",
+            '*Template contents*': unicode(environment),
+        }
+    else:
+        tag = environment['tag']
+        cache_key = 'vidly-query-%s' % tag
+        force = request.GET.get('refresh', False)
+        if force:
+            results = None  # force a refresh
+        else:
+            results = cache.get(cache_key)
+        if not results:
+            results = vidly_query(tag)[tag]
+            cache.set(cache_key, results, 60 * 60)
+
+    fields = [
+        {'key': a, 'value': b}
+        for (a, b)
+        in sorted(results.items())
+    ]
+    return {'fields': fields}

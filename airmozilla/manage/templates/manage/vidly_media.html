@@ -1,0 +1,83 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Vid.ly Media
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/vidly-media.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  td.buttons { text-align: right; }
+  </style>
+{% endblock %}
+
+
+{% block manage_content %}
+
+<p>
+  These are all the events that use a template that has the
+  word <code>Vid.ly</code> in the name.<br>
+  {% if status %}
+  These are all videos with the status <code>{{ status }}</code>.<br>
+  You can also try:
+    <a href="?status=New">New</a> or
+    <a href="?status=Processing">Processing</a>.
+  {% else %}
+    Or, reverse the search and find <a href="?status=Error">all that have errored</a>.
+  {% endif %}
+</p>
+
+<div class="info" style="display:none">
+<p style="text-align:right">
+  <button class="btn btn-mini close-info">&times; close</button>
+</p>
+<table class="table table-bordered">
+
+</table>
+</div>
+
+  <form action="" method="post">
+  {{ csrf() }}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Status</th>
+        <th>Options</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in paginate %}
+      <tr>
+        <td><a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}">{{ truncate_words(event.title, 8) }}</a></td>
+        <td>
+          <span data-id="{{ event.pk }}" class="label">Finding out</span>
+        </td>
+        <td class="buttons">
+          <button name="info" class="btn btn-mini" value="{{ event.pk }}">
+            <i class="icon-search"></i>
+            Show info
+          </button>
+          <button name="refresh" class="btn btn-mini" value="{{ event.pk }}">
+            <i class="icon-refresh"></i>
+            Refresh
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if not status %}
+  {% include 'manage/_paginate.html' %}
+  {% endif %}
+  </form>
+
+{% endblock %}

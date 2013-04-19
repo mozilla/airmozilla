@@ -84,4 +84,10 @@ urlpatterns = patterns(
     url(r'^suggestions/$', views.suggestions, name='suggestions'),
     url(r'^suggestions/(?P<id>\d+)/$', views.suggestion_review,
         name='suggestion_review'),
+    url(r'^vidly/$', views.vidly_media,
+        name='vidly_media'),
+    url(r'^vidly/status/$', views.vidly_media_status,
+        name='vidly_media_status'),
+    url(r'^vidly/info/$', views.vidly_media_info,
+        name='vidly_media_info'),
 )
