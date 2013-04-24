@@ -1388,7 +1388,8 @@ def vidly_media(request):
 
         events = events.filter(id__in=event_ids)
 
-    paged = paginate(events, request.GET.get('page'), 20)
+    events = events.order_by('-start_time')
+    paged = paginate(events, request.GET.get('page'), 15)
     vidly_resubmit_form = forms.VidlyResubmitForm()
     data = {
         'paginate': paged,
