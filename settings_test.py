@@ -9,7 +9,7 @@ PASSWORD_HASHERS = (
 MOZILLIANS_API_BASE = 'https://shouldneveractuallybeused.net'
 MOZILLIANS_API_KEY = 'supersecret'
 
-VIDLY_API_URL = 'http://vidly.shouldneveractuallybeused.com/api/'
+VIDLY_API_URL = 'http://vid.ly.shouldneveractuallybeused.com/api/'
 
 # So that we never accidentally send tweets during tests
 TWITTER_CONSUMER_KEY = \

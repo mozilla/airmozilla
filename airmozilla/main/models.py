@@ -402,6 +402,17 @@ class Approval(models.Model):
     comment = models.TextField(blank=True)
 
 
+class VidlySubmission(models.Model):
+    event = models.ForeignKey(Event)
+    url = models.URLField()
+    submission_time = models.DateTimeField(default=_get_now)
+    tag = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(blank=True, null=True)
+    token_protection = models.BooleanField(default=False)
+    hd = models.BooleanField(default=False)
+    submission_error = models.TextField(blank=True, null=True)
+
+
 @receiver(models.signals.post_save, sender=Event)
 @receiver(models.signals.post_save, sender=Approval)
 def event_clear_cache(sender, **kwargs):

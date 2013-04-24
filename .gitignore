@@ -21,3 +21,5 @@ tmp/*
 /static/
 /media/
 /cover/
+vidlyserver/local_database.json
+vidlyserver/foo.json

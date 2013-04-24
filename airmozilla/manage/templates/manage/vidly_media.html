@@ -1,5 +1,5 @@
 {% extends 'manage/manage_base.html' %}
-{% set page='events' -%}
+{% set page='vidly_media' -%}
 
 {% block manage_title %}
   Vid.ly Media
@@ -15,7 +15,8 @@
 {% block site_css %}
   {{ super() }}
   <style>
-  td.buttons { text-align: right; }
+  th.buttons, td.buttons { width: 250px; }
+  form.resubmit { display: none; }
   </style>
 {% endblock %}
 
@@ -44,6 +45,19 @@
 </table>
 </div>
 
+  <form action="{{ url('manage:vidly_media_resubmit') }}" method="post" class="resubmit">
+  {{ csrf() }}
+  <div class="alert alert-block past-submission">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <h4>Note!</h4>
+    <p>No past submission recorded for this media.</p>
+  </div>
+
+  {{ bootstrapform(vidly_resubmit_form) }}
+  {% set submit_text = 'Re-submit' %}
+  {% include 'manage/_form_buttons.html' %}
+  </form>
+
   <form action="" method="post">
   {{ csrf() }}
   <table class="table table-striped">
@@ -51,7 +65,7 @@
       <tr>
         <th>Event</th>
         <th>Status</th>
-        <th>Options</th>
+        <th class="buttons">Options</th>
       </tr>
     </thead>
     <tbody>
@@ -62,6 +76,10 @@
           <span data-id="{{ event.pk }}" class="label">Finding out</span>
         </td>
         <td class="buttons">
+          <button name="resubmit" class="btn btn-mini" value="{{ event.pk }}">
+            <i class="icon-repeat"></i>
+            Re-submit
+          </button>
           <button name="info" class="btn btn-mini" value="{{ event.pk }}">
             <i class="icon-search"></i>
             Show info

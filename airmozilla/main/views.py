@@ -21,9 +21,11 @@ from airmozilla.main.models import (
     Location
 )
 from airmozilla.base.utils import (
-    paginate, vidly_tokenize, edgecast_tokenize, unhtml,
-    VidlyTokenizeError
+    paginate,
+    edgecast_tokenize,
+    unhtml
 )
+from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
 
 
@@ -202,7 +204,7 @@ def event(request, slug):
             'event': event,
             'request': request,
             'datetime': datetime.datetime.utcnow(),
-            'vidly_tokenize': vidly_tokenize,
+            'vidly_tokenize': vidly.tokenize,
             'edgecast_tokenize': edgecast_tokenize,
         }
         if isinstance(event.template_environment, dict):
@@ -210,7 +212,7 @@ def event(request, slug):
         template = Template(event.template.content)
         try:
             template_tagged = template.render(context)
-        except VidlyTokenizeError, msg:
+        except vidly.VidlyTokenizeError, msg:
             template_tagged = '<code style="color:red">%s</code>' % msg
 
     can_edit_event = (

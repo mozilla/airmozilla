@@ -15,6 +15,9 @@ urlpatterns = patterns(
     url(r'^groups/$', views.groups, name='groups'),
     url(r'^events/request/$', views.event_request, name='event_request'),
     url(r'^events/(?P<id>\d+)/$', views.event_edit, name='event_edit'),
+    url(r'^events/(?P<id>\d+)/vidly-submissions/$',
+        views.event_vidly_submissions,
+        name='event_vidly_submissions'),
     url(r'^events/(?P<id>\d+)/tweets/$', views.event_tweets,
         name='event_tweets'),
     url(r'^events/(?P<id>\d+)/tweets/new/$', views.new_event_tweet,
@@ -90,4 +93,6 @@ urlpatterns = patterns(
         name='vidly_media_status'),
     url(r'^vidly/info/$', views.vidly_media_info,
         name='vidly_media_info'),
+    url(r'^vidly/resubmit/$', views.vidly_media_resubmit,
+        name='vidly_media_resubmit'),
 )

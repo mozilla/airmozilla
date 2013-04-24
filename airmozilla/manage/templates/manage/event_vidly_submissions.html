@@ -1,0 +1,66 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='vidly_media' -%}
+
+{% block manage_title %}
+  Vid.ly Submissions for "{{ event.title }}"
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  td.url { font-size: 0.8em; }
+  </style>
+{% endblock %}
+
+{% block manage_content %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>URL</th>
+        <th>Submission Time</th>
+        <th>Shortcode</th>
+        <th>Email</th>
+        <th>Token</th>
+        <th>HD</th>
+        <th>Error</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for submission in paginate %}
+      <tr>
+        <td class="url">{{ submission.url }}</td>
+        <td>{{ submission.submission_time|js_date }}</td>
+        <td>
+          {% if submission.tag %}<code>{{ submission.tag }}</code>{% endif %}
+        </td>
+        <td>{{ submission.email }}</td>
+        <td>
+          {% if submission.token_protection %}
+          <span class="badge badge-success">Y</span>
+          {% else %}
+          <span class="badge badge-important">N</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if submission.hd %}
+          <span class="badge badge-success">Y</span>
+          {% else %}
+          <span class="badge badge-important">N</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if submission.submission_error %}
+          -
+          {% else %}
+          <span class="label label-important">Errors</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% include 'manage/_paginate.html' %}
+
+
+{% endblock %}

@@ -2,19 +2,14 @@ import time
 import datetime
 import re
 import urllib
-import urllib2
-import httplib
 import functools
-import logging
 import json
 import subprocess
-import xml.etree.ElementTree as ET
 
 import html2text
 import pytz
 
 from django import http
-from django.core.cache import cache
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.defaultfilters import slugify
@@ -22,10 +17,6 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 class EdgecastEncryptionError(Exception):
-    pass
-
-
-class VidlyTokenizeError(Exception):
     pass
 
 
@@ -91,73 +82,6 @@ def paginate(objects, page, count):
     return objects_paged
 
 
-def vidly_tokenize(tag, seconds):
-    cache_key = 'vidly_tokenize:%s' % tag
-    token = cache.get(cache_key)
-    if token is not None:
-        return token
-
-    query = """
-    <?xml version="1.0"?>
-    <Query>
-        <Action>GetSecurityToken</Action>
-        <UserID>%(user_id)s</UserID>
-        <UserKey>%(user_key)s</UserKey>
-        <MediaShortLink>%(tag)s</MediaShortLink>
-        <ExpirationTimeSeconds>%(seconds)s</ExpirationTimeSeconds>
-    </Query>
-    """
-    xml = query % {
-        'user_id': settings.VIDLY_USER_ID,
-        'user_key': settings.VIDLY_USER_KEY,
-        'tag': tag,
-        'seconds': seconds,
-    }
-
-    req = urllib2.Request(
-        settings.VIDLY_API_URL,
-        urllib.urlencode({'xml': xml.strip()})
-    )
-    try:
-        response = urllib2.urlopen(req)
-    except (urllib2.URLError, httplib.BadStatusLine):
-        logging.error('Error on opening request', exc_info=True)
-        raise VidlyTokenizeError(
-            'Temporary network error when trying to fetch Vid.ly token'
-        )
-    response_content = response.read().strip()
-    root = ET.fromstring(response_content)
-
-    success = root.find('Success')
-    token = None
-    error_code = None
-    if success is not None:
-        token = success.find('Token').text
-    else:
-        errors = root.find('Errors')
-        if errors is not None:
-            error = errors.find('Error')
-            error_code = error.find('ErrorCode').text
-
-    if error_code == '8.1':
-        # if you get a 8.1 error code it means you tried to get a
-        # security token for a vid.ly video that doesn't need to be
-        # secure.
-        cache.set(cache_key, '', 60 * 60 * 24)
-        return ''
-
-    if token:
-        # save it for a very short time.
-        # it's safer and at least protects us from possible excessive hits
-        # over the network.
-        cache.set(cache_key, token, 60)
-    else:
-        logging.error('Unable fetch token for tag %r' % tag)
-        logging.info(response_content)
-
-    return token
-
-
 def unhtml(text_with_html):
     return re.sub('<.*?>', '', text_with_html)
 
@@ -203,38 +127,6 @@ def edgecast_tokenize(seconds=None, **kwargs):
         raise EdgecastEncryptionError(err)
 
     return out.strip()
-
-
-def vidly_add_media(url, email=None, token_protection=None, hd=False):
-    root = ET.Element('query')
-    ET.SubElement(root, 'action').text = 'AddMedia'
-    ET.SubElement(root, 'userid').text = settings.VIDLY_USER_ID
-    ET.SubElement(root, 'userkey').text = settings.VIDLY_USER_KEY
-    if email:
-        ET.SubElement(root, 'notify').text = email
-    source = ET.SubElement(root, 'Source')
-    ET.SubElement(source, 'SourceFile').text = url
-    ET.SubElement(source, 'HD').text = hd and 'YES' or 'NO'
-    ET.SubElement(source, 'CDN').text = 'AWS'
-    if token_protection:
-        protect = ET.SubElement(source, 'Protect')
-        ET.SubElement(protect, 'Token')
-
-    xml = ET.tostring(root)
-    req = urllib2.Request(
-        'http://m.vid.ly/api/',
-        urllib.urlencode({'xml': xml.strip()})
-    )
-    response = urllib2.urlopen(req)
-    response_content = response.read().strip()
-    root = ET.fromstring(response_content)
-    success = root.find('Success')
-    if success is not None:
-        # great!
-        return success.find('MediaShortLink').find('ShortLink').text, None
-    logging.error(response_content)
-    # error!
-    return None, response_content
 
 
 def html_to_text(html):

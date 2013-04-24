@@ -16,17 +16,9 @@ function reset_label($element) {
       .removeClass('label-success')
       .removeClass('label-important')
       .removeClass('label-warning')
+      .removeClass('label-info')
+      .removeClass('label-inverse')
       .text('Finding out');
-}
-
-function process_response(response, $element) {
-    if (response.success) {
-        $element.text("Success").addClass('label-success');
-    } else if (response.errored) {
-        $element.text("Errored").addClass('label-important');
-    } else {
-        $element.text("Unknown").addClass('label-warning');
-    }
 }
 
 $(function() {
@@ -37,7 +29,7 @@ $(function() {
           url: '/manage/vidly/status/',
           data: {id: self.data('id')},
           success: function(response) {
-              process_response(response, self);
+              process_vidly_status_response(response, self);
           }
         });
     });
@@ -51,7 +43,7 @@ $(function() {
           url: '/manage/vidly/status/',
           data: {id: $label.data('id'), refresh: true},
           success: function(response) {
-              process_response(response, $label);
+              process_vidly_status_response(response, $label);
           }
         });
         return false;
@@ -60,22 +52,57 @@ $(function() {
     $('button[name="info"]').click(function() {
         var row = $(this).parents('tr');
         var $label = $('.label', row);
+        $('form.resubmit').hide();
         $.ajax({
           url: '/manage/vidly/info/',
           data: {id: $label.data('id'), refresh: true},
           success: function(response) {
               var table = $('.info table');
               $('tr', table).remove();
-              console.log(response);
               $.each(response.fields, function(i, field) {
                   $('<tr>')
                     .append($('<th>').text(field.key))
                     .append($('<td>').append($('<code>').text(field.value)))
                     .appendTo(table);
-                  console.log(table);
               });
               $('.info').show();
-              //process_response(response, $label);
+          }
+        });
+        return false;
+    });
+
+    $('button[name="resubmit"]').click(function() {
+        var row = $(this).parents('tr');
+        var $label = $('.label', row);
+        var csrfmiddlewaretoken = $('input[name="csrfmiddlewaretoken"]').val();
+        $('.info').hide();
+        $.ajax({
+          url: '/manage/vidly/info/',
+          data: {id: $label.data('id'), refresh: true, past_submission_info: true},
+          success: function(response) {
+              console.log(response);
+              var $form = $('form.resubmit');
+              $('input[name="id"]', $form).val($label.data('id'));
+              if (response.past_submission) {
+                  var past = response.past_submission;
+                  console.log(past);
+                  if (past.url) {
+                      $('input[name="url"]', $form).val(past.url);
+                  }
+                  if (past.email) {
+                      $('input[name="email"]', $form).val(past.email);
+                  }
+                  if (past.hd) {
+                      $('input[name="hd"]', $form).attr('checked', 'checked');
+                  }
+                  if (past.token_protection) {
+                      $('input[name="token_protection"]', $form).attr('checked', 'checked');
+                  }
+                  $('.past-submission', $form).hide();
+              } else {
+                  $('.past-submission', $form).show();
+              }
+              $('form.resubmit').show();
           }
         });
         return false;
@@ -83,6 +110,11 @@ $(function() {
 
     $('button.close-info').click(function() {
         $('.info').fadeOut(200);
+        return false;
+    });
+
+    $('form.resubmit input[name="cancel"]').click(function() {
+        $('form.resubmit').hide();
         return false;
     });
 });

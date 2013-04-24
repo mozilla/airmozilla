@@ -665,7 +665,7 @@ class TestPages(TestCase):
             in response.content
         )
 
-    @patch('airmozilla.base.utils.urllib2.urlopen')
+    @patch('airmozilla.manage.vidly.urllib2.urlopen')
     def test_event_with_vidly_token_urlerror(self, p_urlopen):
         # based on https://bugzilla.mozilla.org/show_bug.cgi?id=811476
         event = Event.objects.get(title='Test event')
@@ -688,7 +688,7 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
         ok_('Temporary network error' in response.content)
 
-    @patch('airmozilla.base.utils.urllib2.urlopen')
+    @patch('airmozilla.manage.vidly.urllib2.urlopen')
     def test_event_with_vidly_token_badstatusline(self, p_urlopen):
         # based on https://bugzilla.mozilla.org/show_bug.cgi?id=842588
         event = Event.objects.get(title='Test event')

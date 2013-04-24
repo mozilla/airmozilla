@@ -454,3 +454,7 @@ class TagEditForm(BaseModelForm):
         if Tag.objects.filter(name__iexact=name).exclude(pk=self.instance.pk):
             raise forms.ValidationError("Tag already in use")
         return name
+
+
+class VidlyResubmitForm(VidlyURLForm):
+    id = forms.IntegerField(widget=forms.widgets.HiddenInput())

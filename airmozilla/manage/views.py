@@ -8,7 +8,7 @@ import re
 import uuid
 
 from django.conf import settings
-from django.http import Http404, HttpResponseBadRequest
+from django import http
 from django.contrib.auth.decorators import (permission_required,
                                             user_passes_test)
 from django.contrib.auth.models import User, Group
@@ -30,8 +30,10 @@ from jinja2 import Environment, meta
 
 from airmozilla.main.helpers import short_desc
 from airmozilla.base.utils import (
-    json_view, paginate, tz_apply,
-    vidly_add_media, html_to_text,
+    json_view,
+    paginate,
+    tz_apply,
+    html_to_text,
     unhtml
 )
 from airmozilla.main.models import (
@@ -44,11 +46,12 @@ from airmozilla.main.models import (
     Tag,
     Template,
     Channel,
-    SuggestedEvent
+    SuggestedEvent,
+    VidlySubmission
 )
 from airmozilla.manage import forms
 from airmozilla.manage.tweeter import send_tweet
-from airmozilla.manage.vidly import query as vidly_query, medialist
+from airmozilla.manage import vidly
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -379,7 +382,34 @@ def event_edit(request, id):
         data['suggested_event'] = suggested_event
     except SuggestedEvent.DoesNotExist:
         pass
+
+    data['is_vidly_event'] = False
+    if event.template and 'Vid.ly' in event.template.name:
+        data['is_vidly_event'] = True
+        data['vidly_submissions'] = (
+            VidlySubmission.objects
+            .filter(event=event)
+            .order_by('-submission_time')
+        )
     return render(request, 'manage/event_edit.html', data)
+
+
+@superuser_required
+@transaction.commit_on_success
+def event_vidly_submissions(request, id):
+    event = get_object_or_404(Event, id=id)
+    submissions = (
+        VidlySubmission.objects
+        .filter(event=event)
+        .order_by('submission_time')
+    )
+    paged = paginate(submissions, request.GET.get('page'), 20)
+
+    data = {
+        'paginate': paged,
+        'event': event,
+    }
+    return render(request, 'manage/event_vidly_submissions.html', data)
 
 
 @staff_required
@@ -494,7 +524,7 @@ def tag_autocomplete(request):
 def event_autocomplete(request):
     form = forms.EventsAutocompleteForm(request.GET)
     if not form.is_valid():
-        return HttpResponseBadRequest(str(form.errors))
+        return http.HttpResponseBadRequest(str(form.errors))
     max_results = form.cleaned_data['max'] or 10
     query = form.cleaned_data['q']
     query = query.lower()
@@ -972,7 +1002,7 @@ def location_timezone(request):
     """Responds with the timezone for the requested Location.  Used to
        auto-fill the timezone form in event requests/edits."""
     if not request.GET.get('location'):
-        raise Http404('no location')
+        raise http.Http404('no location')
     location = get_object_or_404(Location, id=request.GET['location'])
     return {'timezone': location.timezone}
 
@@ -1110,24 +1140,33 @@ def flatpage_remove(request, id):
 @permission_required('main.change_event_others')
 @json_view
 def vidly_url_to_shortcode(request, id):
-    get_object_or_404(Event, id=id)
+    event = get_object_or_404(Event, id=id)
     form = forms.VidlyURLForm(data=request.POST)
     if form.is_valid():
         url = form.cleaned_data['url']
         email = form.cleaned_data['email']
         token_protection = form.cleaned_data['token_protection']
         hd = form.cleaned_data['hd']
-        shortcode, error = vidly_add_media(
+        shortcode, error = vidly.add_media(
             url,
             email=email,
             token_protection=token_protection,
             hd=hd,
         )
+        VidlySubmission.objects.create(
+            event=event,
+            url=url,
+            email=email,
+            token_protection=token_protection,
+            hd=hd,
+            tag=shortcode,
+            submission_error=error
+        )
         if shortcode:
             return {'shortcode': shortcode}
         else:
-            return HttpResponseBadRequest(error)
-    return HttpResponseBadRequest(str(form.errors))
+            return http.HttpResponseBadRequest(error)
+    return http.HttpResponseBadRequest(str(form.errors))
 
 
 @staff_required
@@ -1329,7 +1368,7 @@ def vidly_media(request):
     status = request.GET.get('status')
     if status:
         if status not in ('New', 'Processing', 'Finished', 'Error'):
-            return HttpResponseBadRequest("Invalid 'status' value")
+            return http.HttpResponseBadRequest("Invalid 'status' value")
 
         # make a list of all tags -> events
         _tags = {}
@@ -1340,7 +1379,7 @@ def vidly_media(request):
             _tags[environment['tag']] = event.id
 
         event_ids = []
-        for tag in medialist(status):
+        for tag in vidly.medialist(status):
             try:
                 event_ids.append(_tags[tag])
             except KeyError:
@@ -1349,10 +1388,12 @@ def vidly_media(request):
 
         events = events.filter(id__in=event_ids)
 
-    paged = paginate(events, request.GET.get('page'), 10)
+    paged = paginate(events, request.GET.get('page'), 20)
+    vidly_resubmit_form = forms.VidlyResubmitForm()
     data = {
         'paginate': paged,
         'status': status,
+        'vidly_resubmit_form': vidly_resubmit_form,
     }
     return render(request, 'manage/vidly_media.html', data)
 
@@ -1361,7 +1402,7 @@ def vidly_media(request):
 @json_view
 def vidly_media_status(request):
     if not request.GET.get('id'):
-        return HttpResponseBadRequest("No 'id'")
+        return http.HttpResponseBadRequest("No 'id'")
     event = get_object_or_404(Event, pk=request.GET['id'])
     environment = event.template_environment
     if not environment.get('tag') or environment.get('tag') == 'None':
@@ -1374,29 +1415,38 @@ def vidly_media_status(request):
     else:
         results = cache.get(cache_key)
     if not results:
-        results = vidly_query(tag)[tag]
-        cache.set(cache_key, results, 60 * 60)
+        results = vidly.query(tag)[tag]
+        expires = 60
+        # if it's healthy we might as well cache a bit
+        # longer because this is potentially used a lot
+        if results.get('Status') == 'Finished':
+            expires = 60 * 60
+        cache.set(cache_key, results, expires)
 
     _status = results.get('Status')
-    return {
-        'errored': _status == 'Error',
-        'success': _status == 'Finished',
-        'status': _status,
-    }
+    return {'status': _status}
 
 
 @superuser_required
 @json_view
 def vidly_media_info(request):
+
+    def as_fields(result):
+        return [
+            {'key': a, 'value': b}
+            for (a, b)
+            in sorted(result.items())
+        ]
+
     if not request.GET.get('id'):
-        return HttpResponseBadRequest("No 'id'")
+        return http.HttpResponseBadRequest("No 'id'")
     event = get_object_or_404(Event, pk=request.GET['id'])
     environment = event.template_environment
     if not environment.get('tag') or environment.get('tag') == 'None':
-        results = {
-            '*Note*': "Not a valid tag in template",
+        return {'fields': as_fields({
+            '*Note*': 'Not a valid tag in template',
             '*Template contents*': unicode(environment),
-        }
+        })}
     else:
         tag = environment['tag']
         cache_key = 'vidly-query-%s' % tag
@@ -1406,12 +1456,79 @@ def vidly_media_info(request):
         else:
             results = cache.get(cache_key)
         if not results:
-            results = vidly_query(tag)[tag]
-            cache.set(cache_key, results, 60 * 60)
+            results = vidly.query(tag)[tag]
+            cache.set(cache_key, results, 60)
 
-    fields = [
-        {'key': a, 'value': b}
-        for (a, b)
-        in sorted(results.items())
-    ]
-    return {'fields': fields}
+    data = {'fields': as_fields(results)}
+    data['past_submission'] = {
+        'url': results['SourceFile'],
+        'email': results['UserEmail'],
+        'hd': False,
+        'token_protection': event.privacy != Event.PRIVACY_PUBLIC,
+    }
+    if request.GET.get('past_submission_info'):
+        qs = (
+            VidlySubmission.objects
+            .filter(event=event)
+            .order_by('-submission_time')
+        )
+        for submission in qs[:1]:
+            data['past_submission'] = {
+                'url': submission.url,
+                'email': submission.email,
+                'hd': submission.hd,
+                'token_protection': submission.token_protection,
+            }
+
+    return data
+
+
+@require_POST
+@superuser_required
+def vidly_media_resubmit(request):
+    form = forms.VidlyResubmitForm(data=request.POST)
+    if not form.is_valid():
+        return http.HttpResponse(str(form.errors))
+    event = get_object_or_404(Event, pk=form.cleaned_data['id'])
+    environment = event.template_environment
+    if not environment.get('tag') or environment.get('tag') == 'None':
+        raise ValueError("Not a valid tag in template")
+
+    old_tag = environment['tag']
+    shortcode, error = vidly.add_media(
+        url=form.cleaned_data['url'],
+        email=form.cleaned_data['email'],
+        hd=form.cleaned_data['hd'],
+        token_protection=form.cleaned_data['token_protection']
+    )
+    VidlySubmission.objects.create(
+        event=event,
+        url=form.cleaned_data['url'],
+        email=form.cleaned_data['email'],
+        token_protection=form.cleaned_data['token_protection'],
+        hd=form.cleaned_data['hd'],
+        tag=shortcode,
+        submission_error=error
+    )
+
+    if error:
+        messages.warning(
+            request,
+            "Media could not be re-submitted:\n<br>\n%s" % error
+        )
+    else:
+        messages.success(
+            request,
+            "Event re-submitted to use tag '%s'" % shortcode
+        )
+        vidly.delete_media(
+            old_tag,
+            email=form.cleaned_data['email']
+        )
+        event.template_environment['tag'] = shortcode
+        event.save()
+
+        cache_key = 'vidly-query-%s' % old_tag
+        cache.delete(cache_key)
+
+    return redirect(reverse('manage:vidly_media') + '?status=Error')

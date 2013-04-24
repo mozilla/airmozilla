@@ -90,6 +90,22 @@
     {% else %}
     <p><a href="{{ url('manage:new_event_tweet', event.pk) }}" class="btn">Prepare a new tweet</a></p>
     {% endif %}
+
+    {% if is_vidly_event %}
+    <p style="margin-top:25px"><strong>Vid.ly Media</strong></p>
+    <p>
+      <span id="vidly-submission" data-id="{{ event.pk }}" class="label">Finding out</span>
+      {% if perms.main.add_vidlysubmissioN %}
+      {% set submission_count=vidly_submissions.count() %}
+      {% if submission_count %}
+        <small>
+        <a href="{{ url('manage:event_vidly_submissions', event.pk) }}"
+        >{% if submission_count == 1 %}1 Vid.ly Submission{% else %}{{ submission_count }} Vid.ly Submissions{% endif %}</a>
+        </small>
+      {% endif %}
+      {% endif %}
+    </p>
+    {% endif %}
   </div>
 
   {% include 'manage/_default_form_upload.html' %}
