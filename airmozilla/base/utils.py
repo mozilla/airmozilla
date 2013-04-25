@@ -43,6 +43,13 @@ def tz_apply(dt, tz):
     return tz.normalize(tz.localize(dt))
 
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
+
+
 # From socorro-crashstats
 def json_view(f):
     @functools.wraps(f)
@@ -52,7 +59,7 @@ def json_view(f):
             return response
         else:
             return http.HttpResponse(
-                _json_clean(json.dumps(response)),
+                _json_clean(json.dumps(response, cls=DateTimeEncoder)),
                 content_type='application/json; charset=UTF-8'
             )
     return wrapper

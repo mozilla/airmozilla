@@ -5,14 +5,33 @@
   Vid.ly Submissions for "{{ event.title }}"
 {% endblock %}
 
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/event-vidly-submissions.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
 {% block site_css %}
   {{ super() }}
   <style>
   td.url { font-size: 0.8em; }
+  div.info { display: none; }
   </style>
 {% endblock %}
 
+
 {% block manage_content %}
+
+  <div class="info">
+    <p style="text-align:right">
+      <button class="btn btn-mini close-info">&times; close</button>
+    </p>
+    <table class="table table-bordered">
+
+    </table>
+  </div>
+
   <table class="table table-striped">
     <thead>
       <tr>
@@ -36,23 +55,27 @@
         <td>{{ submission.email }}</td>
         <td>
           {% if submission.token_protection %}
-          <span class="badge badge-success">Y</span>
+          <i class="icon-ok"></i>
           {% else %}
-          <span class="badge badge-important">N</span>
+          <i class="icon-minus-sign"></i>
           {% endif %}
         </td>
         <td>
           {% if submission.hd %}
-          <span class="badge badge-success">Y</span>
+          <i class="icon-ok"></i>
           {% else %}
-          <span class="badge badge-important">N</span>
+          <i class="icon-minus-sign"></i>
           {% endif %}
         </td>
         <td>
-          {% if submission.submission_error %}
-          -
+          {% if not submission.submission_error %}
+          <i class="icon-minus-sign"></i>
           {% else %}
-          <span class="label label-important">Errors</span>
+          <i class="icon-ok"></i>
+          <button name="info" class="btn btn-mini" value="{{ submission.pk }}">
+            <i class="icon-search"></i>
+            Show info
+          </button>
           {% endif %}
         </td>
       </tr>

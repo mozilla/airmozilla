@@ -18,6 +18,10 @@ urlpatterns = patterns(
     url(r'^events/(?P<id>\d+)/vidly-submissions/$',
         views.event_vidly_submissions,
         name='event_vidly_submissions'),
+    url(r'^events/(?P<id>\d+)/vidly-submissions/submission'
+        r'/(?P<submission_id>\d+)/$',
+        views.event_vidly_submission,
+        name='event_vidly_submission'),
     url(r'^events/(?P<id>\d+)/tweets/$', views.event_tweets,
         name='event_tweets'),
     url(r'^events/(?P<id>\d+)/tweets/new/$', views.new_event_tweet,

@@ -944,6 +944,34 @@ class TestEvents(ManageTestCase):
         ok_('http://something.long/url.file' in response.content)
         ok_('abc123' in response.content)
 
+    def test_event_vidly_submission(self):
+        event = Event.objects.get(title='Test event')
+        submission = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url.file',
+            hd=True,
+            token_protection=False,
+            tag='abc123',
+            submission_error='Something went wrong',
+        )
+        url = reverse(
+            'manage:event_vidly_submission',
+            args=(event.pk, submission.pk)
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        eq_(data['submission_error'], 'Something went wrong')
+
+        # or as fields
+        response = self.client.get(url, {'as_fields': True})
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        ok_(data['fields'])
+        first_field = data['fields'][0]
+        ok_('key' in first_field)
+        ok_('value' in first_field)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):

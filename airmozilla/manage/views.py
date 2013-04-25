@@ -395,7 +395,6 @@ def event_edit(request, id):
 
 
 @superuser_required
-@transaction.commit_on_success
 def event_vidly_submissions(request, id):
     event = get_object_or_404(Event, id=id)
     submissions = (
@@ -410,6 +409,36 @@ def event_vidly_submissions(request, id):
         'event': event,
     }
     return render(request, 'manage/event_vidly_submissions.html', data)
+
+
+@superuser_required
+@json_view
+def event_vidly_submission(request, id, submission_id):
+
+    def as_fields(result):
+        return [
+            {'key': a, 'value': b}
+            for (a, b)
+            in sorted(result.items())
+        ]
+
+    event = get_object_or_404(Event, id=id)
+    submission = get_object_or_404(
+        VidlySubmission,
+        event=event,
+        id=submission_id,
+    )
+    data = {
+        'url': submission.url,
+        'email': submission.email,
+        'hd': submission.hd,
+        'token_protection': submission.token_protection,
+        'submission_error': submission.submission_error,
+        'submission_time': submission.submission_time,
+    }
+    if request.GET.get('as_fields'):
+        return {'fields': as_fields(data)}
+    return data
 
 
 @staff_required
@@ -1461,10 +1490,14 @@ def vidly_media_info(request):
             cache.set(cache_key, results, 60)
 
     data = {'fields': as_fields(results)}
+    is_hd = results.get('IsHD', False)
+    if is_hd == 'false':
+        is_hd = False
+
     data['past_submission'] = {
         'url': results['SourceFile'],
         'email': results['UserEmail'],
-        'hd': False,
+        'hd': bool(is_hd),
         'token_protection': event.privacy != Event.PRIVACY_PUBLIC,
     }
     if request.GET.get('past_submission_info'):
@@ -1487,6 +1520,9 @@ def vidly_media_info(request):
 @require_POST
 @superuser_required
 def vidly_media_resubmit(request):
+    if request.POST.get('cancel'):
+        return redirect(reverse('manage:vidly_media') + '?status=Error')
+
     form = forms.VidlyResubmitForm(data=request.POST)
     if not form.is_valid():
         return http.HttpResponse(str(form.errors))

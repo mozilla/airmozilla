@@ -80,12 +80,10 @@ $(function() {
           url: '/manage/vidly/info/',
           data: {id: $label.data('id'), refresh: true, past_submission_info: true},
           success: function(response) {
-              console.log(response);
               var $form = $('form.resubmit');
               $('input[name="id"]', $form).val($label.data('id'));
               if (response.past_submission) {
                   var past = response.past_submission;
-                  console.log(past);
                   if (past.url) {
                       $('input[name="url"]', $form).val(past.url);
                   }
@@ -113,7 +111,8 @@ $(function() {
         return false;
     });
 
-    $('form.resubmit input[name="cancel"]').click(function() {
+    $('form.resubmit button.cancel').click(function(e) {
+        e.preventDefault();
         $('form.resubmit').hide();
         return false;
     });
