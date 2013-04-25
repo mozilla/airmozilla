@@ -40,6 +40,13 @@ class PesteringTestCase(TestCase):
             is_staff=True
         )
         bob.groups.add(group)
+        mr_inactive = User.objects.create(
+            username='mr_inactive',
+            email='long@gone.com',
+            is_staff=True,
+            is_active=False,
+        )
+        mr_inactive.groups.add(group)
         event = Event.objects.get(title='Test event')
 
         # first pretend that the event was created now

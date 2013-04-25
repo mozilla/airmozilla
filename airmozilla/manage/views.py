@@ -220,7 +220,9 @@ def _event_process(request, form, event):
             group = Group.objects.get(name=approval)
             app = Approval(group=group, event=event)
             app.save()
-            emails = [u.email for u in group.user_set.all()]
+            emails = [u.email for u in group.user_set.filter(is_active=True)]
+            if not emails:
+                continue
             subject = ('[Air Mozilla] Approval requested: "%s"' %
                        event.title)
             message = render_to_string(

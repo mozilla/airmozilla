@@ -49,7 +49,13 @@ def pester(dry_run=False, force_run=False):
 
     for approval in approvals:
         # exclude those with no email
-        for user in approval.group.user_set.exclude(email=''):
+        users_qs = (
+            approval.group.user_set
+            .filter(is_active=True)
+            .exclude(email='')
+        )
+
+        for user in users_qs:
             cache_key = 'pestered-%s-%s' % (user.pk, approval.pk)
             if not cache.get(cache_key) or force_run:
                 users[user].append(approval)

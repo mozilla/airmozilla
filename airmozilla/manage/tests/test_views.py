@@ -281,6 +281,15 @@ class TestEvents(ManageTestCase):
         )
         group_user.groups.add(group2)
 
+        inactive_user = User.objects.create_user(
+            'longgone',
+            'long@gone.com',
+            'secret'
+        )
+        inactive_user.is_active = False
+        inactive_user.save()
+        inactive_user.groups.add(group2)
+
         long_description_with_html = (
             'The researchers took a "theoretical" approach instead, using '
             'something known as the no-signalling conditions. They '
@@ -316,6 +325,7 @@ class TestEvents(ManageTestCase):
         # this should send an email to all people in those groups
         email_sent = mail.outbox[-1]
         ok_(group_user.email in email_sent.to)
+        ok_(inactive_user.email not in email_sent.to)
         ok_(event.title in email_sent.subject)
         ok_(reverse('manage:approvals') in email_sent.body)
         ok_('Baskin & Robbins' in email_sent.body)  # & not &amp;
