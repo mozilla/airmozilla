@@ -6,6 +6,7 @@ import logging
 import pytz
 import re
 import uuid
+import urlparse
 
 from django.conf import settings
 from django import http
@@ -507,7 +508,13 @@ def new_event_tweet(request, id):
             return redirect(url)
     else:
         initial = {}
-        initial['text'] = unhtml(short_desc(event))
+        event_url = reverse('main:event', args=(event.slug,))
+        base_url = (
+            '%s://%s' % (request.is_secure() and 'https' or 'http',
+                         RequestSite(request).domain)
+        )
+        abs_url = urlparse.urljoin(base_url, event_url)
+        initial['text'] = unhtml('%s\n%s' % (short_desc(event), abs_url))
         initial['include_placeholder'] = bool(event.placeholder_img)
         initial['send_date'] = ''
         form = forms.EventTweetForm(initial=initial, event=event)
