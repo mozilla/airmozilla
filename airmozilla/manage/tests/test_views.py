@@ -58,10 +58,6 @@ class ManageTestCase(TestCase):
         obj = model.objects.filter(id=obj.id).exists()
         ok_(not obj)
 
-    def tearDown(self):
-        super(ManageTestCase, self).tearDown()
-        cache.clear()
-
 
 class TestPermissions(ManageTestCase):
     def test_unauthorized(self):
@@ -2111,6 +2107,10 @@ class TestEventTweets(ManageTestCase):
 
 
 class TestVidlyMedia(ManageTestCase):
+
+    def tearDown(self):
+        super(TestVidlyMedia, self).tearDown()
+        cache.clear()
 
     def test_vidly_media(self):
         url = reverse('manage:vidly_media')
