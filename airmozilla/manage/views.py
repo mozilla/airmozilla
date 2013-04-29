@@ -3,7 +3,6 @@ import datetime
 import hashlib
 import functools
 import logging
-import pytz
 import re
 import uuid
 import urlparse
@@ -26,6 +25,7 @@ from django.contrib.flatpages.models import FlatPage
 from django.utils.timezone import utc
 from django.contrib.sites.models import RequestSite
 
+import pytz
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 

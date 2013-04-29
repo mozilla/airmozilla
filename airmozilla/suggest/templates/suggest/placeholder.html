@@ -8,10 +8,28 @@ Event picture | {{ super() }}
     {% include 'main/_banner_small.html' %}
 {% endblock %}
 
+
 {% block content_main %}
   {% include 'suggest/_breadcrumb.html' %}
   <h2 class="section-title">Event picture</h2>
 
+  {% if event.placeholder_img %}
+  <div class="existing">
+    <h4>You currently have this one set</h4>
+    <p style="float:right">
+      <a href="{{ next_url(event) }}">That's fine</a>
+    </p>
+    <p>
+    {% set thumb = thumbnail(event.placeholder_img, '160x160', crop='center') %}
+    <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+         alt="{{ event.title }}" class="wp-post-image">
+    </p>
+
+  </div>
+  {% endif %}
+
+  {% set submit_text='Upload and proceed' %}
   {% include 'suggest/_default_form_upload.html' %}
+
 
 {% endblock %}

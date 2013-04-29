@@ -13,8 +13,11 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 from django.contrib.sites.models import RequestSite
 
+import pytz
 from funfactory.urlresolvers import reverse
+
 from airmozilla.main.models import SuggestedEvent, Event, Channel
+
 from . import forms
 
 
@@ -183,7 +186,12 @@ def summary(request, id):
         url = reverse('suggest:summary', args=(event.pk,))
         return redirect(url)
 
+    # The event.start_time will be in UTC, to display it as a local
+    # time use the <timezone>.normalize() function
+    tz = pytz.timezone(event.location.timezone)
     event.location_time = event.start_time
+    event.location_time = tz.normalize(event.location_time)
+
     return render(request, 'suggest/summary.html', {'event': event})
 
 

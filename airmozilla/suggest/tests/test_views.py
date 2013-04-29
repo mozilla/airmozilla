@@ -185,6 +185,7 @@ class TestPages(TestCase):
         self.assertRedirects(response, next_url)
 
     def test_upload_placeholder(self):
+        location, = Location.objects.filter(name='Mountain View')
         today = datetime.datetime.utcnow()
         event = SuggestedEvent.objects.create(
             user=self.user,
@@ -193,6 +194,7 @@ class TestPages(TestCase):
             short_description='Short Description',
             description='Description',
             start_time=today.replace(tzinfo=utc),
+            location=location
         )
         url = reverse('suggest:placeholder', args=(event.pk,))
         response = self.client.get(url)
