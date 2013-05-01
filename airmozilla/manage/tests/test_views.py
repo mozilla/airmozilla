@@ -419,7 +419,6 @@ class TestEvents(ManageTestCase):
             reverse('manage:event_edit', kwargs={'id': event.id}),
             dict(self.event_base_data, title='Tested event')
         )
-        #print response_ok.content
         self.assertRedirects(response_ok, reverse('manage:events'))
         ok_(EventOldSlug.objects.get(slug='test-event', event=event))
         event = Event.objects.get(title='Tested event')
@@ -1700,7 +1699,8 @@ class TestSuggestions(ManageTestCase):
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             #call_info='CALL INFO',
-            #additional_links='ADDITIONAL LINKS',
+            additional_links='ADDITIONAL LINKS',
+            remote_presenters='RICHARD & ZANDR',
             submitted=now,
         )
         event.tags.add(tag1)
@@ -1714,12 +1714,13 @@ class TestSuggestions(ManageTestCase):
         ok_('SLUG' in response.content)
         ok_('SHORT DESCRIPTION' in response.content)
         ok_('DESCRIPTION' in response.content)
+        ok_('ADDITIONAL LINKS' in response.content)
+        ok_('RICHARD &amp; ZANDR' in response.content)
         ok_(os.path.basename(self.placeholder) in response.content)
         ok_(category.name in response.content)
         ok_(location.name in response.content)
         ok_(event.get_privacy_display() in response.content)
         #ok_('CALL INFO' in response.content
-        #ok_('ADDITIONAL LINKS' in response.content)
 
         response = self.client.post(url)
         eq_(response.status_code, 302)
@@ -1737,6 +1738,8 @@ class TestSuggestions(ManageTestCase):
         eq_(real.location, location)
         eq_(real.start_time, event.start_time)
         eq_(real.privacy, event.privacy)
+        eq_(real.additional_links, event.additional_links)
+        eq_(real.remote_presenters, event.remote_presenters)
         assert real.tags.all()
         eq_([x.name for x in real.tags.all()],
             [x.name for x in event.tags.all()])
@@ -1884,7 +1887,6 @@ class TestEventTweets(ManageTestCase):
             'text': 'Bla bla #tag',
             'include_placeholder': True,
         })
-        print response.content
         eq_(response.status_code, 302)
         ok_(EventTweet.objects.all().count())
         now = datetime.datetime.utcnow().replace(tzinfo=utc)

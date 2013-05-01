@@ -101,6 +101,7 @@ class DetailsForm(BaseModelForm):
             'tags',
             'channels',
             'additional_links',
+            'remote_presenters',
         )
 
     def __init__(self, *args, **kwargs):
@@ -134,6 +135,13 @@ class DetailsForm(BaseModelForm):
             "relevant links, list them here and they will appear on "
             "the event page."
         )
+        self.fields['remote_presenters'].help_text = (
+            "If there will be presenters who present remotely, please enter "
+            "email addresses, names and locations about these presenters."
+        )
+
+        self.fields['additional_links'].widget.attrs['rows'] = 3
+        self.fields['remote_presenters'].widget.attrs['rows'] = 3
 
     def clean_tags(self):
         tags = self.cleaned_data['tags']

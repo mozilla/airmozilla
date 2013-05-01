@@ -1261,7 +1261,7 @@ def suggestion_review(request, id):
                     'category': event.category and event.category.pk or None,
                     'channels': [x.pk for x in event.channels.all()],
                     'call_info': event.call_info,
-                    'additional_links': event.additional_links,
+                    #'additional_links': event.additional_links,
                     'privacy': event.privacy,
                 }
                 real_event_form = forms.EventRequestForm(
@@ -1273,6 +1273,8 @@ def suggestion_review(request, id):
                     real.placeholder_img = event.placeholder_img
 
                     real.slug = event.slug
+                    real.additional_links = event.additional_links
+                    real.remote_presenters = event.remote_presenters
                     real.save()
                     [real.tags.add(x) for x in event.tags.all()]
                     [real.channels.add(x) for x in event.channels.all()]

@@ -126,6 +126,16 @@ Event summary | {{ super() }}
       <th>Additional links</th>
       <td>{{ event.additional_links|urlize|nl2br }}</td>
     </tr>
+    <tr>
+      <th>Remote presenters</th>
+      <td>
+        {% if event.remote_presenters %}
+          {{ event.remote_presenters|urlize|nl2br }}
+        {% else %}
+          none
+        {% endif %}
+      </td>
+    </tr>
 
     {% if not event.submitted %}
     <tr>

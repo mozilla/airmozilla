@@ -262,6 +262,7 @@ class Event(models.Model):
     channels = models.ManyToManyField(Channel)
     call_info = models.TextField(blank=True)
     additional_links = models.TextField(blank=True)
+    remote_presenters = models.TextField(blank=True, null=True)
 
     PRIVACY_PUBLIC = 'public'
     PRIVACY_COMPANY = 'company'
@@ -336,6 +337,7 @@ class SuggestedEvent(models.Model):
     channels = models.ManyToManyField(Channel)
     call_info = models.TextField(blank=True)
     additional_links = models.TextField(blank=True)
+    remote_presenters = models.TextField(blank=True, null=True)
 
     privacy = models.CharField(max_length=40, choices=Event.PRIVACY_CHOICES,
                                default=Event.PRIVACY_PUBLIC)
