@@ -19,8 +19,8 @@ import commander_settings as settings
 def update_code(ctx, tag):
     """Update the code to a specific git reference (tag/sha/etc)."""
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local('git fetch')
-        ctx.local('git checkout -f %s' % tag)
+        ctx.local('git checkout %s' % tag)
+        ctx.local('git pull -f')
         ctx.local('git submodule sync')
         ctx.local('git submodule update --init --recursive')
 
