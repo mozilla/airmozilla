@@ -131,3 +131,10 @@ not sending the same tweet twice.
 
 If errors occur when trying to send, the tweet will be re-attempted
 till the error finally goes away.
+
+
+Deployment
+----------
+
+Deployment of dev, stage and prod is all done using Chief. More will
+be written about it soon.
