@@ -418,6 +418,21 @@ class VidlyURLForm(forms.Form):
     token_protection = forms.BooleanField(required=False)
     hd = forms.BooleanField(required=False, label='HD')
 
+    def __init__(self, *args, **kwargs):
+        disable_token_protection = kwargs.pop(
+            'disable_token_protection',
+            False
+        )
+        super(VidlyURLForm, self).__init__(*args, **kwargs)
+        if disable_token_protection:
+            self.fields['token_protection'].widget.attrs['disabled'] = (
+                'disabled'
+            )
+            self.fields['token_protection'].required = True
+            self.fields['token_protection'].help_text = (
+                'Required for non-public events'
+            )
+
     def clean_url(self):
         value = self.cleaned_data['url']
         # because the URL when found is likely to be different from how it

@@ -510,10 +510,15 @@ class TestEvents(ManageTestCase):
         """Event archive page loads and shows correct archive_time behavior."""
         event = Event.objects.get(title='Test event')
         event.archive_time = None
+        # also, make it non-public
+        event.privacy = Event.PRIVACY_COMPANY
         event.save()
         url = reverse('manage:event_archive', kwargs={'id': event.id})
         response_ok = self.client.get(url)
         eq_(response_ok.status_code, 200)
+        # the `token_protection` should be forced on
+        ok_('Required for non-public events' in response_ok.content)
+
         response_ok = self.client.post(url, {'archive_time': '120'})
         self.assertRedirects(response_ok, reverse('manage:events'))
         event_modified = Event.objects.get(id=event.id)

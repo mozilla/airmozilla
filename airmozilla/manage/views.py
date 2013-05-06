@@ -646,8 +646,12 @@ def event_archive(request, id):
             return redirect('manage:events')
     else:
         form = forms.EventArchiveForm(instance=event)
+    initial = dict(email=request.user.email)
+    if event.privacy != Event.PRIVACY_PUBLIC:
+        initial['token_protection'] = True
     vidly_shortcut_form = forms.VidlyURLForm(
-        initial=dict(email=request.user.email)
+        initial=initial,
+        disable_token_protection=event.privacy != Event.PRIVACY_PUBLIC
     )
     return render(request, 'manage/event_archive.html',
                   {'form': form,
