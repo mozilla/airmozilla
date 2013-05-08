@@ -341,6 +341,32 @@ class TestPages(TestCase):
             sorted(['bar', 'buzz'])
         )
 
+    def test_details_timezone_formatting(self):
+        location = Location.objects.create(
+            name='Paris',
+            timezone='Europe/Paris'
+        )
+        start_time = datetime.datetime(
+            2013, 5, 6, 11, 0, 0
+        ).replace(tzinfo=utc)
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            description='Some long description',
+            short_description='',
+            location=location,
+            privacy=Event.PRIVACY_PUBLIC,
+            start_time=start_time,
+        )
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # the location is `US/Pacific` which means at 13:00 UTC,
+        # the time is expected to be 05:00 in US/Pacific
+        as_string = '2013-05-06 13:00:00'
+        ok_('value="%s"' % as_string in response.content)
+
     def test_details_default_channel(self):
         event = SuggestedEvent.objects.create(
             user=self.user,

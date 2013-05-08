@@ -6,7 +6,7 @@ from django.contrib.auth.models import Permission, User
 from django.template.defaultfilters import slugify
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.timezone import utc
+from django.utils.timezone import utc, make_naive
 from django.db import transaction
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
@@ -136,6 +136,23 @@ def details(request, id):
             url = reverse('suggest:placeholder', args=(event.pk,))
             return redirect(url)
     else:
+
+        if event.location and event.start_time:
+            # Because the modelform is going present our user
+            # without input widgets' that are datetimes in
+            # naive format, when it does this is does so using the
+            # settings.TIME_ZONE and when saved it applies the
+            # settings.TIME_ZONE back again.
+            # Normally in Django templates, this is solved with
+            #  {% timezone "Europe/Paris" %}
+            #    {{ form.as_p }}
+            #  {% endtimezone %}
+            # But that's not going to work when working with jinja
+            # so we do it manually from the view code.
+            event.start_time = make_naive(
+                event.start_time,
+                pytz.timezone(event.location.timezone)
+            )
         form = forms.DetailsForm(instance=event)
 
     data = {'form': form, 'event': event}
