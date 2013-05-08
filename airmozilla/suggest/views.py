@@ -17,6 +17,7 @@ import pytz
 from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import SuggestedEvent, Event, Channel
+from airmozilla.base.utils import tz_apply
 
 from . import forms
 
@@ -123,10 +124,15 @@ def details(request, id):
         form = forms.DetailsForm(request.POST, instance=event)
         if form.is_valid():
             event = form.save()
-            #print "\t", form.cleaned_data
-            #event.save()
-            #form.save_m2m()
-            # XXX use next_url() instead?
+            # the start_time comes to us as a string, e.g. '2014-01-01
+            # 12:00:00' and that'll be converted into '2014-01-01
+            # 12:00:00 tzinfo=UTC' automatically. But that's not what we want
+            # so we change it first.
+            event.start_time = tz_apply(
+                event.start_time,
+                pytz.timezone(event.location.timezone)
+            )
+            event.save()
             url = reverse('suggest:placeholder', args=(event.pk,))
             return redirect(url)
     else:

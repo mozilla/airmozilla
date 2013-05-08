@@ -12,7 +12,7 @@ handler500 = 'airmozilla.base.views.handler500'
 urlpatterns = patterns(
     '',
     (r'^manage/', include('airmozilla.manage.urls', namespace='manage')),
-    (r'^suggest/', include('airmozilla.suggest.urls', namespace='suggest')),
+    (r'^requests/', include('airmozilla.suggest.urls', namespace='suggest')),
     ('^(?P<path>favicon\.ico)$', 'django.views.static.serve',
      {'document_root': settings.ROOT + '/airmozilla/base/static/img'}),
     (r'', include('airmozilla.auth.urls', namespace='auth')),

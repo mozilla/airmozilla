@@ -4,6 +4,7 @@
     ('Home', 'main:home', 'home', True),
     ('About', '/about/', 'about', True),
     ('Channels', 'main:channels', 'channels', True),
+    ('Requests', 'suggest:start', 'suggest', True),
     ('Management', 'manage:home', '', request.user.is_staff),
     ('Sign out', 'auth:logout', '', request.user.is_active),
 ] -%}

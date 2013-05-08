@@ -65,6 +65,12 @@ class TestPages(TestCase):
 
         return event
 
+    def test_link_to_suggest(self):
+        start_url = reverse('suggest:start')
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_(start_url in response.content)
+
     def test_unauthorized(self):
         """ Client with no log in - should be rejected. """
         self.client.logout()
@@ -296,14 +302,8 @@ class TestPages(TestCase):
             name='bar'
         )
 
-        future = (
-            datetime.datetime(2021, 1, 1, 10, 0)
-        )
-        tz = pytz.timezone('US/Pacific')
-        future = future.replace(tzinfo=tz)
-
         data = {
-            'start_time': future.strftime('%Y-%m-%d %H:%M'),
+            'start_time': '2021-01-01 12:00:00',
             'timezone': 'US/Pacific',
             'location': mv.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,
@@ -320,12 +320,10 @@ class TestPages(TestCase):
 
         event = SuggestedEvent.objects.get(pk=event.pk)
 
-        # XXX Incomplete. I need to think about this a bit more.
-        #_fmt = '%Y/%m/%d %H:%M'
-        #eq_(
-        #    event.start_time.strftime(_fmt),
-        #    future.strftime(_fmt)
-        #)
+        # 1st January 2021 at 12:00 in US/Pacific is 20:00 in UTC
+        eq_(event.start_time.strftime('%Y-%m-%d'), '2021-01-01')
+        eq_(event.start_time.strftime('%H:%M'), '20:00')
+        eq_(event.start_time.tzname(), 'UTC')
         eq_(event.location, mv)
         eq_(event.category, category)
         eq_([x.name for x in event.tags.all()], ['foo', 'bar'])
