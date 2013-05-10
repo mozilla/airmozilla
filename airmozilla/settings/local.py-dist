@@ -129,3 +129,6 @@ TWITTER_CONSUMER_SECRET = ''
 TWITTER_CONSUMER_KEY = ''
 TWITTER_ACCESS_TOKEN = ''
 TWITTER_ACCESS_TOKEN_SECRET = ''
+
+# if you have passwords for URL tranforms
+#URL_TRANSFORM_PASSWORDS = {'encoder-commons-mtv1': ...}

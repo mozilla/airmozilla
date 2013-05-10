@@ -151,3 +151,6 @@ DEFAULT_CHANNEL_NAME = 'Main'
 
 # How often, maximum are approval pester emails sent
 PESTER_INTERVAL_DAYS = 3  # days
+
+# Where you put secure username+password combinations for example
+URL_TRANSFORM_PASSWORDS = {}

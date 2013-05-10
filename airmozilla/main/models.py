@@ -456,3 +456,26 @@ def event_consistent_times(sender, instance, raw, *arg, **kwargs):
 def participant_update_slug(sender, instance, raw, *args, **kwargs):
     if not raw and not instance.slug:
         instance.slug = unique_slugify(instance.name, [Participant])
+
+
+class URLMatch(models.Model):
+    name = models.CharField(max_length=200)
+    string = models.CharField(
+        max_length=200,
+        help_text="This matcher can contain basic regular expression "
+                  "characters like <code>*</code>, <code>^</code> (only as "
+                  "first character) and "
+                  "<code>$</code> (only as last character)."
+    )
+    use_count = models.IntegerField(default=0)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return self.name
+
+
+class URLTransform(models.Model):
+    match = models.ForeignKey(URLMatch)
+    find = models.CharField(max_length=200)
+    replace_with = models.CharField(max_length=200)
+    order = models.IntegerField(default=1)

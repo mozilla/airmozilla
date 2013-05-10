@@ -42,6 +42,8 @@
     ('', 'Other configuration', '', '', perms.flatpages.change_flatpage, ''),
     ('manage:flatpages', 'Static pages', 'flatpages', 'icon-file',
      perms.flatpages.change_flatpage, ''),
+    ('manage:url_transforms', 'URL Transforms', 'url_transforms', 'icon-retweet',
+     perms.main.change_urlmatch, ''),
 
 ] -%}
 {% block page_title %}

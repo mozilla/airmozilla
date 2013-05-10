@@ -1,3 +1,4 @@
+import re
 import pytz
 
 from django import forms
@@ -9,6 +10,7 @@ from django.template.defaultfilters import slugify
 from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm, BaseForm
+from airmozilla.manage import url_transformer
 from airmozilla.main.models import (
     Approval,
     Category,
@@ -19,7 +21,8 @@ from airmozilla.main.models import (
     Tag,
     Template,
     Channel,
-    SuggestedEvent
+    SuggestedEvent,
+    URLMatch
 )
 
 
@@ -435,14 +438,9 @@ class VidlyURLForm(forms.Form):
 
     def clean_url(self):
         value = self.cleaned_data['url']
-        # because the URL when found is likely to be different from how it
-        # instead should be accessed for vid.ly
-        if 'https://videos-origin.' in value:
-            value = value.replace('/manage/', '/serv/')
-        value = value.replace(
-            'https://videos-origin.mozilla',
-            'http://videos.mozilla'
-        )
+        value, error = url_transformer.run(value)
+        if error:
+            raise forms.ValidationError(error)
         return value
 
 
@@ -473,3 +471,24 @@ class TagEditForm(BaseModelForm):
 
 class VidlyResubmitForm(VidlyURLForm):
     id = forms.IntegerField(widget=forms.widgets.HiddenInput())
+
+
+class URLMatchForm(BaseModelForm):
+
+    class Meta:
+        model = URLMatch
+        exclude = ('use_count',)
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        if URLMatch.objects.filter(name__iexact=name):
+            raise forms.ValidationError("URL matcher name already in use")
+        return name
+
+    def clean_string(self):
+        string = self.cleaned_data['string']
+        try:
+            re.compile(string)
+        except Exception as e:
+            raise forms.ValidationError(e)
+        return string
