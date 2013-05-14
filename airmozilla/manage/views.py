@@ -1207,8 +1207,14 @@ def vidly_url_to_shortcode(request, id):
             tag=shortcode,
             submission_error=error
         )
+        url_scrubbed = url
+        for password in settings.URL_TRANSFORM_PASSWORDS.values():
+            url_scrubbed = url_scrubbed.replace(
+                password,
+                'XXXpasswordhiddenXXX'
+            )
         if shortcode:
-            return {'shortcode': shortcode}
+            return {'shortcode': shortcode, 'url': url_scrubbed}
         else:
             return http.HttpResponseBadRequest(error)
     return http.HttpResponseBadRequest(str(form.errors))

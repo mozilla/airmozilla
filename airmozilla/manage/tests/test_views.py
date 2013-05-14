@@ -636,6 +636,7 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 200)
         content = json.loads(response.content)
         eq_(content['shortcode'], '8oxv6x')
+        eq_(content['url'], 'https://www.com/')
 
         arguments = list(p_urllib2.Request.mock_calls[0])[1]
         # the first argument is the URL

@@ -5,13 +5,22 @@
   Archiving event "{{ event.title }}"
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  <style type="text/css">
+  .last-url code { font-size: 10px; }
+  </style>
+{% endblock %}
+
+
 {% block manage_content %}
 
   <div id="vidly-shortcutter">
   <h4 class="hint">Let me help!</h4>
   <p class="hint">
     <a href="#vidly-shortcutter">Automatic URL to Vid.ly converter</a><br>
-    <span class="last-result" style="display:none">Last generated code: <code></code></span>
+    <span class="last-result" style="display:none">Last generated code: <code></code></span><br>
+    <span class="last-url" style="display:none">URL submitted: <code></code></span>
   </p>
   <form class="form-horizontal" style="display:none">
     {{ csrf() }}

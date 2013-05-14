@@ -51,6 +51,8 @@ var VidlyShortcutter = (function() {
                         $('#id_template').val(vidly_template).change();
                         $('.last-result code', container).text(response.shortcode);
                         $('.last-result', container).show();
+                        $('.last-url code', container).text(response.url);
+                        $('.last-url', container).show();
                         setTimeout(function() {
                             $('#id_template_environment').val('tag=' + response.shortcode);
                         }, 1000);
