@@ -1568,11 +1568,17 @@ def vidly_media_info(request):
             .order_by('-submission_time')
         )
         for submission in qs[:1]:
+            if event.privacy != Event.PRIVACY_PUBLIC:
+                # forced
+                token_protection = True
+            else:
+                # whatever it was before
+                token_protection = submission.token_protection
             data['past_submission'] = {
                 'url': submission.url,
                 'email': submission.email,
                 'hd': submission.hd,
-                'token_protection': submission.token_protection,
+                'token_protection': token_protection,
             }
 
     return data
