@@ -40,7 +40,7 @@
             {{ event.archive_time|js_date }}
           {% else %}
             {% if perms.main.change_event_others %}
-              <a href="{{ url('manage:event_archive', event.id) }}" class="btn">
+              <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-mini">
                 <i class="icon-time"></i> Archive
               </a>
             {% else %}
@@ -73,11 +73,11 @@
             {% endif %}
         </td>
         <td>
-          <a href="{{ url('manage:event_edit', event.id) }}" class="btn">
+          <a href="{{ url('manage:event_edit', event.id) }}" class="btn btn-mini">
             <i class="icon-edit"></i> Edit
           </a>
           {% if request.user.has_perm('main.change_event_others') %}
-            <a href="{{ url('manage:event_duplicate', event.id) }}" class="btn">
+            <a href="{{ url('manage:event_duplicate', event.id) }}" class="btn btn-mini">
               <i class="icon-repeat"></i> Duplicate
             </a>
           {% endif %}
