@@ -406,7 +406,7 @@ class FlatPageEditForm(BaseModelForm):
 
 
 class VidlyURLForm(forms.Form):
-    url = forms.URLField(
+    url = forms.CharField(
         required=True,
         label='URL',
         widget=forms.widgets.TextInput(attrs={
@@ -437,7 +437,12 @@ class VidlyURLForm(forms.Form):
             )
 
     def clean_url(self):
+        # annoyingly, we can't use forms.URLField since it barfs on
+        # Basic Auth urls. Instead, let's just make some basic validation
+        # here
         value = self.cleaned_data['url']
+        if ' ' in value or '://' not in value:
+            raise forms.ValidationError('Not a valid URL')
         value, error = url_transformer.run(value)
         if error:
             raise forms.ValidationError(error)

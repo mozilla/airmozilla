@@ -65,6 +65,7 @@
     <thead>
       <tr>
         <th>Event</th>
+        <th>Template</th>
         <th>Status</th>
         <th class="buttons">Options</th>
       </tr>
@@ -73,6 +74,9 @@
       {% for event in paginate %}
       <tr>
         <td><a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}">{{ truncate_words(event.title, 8) }}</a></td>
+        <td>
+          {{ event.template.name }}
+        </td>
         <td>
           <span data-id="{{ event.pk }}" class="label">Finding out</span>
         </td>

@@ -1190,7 +1190,11 @@ def vidly_url_to_shortcode(request, id):
     if form.is_valid():
         url = form.cleaned_data['url']
         email = form.cleaned_data['email']
-        token_protection = form.cleaned_data['token_protection']
+        if event.privacy != Event.PRIVACY_PUBLIC:
+            # forced
+            token_protection = True
+        else:
+            token_protection = form.cleaned_data['token_protection']
         hd = form.cleaned_data['hd']
         shortcode, error = vidly.add_media(
             url,
@@ -1416,8 +1420,12 @@ def tag_remove(request, id):
 def vidly_media(request):
     data = {}
     events = Event.objects.filter(
-        template__name__contains='Vid.ly'
+        Q(template__name__contains='Vid.ly')
+        |
+        Q(pk__in=VidlySubmission.objects.all()
+            .values_list('event_id', flat=True))
     )
+
     status = request.GET.get('status')
     if status:
         if status not in ('New', 'Processing', 'Finished', 'Error'):
@@ -1459,8 +1467,22 @@ def vidly_media_status(request):
         return http.HttpResponseBadRequest("No 'id'")
     event = get_object_or_404(Event, pk=request.GET['id'])
     environment = event.template_environment
-    if not environment.get('tag') or environment.get('tag') == 'None':
-        return {}
+
+    if (
+        environment is None or
+        (not environment.get('tag') or environment.get('tag') == 'None')
+    ):
+        # perhaps it has a VidlySubmission anyway
+        submissions = (
+            VidlySubmission.objects
+            .exclude(tag__isnull=True)
+            .filter(event=event).order_by('-submission_time')
+        )
+        for submission in submissions[:1]:
+            environment = {'tag': submission.tag}
+            break
+        else:
+            return {}
     tag = environment['tag']
     cache_key = 'vidly-query-%s' % tag
     force = request.GET.get('refresh', False)
@@ -1496,6 +1518,21 @@ def vidly_media_info(request):
         return http.HttpResponseBadRequest("No 'id'")
     event = get_object_or_404(Event, pk=request.GET['id'])
     environment = event.template_environment
+
+    if (
+        environment is None or
+        (not environment.get('tag') or environment.get('tag') == 'None')
+    ):
+        # perhaps it has a VidlySubmission anyway
+        submissions = (
+            VidlySubmission.objects
+            .exclude(tag__isnull=True)
+            .filter(event=event).order_by('-submission_time')
+        )
+        for submission in submissions[:1]:
+            environment = {'tag': submission.tag}
+            break
+
     if not environment.get('tag') or environment.get('tag') == 'None':
         return {'fields': as_fields({
             '*Note*': 'Not a valid tag in template',
@@ -1555,18 +1592,23 @@ def vidly_media_resubmit(request):
     if not environment.get('tag') or environment.get('tag') == 'None':
         raise ValueError("Not a valid tag in template")
 
+    if event.privacy != Event.PRIVACY_PUBLIC:
+        token_protection = True  # no choice
+    else:
+        token_protection = form.cleaned_data['token_protection']
+
     old_tag = environment['tag']
     shortcode, error = vidly.add_media(
         url=form.cleaned_data['url'],
         email=form.cleaned_data['email'],
         hd=form.cleaned_data['hd'],
-        token_protection=form.cleaned_data['token_protection']
+        token_protection=token_protection
     )
     VidlySubmission.objects.create(
         event=event,
         url=form.cleaned_data['url'],
         email=form.cleaned_data['email'],
-        token_protection=form.cleaned_data['token_protection'],
+        token_protection=token_protection,
         hd=form.cleaned_data['hd'],
         tag=shortcode,
         submission_error=error

@@ -590,6 +590,7 @@ class TestEvents(ManageTestCase):
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_vidly_url_to_shortcode(self, p_urllib2):
         event = Event.objects.get(title='Test event')
+        assert event.privacy == Event.PRIVACY_PUBLIC
         url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
 
         def mocked_urlopen(request):
@@ -651,6 +652,45 @@ class TestEvents(ManageTestCase):
         # re-fetch it
         match = URLMatch.objects.get(pk=match.pk)
         eq_(match.use_count, 1)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_vidly_url_to_shortcode_with_forced_protection(self, p_urllib2):
+        event = Event.objects.get(title='Test event')
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>All medias have been added.</Message>
+              <MessageCode>2.1</MessageCode>
+              <BatchID>47520</BatchID>
+              <Success>
+                <MediaShortLink>
+                  <SourceFile>http://www.com/file.flv</SourceFile>
+                  <ShortLink>8oxv6x</ShortLink>
+                  <MediaID>13969839</MediaID>
+                  <QRCode>http://vid.ly/8oxv6x/qrcodeimg</QRCode>
+                  <HtmlEmbed>code code</HtmlEmbed>
+                  <EmailEmbed>more code code</EmailEmbed>
+                </MediaShortLink>
+              </Success>
+            </Response>
+            """)
+        p_urllib2.urlopen = mocked_urlopen
+
+        response = self.client.post(url, {
+            'url': 'http://www.com/'
+        })
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        eq_(content['shortcode'], '8oxv6x')
+
+        submission, = VidlySubmission.objects.all()
+        ok_(submission.token_protection)
+        ok_(not submission.hd)
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_vidly_url_to_shortcode_with_hd(self, p_urllib2):
@@ -2169,6 +2209,23 @@ class TestVidlyMedia(ManageTestCase):
         eq_(response.status_code, 200)
         ok_(event.title in response.content)
 
+        # or the event might not yet have made the switch but already
+        # has a VidlySubmission
+        event.template = None
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
+
+        VidlySubmission.objects.create(
+            event=event,
+            tag='xyz000'
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
     @mock.patch('urllib2.urlopen')
     def test_vidly_media_with_status(self, p_urlopen):
 
@@ -2217,6 +2274,36 @@ class TestVidlyMedia(ManageTestCase):
 
         response = self.client.get(url, {'id': 9999})
         eq_(response.status_code, 404)
+
+        response = self.client.get(url, {'id': event.pk})
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        eq_(data['status'], 'Finished')
+
+    @mock.patch('urllib2.urlopen')
+    def test_vidly_media_status_not_vidly_template(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:vidly_media_status')
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        event.template = Template.objects.create(
+            name='EdgeCast',
+            content='<iframe>'
+        )
+        event.template_environment = {'other': 'stuff'}
+        event.save()
+
+        VidlySubmission.objects.create(
+            event=event,
+            tag='abc123'
+        )
 
         response = self.client.get(url, {'id': event.pk})
         eq_(response.status_code, 200)
@@ -2443,6 +2530,7 @@ class TestVidlyMedia(ManageTestCase):
         p_urlopen.side_effect = mocked_urlopen
 
         event = Event.objects.get(title='Test event')
+        event.privacy = Event.PRIVACY_COMPANY
         url = reverse('manage:vidly_media_resubmit')
 
         event.template = Template.objects.create(
@@ -2464,7 +2552,8 @@ class TestVidlyMedia(ManageTestCase):
             'id': event.pk,
             'url': 'http://better.com',
             'email': 'peter@example.com',
-            'hd': True
+            'hd': True,
+            'token_protection': False,  # observe!
         })
         eq_(response.status_code, 302)
 
@@ -2472,7 +2561,8 @@ class TestVidlyMedia(ManageTestCase):
         ok_(submission.url, 'http://better.com')
         ok_(submission.email, 'peter@example.com')
         ok_(submission.hd)
-        ok_(not submission.token_protection)
+        # this gets forced on since the event is not public
+        ok_(submission.token_protection)
 
         event = Event.objects.get(pk=event.pk)
         eq_(event.template_environment['tag'], '8oxv6x')
