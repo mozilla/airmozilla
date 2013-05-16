@@ -1434,7 +1434,7 @@ def vidly_media(request):
         # make a list of all tags -> events
         _tags = {}
         for event in events:
-            environment = event.template_environment
+            environment = event.template_environment or {}
             if not environment.get('tag') or environment.get('tag') == 'None':
                 continue
             _tags[environment['tag']] = event.id
@@ -1466,12 +1466,9 @@ def vidly_media_status(request):
     if not request.GET.get('id'):
         return http.HttpResponseBadRequest("No 'id'")
     event = get_object_or_404(Event, pk=request.GET['id'])
-    environment = event.template_environment
+    environment = event.template_environment or {}
 
-    if (
-        environment is None or
-        (not environment.get('tag') or environment.get('tag') == 'None')
-    ):
+    if not environment.get('tag') or environment.get('tag') == 'None':
         # perhaps it has a VidlySubmission anyway
         submissions = (
             VidlySubmission.objects
@@ -1517,12 +1514,9 @@ def vidly_media_info(request):
     if not request.GET.get('id'):
         return http.HttpResponseBadRequest("No 'id'")
     event = get_object_or_404(Event, pk=request.GET['id'])
-    environment = event.template_environment
+    environment = event.template_environment or {}
 
-    if (
-        environment is None or
-        (not environment.get('tag') or environment.get('tag') == 'None')
-    ):
+    if not environment.get('tag') or environment.get('tag') == 'None':
         # perhaps it has a VidlySubmission anyway
         submissions = (
             VidlySubmission.objects
@@ -1594,7 +1588,7 @@ def vidly_media_resubmit(request):
     if not form.is_valid():
         return http.HttpResponse(str(form.errors))
     event = get_object_or_404(Event, pk=form.cleaned_data['id'])
-    environment = event.template_environment
+    environment = event.template_environment or {}
     if not environment.get('tag') or environment.get('tag') == 'None':
         raise ValueError("Not a valid tag in template")
 
