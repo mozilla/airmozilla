@@ -47,7 +47,7 @@
     <tbody>
       {% for submission in paginate %}
       <tr>
-        <td class="url">{{ submission.url }}</td>
+        <td class="url">{{ scrub_transform_passwords(submission.url) }}</td>
         <td>{{ submission.submission_time|js_date }}</td>
         <td>
           {% if submission.tag %}<code>{{ submission.tag }}</code>{% endif %}

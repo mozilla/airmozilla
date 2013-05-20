@@ -28,11 +28,10 @@ def run(url, dry=False):
                 # if this is a `dry` run we don't want to accidentally
                 # reveal a real password
                 if dry:
-                    for password in settings.URL_TRANSFORM_PASSWORDS.values():
-                        replace_with = replace_with.replace(
-                            password,
-                            'XXXpasswordhiddenXXX'
-                        )
+                    from airmozilla.manage.helpers import (
+                        scrub_transform_passwords
+                    )
+                    replace_with = scrub_transform_passwords(replace_with)
                 url = find_regex.sub(replace_with, url)
             match.use_count += 1
 

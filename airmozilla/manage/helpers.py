@@ -66,3 +66,13 @@ def full_tweet_url(tweet_id):
             tweet_id
         )
     )
+
+
+@register.function
+def scrub_transform_passwords(text):
+    for password in settings.URL_TRANSFORM_PASSWORDS.values():
+        text = text.replace(
+            password,
+            'XXXpasswordhiddenXXX'
+        )
+    return text
