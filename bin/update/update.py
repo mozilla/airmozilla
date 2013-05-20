@@ -45,7 +45,7 @@ def install_cron(ctx):
     """Use gen-crons.py method to install new crontab."""
 
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local('python2.6 ./bin/crontab/gen-crons.py -w %s > /etc/cron.d/air.allizom.org_generated' % settings.SRC_DIR)
+        ctx.local('python2.6 ./bin/crontab/gen-crons.py -w %s -u apache > /etc/cron.d/%s_generated' % (settings.SRC_DIR, settings.REMOTE_HOSTNAME))
 
 
 @task
