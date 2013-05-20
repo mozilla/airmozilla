@@ -186,7 +186,7 @@ def event(request, slug):
         return redirect('main:login')
 
     warning = None
-    if event.status != Event.STATUS_SCHEDULED:
+    if event.status not in (Event.STATUS_SCHEDULED, Event.STATUS_PENDING):
         if not request.user.is_active:
             return http.HttpResponse('Event not scheduled')
         else:
@@ -197,6 +197,7 @@ def event(request, slug):
             return http.HttpResponse('Event not approved')
         else:
             warning = "Event is not publicly visible - not yet approved."
+
     template_tagged = ''
     if event.template and not event.is_upcoming():
         context = {
@@ -225,6 +226,7 @@ def event(request, slug):
     participants = event.participants.filter(cleared=Participant.CLEARED_YES)
     return render(request, 'main/event.html', {
         'event': event,
+        'pending': event.status == Event.STATUS_PENDING,
         'video': template_tagged,
         'participants': participants,
         'warning': warning,

@@ -327,11 +327,14 @@ def events(request):
                  .select_related('category', 'location'))
     upcoming = (Event.objects.upcoming().filter(**creator_filter)
                 .order_by('start_time').select_related('category', 'location'))
+    pending = (Event.objects.filter(**creator_filter)
+               .filter(status=Event.STATUS_PENDING)
+               .order_by('start_time').select_related('category', 'location'))
     live = (Event.objects.live().filter(**creator_filter)
             .order_by('start_time').select_related('category', 'location'))
-    archiving = (Event.objects.archiving().filter(**creator_filter)
-                 .order_by('-archive_time')
-                 .select_related('category', 'location'))
+    #archiving = (Event.objects.archiving().filter(**creator_filter)
+    #             .order_by('-archive_time')
+    #             .select_related('category', 'location'))
     archived = (Event.objects.archived_and_removed().filter(**creator_filter)
                 .order_by('-start_time')
                 .select_related('category', 'location'))
@@ -340,7 +343,8 @@ def events(request):
         'initiated': initiated,
         'upcoming': upcoming,
         'live': live,
-        'archiving': archiving,
+        #'archiving': archiving,
+        'pending': pending,
         'archived': archived_paged,
         'form': search_form,
         'search_results': search_results
@@ -639,12 +643,7 @@ def event_archive(request, id):
         form = forms.EventArchiveForm(request.POST, instance=event)
         if form.is_valid():
             event = form.save(commit=False)
-            minutes = form.cleaned_data['archive_time']
-            now = (datetime.datetime.utcnow()
-                   .replace(tzinfo=utc, microsecond=0))
-            event.archive_time = (
-                now + datetime.timedelta(minutes=minutes)
-            )
+            event.status = Event.STATUS_PENDING
             event.save()
             messages.info(request, 'Event "%s" saved.' % event.title)
             return redirect('manage:events')

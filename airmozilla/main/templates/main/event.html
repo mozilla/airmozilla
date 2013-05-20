@@ -5,6 +5,13 @@
 {{ event.title }} | Air Mozilla
 {% endblock %}
 
+{% block site_css %}
+{{ super() }}
+<style type="text/css">
+p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037; padding: 30px; }
+</style>
+{% endblock %}
+
 {% block banner %}
   {% include 'main/_banner_small.html' %}
 {% endblock %}
@@ -25,9 +32,11 @@
       </p>
       {% endif %}
       <p>
+      {% if not pending %}
       <h2 class="event-date">
         {{ event.start_time|js_date }}
       </h2>
+      {% endif %}
       <p>
         {% if participants %}
           {{ _('Featuring ') }}
@@ -44,12 +53,18 @@
       </p>
     </header>
     <div class="entry-content">
-      {% if video %}
-        {{ video|safe }}
+      {% if pending %}
+        <p class="pending">
+        Event is currently in a pending state meaning it will soon be made available.
+        </p>
       {% else %}
-        {% set thumb = thumbnail(event.placeholder_img, '120x120') %}
-        <img src="{{ thumb.url }}" width="{{ thumb.width }}"
-             height="{{ thumb.height }}" alt="{{ event.title }}">
+        {% if video %}
+          {{ video|safe }}
+        {% else %}
+          {% set thumb = thumbnail(event.placeholder_img, '120x120') %}
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}"
+               height="{{ thumb.height }}" alt="{{ event.title }}">
+        {% endif %}
       {% endif %}
       <p>{{ event.description|carefulnl2br|safe }}</p>
       {% if event.category %}

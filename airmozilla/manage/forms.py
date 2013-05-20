@@ -231,13 +231,6 @@ class EventExperiencedRequestForm(EventEditForm):
 
 
 class EventArchiveForm(BaseModelForm):
-    archive_time = forms.IntegerField()
-
-    def __init__(self, *args, **kwargs):
-        super(EventArchiveForm, self).__init__(*args, **kwargs)
-        self.fields['archive_time'].help_text = (
-            '<div id="archive_time_slider"></div>'
-        )
 
     class Meta(EventRequestForm.Meta):
         exclude = ()

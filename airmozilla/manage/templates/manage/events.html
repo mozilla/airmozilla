@@ -39,12 +39,16 @@
           {% if event.archive_time %}
             {{ event.archive_time|js_date }}
           {% else %}
-            {% if perms.main.change_event_others %}
-              <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-mini">
-                <i class="icon-time"></i> Archive
-              </a>
+            {% if event.is_pending() %}
+              Pending
             {% else %}
-              Not archived
+              {% if perms.main.change_event_others %}
+                <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-mini">
+                  <i class="icon-time"></i> Archive
+                </a>
+              {% else %}
+                Not archived
+              {% endif %}
             {% endif %}
           {% endif %}
         </td>
@@ -100,8 +104,8 @@
       {% if live %}
         {{ event_table('Live events', live, False, True) }}
       {% endif %}
-      {% if archiving %}
-        {{ event_table('Archiving events', archiving, True) }}
+      {% if pending %}
+        {{ event_table('Pending events', pending, True) }}
       {% endif %}
       {% if upcoming %}
         {{ event_table('Upcoming events', upcoming) }}

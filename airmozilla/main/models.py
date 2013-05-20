@@ -233,10 +233,12 @@ class Event(models.Model):
     )
     STATUS_INITIATED = 'initiated'
     STATUS_SCHEDULED = 'scheduled'
+    STATUS_PENDING = 'pending'
     STATUS_REMOVED = 'removed'
     STATUS_CHOICES = (
         (STATUS_INITIATED, 'Initiated'),
         (STATUS_SCHEDULED, 'Scheduled'),
+        (STATUS_PENDING, 'Pending'),
         (STATUS_REMOVED, 'Removed')
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
@@ -305,6 +307,9 @@ class Event(models.Model):
 
     def is_scheduled(self):
         return self.status == self.STATUS_SCHEDULED
+
+    def is_pending(self):
+        return self.status == self.STATUS_PENDING
 
     def needs_approval(self):
         if self.is_scheduled():
