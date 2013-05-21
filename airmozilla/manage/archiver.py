@@ -14,7 +14,7 @@ from airmozilla.main.models import Event
 from .vidly import query
 
 
-def archive(event):
+def archive(event, swallow_email_exceptions=False):
     if 'Vid.ly' not in event.template.name:
         logging.warn("Event %r not a Vid.ly event", event.title)
         return
@@ -33,6 +33,8 @@ def archive(event):
                     tag,
                 )
             except:  # pragma: no cover
+                if not swallow_email_exceptions:
+                    raise
                 logging.error(
                     "Failing to send an email about %r (%s)",
                     event.title, tag,
@@ -50,6 +52,8 @@ def archive(event):
                     tag,
                 )
             except:  # pragma: no cover
+                if not swallow_email_exceptions:
+                    raise
                 logging.error(
                     "Failing to send an email about %r (%s)",
                     event.title, tag,

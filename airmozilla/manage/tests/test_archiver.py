@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.core import mail
 from django.conf import settings
 from django.utils.timezone import utc
+from django.test.utils import override_settings
 
 from funfactory.urlresolvers import reverse
 
@@ -75,6 +76,7 @@ class ArchiverTestCase(TestCase):
             'Event %r does not have a Vid.ly tag', u'Test event'
         )
 
+    @override_settings(ADMINS=(('F', 'foo@bar.com'), ('B', 'bar@foo.com')))
     @mock.patch('urllib2.urlopen')
     def test_still_not_found(self, p_urlopen):
 
@@ -95,6 +97,7 @@ class ArchiverTestCase(TestCase):
         ok_('NOTKNOWN' in sent_email.subject)
         ok_(reverse('manage:event_edit', args=(event.pk,)) in sent_email.body)
 
+    @override_settings(ADMINS=(('F', 'foo@bar.com'), ('B', 'bar@foo.com')))
     @mock.patch('urllib2.urlopen')
     def test_errored(self, p_urlopen):
 

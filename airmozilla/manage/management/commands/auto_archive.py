@@ -13,4 +13,4 @@ class Command(NoArgsCommand):  # pragma: no cover
                     template__name__contains='Vid.ly')
         )
         for event in events:
-            archive(event)
+            archive(event, swallow_email_exceptions=True)
