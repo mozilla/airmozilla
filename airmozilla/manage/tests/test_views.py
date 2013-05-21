@@ -522,18 +522,10 @@ class TestEvents(ManageTestCase):
         # the `token_protection` should be forced on
         ok_('Required for non-public events' in response_ok.content)
 
-        response_ok = self.client.post(url, {'archive_time': '120'})
+        response_ok = self.client.post(url)
         self.assertRedirects(response_ok, reverse('manage:events'))
         event_modified = Event.objects.get(id=event.id)
-        now = (datetime.datetime.utcnow()
-               .replace(tzinfo=utc, microsecond=0))
-        # because this `now` can potentially be different in the tests
-        # compared (if the tests run slow) to the views,
-        # it's safer to not look at the seconds
-        eq_(
-            event_modified.archive_time.strftime('%d %H:%M'),
-            (now + datetime.timedelta(minutes=120)).strftime('%d %H:%M')
-        )
+        eq_(event_modified.archive_time, None)
 
     def test_event_duplication(self):
         event = Event.objects.get(title='Test event')
