@@ -132,3 +132,6 @@ TWITTER_ACCESS_TOKEN_SECRET = ''
 
 # if you have passwords for URL tranforms
 #URL_TRANSFORM_PASSWORDS = {'encoder-commons-mtv1': ...}
+
+# Bit.ly URL shortener access token
+BITLY_ACCESS_TOKEN = ''

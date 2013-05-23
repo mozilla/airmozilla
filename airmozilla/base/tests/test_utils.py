@@ -1,3 +1,4 @@
+import json
 import time
 import datetime
 import pytz
@@ -51,3 +52,43 @@ class TestEdgecastTokenize(TestCase):
         p_subprocess.Popen = mocked_popen
         self.assertRaises(utils.EdgecastEncryptionError,
                           utils.edgecast_tokenize)
+
+
+class TestBitlyURLShortener(TestCase):
+
+    @patch('urllib.urlopen')
+    def test_url_shortener_ok(self, p_urlopen):
+
+        def mocked_read():
+            r = {
+                u'status_code': 200,
+                u'data': {
+                    u'url': u'http://mzl.la/1adh2wT',
+                    u'hash': u'1adh2wT',
+                    u'global_hash': u'1adh2wU',
+                    u'long_url': u'https://air.mozilla.org/it-buildout/',
+                    u'new_hash': 0
+                },
+                u'status_txt': u'OK'
+            }
+            return json.dumps(r)
+
+        p_urlopen().read.side_effect = mocked_read
+        url = 'https://air.mozilla.org/something/'
+        short = utils.shorten_url(url)
+        eq_(short, 'http://mzl.la/1adh2wT')
+
+    @patch('urllib.urlopen')
+    def test_url_shortener_error(self, p_urlopen):
+
+        def mocked_read():
+            r = {
+                u'status_code': 500,
+                u'data': [],
+                u'status_txt': u'INVALID_URI'
+            }
+            return json.dumps(r)
+
+        p_urlopen().read.side_effect = mocked_read
+        url = 'https://air.mozilla.org/something/'
+        self.assertRaises(ValueError, utils.shorten_url, url)

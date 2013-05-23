@@ -24,6 +24,7 @@ from django.db.models import Q, Max
 from django.contrib.flatpages.models import FlatPage
 from django.utils.timezone import utc
 from django.contrib.sites.models import RequestSite
+from django.core.exceptions import ImproperlyConfigured
 
 import pytz
 from funfactory.urlresolvers import reverse
@@ -36,7 +37,8 @@ from airmozilla.base.utils import (
     paginate,
     tz_apply,
     html_to_text,
-    unhtml
+    unhtml,
+    shorten_url
 )
 from airmozilla.main.models import (
     Approval,
@@ -522,6 +524,15 @@ def new_event_tweet(request, id):
                          RequestSite(request).domain)
         )
         abs_url = urlparse.urljoin(base_url, event_url)
+        raise Exception
+        try:
+            abs_url = shorten_url(abs_url)
+            data['shortener_error'] = None
+        except (ImproperlyConfigured, ValueError) as err:
+            data['shortener_error'] = str(err)
+        #except OtherHttpRelatedErrors?
+        #    data['shortener_error'] = "Network error trying to shorten URL"
+
         initial['text'] = unhtml('%s\n%s' % (short_desc(event), abs_url))
         initial['include_placeholder'] = bool(event.placeholder_img)
         initial['send_date'] = ''

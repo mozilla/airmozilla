@@ -37,6 +37,15 @@
   </div>
   {% endif %}
 
+  {% if shortener_error %}
+  <div class="alert alert-block">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <h4>Note!</h4>
+    <p>Unable to use Bit.ly URL shortener. Error:
+    <code>{{ shortener_error }}</code></p>
+  </div>
+  {% endif %}
+
 
   {% include 'manage/_default_form.html' %}
 

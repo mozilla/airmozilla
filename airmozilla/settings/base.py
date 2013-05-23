@@ -154,3 +154,7 @@ PESTER_INTERVAL_DAYS = 3  # days
 
 # Where you put secure username+password combinations for example
 URL_TRANSFORM_PASSWORDS = {}
+
+# Bit.ly URL shortener access token
+# See README about how to generate one
+BITLY_ACCESS_TOKEN = None

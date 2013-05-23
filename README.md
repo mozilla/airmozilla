@@ -138,3 +138,18 @@ Deployment
 
 Deployment of dev, stage and prod is all done using Chief. More will
 be written about it soon.
+
+
+Bit.ly URL Shortener
+--------------------
+
+To generate a Bit.ly access token you need the right email address and
+password. If you have access you can go to
+https://bugzilla.mozilla.org/show_bug.cgi?id=870385#c2
+
+To generate it use this command:
+
+    curl -u "EMAIL:PASSWORD" -X POST "https://api-ssl.bitly.com/oauth/access_token"
+
+That will spit out a 40 character code which you set in
+settings/local.py for the ``BITLY_ACCESS_TOKEN`` setting.
