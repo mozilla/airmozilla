@@ -524,7 +524,6 @@ def new_event_tweet(request, id):
                          RequestSite(request).domain)
         )
         abs_url = urlparse.urljoin(base_url, event_url)
-        raise Exception
         try:
             abs_url = shorten_url(abs_url)
             data['shortener_error'] = None
