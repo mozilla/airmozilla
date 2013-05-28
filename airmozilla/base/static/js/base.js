@@ -1,4 +1,32 @@
 /*global $ moment confirm */
+
+var AutoUpdateTime = (function() {
+    var _selector;
+    var _initial_time = (new Date()).getTime();
+
+    function loop() {
+        $(_selector).each(function() {
+            var $element = $(this);
+            var datetime = $element.attr('datetime');
+            var format = $element.attr('data-format');
+            var parsed = moment(datetime);
+            var time_past = ((new Date()).getTime() - _initial_time) / 1000;
+            parsed.add('seconds', time_past);
+            $element.text(parsed.format(format));
+        });
+        setTimeout(loop, 60 * 1000);
+    }
+    return {
+       init: function(selector) {
+           _selector = selector;
+           // it actually doesn't matter so much how often we loop
+           // because it'll work based on `_initial_time` compared to now
+           // but start a little earlier on the first one
+           setTimeout(loop, 30 * 1000);
+       }
+    };
+})();
+
 $(function() {
     'use strict';
     $('time.jstime').each(function(i, time) {
@@ -11,6 +39,7 @@ $(function() {
     });
     $.timeago.settings.allowFuture = true;
     $('time.timeago').timeago();
+    AutoUpdateTime.init('time.autoupdate');
 
     $('button.cancel').click(function() {
         if (!$(this).parents('form').data('changes')) {

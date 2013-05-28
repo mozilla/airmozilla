@@ -71,7 +71,8 @@ Air Mozilla | Mozilla, in Video
       <h3 class="widget-title">{{ _('Your Local Time') }}</h3>
       <p class="datetime">
         {{ date_now()|js_date(enable_timeago=False,
-                              format='ddd, MMM D, YYYY h:mma') }}
+                              format='ddd, MMM D, YYYY h:mma',
+                              autoupdate=True) }}
       </p>
       </aside>
       {% if not request.user.is_active %}
