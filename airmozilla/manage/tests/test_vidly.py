@@ -38,6 +38,26 @@ SAMPLE_MEDIALIST_XML = (
 )
 
 
+SAMPLE_STATISTICS_XML = (
+    '<?xml version="1.0"?>'
+    '<Response><Message/><MessageCode/><Success><StatsInfo><StatsTable>'
+    '<cols><col>Class</col><col>Vendor</col><col>Model</col>'
+    '<col>Platform</col><col>OS</col><col>Browser</col><col>Browser Ver</col>'
+    '<col>Hits</col></cols><rows><row><col>Desktop</col><col></col><col></col>'
+    '<col></col><col>Apple</col><col>Firefox</col><col>21.0</col><col>5</col>'
+    '</row><row><col>Desktop</col><col></col><col></col><col></col>'
+    '<col>Apple</col><col>Firefox</col><col>20.0</col><col>2</col></row>'
+    '</rows></StatsTable><Others>0</Others><TotalHits>10</TotalHits>'
+    '</StatsInfo></Success></Response>'
+)
+
+SAMPLE_STATISTICS_BROKEN_XML = (
+    '<?xml version="1.0"?>'
+    '<Response><Message/><MessageCode/><Success><StatsInfo>'
+    '</StatsInfo></Success></Response>'
+)
+
+
 class TestVidlyTokenize(TestCase):
 
     @mock.patch('airmozilla.manage.vidly.logging')
@@ -265,3 +285,25 @@ class VidlyTestCase(TestCase):
         results = vidly.medialist('Error')
         ok_(results['abc123'])
         ok_(results['xyz987'])
+
+    @mock.patch('urllib2.urlopen')
+    def test_statistics(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_STATISTICS_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        results = vidly.statistics('abc123')
+        eq_(results['total_hits'], 10)
+
+    @mock.patch('urllib2.urlopen')
+    def test_statistics_broken(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_STATISTICS_BROKEN_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        results = vidly.statistics('abc123')
+        eq_(results, None)

@@ -18,7 +18,7 @@ from jingo import Template
 
 from airmozilla.main.models import (
     Event, EventOldSlug, Participant, Tag, get_profile_safely, Channel,
-    Location
+    Location, EventHitStats
 )
 from airmozilla.base.utils import (
     paginate,
@@ -198,6 +198,8 @@ def event(request, slug):
         else:
             warning = "Event is not publicly visible - not yet approved."
 
+    hits = None
+
     template_tagged = ''
     if event.template and not event.is_upcoming():
         context = {
@@ -216,6 +218,13 @@ def event(request, slug):
         except vidly.VidlyTokenizeError, msg:
             template_tagged = '<code style="color:red">%s</code>' % msg
 
+        stats_query = (
+            EventHitStats.objects.filter(event=event)
+            .values_list('total_hits', flat=True)
+        )
+        for total_hits in stats_query:
+            hits = total_hits
+
     can_edit_event = (
         request.user.is_active and
         request.user.has_perm('main.change_event')
@@ -232,6 +241,7 @@ def event(request, slug):
         'warning': warning,
         'can_edit_event': can_edit_event,
         'Event': Event,
+        'hits': hits,
     })
 
 

@@ -84,6 +84,9 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
       {% if event.additional_links %}
         <p>{{ _('Additional links') }}: {{ event.additional_links|urlize|nl2br }}</p>
       {% endif %}
+      {% if hits %}
+        <p>{{ _('Views since archived') }}: {{ thousands(hits) }}</p>
+      {% endif %}
     </div>
   </article>
 {% endblock %}

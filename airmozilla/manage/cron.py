@@ -6,6 +6,7 @@ import cronjobs
 
 from .tweeter import send_unsent_tweets as _send_unsent_tweets
 from .pestering import pester
+from . import event_hit_stats
 from . import archiver
 
 
@@ -28,3 +29,11 @@ def cron_ping():
 @cronjobs.register
 def auto_archive():
     archiver.auto_archive()
+
+
+@cronjobs.register
+def update_event_hit_stats():
+    event_hit_stats.update(
+        cap=15,
+        swallow_errors=True,
+    )

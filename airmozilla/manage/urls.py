@@ -38,6 +38,7 @@ urlpatterns = patterns(
     url(r'^events/vidlyurltoshortcode/(?P<id>\d+)/',
         views.vidly_url_to_shortcode,
         name='vidly_url_to_shortcode'),
+    url(r'^events/hits/$', views.event_hit_stats, name='event_hit_stats'),
     url(r'^events/$', views.events, name='events'),
     url(r'^tag-autocomplete/$', views.tag_autocomplete,
         name='tag_autocomplete'),

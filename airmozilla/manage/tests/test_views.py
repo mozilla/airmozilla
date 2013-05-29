@@ -34,7 +34,8 @@ from airmozilla.main.models import (
     SuggestedEvent,
     VidlySubmission,
     URLMatch,
-    URLTransform
+    URLTransform,
+    EventHitStats
 )
 
 from .test_vidly import SAMPLE_XML, SAMPLE_MEDIALIST_XML
@@ -1083,6 +1084,27 @@ class TestEvents(ManageTestCase):
         first_field = data['fields'][0]
         ok_('key' in first_field)
         ok_('value' in first_field)
+
+    def test_event_hit_stats(self):
+        event = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = now - datetime.timedelta(days=365)
+        event.save()
+
+        EventHitStats.objects.create(
+            event=event,
+            total_hits=101,
+            shortcode='abc123',
+        )
+
+        url = reverse('manage:event_hit_stats')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # 101 / 365 days ~= 0.3
+        ok_('1 year' in response.content)
+        ok_('101' in response.content)
+        ok_('0.3' in response.content)
 
 
 class TestParticipants(ManageTestCase):

@@ -13,6 +13,10 @@ class VidlyTokenizeError(Exception):
     pass
 
 
+class VidlyStatisticsError(Exception):
+    pass
+
+
 def tokenize(tag, seconds):
     cache_key = 'vidly_tokenize:%s' % tag
     token = cache.get(cache_key)
@@ -191,6 +195,32 @@ def delete_media(shortcode, email=None):
     logging.error(response_content)
     # error!
     return None, response_content
+
+
+def statistics(shortcode):
+    assert shortcode
+    root = ET.Element('Query')
+    ET.SubElement(root, 'Action').text = 'GetStatistics'
+    ET.SubElement(root, 'UserID').text = settings.VIDLY_USER_ID
+    ET.SubElement(root, 'UserKey').text = settings.VIDLY_USER_KEY
+    filter = ET.SubElement(root, 'Filter')
+    ET.SubElement(filter, 'MediaShortLink').text = shortcode
+    xml_string = ET.tostring(root)
+    #print "="*80
+    #print xml_string
+    response_content = _download(xml_string)
+    #print response_content
+    #print "\n"
+    root = ET.fromstring(response_content)
+    success = root.find('Success')
+    if success is None:
+        raise VidlyStatisticsError(response_content)
+    stats_info = success.find('StatsInfo')
+    total_hits = stats_info.find('TotalHits')
+    if total_hits is not None:
+        # great!
+        return {'total_hits': int(total_hits.text)}
+    logging.error(response_content)
 
 
 def _download(xml_string):

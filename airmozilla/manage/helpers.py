@@ -2,9 +2,11 @@ import cgi
 import urllib
 import textwrap
 from jingo import register
+
 from django.template import Context
 from django.template.loader import get_template
 from django.conf import settings
+from django.utils.timesince import timesince as _timesince
 
 from airmozilla.main.models import Event, EventOldSlug
 
@@ -76,3 +78,8 @@ def scrub_transform_passwords(text):
             'XXXpasswordhiddenXXX'
         )
     return text
+
+
+@register.function
+def timesince(start_time):
+    return _timesince(start_time)

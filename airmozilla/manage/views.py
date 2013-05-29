@@ -53,7 +53,8 @@ from airmozilla.main.models import (
     SuggestedEvent,
     VidlySubmission,
     URLMatch,
-    URLTransform
+    URLTransform,
+    EventHitStats
 )
 from airmozilla.manage import forms
 from airmozilla.manage.tweeter import send_tweet
@@ -1817,3 +1818,22 @@ def cron_pings(request):
         '           Now: %s' % (ping, now),
         content_type='text/plain'
     )
+
+
+@staff_required
+@permission_required('main.add_event')
+def event_hit_stats(request):
+    stats = (
+        EventHitStats.objects.all()
+        .select_related('event')
+        .order_by('-total_hits')
+        .extra(select={
+            'hits_per_day':
+            "total_hits / datediff(now(), main_event.start_time)"
+        })
+    )
+    paged = paginate(stats, request.GET.get('page'), 20)
+    data = {
+        'paginate': paged,
+    }
+    return render(request, 'manage/event_hit_stats.html', data)

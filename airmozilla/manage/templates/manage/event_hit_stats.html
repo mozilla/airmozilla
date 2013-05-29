@@ -1,0 +1,54 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='event_hit_stats' -%}
+
+{% block manage_title %}
+  Hit Statistics
+{% endblock %}
+
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  td.total_hits { font-weight: bold; }
+  </style>
+{% endblock %}
+
+
+{% block manage_content %}
+
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Hits</th>
+
+        <th>Age</th>
+        <th>Hits/day <sup>*</sup></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in paginate %}
+      <tr>
+        <td><a href="{{ url('manage:event_edit', stat.event.pk) }}" title="{{ stat.event.title }}">{{ truncate_words(stat.event.title, 10) }}</a></td>
+        <td class="total_hits">
+          {{ thousands(stat.total_hits) }}
+        </td>
+        <td>
+          {{ timesince(stat.event.start_time) }}
+        </td>
+        <td>
+          {{ stat.hits_per_day|round(1) }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'manage/_paginate.html' %}
+
+  <p>
+  *
+  Approximate value since the start time of the event.
+  </p>
+
+{% endblock %}

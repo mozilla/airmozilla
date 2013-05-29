@@ -1,3 +1,4 @@
+import locale
 import time
 import datetime
 import urllib
@@ -80,3 +81,13 @@ def carefulnl2br(string):
         # ...then dare not
         return string
     return string.replace('\n', '<br>')
+
+
+@register.function
+def thousands(number):
+    """AKA ``thousands separator'' - 1000000 becomes 1,000,000 """
+    try:
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    except locale.Error:
+        locale.setlocale(locale.LC_ALL, '')
+    return locale.format('%d', number, True)

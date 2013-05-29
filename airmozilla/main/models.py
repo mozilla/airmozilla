@@ -484,3 +484,17 @@ class URLTransform(models.Model):
     find = models.CharField(max_length=200)
     replace_with = models.CharField(max_length=200)
     order = models.IntegerField(default=1)
+
+
+class EventHitStats(models.Model):
+    event = models.ForeignKey(Event, unique=True, db_index=True)
+    total_hits = models.IntegerField()
+    shortcode = models.CharField(max_length=100)
+    modified = models.DateTimeField(default=_get_now)
+
+
+@receiver(models.signals.pre_save, sender=EventHitStats)
+def update_modified(sender, instance, raw, *args, **kwargs):
+    if raw:
+        return
+    instance.modified = _get_now()
