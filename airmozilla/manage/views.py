@@ -410,7 +410,6 @@ def event_edit(request, id):
     data['stuck_pending'] = False
     if (
         event.status == Event.STATUS_PENDING
-        and not event.archive_time
         and 'Vid.ly' in event.template.name
         and event.template_environment.get('tag')
         and VidlySubmission.objects.filter(event=event)

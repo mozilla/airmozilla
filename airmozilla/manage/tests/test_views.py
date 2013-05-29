@@ -992,7 +992,6 @@ class TestEvents(ManageTestCase):
         event = Event.objects.get(title='Test event')
         event.template_environment = {'tag': 'abc123'}
         event.status = Event.STATUS_PENDING
-        event.archive_time = None
         event.save()
 
         url = reverse('manage:event_edit', args=(event.pk,))
