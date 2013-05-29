@@ -999,7 +999,7 @@ class TestEvents(ManageTestCase):
         template = event.template
         template.name = 'Vid.ly Fun'
         template.save()
-        VidlySubmission.objects.create(
+        submission = VidlySubmission.objects.create(
             event=event,
             url='http://www.file',
         )
@@ -1011,6 +1011,20 @@ class TestEvents(ManageTestCase):
             'manage:event_archive_auto',
             args=(event.pk,)
         )
+        ok_(auto_archive_url not in response.content)
+        # the reason it's not there is because the VidlySubmission
+        # was made very recently.
+        # It will appear if the VidlySubmission does not exist
+        submission.submission_time -= datetime.timedelta(hours=1)
+        submission.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(auto_archive_url in response.content)
+
+        # or if there is no VidlySubmission at all
+        submission.delete()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
         ok_(auto_archive_url in response.content)
 
         response = self.client.post(auto_archive_url)

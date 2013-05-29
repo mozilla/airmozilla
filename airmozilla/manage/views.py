@@ -408,11 +408,16 @@ def event_edit(request, id):
 
     # Is it stuck and won't auto-archive?
     data['stuck_pending'] = False
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    time_ago = now - datetime.timedelta(minutes=15)
     if (
         event.status == Event.STATUS_PENDING
         and 'Vid.ly' in event.template.name
         and event.template_environment.get('tag')
-        and VidlySubmission.objects.filter(event=event)
+        and not VidlySubmission.objects.filter(
+            event=event,
+            submission_time__gte=time_ago
+        )
     ):
         tag = event.template_environment['tag']
         results = vidly.query(tag)
