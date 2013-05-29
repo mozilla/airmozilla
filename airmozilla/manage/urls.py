@@ -115,4 +115,7 @@ urlpatterns = patterns(
     url(r'^urltransforms/(?P<id>\d+)/(?P<transform_id>\d+)/edit/$',
         views.url_transform_edit,
         name='url_transform_edit'),
+    url(r'^cron-pings/$',
+        views.cron_pings,
+        name='cron_pings'),
 )

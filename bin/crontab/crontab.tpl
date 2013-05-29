@@ -25,6 +25,10 @@ HOME=/tmp
 # Every 2 hours.
 #1 */2 * * * {{ cron }} something
 
+
+# Every minute
+*/1 * * * * {{ cron }} cron_ping
+
 # Etc...
 
 MAILTO=root

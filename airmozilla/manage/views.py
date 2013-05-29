@@ -1759,3 +1759,25 @@ def url_transform_edit(request, id, transform_id):
     transform.replace_with = request.POST['replace_with']
     transform.save()
     return True
+
+
+def cron_pings(request):
+    """reveals if the cron_ping management command has recently been fired
+    by the cron jobs."""
+    if 'LocMemCache' in cache.__class__.__name__:
+        return http.HttpResponse(
+            "Using LocMemCache so can't test this",
+            content_type='text/plain'
+        )
+    ping = cache.get('cron-ping')
+    if not ping:
+        return http.HttpResponse(
+            'cron-ping has not been executed for at least an hour',
+            content_type='text/plain'
+        )
+    now = datetime.datetime.utcnow()
+    return http.HttpResponse(
+        'Last cron-ping: %s\n'
+        '           Now: %s' % (ping, now),
+        content_type='text/plain'
+    )
