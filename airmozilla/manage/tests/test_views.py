@@ -981,6 +981,45 @@ class TestEvents(ManageTestCase):
         )
         ok_(submissions_url in response.content)
 
+    @mock.patch('urllib2.urlopen')
+    def test_event_edit_with_stuck_pending(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        event.template_environment = {'tag': 'abc123'}
+        event.status = Event.STATUS_PENDING
+        event.archive_time = None
+        event.save()
+
+        url = reverse('manage:event_edit', args=(event.pk,))
+
+        template = event.template
+        template.name = 'Vid.ly Fun'
+        template.save()
+        VidlySubmission.objects.create(
+            event=event,
+            url='http://www.file',
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('1 Vid.ly Submission' in response.content)
+
+        auto_archive_url = reverse(
+            'manage:event_archive_auto',
+            args=(event.pk,)
+        )
+        ok_(auto_archive_url in response.content)
+
+        response = self.client.post(auto_archive_url)
+        eq_(response.status_code, 302)
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.status, Event.STATUS_SCHEDULED)
+        ok_(event.archive_time)
+
     def test_event_vidly_submissions(self):
         event = Event.objects.get(title='Test event')
         template = event.template

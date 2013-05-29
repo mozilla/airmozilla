@@ -106,6 +106,15 @@
       {% endif %}
     </p>
     {% endif %}
+
+    {% if stuck_pending %}
+    <form action="{{ url('manage:event_archive_auto', event.pk) }}" method="post">
+    <p style="margin-top:25px"><strong>Pending to archive</strong></p>
+    <p>This event is <strong>pending</strong> but has a finished Vid.ly submission.<br>
+    <button class="btn btn-mini">Auto Archive now</button>
+    </p>
+    {% endif %}
+
   </div>
 
   {% include 'manage/_default_form_upload.html' %}

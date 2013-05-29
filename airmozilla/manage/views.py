@@ -59,6 +59,7 @@ from airmozilla.manage import forms
 from airmozilla.manage.tweeter import send_tweet
 from airmozilla.manage import vidly
 from airmozilla.manage import url_transformer
+from airmozilla.manage import archiver
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -404,6 +405,22 @@ def event_edit(request, id):
             .filter(event=event)
             .order_by('-submission_time')
         )
+
+    # Is it stuck and won't auto-archive?
+    data['stuck_pending'] = False
+    if (
+        event.status == Event.STATUS_PENDING
+        and not event.archive_time
+        and 'Vid.ly' in event.template.name
+        and event.template_environment.get('tag')
+        and VidlySubmission.objects.filter(event=event)
+    ):
+        tag = event.template_environment['tag']
+        results = vidly.query(tag)
+        status = results[tag]['Status']
+        if status == 'Finished':
+            data['stuck_pending'] = True
+
     return render(request, 'manage/event_edit.html', data)
 
 
@@ -452,6 +469,21 @@ def event_vidly_submission(request, id, submission_id):
     if request.GET.get('as_fields'):
         return {'fields': as_fields(data)}
     return data
+
+
+@superuser_required
+@require_POST
+@transaction.commit_on_success
+def event_archive_auto(request, id):
+    event = get_object_or_404(Event, id=id)
+    assert 'Vid.ly' in event.template.name
+    assert event.template_environment.get('tag')
+    archiver.archive(event)
+    messages.info(
+        request, "Archiving started for this event"
+    )
+    url = reverse('manage:event_edit', args=(event.pk,))
+    return redirect(url)
 
 
 @staff_required
