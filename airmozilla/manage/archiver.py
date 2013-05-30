@@ -14,6 +14,18 @@ from airmozilla.main.models import Event
 from .vidly import query
 
 
+# what the cron jobs can execute
+def auto_archive():
+    events = (
+        Event.objects
+        .filter(status=Event.STATUS_PENDING,
+                archive_time__isnull=True,
+                template__name__contains='Vid.ly')
+    )
+    for event in events:
+        archive(event, swallow_email_exceptions=True)
+
+
 def archive(event, swallow_email_exceptions=False):
     if 'Vid.ly' not in event.template.name:
         logging.warn("Event %r not a Vid.ly event", event.title)
