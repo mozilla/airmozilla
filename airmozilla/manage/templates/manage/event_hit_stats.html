@@ -16,9 +16,11 @@
 
 {% block manage_content %}
 
+  {% if stats_total %}
   <p class="snippet">
   The total number of hits across all <strong>{{ thousands(events_total) }}</strong> events is: <strong>{{ thousands(stats_total) }}</strong>
   </p>
+  {% endif %}
 
   <table class="table table-striped">
     <thead>
@@ -43,10 +45,10 @@
           {{ thousands(stat.total_hits) }}
         </td>
         <td>
-          {{ timesince(stat.event.start_time) }}
+          {{ timesince(stat.event.archive_time) }}
         </td>
         <td>
-          {{ stat.hits_per_day|round(1) }}
+          {{ (stat.hits_per_day or 0.0)|round(1) }}
         </td>
       </tr>
       {% endfor %}
@@ -56,7 +58,7 @@
 
   <p>
   *
-  Approximate value since the start time of the event.
+  Approximate value since the event was archived.
   </p>
 
 

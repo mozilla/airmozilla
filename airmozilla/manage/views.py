@@ -1825,11 +1825,11 @@ def cron_pings(request):
 def event_hit_stats(request):
     stats = (
         EventHitStats.objects
-        .filter(event__archive_time__isnull=False)
+        .exclude(event__archive_time__isnull=True)
         .order_by('-total_hits')
         .extra(select={
             'hits_per_day':
-            "total_hits / datediff(now(), main_event.archive_time)"
+            'total_hits / datediff(now(), main_event.archive_time)'
         })
     )
 

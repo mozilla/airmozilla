@@ -1088,7 +1088,8 @@ class TestEvents(ManageTestCase):
     def test_event_hit_stats(self):
         event = Event.objects.get(title='Test event')
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
-        event.start_time = now - datetime.timedelta(days=365)
+        event.start_time = now - datetime.timedelta(days=400)
+        event.archive_time = now - datetime.timedelta(days=365)
         event.save()
 
         EventHitStats.objects.create(
