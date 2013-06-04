@@ -21,8 +21,8 @@
     <thead>
       <tr>
         <th>Event</th>
+	<th>&nbsp;</th>
         <th>Hits</th>
-
         <th>Age</th>
         <th>Hits/day <sup>*</sup></th>
       </tr>
@@ -30,7 +30,12 @@
     <tbody>
       {% for stat in paginate %}
       <tr>
-        <td><a href="{{ url('manage:event_edit', stat.event.pk) }}" title="{{ stat.event.title }}">{{ truncate_words(stat.event.title, 10) }}</a></td>
+        <td><a href="{{ url('main:event', stat.event.slug) }}" title="{{ stat.event.title }}">{{ truncate_words(stat.event.title, 10) }}</a></td>
+	<td>
+          <a href="{{ url('manage:event_edit', stat.event.pk) }}" class="btn btn-mini">
+            <i class="icon-edit"></i> Edit
+          </a>
+	</td>
         <td class="total_hits">
           {{ thousands(stat.total_hits) }}
         </td>
