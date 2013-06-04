@@ -1825,11 +1825,11 @@ def cron_pings(request):
 def event_hit_stats(request):
     stats = (
         EventHitStats.objects.all()
-        .select_related('event')
+        .filter(event__archive_time__isnull=False)
         .order_by('-total_hits')
         .extra(select={
             'hits_per_day':
-            "total_hits / datediff(now(), main_event.start_time)"
+            "total_hits / datediff(now(), main_event.archive_time)"
         })
     )
     paged = paginate(stats, request.GET.get('page'), 20)
