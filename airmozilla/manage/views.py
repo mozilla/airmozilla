@@ -20,7 +20,7 @@ from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Sum
 from django.contrib.flatpages.models import FlatPage
 from django.utils.timezone import utc
 from django.contrib.sites.models import RequestSite
@@ -1824,7 +1824,7 @@ def cron_pings(request):
 @permission_required('main.add_event')
 def event_hit_stats(request):
     stats = (
-        EventHitStats.objects.all()
+        EventHitStats.objects
         .filter(event__archive_time__isnull=False)
         .order_by('-total_hits')
         .extra(select={
@@ -1832,8 +1832,24 @@ def event_hit_stats(request):
             "total_hits / datediff(now(), main_event.archive_time)"
         })
     )
+
+    stats_total = (
+        EventHitStats.objects
+        .filter(event__archive_time__isnull=False)
+        .aggregate(Sum('total_hits'))
+    )
+    stats_total = stats_total['total_hits__sum']
+
+    events_total = (
+        Event.objects
+        .filter(archive_time__isnull=False)
+        .count()
+    )
+
     paged = paginate(stats, request.GET.get('page'), 20)
     data = {
         'paginate': paged,
+        'stats_total': stats_total,
+        'events_total': events_total,
     }
     return render(request, 'manage/event_hit_stats.html', data)

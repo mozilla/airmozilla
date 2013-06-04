@@ -16,6 +16,9 @@
 
 {% block manage_content %}
 
+  <p class="snippet">
+  The total number of hits across all <strong>{{ thousands(events_total) }}</strong> events is: <strong>{{ thousands(stats_total) }}</strong>
+  </p>
 
   <table class="table table-striped">
     <thead>
@@ -55,5 +58,6 @@
   *
   Approximate value since the start time of the event.
   </p>
+
 
 {% endblock %}
