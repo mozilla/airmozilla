@@ -80,25 +80,14 @@ irc://irc.mozilla.org/airmozilla-dev
 [south]: http://south.aeracode.org/
 
 
-Cron jobs (aka. "Pestering PR")
--------------------------------
+Cron jobs
+---------
 
-To fire off the pestering emails about events that need approval all
-you need to do is execute this management command:
-
-```
-$ ./manage.py cron pester_approvals
-```
-
-That will send an emails to all people in the relevant groups. Ie.
-groups that have a approvals with events attached to them. Basically,
-this is what these people see in the Approval Inbox on the management
-dashboard.
-
-Every time a user is pestered about an event, that gets locked for
-``settings.PESTER_INTERVAL_DAYS`` days (at the time of writing, this
-is by default 7 days). So you can hit this management command every
-day but it will be internally locked for 7 days.
+All cron jobs are managed by two files: First
+``airmozilla/manage/crons.py`` where you kick things off. Then, later
+the crontab file is compiled and installed by
+``bin/crontab/crontab.tpl``. These are the two files you need to edit
+to change, add or remove a cron execution.
 
 
 Twitter
