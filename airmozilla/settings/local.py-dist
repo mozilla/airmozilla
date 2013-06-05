@@ -135,3 +135,8 @@ TWITTER_ACCESS_TOKEN_SECRET = ''
 
 # Bit.ly URL shortener access token
 BITLY_ACCESS_TOKEN = ''
+
+# To get your Sentry key, go to https://errormill.mozilla.org/
+#RAVEN_CONFIG = {
+#    'dsn': ''  # see https://errormill.mozilla.org/
+#}

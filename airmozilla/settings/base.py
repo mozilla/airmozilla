@@ -28,6 +28,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     'django.contrib.sites',
     'django.contrib.flatpages',
     'cronjobs',
+    'raven.contrib.django.raven_compat',
 ]
 
 # our session storage is all memcache so using it instead of FallbackStorage
