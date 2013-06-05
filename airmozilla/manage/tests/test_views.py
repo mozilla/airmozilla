@@ -1107,6 +1107,18 @@ class TestEvents(ManageTestCase):
         ok_('101' in response.content)
         ok_('0.3' in response.content)
 
+    def test_event_edit_without_vidly_template(self):
+        """based on https://bugzilla.mozilla.org/show_bug.cgi?id=879725"""
+        event = Event.objects.get(title='Test event')
+        event.status = Event.STATUS_PENDING
+        event.archive_time = None
+        event.template = None
+        event.save()
+
+        url = reverse('manage:event_edit', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):

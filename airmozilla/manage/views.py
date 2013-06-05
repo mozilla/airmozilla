@@ -413,6 +413,7 @@ def event_edit(request, id):
     time_ago = now - datetime.timedelta(minutes=15)
     if (
         event.status == Event.STATUS_PENDING
+        and event.template
         and 'Vid.ly' in event.template.name
         and event.template_environment.get('tag')
         and not VidlySubmission.objects.filter(
