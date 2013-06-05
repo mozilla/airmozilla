@@ -1844,6 +1844,7 @@ def event_hit_stats(request):
     events_total = (
         Event.objects
         .filter(archive_time__isnull=False)
+        .filter(template__name__contains='Vid.ly')
         .count()
     )
 
