@@ -41,6 +41,12 @@
           {% else %}
             {% if event.is_pending() %}
               Pending
+              {% if not event.has_vidly_template() %}
+                {# hackish fix because of a while was possible to put events into pending without a Vidly template #}
+                <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-mini">
+                  <i class="icon-time"></i> Force archive
+                </a>
+              {% endif %}
             {% else %}
               {% if perms.main.change_event_others %}
                 <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-mini">

@@ -691,7 +691,17 @@ def event_archive(request, id):
         form = forms.EventArchiveForm(request.POST, instance=event)
         if form.is_valid():
             event = form.save(commit=False)
-            event.status = Event.STATUS_PENDING
+            if event.has_vidly_template():
+                event.status = Event.STATUS_PENDING
+            else:
+                event.status = Event.STATUS_SCHEDULED
+                now = (
+                    datetime.datetime.utcnow()
+                    .replace(tzinfo=utc, microsecond=0)
+                )
+                # add one second otherwise, it will not appear on the
+                # event manager immediately after the redirect
+                event.archive_time = now - datetime.timedelta(seconds=1)
             event.save()
             messages.info(request, 'Event "%s" saved.' % event.title)
             return redirect('manage:events')
@@ -1799,7 +1809,7 @@ def url_transform_edit(request, id, transform_id):
     return True
 
 
-def cron_pings(request):
+def cron_pings(request):  # pragma: no cover
     """reveals if the cron_ping management command has recently been fired
     by the cron jobs."""
     if 'LocMemCache' in cache.__class__.__name__:

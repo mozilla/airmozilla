@@ -526,7 +526,36 @@ class TestEvents(ManageTestCase):
         response_ok = self.client.post(url)
         self.assertRedirects(response_ok, reverse('manage:events'))
         event_modified = Event.objects.get(id=event.id)
+        eq_(event_modified.status, Event.STATUS_SCHEDULED)
+        now = (
+            datetime.datetime.utcnow()
+            .replace(tzinfo=utc, microsecond=0)
+        )
+        # because this `now` can potentially be different in the tests
+        # compared (if the tests run slow) to the views,
+        # it's safer to not look at the seconds
+        eq_(
+            event_modified.archive_time.strftime('%d %H:%M'),
+            now.strftime('%d %H:%M')
+        )
+
+    def test_event_archive_with_vidly_template(self):
+        """Event archive page loads and shows correct archive_time behavior."""
+        vidly_template = Template.objects.create(name='Vid.ly HD')
+
+        event = Event.objects.get(title='Test event')
+        event.archive_time = None
+        event.save()
+
+        url = reverse('manage:event_archive', kwargs={'id': event.id})
+        response_ok = self.client.post(url, {
+            'template': vidly_template.pk,
+            'template_environment': 'tag=abc123',
+        })
+        self.assertRedirects(response_ok, reverse('manage:events'))
+        event_modified = Event.objects.get(id=event.id)
         eq_(event_modified.archive_time, None)
+        eq_(event_modified.status, Event.STATUS_PENDING)
 
     def test_event_duplication(self):
         event = Event.objects.get(title='Test event')

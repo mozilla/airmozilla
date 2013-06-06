@@ -320,6 +320,9 @@ class Event(models.Model):
                     return True
         return False
 
+    def has_vidly_template(self):
+        return self.template and 'Vid.ly' in self.template.name
+
 
 class SuggestedEvent(models.Model):
     user = models.ForeignKey(User)
