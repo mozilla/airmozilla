@@ -518,6 +518,16 @@ def event_tweets(request, id):
                 messages.warning(request, 'Failed to send tweet!')
             else:
                 messages.info(request, 'Tweet sent!')
+        elif request.POST.get('error'):
+            if not request.user.is_superuser:
+                return http.HttpResponseForbidden(
+                    'Only available for superusers'
+                )
+            tweet = get_object_or_404(
+                EventTweet,
+                pk=request.POST.get('error')
+            )
+            return http.HttpResponse(tweet.error, mimetype='text/plain')
         else:
             raise NotImplementedError
         url = reverse('manage:event_tweets', args=(event.pk,))

@@ -13,6 +13,12 @@
   </style>
 {% endblock %}
 
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/all-event-tweets.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
 
 {% block manage_content %}
   <form action="" method="post">
@@ -30,12 +36,12 @@
       {% for tweet in paginate %}
       <tr>
         <td><a href="{{ url('manage:event_edit', tweet.event.pk) }}" title="{{ tweet.event.title }}">{{ truncate_words(tweet.event.title, 4) }}</a></td>
-        <td class="text">{{ tweet.text }}</td>
+        <td class="text">{{ tweet.text|truncate(100) }}</td>
         <td>
           {% include 'manage/_tweet_state.html' %}
         </td>
-        <td class="buttons">
-          {% include 'manage/_tweet_buttons.html' %}
+        <td>
+          <a href="{{ url('manage:event_tweets', tweet.event.pk) }}">Manage tweets</a>
         </td>
       </tr>
       {% endfor %}

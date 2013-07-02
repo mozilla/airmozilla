@@ -6,7 +6,15 @@
             Send now
             {% endif %}
           </button>
+          {% if not (tweet.error or tweet.tweet_id) %}
           <button name="cancel" class="btn btn-danger btn-mini" value="{{ tweet.pk }}">
             <i class="icon-trash"></i>
             Cancel
           </button>
+          {% endif %}
+          {% if user.is_superuser and tweet.error and not tweet.tweet_id %}
+          <button name="error" class="btn btn-danger btn-mini" value="{{ tweet.pk }}">
+            <i class="icon-warning-sign"></i>
+            Errored!
+          </button>
+          {% endif %}

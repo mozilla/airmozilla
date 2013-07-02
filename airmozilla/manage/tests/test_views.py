@@ -2241,6 +2241,23 @@ class TestEventTweets(ManageTestCase):
         tweet = EventTweet.objects.get(pk=tweet.pk)
         eq_(tweet.tweet_id, '1234567890')
 
+    def test_view_tweet_error(self):
+        event = Event.objects.get(title='Test event')
+
+        tweet = EventTweet.objects.create(
+            event=event,
+            text='Bla bla',
+            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+            error='Crap!'
+        )
+        url = reverse('manage:event_tweets', args=(event.pk,))
+        response = self.client.post(url, {
+            'error': tweet.pk,
+        })
+        eq_(response.status_code, 200)
+        eq_(response['content-type'], 'text/plain')
+        ok_('Crap!' in response.content)
+
     def test_cancel_event_tweet(self):
         event = Event.objects.get(title='Test event')
 
