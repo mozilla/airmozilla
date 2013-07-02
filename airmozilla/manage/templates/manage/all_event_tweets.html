@@ -13,13 +13,6 @@
   </style>
 {% endblock %}
 
-{% block site_js %}
-  {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/all-event-tweets.js') }}"></script>
-  {% endcompress %}
-{% endblock %}
-
 {% block manage_content %}
   <form action="" method="post">
   {{ csrf() }}
