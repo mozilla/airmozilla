@@ -1860,7 +1860,7 @@ class TestSuggestions(ManageTestCase):
         # create a suggested event that has everything filled in
         event = SuggestedEvent.objects.create(
             user=bob,
-            title='TITLE',
+            title='TITLE' * 10,
             slug='SLUG',
             short_description='SHORT DESCRIPTION',
             description='DESCRIPTION',
@@ -1922,6 +1922,7 @@ class TestSuggestions(ManageTestCase):
         email_sent = mail.outbox[-1]
         ok_(email_sent.recipients(), ['bob@mozilla.com'])
         ok_('accepted' in email_sent.subject)
+        ok_('TITLE' in email_sent.subject)
         ok_('TITLE' in email_sent.body)
 
     def test_reject_suggested_event(self):

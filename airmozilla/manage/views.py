@@ -1381,8 +1381,12 @@ def suggestion_review(request, id):
 
 def _email_about_accepted_suggestion(event, real, request):
     emails = (event.user.email,)
+    event_title = real.title
+    if len(event_title) > 30:
+        event_title = '%s...' % event_title[:27]
     subject = (
-        '[Air Mozilla] Suggested event accepted!'
+        '[Air Mozilla] Suggested event accepted! ("%s")'
+        % event_title
     )
     base_url = (
         '%s://%s' % (request.is_secure() and 'https' or 'http',
