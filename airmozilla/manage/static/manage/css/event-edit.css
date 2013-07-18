@@ -15,3 +15,12 @@ label small {
 .event-status li {
     margin-bottom: 10px;
 }
+
+.suggested-event-comments .comment {
+    margin-left: 160px;
+    margin-bottom: 10px;
+    border-bottom: 4px solid rgb(250,250,250);
+}
+.suggested-event-comments .comment-text {
+    font-style: italic;
+}

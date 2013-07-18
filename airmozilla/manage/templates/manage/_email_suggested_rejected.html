@@ -3,7 +3,7 @@ Hi,
 Your suggested event, with title "{{ event.title }}" could not be accepted.
 {{ request.user.email }} left the following comment:
 
-{{ line_indent(event.review_comments) }}
+{{ line_indent(event.review_comments)|safe }}
 
 
 Now it's back to being available for you to edit:

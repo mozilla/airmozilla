@@ -5,6 +5,7 @@ td.edit-link {
 th {
     text-align: left;
     vertical-align: top;
+    width: 200px;
 }
 
 form.submission {
@@ -23,5 +24,25 @@ form.unsubmission,
 
 
 .main table {
+    width: 100%;
+}
+
+div.comment {
+    border-top: 4px solid rgb(50,50,50);
+}
+div.comment .comment-text {
+    padding: 6px;
+}
+div.comment p {
+    border-top: 1px solid rgb(50,50,50);
+    text-align: right;
+}
+.comment-text {
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+form.comment textarea {
+    height: 80px;
     width: 100%;
 }

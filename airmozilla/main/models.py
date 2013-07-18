@@ -368,6 +368,14 @@ class SuggestedEvent(models.Model):
         return self.title
 
 
+class SuggestedEventComment(models.Model):
+    suggested_event = models.ForeignKey(SuggestedEvent, db_index=True)
+    comment = models.TextField()
+    user = models.ForeignKey(User, blank=True, null=True,
+                             on_delete=models.SET_NULL)
+    created = models.DateTimeField(default=_get_now)
+
+
 class EventOldSlug(models.Model):
     """Used to permanently redirect old URLs to the new slug location."""
     event = models.ForeignKey(Event, db_index=True)

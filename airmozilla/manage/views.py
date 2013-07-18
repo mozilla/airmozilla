@@ -51,6 +51,7 @@ from airmozilla.main.models import (
     Template,
     Channel,
     SuggestedEvent,
+    SuggestedEventComment,
     VidlySubmission,
     URLMatch,
     URLTransform,
@@ -390,11 +391,18 @@ def event_edit(request, id):
         'form': form,
         'event': event,
         'suggested_event': None,
+        'suggested_event_comments': None,
         'tweets': EventTweet.objects.filter(event=event).order_by('id'),
     }
     try:
         suggested_event = SuggestedEvent.objects.get(accepted=event)
         data['suggested_event'] = suggested_event
+        data['suggested_event_comments'] = (
+            SuggestedEventComment.objects
+            .filter(suggested_event=suggested_event)
+            .select_related('user')
+            .order_by('created')
+        )
     except SuggestedEvent.DoesNotExist:
         pass
 
@@ -1307,16 +1315,35 @@ def suggestions(request):
 def suggestion_review(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     real_event_form = None
+    comment_form = forms.SuggestedEventCommentForm()
+
     if request.method == 'POST':
+
         form = forms.AcceptSuggestedEventForm(
             request.POST,
             instance=event,
         )
+
+        if request.POST.get('save_comment'):
+            comment_form = forms.SuggestedEventCommentForm(data=request.POST)
+            if comment_form.is_valid():
+                comment = SuggestedEventComment.objects.create(
+                    comment=comment_form.cleaned_data['comment'].strip(),
+                    user=request.user,
+                    suggested_event=event
+                )
+                _email_about_suggestion_comment(comment, request)
+                messages.info(
+                    request,
+                    'Comment added and %s notified.' % comment.user.email
+                )
+                return redirect('manage:suggestion_review', event.pk)
+
         reject = request.POST.get('reject')
         if reject:
             form.fields['review_comments'].required = True
 
-        if form.is_valid():
+        if not request.POST.get('save_comment') and form.is_valid():
             form.save()
             if reject:
                 event.submitted = None
@@ -1371,12 +1398,57 @@ def suggestion_review(request, id):
                     print real_event_form.errors
     else:
         form = forms.AcceptSuggestedEventForm(instance=event)
+
+    # we don't need the label for this form layout
+    comment_form.fields['comment'].label = ''
+
+    comments = (
+        SuggestedEventComment.objects
+        .filter(suggested_event=event)
+        .select_related('User')
+        .order_by('created')
+    )
+
     data = {
         'event': event,
         'form': form,
         'real_event_form': real_event_form,
+        'comment_form': comment_form,
+        'comments': comments,
     }
     return render(request, 'manage/suggestion_review.html', data)
+
+
+def _email_about_suggestion_comment(comment, request):
+    event = comment.suggested_event
+    emails = (event.user.email,)
+    event_title = comment.suggested_event.title
+    if len(event_title) > 30:
+        event_title = '%s...' % event_title[:27]
+    subject = (
+        '[Air Mozilla] New comment on your suggested event ("%s")'
+        % event_title
+    )
+    base_url = (
+        '%s://%s' % (request.is_secure() and 'https' or 'http',
+                     RequestSite(request).domain)
+    )
+    message = render_to_string(
+        'manage/_email_suggested_comment.html',
+        {
+            'event': event,
+            'comment': comment,
+            'base_url': base_url,
+            'request': request,
+        }
+    )
+    email = EmailMessage(
+        subject,
+        message,
+        settings.EMAIL_FROM_ADDRESS,
+        emails
+    )
+    email.send()
 
 
 def _email_about_accepted_suggestion(event, real, request):

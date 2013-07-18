@@ -119,4 +119,15 @@
 
   {% include 'manage/_default_form_upload.html' %}
 
+
+  {% if suggested_event_comments %}
+  <div class="suggested-event-comments">
+  <h3>Additional comments from original requested event</h3>
+
+  {% set comments=suggested_event_comments %}
+  {% include "manage/_suggestion_comments.html" %}
+
+  </div>
+  {% endif %}
+
 {% endblock %}

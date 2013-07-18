@@ -32,6 +32,7 @@ from airmozilla.main.models import (
     Channel,
     Tag,
     SuggestedEvent,
+    SuggestedEventComment,
     VidlySubmission,
     URLMatch,
     URLTransform,
@@ -1148,6 +1149,33 @@ class TestEvents(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
+    def test_event_edit_with_suggested_event_comments(self):
+        event = Event.objects.get(title='Test event')
+        suggested_event = SuggestedEvent.objects.create(
+            user=self.user,
+            title=event.title,
+            slug=event.slug,
+            description=event.description,
+            short_description=event.short_description,
+            location=event.location,
+            start_time=event.start_time,
+            accepted=event,
+            submitted=datetime.datetime.utcnow(),
+        )
+        SuggestedEventComment.objects.create(
+            suggested_event=suggested_event,
+            user=self.user,
+            comment='hi!\n"friend"'
+        )
+        url = reverse('manage:event_edit', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(
+            'Additional comments from original requested event'
+            in response.content
+        )
+        ok_('hi!<br>&#34;friend&#34;' in response.content)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):
@@ -1990,6 +2018,64 @@ class TestSuggestions(ManageTestCase):
         ok_('You suck!' in email_sent.body)
         summary_url = reverse('suggest:summary', args=(event.pk,))
         ok_(summary_url in email_sent.body)
+
+    def test_comment_suggested_event(self):
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        location = Location.objects.get(id=1)
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        category = Category.objects.create(name='CATEGORY')
+        tag1 = Tag.objects.create(name='TAG1')
+        tag2 = Tag.objects.create(name='TAG2')
+        channel = Channel.objects.create(name='CHANNEL')
+
+        # create a suggested event that has everything filled in
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE',
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            category=category,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            #call_info='CALL INFO',
+            #additional_links='ADDITIONAL LINKS',
+            submitted=now,
+        )
+        event.tags.add(tag1)
+        event.tags.add(tag2)
+        event.channels.add(channel)
+
+        url = reverse('manage:suggestion_review', args=(event.pk,))
+        data = {
+            'save_comment': 1,
+            'comment': ''
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('This field is required' in response.content)
+        assert not SuggestedEventComment.objects.all()
+
+        data['comment'] = """
+        Hi!
+        <script>alert("xss")</script>
+        """
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        comment, = SuggestedEventComment.objects.all()
+        eq_(comment.comment, data['comment'].strip())
+        eq_(comment.user, self.user)  # who I'm logged in as
+
+        # this should have sent an email to bob
+        email_sent = mail.outbox[-1]
+        ok_(email_sent.recipients(), [bob.email])
+        ok_('New comment' in email_sent.subject)
+        ok_(event.title in email_sent.subject)
+        ok_('<script>alert("xss")</script>' in email_sent.body)
+        ok_(reverse('suggest:summary', args=(event.pk,)) in email_sent.body)
 
 
 class TestEventTweets(ManageTestCase):

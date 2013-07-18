@@ -1,0 +1,21 @@
+A new comment has been posted on an existing event suggestion.
+
+*Comment:*
+{{ line_indent(comment.comment)|safe }}
+
+
+To see all details go to:
+  {{ base_url }}{{ url('suggest:summary', event.pk) }}
+
+{% if event.accepted %}
+The event has already been accepted. To edit the event go to:
+  {{ base_url}}{{ url('manage:event_edit', event.pk) }}
+{% else %}
+To review it and to turn it into a real event go to:
+  {{ base_url }}{{ url('manage:suggestions') }}#s{{ event.pk }}
+{% endif %}
+
+
+--
+You are receiving this automated email because you have permission to add
+events on Air Mozilla {{ base_url }}

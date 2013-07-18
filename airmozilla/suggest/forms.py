@@ -7,7 +7,8 @@ from airmozilla.main.models import (
     SuggestedEvent,
     Event,
     Tag,
-    Channel
+    Channel,
+    SuggestedEventComment
 )
 
 
@@ -193,3 +194,10 @@ class PlaceholderForm(BaseModelForm):
 #            final_participants.append(p)
 #        return final_participants
 #
+
+
+class SuggestedEventCommentForm(BaseModelForm):
+
+    class Meta:
+        model = SuggestedEventComment
+        fields = ('comment',)

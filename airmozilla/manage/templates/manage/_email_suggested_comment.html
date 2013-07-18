@@ -1,0 +1,15 @@
+Hi,
+
+A new comment has been added to your suggested event, with title "{{ event.title }}".
+{{ request.user.email }} left the following comment:
+
+{{ line_indent(comment.comment)|safe }}
+
+
+To review your submitted event go to:
+
+  {{ base_url }}{{ url('suggest:summary', event.pk) }}
+
+--
+Air Mozilla
+{{ base_url }}

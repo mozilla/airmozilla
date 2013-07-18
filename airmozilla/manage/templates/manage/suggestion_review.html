@@ -4,6 +4,22 @@
   Reviewing suggested event "{{ event.title }}"
 {% endblock %}
 
+{% block site_css %}
+    {{ super() }}
+    <style type="text/css">
+    form textarea { height: 100px; }
+    .comment {
+        margin-left: 160px;
+        margin-bottom: 10px;
+        border-bottom: 4px solid rgb(250,250,250);
+    }
+    .comment-text {
+        font-style: italic;
+    }
+    </style>
+{% endblock %}
+
+
 {% block manage_content %}
   {% set data = [
     ('Title', event.title),
@@ -64,4 +80,24 @@
     </button>
   </div>
   </form>
+
+
+<div class="comments">
+  <h3>Additional comments</h3>
+
+  {% include "manage/_suggestion_comments.html" %}
+
+  <form method="post" class="form-horizontal">
+  {{ csrf() }}
+  {{ bootstrapform(comment_form) }}
+  <div class="form-actions">
+    <button type="submit" class="btn btn-success btn-large"
+            name="save_comment" value="comment">
+      Comment
+    </button>
+  </div>
+  </form>
+
+</div>
+
 {% endblock %}

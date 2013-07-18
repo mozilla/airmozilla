@@ -1,6 +1,7 @@
 import datetime
 from django import http
 from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission, User
 from django.template.defaultfilters import slugify
@@ -16,7 +17,12 @@ from django.contrib.sites.models import RequestSite
 import pytz
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import SuggestedEvent, Event, Channel
+from airmozilla.main.models import (
+    SuggestedEvent,
+    Event,
+    Channel,
+    SuggestedEventComment
+)
 from airmozilla.base.utils import tz_apply
 
 from . import forms
@@ -197,17 +203,41 @@ def summary(request, id):
         else:
             return http.HttpResponseBadRequest('Not your event')
 
+    comment_form = forms.SuggestedEventCommentForm()
+
     if request.method == 'POST':
-        if event.submitted:
-            event.submitted = None
-            event.save()
+        if request.POST.get('save_comment'):
+            comment_form = forms.SuggestedEventCommentForm(data=request.POST)
+            if comment_form.is_valid():
+                comment = SuggestedEventComment.objects.create(
+                    comment=comment_form.cleaned_data['comment'].strip(),
+                    user=request.user,
+                    suggested_event=event
+                )
+                if event.submitted:
+                    _email_about_suggested_event_comment(comment, request)
+                    messages.info(
+                        request,
+                        'Comment added and producers notified by email.'
+                    )
+                else:
+                    messages.info(
+                        request,
+                        'Comment added but not emailed to producers because '
+                        'the event is not submitted.'
+                    )
+                return redirect('suggest:summary', event.pk)
         else:
-            now = datetime.datetime.utcnow().replace(tzinfo=utc)
-            event.submitted = now
-            event.save()
-            _email_about_suggested_event(event, request)
-        url = reverse('suggest:summary', args=(event.pk,))
-        return redirect(url)
+            if event.submitted:
+                event.submitted = None
+                event.save()
+            else:
+                now = datetime.datetime.utcnow().replace(tzinfo=utc)
+                event.submitted = now
+                event.save()
+                _email_about_suggested_event(event, request)
+            url = reverse('suggest:summary', args=(event.pk,))
+            return redirect(url)
 
     # The event.start_time will be in UTC, to display it as a local
     # time use the <timezone>.normalize() function
@@ -215,20 +245,78 @@ def summary(request, id):
     event.location_time = event.start_time
     event.location_time = tz.normalize(event.location_time)
 
-    return render(request, 'suggest/summary.html', {'event': event})
+    # we don't need the label for this form layout
+    comment_form.fields['comment'].label = ''
+
+    comments = (
+        SuggestedEventComment.objects
+        .filter(suggested_event=event)
+        .select_related('User')
+        .order_by('created')
+    )
+
+    context = {
+        'event': event,
+        'comment_form': comment_form,
+        'comments': comments,
+    }
+    return render(request, 'suggest/summary.html', context)
 
 
-def _email_about_suggested_event(event, request):
+def _get_add_event_emails(exclude_superusers=False):
     permission = Permission.objects.get(codename='add_event')
     emails = set()
     for group in permission.group_set.all():
         emails.update([u.email for u in group.user_set.all()])
-    # and all superusers
-    for superuser in User.objects.filter(is_superuser=True):
-        if superuser.email:
-            emails.add(superuser.email)
+    if not exclude_superusers:
+        for superuser in User.objects.filter(is_superuser=True):
+            if superuser.email:
+                emails.add(superuser.email)
+    return list(emails)
+
+
+def _email_about_suggested_event_comment(comment, request):
+    emails = _get_add_event_emails()
+    event_title = comment.suggested_event.title
+    if len(event_title) > 30:
+        event_title = '%s...' % event_title[:27]
     subject = (
-        '[Air Mozilla] New suggested event: %s' % event.title
+        '[Air Mozilla] New comment on suggested event: %s' % event_title
+    )
+    base_url = (
+        '%s://%s' % (request.is_secure() and 'https' or 'http',
+                     RequestSite(request).domain)
+    )
+    message = render_to_string(
+        'suggest/_email_comment.html',
+        {
+            'event': comment.suggested_event,
+            'comment': comment,
+            'base_url': base_url,
+        }
+    )
+    assert emails
+    email = EmailMessage(
+        subject,
+        message,
+        settings.EMAIL_FROM_ADDRESS,
+        emails
+    )
+    email.send()
+
+
+def _email_about_suggested_event(event, request):
+    emails = _get_add_event_emails()
+    event_title = event.title
+    if len(event_title) > 30:
+        event_title = '%s...' % event_title[:27]
+    comments = (
+        SuggestedEventComment.objects
+        .filter(suggested_event=event)
+        .order_by('created')
+    )
+    subject = (
+        '[Air Mozilla] New suggested event: %s' % event_title
     )
     base_url = (
         '%s://%s' % (request.is_secure() and 'https' or 'http',
@@ -239,6 +327,7 @@ def _email_about_suggested_event(event, request):
         {
             'event': event,
             'base_url': base_url,
+            'comments': comments,
         }
     )
     assert emails

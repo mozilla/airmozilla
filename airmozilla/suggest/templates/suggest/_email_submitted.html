@@ -12,6 +12,13 @@ A new event suggestion has been submitted.
 *Submitter:*
   {{ event.user.email }}
 
+{% for comment in comments %}
+{% if loop.first %}*Additional comments:*
+{% endif %}
+{{ line_indent(comment.comment)|safe }}
+    --------------------------------------------------------------------------
+{% endfor %}
+
 
 To see all details go to:
   {{ base_url }}{{ url('suggest:summary', event.pk) }}

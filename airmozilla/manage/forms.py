@@ -22,6 +22,7 @@ from airmozilla.main.models import (
     Template,
     Channel,
     SuggestedEvent,
+    SuggestedEventComment,
     URLMatch
 )
 
@@ -490,3 +491,10 @@ class URLMatchForm(BaseModelForm):
         except Exception as e:
             raise forms.ValidationError(e)
         return string
+
+
+class SuggestedEventCommentForm(BaseModelForm):
+
+    class Meta:
+        model = SuggestedEventComment
+        fields = ('comment',)

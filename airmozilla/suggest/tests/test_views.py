@@ -12,6 +12,7 @@ from nose.tools import eq_, ok_
 
 from airmozilla.main.models import (
     SuggestedEvent,
+    SuggestedEventComment,
     Event,
     Location,
     Channel,
@@ -565,3 +566,137 @@ class TestPages(TestCase):
         eq_(response.status_code, 302)
         event = SuggestedEvent.objects.get(pk=event.pk)
         eq_(event.slug, 'something-entirely-different')
+
+    def test_add_comments_in_summary_before_submission(self):
+        # also need a superuser
+        User.objects.create(
+            username='zandr',
+            email='zandr@mozilla.com',
+            is_staff=True,
+            is_superuser=True
+        )
+
+        event = self._make_suggested_event()
+        # give it an exceptionally long title
+        event.title = 'Title' * 10
+        event.save()
+        ok_(not event.submitted)
+        url = reverse('suggest:summary', args=(event.pk,))
+        assert self.client.get(url).status_code == 200
+
+        # before anything, we need to create some users
+        # who should get the email notification
+        approvers = Group.objects.get(name='testapprover')
+        richard = User.objects.create_user(
+            'richard',
+            email='richard@mozilla.com'
+        )
+        richard.groups.add(approvers)
+        permission = Permission.objects.get(codename='add_event')
+        approvers.permissions.add(permission)
+
+        data = {
+            'save_comment': 1,
+            'comment': '',  # not going to be valid
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('This field is required' in response.content)
+
+        # this should not have submitted the event
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        ok_(not event.submitted)
+
+        no_sent_emails = len(mail.outbox)
+        ok_(not no_sent_emails)
+
+        # enter a proper comment this time
+        data['comment'] = """
+        I will need a rubber "duck"
+        """
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        # should still not be submitted
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        ok_(not event.submitted)
+        # and no email because it's not submitted yet
+        no_sent_emails = len(mail.outbox)
+        ok_(not no_sent_emails)
+        assert SuggestedEventComment.objects.all().count() == 1
+
+        # submit a second comment
+        data['comment'] = "Second comment"
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        assert SuggestedEventComment.objects.all().count() == 2
+
+        # Now, let's submit it
+        response = self.client.post(url, {})
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        ok_(event.submitted)
+
+        email_sent = mail.outbox[-1]
+        ok_('TitleTitle' in email_sent.subject)
+        # but it's truncated
+        ok_('...' in email_sent.subject)
+        ok_(event.title not in email_sent.subject)
+
+        # the two comments should be included in the email
+        comment1, comment2 = (
+            SuggestedEventComment.objects.all().order_by('created')
+        )
+        ok_(comment1.comment in email_sent.body)
+        ok_(comment2.comment in email_sent.body)
+
+    def test_add_comments_in_summary_after_submission(self):
+        # also need a superuser
+        User.objects.create(
+            username='zandr',
+            email='zandr@mozilla.com',
+            is_staff=True,
+            is_superuser=True
+        )
+        event = self._make_suggested_event()
+        # give it an exceptionally long title
+        event.title = 'Title' * 10
+        event.submitted = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.save()
+        url = reverse('suggest:summary', args=(event.pk,))
+        assert self.client.get(url).status_code == 200
+
+        # before anything, we need to create some users
+        # who should get the email notification
+        approvers = Group.objects.get(name='testapprover')
+        richard = User.objects.create_user(
+            'richard',
+            email='richard@mozilla.com'
+        )
+        richard.groups.add(approvers)
+        permission = Permission.objects.get(codename='add_event')
+        approvers.permissions.add(permission)
+
+        data = {
+            'save_comment': 1,
+            'comment': '',  # not going to be valid
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('This field is required' in response.content)
+
+        no_sent_emails = len(mail.outbox)
+        ok_(not no_sent_emails)
+
+        # enter a proper comment this time
+        data['comment'] = """
+        I will need a rubber "duck"
+        """
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        email_sent = mail.outbox[-1]
+        ok_('New comment' in email_sent.subject)
+        ok_('TitleTitle' in email_sent.subject)
+        # but it's truncated
+        ok_('...' in email_sent.subject)
+        ok_(event.title not in email_sent.subject)
+        ok_(data['comment'].strip() in email_sent.body)
