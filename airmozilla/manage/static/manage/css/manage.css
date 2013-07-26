@@ -98,3 +98,9 @@ div.required label:after {
 #archive_time_slider {
     font-size: 14px;
 }
+
+a.message-inline {
+    padding-left: 10px;
+    font-weight: bold;
+    text-decoration: underline;
+}

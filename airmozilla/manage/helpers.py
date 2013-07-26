@@ -1,6 +1,8 @@
+import re
 import cgi
 import urllib
 import textwrap
+import jinja2
 from jingo import register
 
 from django.template import Context
@@ -83,3 +85,26 @@ def scrub_transform_passwords(text):
 @register.function
 def timesince(start_time):
     return _timesince(start_time)
+
+
+basic_markdown_link = re.compile(
+    '(\[(.*?)\]\((/.*?)\))'
+)
+
+
+@register.function
+def format_message(message):
+    if hasattr(message, 'message'):
+        # it's a django.contrib.messages.base.Message instance
+        message = message.message
+
+    if basic_markdown_link.findall(message):
+        whole, label, link = basic_markdown_link.findall(message)[0]
+        message = message.replace(
+            whole,
+            '<a href="%s" class="message-inline">%s</a>'
+            % (link, label)
+        )
+        message = jinja2.Markup(message)
+
+    return message

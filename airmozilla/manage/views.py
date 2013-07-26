@@ -380,7 +380,11 @@ def event_edit(request, id):
             _event_process(request, form, event)
             event.save()
             form.save_m2m()
-            messages.info(request, 'Event "%s" saved.' % event.title)
+            edit_url = reverse('manage:event_edit', args=(event.pk,))
+            messages.info(
+                request,
+                'Event "%s" saved. [Edit again](%s)' % (event.title, edit_url)
+            )
             return redirect('manage:events')
     else:
         timezone.activate(pytz.timezone('UTC'))
