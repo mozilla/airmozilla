@@ -291,7 +291,7 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
 
         mv = Location.objects.get(name='Mountain View')
-        category = Category.objects.get(name='Testing')
+        category = Category.objects.get(name='testing')
         channel = Channel.objects.create(
             name='Security',
             slug='security'

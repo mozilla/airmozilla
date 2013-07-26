@@ -671,6 +671,7 @@ def all_event_tweets(request):
     data = {
         'paginate': paged,
     }
+
     return render(request, 'manage/all_event_tweets.html', data)
 
 
@@ -1994,13 +1995,15 @@ def event_hit_stats(request):
     if order_by not in possible_order_by:
         order_by = possible_order_by[0]
 
+    hits_per_day_sql = (
+        'total_hits / extract(days from (now() - main_event.archive_time))'
+    )
     stats = (
         EventHitStats.objects
         .exclude(event__archive_time__isnull=True)
         .order_by('-%s' % order_by)
         .extra(select={
-            'hits_per_day':
-            'total_hits / datediff(now(), main_event.archive_time)'
+            'hits_per_day': hits_per_day_sql
         })
     )
 

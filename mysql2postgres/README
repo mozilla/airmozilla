@@ -1,0 +1,33 @@
+To convert from MySQL to PostgreSQL you need to do the following steps:
+-----------------------------------------------------------------------
+
+1. Create a blank database in postgres
+
+2. Edit airmozilla/settings/local.py to look something like this::
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'airmozilla',
+        'USER': USERNAME,
+        'PASSWORD': PASSWORD,
+        'HOST': '',
+        'PORT': '',
+    },
+}
+
+3. Run the initial migration which sets up the tables::
+
+    ./manage.py syncdb
+    ./manage.py migrate main.airmozilla
+
+4. Next we need migrate the data from mysql to postgres. To do that
+   run::
+
+   ./run-py-mysql2pgsql.sh
+
+5. Now we need to convert all timestamps to contain a timezone. This
+   depends on how to connect to postgresql. Here's how to do it
+   locally::
+
+  psql airmozilla < convert-all-timestamps.sql

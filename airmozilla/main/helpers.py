@@ -18,6 +18,7 @@ from airmozilla.base.utils import html_to_text
 def js_date(dt, format='ddd, MMM D, YYYY, h:mma UTCZZ', enable_timeago=True,
             autoupdate=False):
     """ Python datetime to a time tag with JS Date.parse-parseable format. """
+    dt = dt.replace(microsecond=0)  # we don't need the microseconds
     dt_date = dt.strftime('%m/%d/%Y')
     dt_time = dt.strftime('%H:%M')
     dt_tz = dt.tzname() or 'UTC'
