@@ -1151,6 +1151,7 @@ class TestEvents(ManageTestCase):
 
     def test_event_edit_with_suggested_event_comments(self):
         event = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
         suggested_event = SuggestedEvent.objects.create(
             user=self.user,
             title=event.title,
@@ -1160,7 +1161,7 @@ class TestEvents(ManageTestCase):
             location=event.location,
             start_time=event.start_time,
             accepted=event,
-            submitted=datetime.datetime.utcnow(),
+            submitted=now,
         )
         SuggestedEventComment.objects.create(
             suggested_event=suggested_event,
