@@ -6,9 +6,9 @@ from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Event,
-    Channel,
-    get_profile_safely
+    Channel
 )
+from airmozilla.main.views import is_contributor
 
 
 def sidebar(request):
@@ -31,14 +31,7 @@ def sidebar(request):
     else:
         channels = Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG)
 
-    if request.user.is_active:
-        profile = get_profile_safely(request.user)
-        if profile and profile.contributor:
-            feed_privacy = 'contributors'
-        else:
-            feed_privacy = 'company'
-    else:
-        feed_privacy = 'public'
+    feed_privacy = _get_feed_privacy(request.user)
 
     if settings.DEFAULT_CHANNEL_SLUG in [x.slug for x in channels]:
         feed_title = 'AirMozilla RSS'
@@ -88,3 +81,17 @@ def analytics(request):
         not settings.DEBUG
     )
     return {'INCLUDE_ANALYTICS': include}
+
+
+def _get_feed_privacy(user):
+    """return 'public', 'contributors' or 'company' depending on the user
+    profile.
+    Because this is used very frequently and because it's expensive to
+    pull out the entire user profile every time, we use cache to remember
+    if the user is a contributor or not (applicable only if logged in)
+    """
+    if user.is_active:
+        if is_contributor(user):
+            return 'contributors'
+        return 'company'
+    return 'public'

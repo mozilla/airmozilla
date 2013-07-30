@@ -49,6 +49,39 @@ class TestPages(TestCase):
             url += '?location=%s' % urllib.quote_plus(location)
         return url
 
+    def test_is_contributor(self):
+        from airmozilla.main.views import is_contributor
+        anonymous = AnonymousUser()
+        ok_(not is_contributor(anonymous))
+
+        employee_wo_profile = User.objects.create_user(
+            'worker', 'worker@mozilla.com', 'secret'
+        )
+        ok_(not is_contributor(employee_wo_profile))
+        employee_w_profile = User.objects.create_user(
+            'worker2', 'worker2@mozilla.com', 'secret'
+        )
+        assert not UserProfile.objects.filter(user=employee_wo_profile)
+        up = UserProfile.objects.create(
+            user=employee_w_profile,
+            contributor=False
+        )
+        ok_(not is_contributor(employee_w_profile))
+        up.contributor = True
+        up.save()
+        # re-fetch to avoid internal django cache on profile fetching
+        employee_w_profile = User.objects.get(pk=employee_w_profile.pk)
+        ok_(is_contributor(employee_w_profile))
+
+        contributor = User.objects.create_user(
+            'nigel', 'nigel@live.com', 'secret'
+        )
+        UserProfile.objects.create(
+            user=contributor,
+            contributor=True
+        )
+        ok_(is_contributor(contributor))
+
     def test_can_view_event(self):
         event = Event.objects.get(title='Test event')
         assert event.privacy == Event.PRIVACY_PUBLIC  # default
@@ -1150,3 +1183,54 @@ class TestPages(TestCase):
             response,
             reverse('main:event', args=('other-page',))
         )
+
+    def test_link_to_feed_url(self):
+        """every page has a link to the feed that depends on how you're
+        logged in"""
+        self.client.logout()
+        url = reverse('main:home')
+        feed_url_anonymous = reverse('main:feed', args=('public',))
+        feed_url_employee = reverse('main:feed', args=('company',))
+        feed_url_contributor = reverse('main:feed', args=('contributors',))
+
+        def extrac_content(content):
+            return (
+                content
+                .split('type="application/rss+xml"')[0]
+                .split('<link')[-1]
+            )
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        content = extrac_content(response.content)
+        ok_(feed_url_anonymous in content)
+        ok_(feed_url_employee not in content)
+        ok_(feed_url_contributor not in content)
+        self.client.logout()
+
+        UserProfile.objects.create(
+            user=User.objects.create_user(
+                'nigel', 'nigel@live.com', 'secret'
+            ),
+            contributor=True
+        )
+        contributor = User.objects.get(username='nigel')
+        assert contributor.get_profile().contributor
+        assert self.client.login(username='nigel', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        content = extrac_content(response.content)
+        ok_(feed_url_anonymous not in content)
+        ok_(feed_url_employee not in content)
+        ok_(feed_url_contributor in content)
+
+        User.objects.create_user(
+            'zandr', 'zandr@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='zandr', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        content = extrac_content(response.content)
+        ok_(feed_url_anonymous not in content)
+        ok_(feed_url_employee in content)
+        ok_(feed_url_contributor not in content)

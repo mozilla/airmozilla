@@ -53,8 +53,7 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
     privacy_filter = {}
     privacy_exclude = {}
     if request.user.is_active:
-        profile = get_profile_safely(request.user)
-        if profile and profile.contributor:
+        if is_contributor(request.user):
             privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
     else:
         privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
@@ -150,6 +149,20 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
     })
 
 
+def is_contributor(user):
+    if not hasattr(user, 'pk'):
+        return False
+    cache_key = 'is-contributor-%s' % user.pk
+    is_ = cache.get(cache_key)
+    if is_ is None:
+        profile = get_profile_safely(user)
+        is_ = False
+        if profile and profile.contributor:
+            is_ = True
+        cache.set(cache_key, is_, 60 * 60)
+    return is_
+
+
 def can_view_event(event, user):
     """return True if the current user has right to view this event"""
     if event.privacy == Event.PRIVACY_PUBLIC:
@@ -160,8 +173,7 @@ def can_view_event(event, user):
     # you're logged in
     if event.privacy == Event.PRIVACY_COMPANY:
         # but then it's not good enough to be contributor
-        profile = get_profile_safely(user)
-        if profile and profile.contributor:
+        if is_contributor(user):
             return False
 
     return True

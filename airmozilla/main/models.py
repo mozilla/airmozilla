@@ -30,6 +30,11 @@ class UserProfile(models.Model):
     contributor = models.BooleanField(default=False)
 
 
+@receiver(models.signals.post_save, sender=UserProfile)
+def user_profile_clear_cache(sender, instance, **kwargs):
+    cache.delete('is-contributor-%s' % instance.user.pk)
+
+
 def get_profile_safely(user, create_if_necessary=False):
     try:
         return user.get_profile()
