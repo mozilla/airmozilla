@@ -70,14 +70,18 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
       {% if event.category %}
         <p>{{ _('Category') }}: {{ event.category.name }}</p>
       {% endif %}
-      {% if event.tags.exists() %}
+
+      {% for tag in event.tags.all() %}
+        {% if loop.first %}
         <p>
           {{ _('Tags') }}:
-          {% for tag in event.tags.all() %}
+	{% endif %}
             <a href="{{ url('main:home') }}?tag={{ tag.name | urlencode }}" class="tag">{{ tag.name }}</a>
-          {% endfor %}
+	{% if loop.last %}
         </p>
-      {% endif %}
+	{% endif %}
+      {% endfor %}
+
       {% if event.call_info %}
         <p>{{ _('Call info') }}: {{ event.call_info }}</p>
       {% endif %}
