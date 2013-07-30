@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.flatpages.models import FlatPage
+from django.db.models import Q
 
 from funfactory.urlresolvers import reverse
 
@@ -62,18 +63,19 @@ def sidebar(request):
     data['upcoming'] = upcoming
     data['featured'] = featured
 
-    try:
-        data['sidebar_top'] = FlatPage.objects.get(
-            url='sidebar_top_%s' % sidebar_channel
-        )
-    except FlatPage.DoesNotExist:
-        data['sidebar_top'] = None
-    try:
-        data['sidebar_bottom'] = FlatPage.objects.get(
-            url='sidebar_bottom_%s' % sidebar_channel
-        )
-    except FlatPage.DoesNotExist:
-        data['sidebar_bottom'] = None
+    data['sidebar_top'] = None
+    data['sidebar_bottom'] = None
+    sidebar_urls_q = (
+        Q(url='sidebar_top_%s' % sidebar_channel) |
+        Q(url='sidebar_bottom_%s' % sidebar_channel)
+    )
+    # to avoid having to do 2 queries, make a combined one
+    # set it up with an iterator
+    for page in FlatPage.objects.filter(sidebar_urls_q):
+        if page.url.startswith('sidebar_top_'):
+            data['sidebar_top'] = page
+        elif page.url.startswith('sidebar_bottom_'):
+            data['sidebar_bottom'] = page
 
     return data
 
