@@ -2150,9 +2150,10 @@ class TestEventTweets(ManageTestCase):
         ok_(EventTweet.objects.all().count())
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         event_tweet, = EventTweet.objects.all()
+        _fmt = '%Y%m%d%H%M'
         eq_(
-            event_tweet.send_date.replace(microsecond=0),
-            now.replace(microsecond=0)
+            event_tweet.send_date.strftime(_fmt),
+            now.strftime(_fmt)
         )
         ok_(not event_tweet.sent_date)
         ok_(not event_tweet.error)
