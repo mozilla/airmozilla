@@ -1631,13 +1631,14 @@ def vidly_media_status(request):
     else:
         results = cache.get(cache_key)
     if not results:
-        results = vidly.query(tag)[tag]
+        results = vidly.query(tag).get(tag, {})
         expires = 60
         # if it's healthy we might as well cache a bit
         # longer because this is potentially used a lot
         if results.get('Status') == 'Finished':
             expires = 60 * 60
-        cache.set(cache_key, results, expires)
+        if results:
+            cache.set(cache_key, results, expires)
 
     _status = results.get('Status')
     return {'status': _status}
