@@ -1,14 +1,6 @@
 {% extends 'main/main_base.html' %}
 {% set front_page = (events.number == 1) %}
 
-{% block banner %}
-  {% if front_page and channel.slug == 'main' and not tags %}
-    {% include 'main/_banner_large.html' %}
-  {% else %}
-    {% include 'main/_banner_small.html' %}
-  {% endif %}
-{% endblock %}
-
 {% block also_live %}
   {% if also_live %}
     {% set widget_title = _('Also live') -%}

@@ -9,6 +9,7 @@ from airmozilla.main.models import (
     Channel
 )
 from airmozilla.main.views import is_contributor
+from airmozilla.search.forms import SearchForm
 
 
 def sidebar(request):
@@ -69,6 +70,8 @@ def sidebar(request):
             data['sidebar_top'] = page
         elif page.url.startswith('sidebar_bottom_'):
             data['sidebar_bottom'] = page
+
+    data['search_form'] = SearchForm(request.GET)
 
     return data
 

@@ -19,7 +19,7 @@ DATABASES = {
 3. Run the initial migration which sets up the tables::
 
     ./manage.py syncdb
-    ./manage.py migrate main.airmozilla
+    ./manage.py migrate airmozilla.main
 
 4. Next we need migrate the data from mysql to postgres. To do that
    run::

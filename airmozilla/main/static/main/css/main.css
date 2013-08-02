@@ -29,6 +29,14 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
 #site-title, #site-title a:link, #site-title a:visited { color: #c5ccd2; }
 #site-title a:hover, #site-title a:focus, #site-title a:active { color: #ffe400; }
 
+#site-title h1 { float: left; }
+#site-title form {
+    float: right;
+    margin-top: 19px;
+    margin-right: -24px;
+}
+#site-title form input { width: 270px; }
+
 #masthead hgroup { padding: 0; }
 #site-title.home { text-align: center; }
 

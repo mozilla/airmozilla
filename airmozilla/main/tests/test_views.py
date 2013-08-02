@@ -31,6 +31,7 @@ class TestPages(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def setUp(self):
+        super(TestPages, self).setUp()
         # Make the fixture event live as of the test.
         event = Event.objects.get(title='Test event')
         event.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -106,11 +107,18 @@ class TestPages(TestCase):
             contributor=True
         )
 
-        from airmozilla.main.views import can_view_event
+        from airmozilla.main.views import can_view_event, is_contributor
         ok_(can_view_event(event, anonymous))
+        assert not is_contributor(anonymous)
+
         ok_(can_view_event(event, contributor))
+        assert is_contributor(contributor)
+
         ok_(can_view_event(event, employee_wo_profile))
+        assert not is_contributor(employee_wo_profile)
+
         ok_(can_view_event(event, employee_w_profile))
+        assert not is_contributor(employee_w_profile)
 
         event.privacy = Event.PRIVACY_COMPANY
         event.save()

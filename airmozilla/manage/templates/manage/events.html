@@ -102,7 +102,7 @@
 {%- endmacro %}
 
 {% block manage_content %}
-  {% if search_results %}
+  {% if search_results != None %}
     {{ event_table('Search results', search_results) }}
   {% else %}
     {% set paginate = archived %}
@@ -131,14 +131,18 @@
         New event
     </a>
     </p>
-     <form class="well form-search" method="post">
+     <form class="well form-search">
         Find event:
-        {{ csrf() }}
         {{ bootstrapform(form) }}
         <button type="submit" class="btn">
             <i class="icon-search"></i>
             Search
         </button>
+        {% if search_results != None %}
+        <button type="button" class="btn cancel">
+            Reset
+        </button>
+        {% endif %}
     </form>
 {% endblock %}
 

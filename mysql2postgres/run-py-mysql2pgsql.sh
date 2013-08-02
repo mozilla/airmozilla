@@ -1,7 +1,9 @@
 #!/bin/bash
 
-virtualenv tmpvenv
-source tmpvenv/bin/activate
+# optional
+#virtualenv tmpvenv
+#source tmpvenv/bin/activate
+
 pip install py-mysql2pgsql
 py-mysql2pgsql
 

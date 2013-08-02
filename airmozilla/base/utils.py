@@ -96,14 +96,20 @@ def _json_clean(value):
 
 def paginate(objects, page, count):
     """Returns a set of paginated objects, count per page (on #page)"""
-    paginator = Paginator(objects, count)
-    try:
-        objects_paged = paginator.page(page)
-    except PageNotAnInteger:
-        objects_paged = paginator.page(1)
-    except EmptyPage:
-        objects_paged = paginator.page(paginator.num_pages)
+    __, objects_paged = paginator(objects, page, count)
     return objects_paged
+
+
+def paginator(objects, page, count):
+    """return a Paginator instance and the objects paged"""
+    paginator_ = Paginator(objects, count)
+    try:
+        objects_paged = paginator_.page(page)
+    except PageNotAnInteger:
+        objects_paged = paginator_.page(1)
+    except EmptyPage:
+        objects_paged = paginator_.page(paginator_.num_pages)
+    return paginator_, objects_paged
 
 
 def unhtml(text_with_html):

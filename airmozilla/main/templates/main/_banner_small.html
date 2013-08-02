@@ -1,7 +1,16 @@
-<h1 id="site-title">
+<div id="site-title">
+<h1 xid="site-title">
   <a href="{{ url('main:home') }}" rel="home"
      title="{{ _('Go to the front page') }}">
     <img src="{{ static('img/logo-airmo-md.png') }}"
          alt="{{ _('Air Mozilla') }}">
   </a>
 </h1>
+
+{% if search_form %}
+<form action="{{ url('search:home') }}">
+  {{ search_form.q }} <button type="submit">Search</button>
+</form>
+{% endif %}
+
+</div>

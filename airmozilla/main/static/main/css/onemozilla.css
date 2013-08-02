@@ -111,7 +111,7 @@ px      68    160    252    344    436    528    620    712    804    896    */
 
 #masthead { position: relative; min-height: 120px; margin: 0; background-position: right top; background-repeat: no-repeat; }
 #masthead hgroup { padding-right: 340px; }
-#site-title { font-size: 4.5em; letter-spacing: -3px; margin: 0 0 .15em -5px; -moz-transition: font-size, letter-spacing .5s linear; -webkit-transition: font-size, letter-spacing .5s linear; -o-transition: font-size, letter-spacing .5s linear; -ms-transition: font-size, letter-spacing .5s linear; transition: font-size, letter-spacing .5s linear; }
+#site-title h1 { font-size: 4.5em; letter-spacing: -3px; margin: 0 0 .15em -5px; -moz-transition: font-size, letter-spacing .5s linear; -webkit-transition: font-size, letter-spacing .5s linear; -o-transition: font-size, letter-spacing .5s linear; -ms-transition: font-size, letter-spacing .5s linear; transition: font-size, letter-spacing .5s linear; }
 #site-title a { color: #333; text-decoration: none; }
 #site-title a:hover, #site-title a:focus, #site-title a:active { color: #962c2c; text-decoration: none; }
 #masthead #tabzilla { position: absolute; top: 0; right: 0; border: 0; }
@@ -189,7 +189,7 @@ px      68    160    252    344    436    528    620    712    804    896    */
 .page-title { margin: -.3em 0 24px; }
 .archive .page-title, .search-results .page-title { margin-top: 0; font-size: 1.75em; letter-spacing: -0.5px; }
 
-.entry-title { font-size: 2em; letter-spacing: -1px; margin: 0 0 .5em; min-height: 55px; }
+.entry-title { font-size: 2em; letter-spacing: -1px; margin: 0 0 .1em; min-height: 55px; }
 .single-post .entry-title, .page .entry-title { font-size: 3em; letter-spacing: -2px; }
 .show-comments.no-author .entry-title { float: left; width: 430px; }
 .single-post .show-comments.no-author .entry-title { float: none; width: auto; }
@@ -200,7 +200,7 @@ px      68    160    252    344    436    528    620    712    804    896    */
 .entry-meta b { margin-right: 10px; font-weight: normal; text-transform: uppercase; }
 
 /*** Entry @Header */
-.entry-header { position: relative; padding: .5em 0 1em; margin: 0 0 24px; }
+.entry-header { position: relative; padding: .5em 0 1em; margin: 0 0 14px; }
 .entry-header:after { content: "."; display: block; clear: both; height: 0; visibility: hidden; }
 .post .entry-header { padding-left: 92px; }
 .page .entry-title { min-height: 0; margin: 0; }

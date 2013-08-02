@@ -42,15 +42,11 @@ LOG_LEVEL = logging.ERROR
 # Database name has to be set because of sphinx
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': '${DB_HOST}',
-        'NAME': '${JOB_NAME}',
-        'USER': 'hudson',
-        'PASSWORD': '',
-        'OPTIONS': {'init_command': 'SET storage_engine=InnoDB'},
-        'TEST_NAME': 'test_${JOB_NAME}',
-        'TEST_CHARSET': 'utf8',
-        'TEST_COLLATION': 'utf8_general_ci',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': 'jenkins-services1.dmz.phx1.mozilla.com',
+        'NAME': 'airmozillatests',
+        'USER': 'airmozilla',
+        'PASSWORD': 'airmozillaTests',
     }
 }
 EMAIL_FROM_ADDRESS = 'any@doesntmatter.com'

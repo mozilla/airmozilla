@@ -33,8 +33,15 @@ class UserProfile(models.Model):
 
 
 @receiver(models.signals.post_save, sender=UserProfile)
+@receiver(models.signals.post_save, sender=User)
 def user_profile_clear_cache(sender, instance, **kwargs):
-    cache.delete('is-contributor-%s' % instance.user.pk)
+    if instance.__class__ is User:
+        pk = instance.pk
+    elif instance.__class__ is UserProfile:
+        pk = instance.user.pk
+    else:
+        raise NotImplementedError
+    cache.delete('is-contributor-%s' % pk)
 
 
 def get_profile_safely(user, create_if_necessary=False):

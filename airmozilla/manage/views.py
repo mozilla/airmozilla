@@ -323,22 +323,36 @@ def events(request):
     base_filter = {}
     base_exclude = {}
     if not request.user.has_perm('main.change_event_others'):
-        base_filter = {'creator': request.user}
+        base_filter['creator'] = request.user
     if is_contributor(request.user):
         base_exclude['privacy'] = Event.PRIVACY_COMPANY
 
-    search_results = []
-    if request.method == 'POST':
-        search_form = forms.EventFindForm(request.POST)
+    search_results = None
+    if request.GET.get('title'):
+        search_form = forms.EventFindForm(request.GET)
         if search_form.is_valid():
             search_results = (
                 Event.objects
-                .filter(
-                    title__icontains=search_form.cleaned_data['title'],
-                    **base_filter)
+                .filter(**base_filter)
                 .exclude(**base_exclude)
-                .order_by('-start_time')
             )
+            exact = search_results.filter(
+                title=search_form.cleaned_data['title']
+            )
+            if exact:
+                search_results = exact
+            else:
+                title_sql = (
+                    "to_tsvector('english', title) "
+                    "@@ plainto_tsquery('english', %s)"
+                )
+                search_results = search_results.extra(
+                    where=[title_sql],
+                    params=[search_form.cleaned_data['title']]
+                )
+                search_results = search_results.order_by('-start_time')
+        else:
+            search_results = Event.objects.none()
     else:
         search_form = forms.EventFindForm()
     initiated = (
