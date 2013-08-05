@@ -435,7 +435,7 @@ def event_edit(request, id):
     ):
         tag = event.template_environment['tag']
         results = vidly.query(tag)
-        status = results[tag]['Status']
+        status = results.get(tag, {}).get('Status')
         if status == 'Finished':
             data['stuck_pending'] = True
 
