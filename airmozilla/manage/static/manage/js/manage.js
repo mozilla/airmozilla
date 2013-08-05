@@ -3,7 +3,6 @@
 function process_vidly_status_response(response, $element) {
     if (response.status) {
         $element.text(response.status);
-        console.log(response.status);
         if (response.status == 'Finished') {
             $element.addClass('label-success');
         } else if (response.status == 'Finished') {
