@@ -39,7 +39,11 @@ from airmozilla.main.models import (
     EventHitStats
 )
 
-from .test_vidly import SAMPLE_XML, SAMPLE_MEDIALIST_XML
+from .test_vidly import (
+    SAMPLE_XML,
+    SAMPLE_MEDIALIST_XML,
+    SAMPLE_INVALID_LINKS_XML
+)
 
 
 class ManageTestCase(TestCase):
@@ -2579,6 +2583,34 @@ class TestVidlyMedia(ManageTestCase):
         response = self.client.get(url, {'id': event.pk, 'refresh': 1})
         eq_(response.status_code, 200)
         eq_(len(sent_queries), 2)
+
+    @mock.patch('urllib2.urlopen')
+    def test_vidly_media_info_with_error(self, p_urlopen):
+
+        sent_queries = []
+
+        def mocked_urlopen(request):
+            sent_queries.append(True)
+            return StringIO(SAMPLE_INVALID_LINKS_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:vidly_media_info')
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        event.template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<iframe>'
+        )
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        response = self.client.get(url, {'id': event.pk})
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        eq_(data['ERRORS'], ['Tag (abc123) not found in Vid.ly'])
 
     @mock.patch('urllib2.urlopen')
     def test_vidly_media_info_with_past_submission_info(self, p_urlopen):

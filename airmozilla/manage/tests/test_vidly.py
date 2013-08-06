@@ -58,6 +58,21 @@ SAMPLE_STATISTICS_BROKEN_XML = (
 )
 
 
+SAMPLE_INVALID_LINKS_XML = (
+    '<?xml version="1.0"?>'
+    '<Response><Message>Action failed: all media short links are wrong.'
+    '</Message><MessageCode>4.3</MessageCode><Errors><Error>'
+    '<ErrorCode>4.1</ErrorCode>'
+    '<ErrorName>No media short links provided.</ErrorName>'
+    '<Description>You have not provided any media short links in your request '
+    'or all media short links are invalid.</Description><Suggestion>Check '
+    'that you have provided valid media short links in your request. If you '
+    'have used batch ID, verify that it contains any media links (you may '
+    'need to consult site administrator for this).</Suggestion></Error>'
+    '</Errors></Response>'
+)
+
+
 class TestVidlyTokenize(TestCase):
 
     @mock.patch('airmozilla.manage.vidly.logging')

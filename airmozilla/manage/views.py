@@ -1685,7 +1685,12 @@ def vidly_media_info(request):
         else:
             results = cache.get(cache_key)
         if not results:
-            results = vidly.query(tag)[tag]
+            all_results = vidly.query(tag)
+            if tag not in all_results:
+                return {
+                    'ERRORS': ['Tag (%s) not found in Vid.ly' % tag]
+                }
+            results = all_results[tag]
             cache.set(cache_key, results, 60)
 
     data = {'fields': as_fields(results)}

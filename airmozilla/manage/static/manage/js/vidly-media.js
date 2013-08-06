@@ -57,6 +57,12 @@ $(function() {
           url: '/manage/vidly/info/',
           data: {id: $label.data('id'), refresh: true},
           success: function(response) {
+              if (response.ERRORS) {
+                  $.each(response.ERRORS, function(i, error) {
+                      alert('ERROR: ' + error);
+                  });
+                  return;
+              }
               var table = $('.info table');
               $('tr', table).remove();
               $.each(response.fields, function(i, field) {
