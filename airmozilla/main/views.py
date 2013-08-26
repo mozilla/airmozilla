@@ -12,6 +12,7 @@ from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
 from django.template.defaultfilters import slugify
 from django.contrib.flatpages.views import flatpage
+from django.views.generic.base import View
 
 from funfactory.urlresolvers import reverse
 from jingo import Template
@@ -179,7 +180,13 @@ def can_view_event(event, user):
     return True
 
 
-def event(request, slug):
+class EventView(View):
+    template_name = 'main/event.html'
+
+    def get(self, request, slug):
+        return render(request, self.template_name, self.get_context_data(slug))
+
+def event(request, slug, template_file='main/event.html'):
     """Video, description, and other metadata."""
     try:
         event = Event.objects.get(slug=slug)
@@ -245,7 +252,7 @@ def event(request, slug):
     request.channels = event.channels.all()
 
     participants = event.participants.filter(cleared=Participant.CLEARED_YES)
-    return render(request, 'main/event.html', {
+    return render(request, template_file, {
         'event': event,
         'pending': event.status == Event.STATUS_PENDING,
         'video': template_tagged,
@@ -255,6 +262,17 @@ def event(request, slug):
         'Event': Event,
         'hits': hits,
     })
+
+
+class EventVideoView(EventView):
+    template_name = 'main/event_video.html'
+
+    def get(self, request, slug):
+        response = super(EventVideoView, self).get(request, slug)
+        response['X-Frame-Options'] = 'ALLOW'
+        return response
+
+
 
 
 def participant(request, slug):

@@ -36,5 +36,8 @@ urlpatterns = patterns(
         r'(?P<private_or_public>company|public|private|contributors)/?$',
         cache_page(views.EventsFeed(), 60 * 60),
         name='channel_feed'),
-    url(r'^(?P<slug>[-\w]+)/$', views.event, name='event'),
+    url(r'^(?P<slug>[-\w]+)/$', views.EventView.as_view(),
+        name='event'),
+    url(r'^(?P<slug>[-\w]+)/video/$', views.EventVideoView.as_view(),
+        name='event_video'),
 )
