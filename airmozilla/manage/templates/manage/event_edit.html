@@ -53,7 +53,11 @@
     {% if suggested_event %}
     <p>This event was originally suggested by
       <strong>{{ suggested_event.user.email }}</strong>
+      {% if suggested_event.submitted %}
       {{ suggested_event.submitted|js_date }}.
+      {% else %}
+        <em>suggested event submission retracted</em>.
+      {% endif %}
     </p>
     {% endif %}
 
