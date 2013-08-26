@@ -569,6 +569,7 @@ class TestPages(TestCase):
         url = reverse('main:feed', args=('public',))
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        eq_(response['Access-Control-Allow-Origin'], '*')
         ok_('Test event' in response.content)
         ok_('Second test event' not in response.content)
 
