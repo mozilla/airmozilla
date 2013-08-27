@@ -3,21 +3,49 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ event.title }}</title>
+    <title>{% if error %}{{ error }}{% else %}{{ event.title }}{% endif %}</title>
     <style type="text/css">
-    body { background-color: black; margin: 0; padding: 0; }
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: white;
+        font-family: sans-serif;
+    }
+    h3.error {
+        color: red;
+        margin: 50px;
+    }
+    p.footer {
+        text-align: right;
+        font-size: 10px;
+    }
+    p.footer a {
+        color: black;
+    }
     </style>
   </head>
   <body>
 
-{% if warning %}
-      <div class="warning">Warning: {{ warning }}</div>
-    {% endif %}
+{% if error %}
+  <h3 class="error">ERROR: {{ error }}</h3>
+{% else %}
+  {% if warning %}
+    <div class="warning">Warning: {{ warning }}</div>
+  {% endif %}
+
+  {% if event %}
     {% if pending %}
       <p class="pending">
       Event is currently in a pending state meaning it will soon be made available.
       </p>
     {% else %}
       {{ video|safe }}
+      <p class="footer"><a href="{{ absolute_url }}" target="_blank">View on Air Mozilla</a></p>
     {% endif %}
+  {% endif %}
+{% endif %}
 </html>

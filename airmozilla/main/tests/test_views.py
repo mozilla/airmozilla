@@ -1234,3 +1234,40 @@ class TestPages(TestCase):
         ok_(feed_url_anonymous not in content)
         ok_(feed_url_employee in content)
         ok_(feed_url_contributor not in content)
+
+    def test_view_event_video_only(self):
+        event = Event.objects.get(title='Test event')
+        assert event.privacy == Event.PRIVACY_PUBLIC  # default
+        url = reverse('main:event_video', kwargs={'slug': event.slug})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(response['X-Frame-Options'], 'ALLOWALL')
+        ok_(event.title in response.content)
+
+    def test_view_event_video_only_not_public(self):
+        event = Event.objects.get(title='Test event')
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+
+        url = reverse('main:event_video', kwargs={'slug': event.slug})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(response['X-Frame-Options'], 'ALLOWALL')
+        ok_("Not a public event" in response.content)
+
+        # it won't help to be signed in
+        User.objects.create_user(
+            'zandr', 'zandr@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='zandr', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(response['X-Frame-Options'], 'ALLOWALL')
+        ok_("Not a public event" in response.content)
+
+    def test_view_event_video_not_found(self):
+        url = reverse('main:event_video', kwargs={'slug': 'xxxxxx'})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(response['X-Frame-Options'], 'ALLOWALL')
+        ok_("Event not found" in response.content)

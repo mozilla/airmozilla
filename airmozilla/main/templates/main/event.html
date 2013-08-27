@@ -9,7 +9,16 @@
 {{ super() }}
 <style type="text/css">
 p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037; padding: 30px; }
+.hidden { display: none; }
+.embed {  }
+.embed .code { display:none; }
+.embed .code p { margin-bottom: 0; }
 </style>
+{% endblock %}
+
+{% block site_js %}
+{{ super() }}
+<script src="{{ static('main/js/embed.js') }}"></script>
 {% endblock %}
 
 {% block banner %}
@@ -91,6 +100,17 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
       {% if hits %}
         <p>{{ _('Views since archived') }}: {{ thousands(hits) }}</p>
       {% endif %}
+
+      {% if not pending and video and event.is_public() %}
+        <div class="embed">
+          <p><a href="#" class="open">Want to embed this video?</a></p>
+          <div class="code hidden">
+            <p><a href="#" class="close">Close</a></p>
+            <textarea rows="1" cols="80">{{ embed_code }}</textarea>
+          </div>
+        </div>
+      {% endif %}
+
     </div>
   </article>
 {% endblock %}
