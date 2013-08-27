@@ -414,6 +414,10 @@ def events_calendar(request, privacy=None):
         'inline; filename=%s' % filename)
     if not location:
         cache.set(cache_key, response)
+
+    # https://bugzilla.mozilla.org/show_bug.cgi?id=909516
+    response['Access-Control-Allow-Origin'] = '*'
+
     return response
 
 
@@ -460,12 +464,6 @@ class EventsFeed(Feed):
 
     def item_pubdate(self, event):
         return event.start_time
-
-    def __call__(self, *args, **kwargs):
-        response = super(EventsFeed, self).__call__(*args, **kwargs)
-        # https://bugzilla.mozilla.org/show_bug.cgi?id=909516
-        response['Access-Control-Allow-Origin'] = '*'
-        return response
 
 
 def channels(request):

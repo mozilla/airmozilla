@@ -273,6 +273,7 @@ class TestPages(TestCase):
         url = self._calendar_url('public')
         response_public = self.client.get(url)
         eq_(response_public.status_code, 200)
+        eq_(response_public['Access-Control-Allow-Origin'], '*')
         ok_('LOCATION:Mountain View' in response_public.content)
         private_url = self._calendar_url('company')
         response_private = self.client.get(private_url)
@@ -569,7 +570,6 @@ class TestPages(TestCase):
         url = reverse('main:feed', args=('public',))
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        eq_(response['Access-Control-Allow-Origin'], '*')
         ok_('Test event' in response.content)
         ok_('Second test event' not in response.content)
 
