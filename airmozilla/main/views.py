@@ -12,6 +12,7 @@ from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
 from django.template.defaultfilters import slugify
 from django.contrib.flatpages.views import flatpage
+from django.views.generic.base import View
 
 from funfactory.urlresolvers import reverse
 from jingo import Template
@@ -179,82 +180,153 @@ def can_view_event(event, user):
     return True
 
 
-def event(request, slug):
+class EventView(View):
     """Video, description, and other metadata."""
-    try:
-        event = Event.objects.get(slug=slug)
-    except Event.DoesNotExist:
-        try:
-            event = Event.objects.get(slug__iexact=slug)
-        except Event.DoesNotExist:
-            try:
-                old_slug = EventOldSlug.objects.get(slug=slug)
-                return redirect('main:event', slug=old_slug.event.slug)
-            except EventOldSlug.DoesNotExist:
-                # does it exist as a static page
-                return flatpage(request, slug)
 
-    if not can_view_event(event, request.user):
+    template_name = 'main/event.html'
+
+    def cant_view_event(self, event, request):
+        """return a response appropriate when you can't view the event"""
         return redirect('main:login')
 
-    warning = None
-    if event.status not in (Event.STATUS_SCHEDULED, Event.STATUS_PENDING):
-        if not request.user.is_active:
-            return http.HttpResponse('Event not scheduled')
-        else:
-            warning = "Event is not publicly visible - not scheduled."
+    def cant_find_event(self, request, slug):
+        """return an appropriate response if no event can be found"""
+        return flatpage(request, slug)
 
-    if event.approval_set.filter(approved=False).exists():
-        if not request.user.is_active:
-            return http.HttpResponse('Event not approved')
-        else:
-            warning = "Event is not publicly visible - not yet approved."
+    def can_view_event(self, event, request):
+        """wrapper on the utility function can_view_event()"""
+        return can_view_event(event, request)
 
-    hits = None
-
-    template_tagged = ''
-    if event.template and not event.is_upcoming():
-        context = {
-            'md5': lambda s: hashlib.md5(s).hexdigest(),
-            'event': event,
-            'request': request,
-            'datetime': datetime.datetime.utcnow(),
-            'vidly_tokenize': vidly.tokenize,
-            'edgecast_tokenize': edgecast_tokenize,
-        }
-        if isinstance(event.template_environment, dict):
-            context.update(event.template_environment)
-        template = Template(event.template.content)
-        try:
-            template_tagged = template.render(context)
-        except vidly.VidlyTokenizeError, msg:
-            template_tagged = '<code style="color:red">%s</code>' % msg
-
-        stats_query = (
-            EventHitStats.objects.filter(event=event)
-            .values_list('total_hits', flat=True)
+    def get_default_context(self, event, request):
+        context = {}
+        prefix = request.is_secure() and 'https' or 'http'
+        root_url = '%s://%s' % (prefix, RequestSite(request).domain)
+        url = reverse('main:event_video', kwargs={'slug': event.slug})
+        absolute_url = root_url + url
+        context['embed_code'] = (
+            '<iframe src="%s" '
+            'width="640" height="380" frameborder="0" allowfullscreen>'
+            '</iframe>'
+            % absolute_url
         )
-        for total_hits in stats_query:
-            hits = total_hits
+        return context
 
-    can_edit_event = (
-        request.user.is_active and
-        request.user.has_perm('main.change_event')
-    )
+    def get(self, request, slug):
+        try:
+            event = Event.objects.get(slug=slug)
+        except Event.DoesNotExist:
+            try:
+                event = Event.objects.get(slug__iexact=slug)
+            except Event.DoesNotExist:
+                try:
+                    old_slug = EventOldSlug.objects.get(slug=slug)
+                    return redirect('main:event', slug=old_slug.event.slug)
+                except EventOldSlug.DoesNotExist:
+                    # does it exist as a static page
+                    return self.cant_find_event(request, slug)
 
-    request.channels = event.channels.all()
+        if not self.can_view_event(event, request.user):
+            return self.cant_view_event(event, request)
 
-    participants = event.participants.filter(cleared=Participant.CLEARED_YES)
-    return render(request, 'main/event.html', {
-        'event': event,
-        'pending': event.status == Event.STATUS_PENDING,
-        'video': template_tagged,
-        'participants': participants,
-        'warning': warning,
-        'can_edit_event': can_edit_event,
-        'Event': Event,
-        'hits': hits,
-    })
+        warning = None
+        if event.status not in (Event.STATUS_SCHEDULED, Event.STATUS_PENDING):
+            if not request.user.is_active:
+                return http.HttpResponse('Event not scheduled')
+            else:
+                warning = "Event is not publicly visible - not scheduled."
+
+        if event.approval_set.filter(approved=False).exists():
+            if not request.user.is_active:
+                return http.HttpResponse('Event not approved')
+            else:
+                warning = "Event is not publicly visible - not yet approved."
+
+        hits = None
+
+        template_tagged = ''
+        if event.template and not event.is_upcoming():
+            context = {
+                'md5': lambda s: hashlib.md5(s).hexdigest(),
+                'event': event,
+                'request': request,
+                'datetime': datetime.datetime.utcnow(),
+                'vidly_tokenize': vidly.tokenize,
+                'edgecast_tokenize': edgecast_tokenize,
+            }
+            if isinstance(event.template_environment, dict):
+                context.update(event.template_environment)
+            template = Template(event.template.content)
+            try:
+                template_tagged = template.render(context)
+            except vidly.VidlyTokenizeError, msg:
+                template_tagged = '<code style="color:red">%s</code>' % msg
+
+            stats_query = (
+                EventHitStats.objects.filter(event=event)
+                .values_list('total_hits', flat=True)
+            )
+            for total_hits in stats_query:
+                hits = total_hits
+
+        can_edit_event = (
+            request.user.is_active and
+            request.user.has_perm('main.change_event')
+        )
+
+        request.channels = event.channels.all()
+
+        participants = (
+            event.participants.filter(cleared=Participant.CLEARED_YES)
+        )
+
+        context = self.get_default_context(event, request)
+        context.update({
+            'event': event,
+            'pending': event.status == Event.STATUS_PENDING,
+            'video': template_tagged,
+            'participants': participants,
+            'warning': warning,
+            'can_edit_event': can_edit_event,
+            'Event': Event,
+            'hits': hits,
+        })
+
+        return render(request, self.template_name, context)
+
+
+class EventVideoView(EventView):
+    template_name = 'main/event_video.html'
+
+    def can_view_event(self, event, request):
+        return event.privacy == Event.PRIVACY_PUBLIC
+
+    def cant_view_event(self, event, request):
+        """return a response appropriate when you can't view the event"""
+        return render(request, self.template_name, {
+            'error': "Not a public event",
+            'event': None,
+        })
+
+    def cant_find_event(self, request, slug):
+        """return an appropriate response if no event can be found"""
+        return render(request, self.template_name, {
+            'error': "Event not found",
+            'event': None
+        })
+
+    def get_default_context(self, event, request):
+        context = {}
+        prefix = request.is_secure() and 'https' or 'http'
+        root_url = '%s://%s' % (prefix, RequestSite(request).domain)
+        url = reverse('main:event', kwargs={'slug': event.slug})
+        context['absolute_url'] = root_url + url
+        return context
+
+    def get(self, request, slug):
+        response = super(EventVideoView, self).get(request, slug)
+        # ALLOWALL is what YouTube uses for sharing
+        response['X-Frame-Options'] = 'ALLOWALL'
+        return response
 
 
 def participant(request, slug):
