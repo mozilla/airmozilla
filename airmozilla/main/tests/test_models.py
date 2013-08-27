@@ -94,6 +94,10 @@ class EventStateTests(TestCase):
         ok_(archived in Event.objects.archived_and_removed())
         ok_(archived not in Event.objects.archived())
 
+        archived.status = Event.STATUS_PENDING
+        archived.save()
+        ok_(archived not in Event.objects.archived_and_removed())
+
     def test_needs_approval_if_not_approved(self):
         time_now = datetime.datetime.utcnow().replace(tzinfo=utc)
         to_approve = Event.objects.create(

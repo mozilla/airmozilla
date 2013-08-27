@@ -219,7 +219,8 @@ class EventManager(models.Manager):
         return self.get_query_set().filter(
             (Q(archive_time__lt=_now, start_time__lt=_now)
              & ~Q(approval__approved=False)
-             & ~Q(approval__processed=False))
+             & ~Q(approval__processed=False)
+             & Q(status=Event.STATUS_SCHEDULED))
             | Q(status=Event.STATUS_REMOVED)
         )
 
