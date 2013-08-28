@@ -305,6 +305,17 @@ class TestPages(TestCase):
         ok_(response_changed.content != response_public.content)
         ok_('cache clear!' in response_changed.content)
 
+    def test_calendar_cors_cached(self):
+        url = self._calendar_url('public')
+        response_public = self.client.get(url)
+        eq_(response_public.status_code, 200)
+        eq_(response_public['Access-Control-Allow-Origin'], '*')
+        ok_('LOCATION:Mountain View' in response_public.content)
+
+        response_public = self.client.get(url)
+        eq_(response_public.status_code, 200)
+        eq_(response_public['Access-Control-Allow-Origin'], '*')
+
     def test_calendar_with_location(self):
         london = Location.objects.create(
             name='London',

@@ -366,6 +366,8 @@ def events_calendar(request, privacy=None):
         cached = cache.get(cache_key)
 
     if cached:
+        # additional response headers aren't remembered so add them again
+        cached['Access-Control-Allow-Origin'] = '*'
         return cached
     cal = vobject.iCalendar()
 
