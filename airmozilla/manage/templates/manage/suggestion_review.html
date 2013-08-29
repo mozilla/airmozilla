@@ -35,7 +35,7 @@
     ('Additional links', event.additional_links and event.additional_links|urlize|nl2br or ''),
     ('Remote presenters', event.remote_presenters and event.remote_presenters|urlize|nl2br or ''),
     ('Creator', event.user.email),
-    ('Submitted', event.submitted|js_date),
+    ('First submitted', event.first_submitted|js_date),
   ] -%}
   <table class="table">
     {% for row in data %}
@@ -44,6 +44,12 @@
         <td>{% if row[1] %}{{ row[1] }}{% endif %}</td>
       </tr>
     {% endfor %}
+      {% if event.submitted and event.submitted != event.first_submitted %}
+      <tr>
+         <td>Re-submitted</td>
+         <td>{{ event.submitted|js_date }}</td>
+      </tr>
+      {% endif %}
       <tr>
         <td>Tags</td>
         <td>
@@ -64,6 +70,8 @@
   {% if real_event_form %}
   {{ real_event_form.errors }}
   {% endif %}
+
+  {% if event.submitted %}
   <form method="post" class="form-horizontal">
   {{ csrf() }}
   {{ bootstrapform(form) }}
@@ -80,6 +88,12 @@
     </button>
   </div>
   </form>
+  {% else %}
+    <div class="form-actions">
+      <p>Event is currently not submitted. It was either bounced back or retracted by
+      the original submitter.</p>
+    </div>
+  {% endif %}
 
 
 <div class="comments">

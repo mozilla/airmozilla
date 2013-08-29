@@ -1379,7 +1379,7 @@ def suggestions(request):
     events = (
         SuggestedEvent.objects
         .filter(accepted=None)
-        .exclude(submitted=None)
+        .exclude(first_submitted=None)
         .order_by('submitted')
     )
     data['events'] = events
@@ -1395,6 +1395,9 @@ def suggestion_review(request, id):
     comment_form = forms.SuggestedEventCommentForm()
 
     if request.method == 'POST':
+
+        if not event.submitted:
+            return http.HttpResponseBadRequest('Not submitted')
 
         form = forms.AcceptSuggestedEventForm(
             request.POST,

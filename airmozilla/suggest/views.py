@@ -234,6 +234,8 @@ def summary(request, id):
             else:
                 now = datetime.datetime.utcnow().replace(tzinfo=utc)
                 event.submitted = now
+                if not event.first_submitted:
+                    event.first_submitted = now
                 event.save()
                 _email_about_suggested_event(event, request)
             url = reverse('suggest:summary', args=(event.pk,))

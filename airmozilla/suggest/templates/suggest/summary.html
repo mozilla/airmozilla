@@ -54,7 +54,12 @@ Event summary | {{ super() }}
   {% else %}
   <div class="not-submitted">
     <h3>Almost there...</h3>
+    {% if event.first_submitted %}
+    <p>Your event is no longer submitted. It was either retracted or bounced back. See below for
+    possible review comments. Submit again when it's ready.</p>
+    {% else %}
     <p>Your event is not yet submitted. Check through the details and submit when you think you're ready.</p>
+    {% endif %}
   </div>
   {% endif %}
 

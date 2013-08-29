@@ -2069,6 +2069,7 @@ class TestSuggestions(ManageTestCase):
             additional_links='ADDITIONAL LINKS',
             remote_presenters='RICHARD & ZANDR',
             submitted=now,
+            first_submitted=now,
         )
         event.tags.add(tag1)
         event.tags.add(tag2)
@@ -2146,6 +2147,7 @@ class TestSuggestions(ManageTestCase):
             #call_info='CALL INFO',
             #additional_links='ADDITIONAL LINKS',
             submitted=now,
+            first_submitted=now,
         )
         event.tags.add(tag1)
         event.tags.add(tag2)
@@ -2177,6 +2179,8 @@ class TestSuggestions(ManageTestCase):
         event = SuggestedEvent.objects.get(pk=event.pk)
         ok_(not event.accepted)
         ok_(not event.submitted)
+        # still though
+        ok_(event.first_submitted)
 
         # it should have sent an email back
         email_sent = mail.outbox[-1]
@@ -2212,6 +2216,7 @@ class TestSuggestions(ManageTestCase):
             #call_info='CALL INFO',
             #additional_links='ADDITIONAL LINKS',
             submitted=now,
+            first_submitted=now,
         )
         event.tags.add(tag1)
         event.tags.add(tag2)
@@ -2244,6 +2249,65 @@ class TestSuggestions(ManageTestCase):
         ok_(event.title in email_sent.subject)
         ok_('<script>alert("xss")</script>' in email_sent.body)
         ok_(reverse('suggest:summary', args=(event.pk,)) in email_sent.body)
+
+    def test_retracted_comments_still_visible_in_management(self):
+        bob = User.objects.create_user(
+            'bob',
+            email='bob@mozilla.com',
+            password='secret'
+        )
+        location = Location.objects.get(id=1)
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        category = Category.objects.create(name='CATEGORY')
+        tag1 = Tag.objects.create(name='TAG1')
+        tag2 = Tag.objects.create(name='TAG2')
+        channel = Channel.objects.create(name='CHANNEL')
+
+        # create a suggested event that has everything filled in
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE',
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            category=category,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            first_submitted=now,
+            # Note! No `submitted=now` here
+        )
+        event.tags.add(tag1)
+        event.tags.add(tag2)
+        event.channels.add(channel)
+
+        url = reverse('manage:suggestions')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+        event_url = reverse('manage:suggestion_review', args=(event.pk,))
+        ok_(event_url in response.content)
+
+        response = self.client.get(event_url)
+        eq_(response.status_code, 200)
+        ok_('Event is currently not submitted' in response.content)
+
+        # You can't reject or approve it at this stage
+        data = {'reject': 'true', 'review_comments': 'Bla'}
+        response = self.client.post(event_url, data)
+        eq_(response.status_code, 400)
+
+        response = self.client.post(event_url, {})
+        eq_(response.status_code, 400)
+
+        # log in as bob
+        assert self.client.login(username='bob', password='secret')
+        summary_url = reverse('suggest:summary', args=(event.pk,))
+        response = self.client.get(summary_url)
+        eq_(response.status_code, 200)
+        ok_('Your event is no longer submitted' in response.content)
 
 
 class TestEventTweets(ManageTestCase):

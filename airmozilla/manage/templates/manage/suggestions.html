@@ -36,7 +36,7 @@
         <td>{{ event.start_time|js_date }}</td>
         <td>{{ event.location }}</td>
         <td>{{ event.user.email }}</td>
-        <td>{{ event.submitted|js_date }}</td>
+        <td>{{ event.first_submitted|js_date }}</td>
         <td>
           <a class="btn"
              href="{{ url('manage:suggestion_review', event.id) }}">

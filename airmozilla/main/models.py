@@ -383,6 +383,7 @@ class SuggestedEvent(models.Model):
         help_text='Speakers or presenters for this event.'
     )
 
+    first_submitted = models.DateTimeField(blank=True, null=True)
     submitted = models.DateTimeField(blank=True, null=True)
     accepted = models.ForeignKey(Event, blank=True, null=True)
     review_comments = models.TextField(blank=True, null=True)
