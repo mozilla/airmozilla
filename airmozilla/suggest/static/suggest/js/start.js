@@ -20,8 +20,8 @@ $(function() {
 
     $('.delete-confirm').click(function() {
         var parent = $(this).parents('td.delete');
-        var id = parent.data('id');
-        $.post('/suggest/' + id + '/delete/', function() {
+        var delete_url = parent.data('delete-url');
+        $.post(delete_url, function() {
             parent.parents('tr').remove();
         });
         return false;

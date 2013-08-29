@@ -51,7 +51,7 @@ Request | {{ super() }}
     <td>
       {{ state_description(event) }}
     </td>
-    <td class="delete" data-id="{{ event.pk }}">
+    <td class="delete" data-delete-url="{{ url('suggest:delete', event.pk) }}">
       {% if event.accepted %}
         {% if event.accepted.status == Event.STATUS_INITIATED %}
           not yet scheduled
