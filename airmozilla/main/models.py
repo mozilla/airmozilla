@@ -333,6 +333,7 @@ class Event(models.Model):
 
     @property
     def location_time(self):
+        assert self.location
         tz = pytz.timezone(self.location.timezone)
         return tz.normalize(self.start_time)
 

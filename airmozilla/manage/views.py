@@ -57,6 +57,7 @@ from airmozilla.main.models import (
     URLTransform,
     EventHitStats
 )
+from airmozilla.main.views import is_contributor
 from airmozilla.manage import forms
 from airmozilla.manage.tweeter import send_tweet
 from airmozilla.manage import vidly
@@ -313,36 +314,66 @@ def event_request(request, duplicate_id=None):
 @permission_required('main.change_event')
 def events(request):
     """Event edit/production:  approve, change, and publish events."""
-    if request.user.has_perm('main.change_event_others'):
-        creator_filter = {}
-    else:
-        creator_filter = {'creator': request.user}
+    base_filter = {}
+    base_exclude = {}
+    if not request.user.has_perm('main.change_event_others'):
+        base_filter = {'creator': request.user}
+    if is_contributor(request.user):
+        base_exclude['privacy'] = Event.PRIVACY_COMPANY
+
     search_results = []
     if request.method == 'POST':
         search_form = forms.EventFindForm(request.POST)
         if search_form.is_valid():
-            search_results = Event.objects.filter(
-                title__icontains=search_form.cleaned_data['title'],
-                **creator_filter
-            ).order_by('-start_time')
+            search_results = (
+                Event.objects
+                .filter(
+                    title__icontains=search_form.cleaned_data['title'],
+                    **base_filter)
+                .exclude(**base_exclude)
+                .order_by('-start_time')
+            )
     else:
         search_form = forms.EventFindForm()
-    initiated = (Event.objects.initiated().filter(**creator_filter)
-                 .order_by('start_time')
-                 .select_related('category', 'location'))
-    upcoming = (Event.objects.upcoming().filter(**creator_filter)
-                .order_by('start_time').select_related('category', 'location'))
-    pending = (Event.objects.filter(**creator_filter)
-               .filter(status=Event.STATUS_PENDING)
-               .order_by('start_time').select_related('category', 'location'))
-    live = (Event.objects.live().filter(**creator_filter)
-            .order_by('start_time').select_related('category', 'location'))
-    #archiving = (Event.objects.archiving().filter(**creator_filter)
+    initiated = (
+        Event.objects.initiated()
+        .filter(**base_filter)
+        .exclude(**base_exclude)
+        .order_by('start_time')
+        .select_related('category', 'location')
+    )
+    upcoming = (
+        Event.objects.upcoming()
+        .filter(**base_filter)
+        .exclude(**base_exclude)
+        .order_by('start_time')
+        .select_related('category', 'location')
+    )
+    pending = (
+        Event.objects
+        .filter(**base_filter)
+        .exclude(**base_exclude)
+        .filter(status=Event.STATUS_PENDING)
+        .order_by('start_time')
+        .select_related('category', 'location')
+    )
+    live = (
+        Event.objects.live()
+        .filter(**base_filter)
+        .exclude(**base_exclude)
+        .order_by('start_time')
+        .select_related('category', 'location')
+    )
+    #archiving = (Event.objects.archiving().filter(**base_filter)
     #             .order_by('-archive_time')
     #             .select_related('category', 'location'))
-    archived = (Event.objects.archived_and_removed().filter(**creator_filter)
-                .order_by('-start_time')
-                .select_related('category', 'location'))
+    archived = (
+        Event.objects.archived_and_removed()
+        .filter(**base_filter)
+        .exclude(**base_exclude)
+        .order_by('-start_time')
+        .select_related('category', 'location')
+    )
     archived_paged = paginate(archived, request.GET.get('page'), 10)
 
     # make a dictionary that maps every event ID to a list of channel names
@@ -378,6 +409,8 @@ def event_edit(request, id):
     event = get_object_or_404(Event, id=id)
     if (not request.user.has_perm('main.change_event_others') and
             request.user != event.creator):
+        return redirect('manage:events')
+    if event.privacy == Event.PRIVACY_COMPANY and is_contributor(request.user):
         return redirect('manage:events')
     if request.user.has_perm('main.change_event_others'):
         form_class = forms.EventEditForm

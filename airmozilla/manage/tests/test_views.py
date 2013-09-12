@@ -36,7 +36,8 @@ from airmozilla.main.models import (
     VidlySubmission,
     URLMatch,
     URLTransform,
-    EventHitStats
+    EventHitStats,
+    UserProfile
 )
 
 from .test_vidly import (
@@ -404,6 +405,76 @@ class TestEvents(ManageTestCase):
         """The events page responds successfully."""
         response = self.client.get(reverse('manage:events'))
         eq_(response.status_code, 200)
+
+    def test_events_seen_by_contributors(self):
+        # there should be one event of each level of privacy
+        event = Event.objects.get(title='Test event')
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        event2 = Event.objects.create(
+            title='Contributors Only Event',
+            slug='event2',
+            description=event.description,
+            start_time=event.start_time,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            placeholder_img=event.placeholder_img,
+            location=event.location,
+        )
+        event3 = Event.objects.create(
+            title='MoCo Only Event',
+            slug='event3',
+            description=event.description,
+            start_time=event.start_time,
+            privacy=Event.PRIVACY_COMPANY,
+            placeholder_img=event.placeholder_img,
+            location=event.location,
+        )
+        response = self.client.get(reverse('manage:events'))
+        eq_(response.status_code, 200)
+
+        ok_(event.title in response.content)
+        ok_(event2.title in response.content)
+        ok_(event3.title in response.content)
+
+        # now log in as a contributor
+        contributor = User.objects.create_user(
+            'nigel', 'nigel@live.com', 'secret'
+        )
+
+        producers = Group.objects.create(name='Producer')
+        change_event_permission = Permission.objects.get(
+            codename='change_event'
+        )
+        change_event_others_permission = Permission.objects.get(
+            codename='change_event_others'
+        )
+        producers.permissions.add(change_event_permission)
+        producers.permissions.add(change_event_others_permission)
+        contributor.groups.add(producers)
+        contributor.is_staff = True
+        contributor.save()
+
+        UserProfile.objects.create(
+            user=contributor,
+            contributor=True
+        )
+        assert self.client.login(username='nigel', password='secret')
+        response = self.client.get(reverse('manage:events'))
+        eq_(response.status_code, 200)
+
+        ok_(event.title in response.content)
+        ok_(event2.title in response.content)
+        ok_(event3.title not in response.content)
+
+        # you can edit the first two events
+        edit_url1 = reverse('manage:event_edit', kwargs={'id': event.id})
+        response = self.client.get(edit_url1)
+        eq_(response.status_code, 200)
+        edit_url2 = reverse('manage:event_edit', kwargs={'id': event2.id})
+        response = self.client.get(edit_url2)
+        eq_(response.status_code, 200)
+        edit_url3 = reverse('manage:event_edit', kwargs={'id': event3.id})
+        response = self.client.get(edit_url3)
+        eq_(response.status_code, 302)
 
     def test_find_event(self):
         """Find event responds with filtered results or raises error."""
