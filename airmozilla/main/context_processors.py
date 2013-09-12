@@ -75,12 +75,15 @@ def sidebar(request):
 
 def analytics(request):
     # unless specified, the analytics is include if DEBUG = False
-    include = getattr(
-        settings,
-        'INCLUDE_ANALYTICS',
-        not settings.DEBUG
-    )
-    return {'INCLUDE_ANALYTICS': include}
+    if request.path_info.startswith('/manage/'):
+        include = False
+    else:
+        include = getattr(
+            settings,
+            'INCLUDE_ANALYTICS',
+            not settings.DEBUG
+        )
+    return {'include_analytics': include}
 
 
 def _get_feed_privacy(user):
