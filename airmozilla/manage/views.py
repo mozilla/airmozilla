@@ -352,7 +352,7 @@ def events(request):
         'pending': pending,
         'archived': archived_paged,
         'form': search_form,
-        'search_results': search_results
+        'search_results': search_results,
     })
 
 

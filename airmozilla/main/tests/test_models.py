@@ -6,7 +6,31 @@ from django.utils.timezone import utc
 
 from nose.tools import ok_, eq_
 
-from airmozilla.main.models import Approval, Event, EventOldSlug
+from airmozilla.main.models import Approval, Event, EventOldSlug, Location
+
+
+class EventTests(TestCase):
+
+    def test_location_time(self):
+        date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
+        mountain_view = Location.objects.create(
+            name='Mountain View',
+            timezone='US/Pacific',
+        )
+        event = Event.objects.create(
+            status=Event.STATUS_INITIATED,
+            start_time=date,
+            location=mountain_view,
+        )
+        eq_(event.location_time.hour, 10)
+
+        paris = Location.objects.create(
+            name='Paris',
+            timezone='Europe/Paris'
+        )
+        event.location = paris
+        event.save()
+        eq_(event.location_time.hour, 19)
 
 
 class EventStateTests(TestCase):

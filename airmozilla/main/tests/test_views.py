@@ -229,6 +229,25 @@ class TestPages(TestCase):
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
 
+    def test_event_upcoming(self):
+        """View an upcoming event and it should show the local time"""
+        event = Event.objects.get(title='Test event')
+        date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
+        event.start_time = date
+        event.save()
+        group = Group.objects.get()
+        approval = Approval(event=event, group=group)
+        approval.approved = True
+        approval.save()
+        event_page = reverse('main:event', kwargs={'slug': event.slug})
+        response = self.client.get(event_page)
+        eq_(response.status_code, 200)
+        assert event.location
+        ok_(event.location.name in response.content)
+        # 18:00 in UTC on that 1st Jan 2099 is 10AM in Pacific time
+        assert event.location.timezone == 'US/Pacific'
+        ok_('10:00AM' in response.content)
+
     def test_old_slug(self):
         """An old slug will redirect properly to the current event page."""
         old_event_slug = EventOldSlug.objects.get(slug='test-old-slug')

@@ -13,6 +13,8 @@ from django.utils.timezone import utc
 
 from airmozilla.base.utils import unique_slugify
 from airmozilla.main.fields import EnvironmentField
+
+import pytz
 from sorl.thumbnail import ImageField
 
 
@@ -329,6 +331,11 @@ class Event(models.Model):
     def has_vidly_template(self):
         return self.template and 'Vid.ly' in self.template.name
 
+    @property
+    def location_time(self):
+        tz = pytz.timezone(self.location.timezone)
+        return tz.normalize(self.start_time)
+
 
 class SuggestedEvent(models.Model):
     user = models.ForeignKey(User)
@@ -372,6 +379,11 @@ class SuggestedEvent(models.Model):
 
     def __unicode__(self):
         return self.title
+
+    @property
+    def location_time(self):
+        tz = pytz.timezone(self.location.timezone)
+        return tz.normalize(self.start_time)
 
 
 class SuggestedEventComment(models.Model):

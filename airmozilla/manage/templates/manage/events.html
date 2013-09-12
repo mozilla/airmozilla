@@ -13,7 +13,7 @@
       <th style="width: 5%"></th>
       <th style="width: 19%">Title</th>
       <th style="width: 8%">Location</th>
-      <th style="width: 19%">Start time</th>
+      <th style="width: 19%">Start time/Local time</th>
       <th style="width: 17%">Archive time</th>
       <th style="width: 12%">Category/Channel</th>
       <th style="width: 8%">Visibility</th>
@@ -34,7 +34,10 @@
           </a>
         </td>
         <td>{{ event.location }}</td>
-        <td>{{ event.start_time|js_date }}</td>
+        <td>
+          {{ event.start_time|js_date }}<br>
+          {{ event.location_time.strftime('%I:%M%p') }}
+        </td>
         <td>
           {% if event.archive_time %}
             {{ event.archive_time|js_date }}

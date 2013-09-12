@@ -239,12 +239,6 @@ def summary(request, id):
             url = reverse('suggest:summary', args=(event.pk,))
             return redirect(url)
 
-    # The event.start_time will be in UTC, to display it as a local
-    # time use the <timezone>.normalize() function
-    tz = pytz.timezone(event.location.timezone)
-    event.location_time = event.start_time
-    event.location_time = tz.normalize(event.location_time)
-
     # we don't need the label for this form layout
     comment_form.fields['comment'].label = ''
 
