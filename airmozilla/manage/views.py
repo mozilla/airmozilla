@@ -344,6 +344,18 @@ def events(request):
                 .order_by('-start_time')
                 .select_related('category', 'location'))
     archived_paged = paginate(archived, request.GET.get('page'), 10)
+
+    # make a dictionary that maps every event ID to a list of channel names
+    event_channel_names = collections.defaultdict(list)
+    _channel_names = dict(
+        (x['id'], x['name'])
+        for x in Channel.objects.all().values('id', 'name')
+    )
+    for each in Event.channels.through.objects.all().values():
+        event_channel_names[each['event_id']].append(
+            _channel_names[each['channel_id']]
+        )
+
     return render(request, 'manage/events.html', {
         'initiated': initiated,
         'upcoming': upcoming,
@@ -353,6 +365,7 @@ def events(request):
         'archived': archived_paged,
         'form': search_form,
         'search_results': search_results,
+        'event_channel_names': event_channel_names,
     })
 
 

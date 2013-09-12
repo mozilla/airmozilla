@@ -63,8 +63,8 @@
         </td>
         <td>
             {{ event.category }}<br>
-            {% for channel in event.channels.all() %}
-              {{ channel.name }}
+            {% for name in event_channel_names.get(event.pk, []) %}
+              {{ name }}
             {% endfor %}
         </td>
         <td>{% if event.is_public() %}
