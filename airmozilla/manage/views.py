@@ -110,8 +110,8 @@ def dashboard(request):
 @permission_required('auth.change_user')
 def users(request):
     """User editor:  view users and update a user's group."""
-    if request.method == 'POST':
-        form = forms.UserFindForm(request.POST)
+    if request.GET.get('email'):
+        form = forms.UserFindForm(request.GET)
         if form.is_valid():
             user = User.objects.get(email=form.cleaned_data['email'])
             return redirect('manage:user_edit', user.id)

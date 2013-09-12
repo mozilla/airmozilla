@@ -104,3 +104,9 @@ a.message-inline {
     font-weight: bold;
     text-decoration: underline;
 }
+
+p.logged-in {
+    margin-top: 10px;
+    margin-right: 10px;
+    float: right;
+}

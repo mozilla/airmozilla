@@ -197,7 +197,7 @@ class TestUsersAndGroups(ManageTestCase):
     def test_user_search(self):
         """Searching for a created user redirects properly; otherwise fail."""
         user = User.objects.create_user('t', 'testuser@mozilla.com')
-        response_ok = self.client.post(
+        response_ok = self.client.get(
             reverse('manage:users'),
             {
                 'email': user.email
