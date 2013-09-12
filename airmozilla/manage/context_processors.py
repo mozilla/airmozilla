@@ -55,4 +55,5 @@ def badges(request):
         )
         if suggestions > 0:
             context['badges']['suggestions'] = suggestions
+    context['is_superuser'] = request.user.is_superuser
     return context
