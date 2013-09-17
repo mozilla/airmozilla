@@ -1976,10 +1976,16 @@ def cron_pings(request):  # pragma: no cover
 @staff_required
 @permission_required('main.add_event')
 def event_hit_stats(request):
+
+    possible_order_by = ('total_hits', 'hits_per_day')
+    order_by = request.GET.get('order')
+    if order_by not in possible_order_by:
+        order_by = possible_order_by[0]
+
     stats = (
         EventHitStats.objects
         .exclude(event__archive_time__isnull=True)
-        .order_by('-total_hits')
+        .order_by('-%s' % order_by)
         .extra(select={
             'hits_per_day':
             'total_hits / datediff(now(), main_event.archive_time)'
@@ -2002,6 +2008,7 @@ def event_hit_stats(request):
 
     paged = paginate(stats, request.GET.get('page'), 20)
     data = {
+        'order_by': order_by,
         'paginate': paged,
         'stats_total': stats_total,
         'events_total': events_total,

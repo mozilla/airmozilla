@@ -27,9 +27,21 @@
       <tr>
         <th>Event</th>
 	<th>&nbsp;</th>
-        <th>Hits</th>
+        <th>
+          {% if order_by == 'total_hits' %}
+          Hits
+          {% else %}
+          <a href="?order=total_hits">Hits</a>
+          {% endif %}
+        </th>
         <th>Age</th>
-        <th>Hits/day <sup>*</sup></th>
+        <th>
+          {% if order_by == 'hits_per_day' %}
+          Hits/day <sup>*</sup>
+          {% else %}
+          <a href="?order=hits_per_day">Hits/day <sup>*</sup></a>
+          {% endif %}
+        </th>
       </tr>
     </thead>
     <tbody>
