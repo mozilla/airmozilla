@@ -236,18 +236,24 @@ def _event_process(request, form, event):
                 continue
             subject = ('[Air Mozilla] Approval requested: "%s"' %
                        event.title)
+            try:
+                suggested_event = SuggestedEvent.objects.get(accepted=event)
+            except SuggestedEvent.DoesNotExist:
+                suggested_event = None
+            context = {
+                'group': group.name,
+                'manage_url': request.build_absolute_uri(
+                    reverse('manage:approvals')
+                ),
+                'title': event.title,
+                'creator': event.creator.email,
+                'datetime': event.start_time,
+                'description': html_to_text(event.description),
+                'suggested_event': suggested_event,
+            }
             message = render_to_string(
                 'manage/_email_approval.html',
-                {
-                    'group': group.name,
-                    'manage_url': request.build_absolute_uri(
-                        reverse('manage:approvals')
-                    ),
-                    'title': event.title,
-                    'creator': event.creator.email,
-                    'datetime': event.start_time,
-                    'description': html_to_text(event.description),
-                }
+                context
             )
             email = EmailMessage(subject, message,
                                  settings.EMAIL_FROM_ADDRESS, emails)

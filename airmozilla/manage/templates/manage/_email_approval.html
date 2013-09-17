@@ -4,5 +4,7 @@ A new event has been created that requires approval from someone in your group
 
 Title: {{ title }}
 Creator: {{ creator }}
+{% if suggested_event %}Originally requested by: {{ suggested_event.user.email }}
+{% endif %}
 Date and time: {{ datetime }}
 Description: {{ description|safe }}
