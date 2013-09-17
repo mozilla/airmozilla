@@ -1,7 +1,6 @@
 import datetime
 import hashlib
 import urllib
-import vobject
 
 from django import http
 from django.conf import settings
@@ -13,9 +12,11 @@ from django.contrib.syndication.views import Feed
 from django.template.defaultfilters import slugify
 from django.contrib.flatpages.views import flatpage
 from django.views.generic.base import View
+from django.db.models import Count, Q
 
 from funfactory.urlresolvers import reverse
 from jingo import Template
+import vobject
 
 from airmozilla.main.models import (
     Event, EventOldSlug, Participant, Tag, get_profile_safely, Channel,
@@ -28,6 +29,7 @@ from airmozilla.base.utils import (
 )
 from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
+from . import cloud
 
 
 def page(request, template):
@@ -543,3 +545,45 @@ def calendars(request):
     else:
         data['calendar_privacy'] = 'public'
     return render(request, 'main/calendars.html', data)
+
+
+class _Tag(object):
+    def __init__(self, name, count):
+        self.name = name
+        self.count = count
+
+
+def tag_cloud(request, THRESHOLD=1):
+    context = {}
+    qs = (
+        Event.tags.through.objects
+        .values('tag_id')
+        .annotate(Count('tag__id'))
+    )
+    if request.user.is_active:
+        if is_contributor(request.user):
+            # because of a bug in Django we can't use qs.exclude()
+            qs = qs.filter(
+                Q(event__privacy=Event.PRIVACY_CONTRIBUTORS)
+                |
+                Q(event__privacy=Event.PRIVACY_PUBLIC)
+            )
+    else:
+        qs = qs.filter(event__privacy=Event.PRIVACY_PUBLIC)
+    tags_map = dict(
+        (x['id'], x['name'])
+        for x in
+        Tag.objects.all()
+        .values('id', 'name')
+    )
+    tags = []
+    for each in qs.values('tag__id__count', 'tag_id'):
+        count = each['tag__id__count']
+        if count > THRESHOLD:
+            tags.append(_Tag(tags_map[each['tag_id']], count))
+
+    context['tags'] = cloud.calculate_cloud(
+        tags,
+        steps=10
+    )
+    return render(request, 'main/tag_cloud.html', context)

@@ -1322,3 +1322,88 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
         eq_(response['X-Frame-Options'], 'ALLOWALL')
         ok_("Event not found" in response.content)
+
+    def test_tag_cloud(self):
+        url = reverse('main:tag_cloud')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # add some events
+        events = []
+        event1 = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        for i in range(1, 10):
+            event = Event.objects.create(
+                title='%d test event' % i,
+                description='Anything',
+                start_time=now - datetime.timedelta(days=100 - i),
+                archive_time=now - datetime.timedelta(days=99 - i),
+                privacy=Event.PRIVACY_PUBLIC,
+                status=Event.STATUS_SCHEDULED,
+                placeholder_img=event1.placeholder_img,
+            )
+            event.channels.add(self.main_channel)
+            events.append(event)
+
+        tag1 = Tag.objects.create(name='Tag1')
+        tag2 = Tag.objects.create(name='Tag2')
+        tag3 = Tag.objects.create(name='Tag3')
+        tag4 = Tag.objects.create(name='Tag4')
+        tag5 = Tag.objects.create(name='Tag5')
+        events[0].tags.add(tag1)
+        events[0].tags.add(tag2)
+        events[0].save()
+        events[1].tags.add(tag1)
+        events[1].save()
+        events[2].tags.add(tag2)
+        events[2].save()
+        events[3].tags.add(tag3)
+        events[3].save()
+
+        events[4].tags.add(tag3)
+        events[4].tags.add(tag4)
+        events[4].privacy = Event.PRIVACY_CONTRIBUTORS
+        events[4].save()
+
+        events[5].tags.add(tag5)
+        events[5].privacy = Event.PRIVACY_COMPANY
+        events[5].save()
+
+        events[6].tags.add(tag5)
+        events[6].privacy = Event.PRIVACY_COMPANY
+        events[6].save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        ok_(tag1.name in response.content)
+        ok_(tag2.name in response.content)
+        ok_(tag3.name not in response.content)
+
+        # view it as a contributor
+        UserProfile.objects.create(
+            user=User.objects.create_user(
+                'nigel', 'nigel@live.com', 'secret'
+            ),
+            contributor=True
+        )
+        assert self.client.login(username='nigel', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(tag1.name in response.content)
+        ok_(tag2.name in response.content)
+        ok_(tag3.name in response.content)
+        ok_(tag5.name not in response.content)
+
+        # view it as a regular signed in person
+        User.objects.create_user(
+            'zandr', 'zandr@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='zandr', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        ok_(tag1.name in response.content)
+        ok_(tag2.name in response.content)
+        ok_(tag3.name in response.content)
+        ok_(tag5.name in response.content)
