@@ -5,29 +5,61 @@
 {% endblock %}
 
 {% block manage_content %}
-  {% set data = [
-    ('Title', approval.event.title),
-    ('Placeholder image',
-     '<a href="{url}">View</a>'|fe(url=approval.event.placeholder_img.url)),
-    ('Description', approval.event.description),
-    ('Short description', approval.event.short_description),
-    ('Start time', approval.event.start_time|js_date),
-    ('Location', approval.event.location),
-    ('Category', approval.event.category),
-    ('Call info', approval.event.call_info),
-    ('Additional links', approval.event.additional_links),
-    ('Privacy', approval.event.get_privacy_display()),
-    ('Creator', approval.event.creator.get_full_name() +
-                ' <' + approval.event.creator.email + '>'),
-    ('Created', approval.event.created|js_date),
-  ] -%}
   <table class="table">
-    {% for row in data %}
       <tr>
-        <td>{{ row[0] }}</td>
-        <td>{{ row[1] }}</td>
+        <td>Title</td>
+        <td>{{ approval.event.title }}</td>
       </tr>
-    {% endfor %}
+      <tr>
+        <td>Placeholder image</td>
+        <td><a href="{{ approval.event.placeholder_img.url }}">View</a></td>
+      </tr>
+      <tr>
+        <td>Description</td>
+        <td>{{ approval.event.description }}</td>
+      </tr>
+      <tr>
+        <td>Short description</td>
+        <td>{{ approval.event.short_description }}</td>
+      </tr>
+      <tr>
+        <td>Start time</td>
+        <td>{{ approval.event.start_time|js_date }}</td>
+      </tr>
+      <tr>
+        <td>Location</td>
+        <td>{{ approval.event.location }}</td>
+      </tr>
+      <tr>
+        <td>Category</td>
+        <td>{{ approval.event.category }}</td>
+      </tr>
+      <tr>
+        <td>Call info</td>
+        <td>{{ approval.event.call_info }}</td>
+      </tr>
+      <tr>
+        <td>Additional links</td>
+        <td>{{ approval.event.additional_links }}</td>
+      </tr>
+      <tr>
+        <td>Privacy</td>
+        <td>{{ approval.event.get_privacy_display() }}</td>
+      </tr>
+      <tr>
+        <td>Creator</td>
+        <td>{{ approval.event.creator.email }}</td>
+      </tr>
+      {% if suggested_event %}
+      <tr>
+        <td>Originally requested by</td>
+        <td>{{ suggested_event.user.email }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td>Created</td>
+        <td>{{ approval.event.created|js_date }}</td>
+      </tr>
       <tr>
         <td>Participants</td>
         <td>

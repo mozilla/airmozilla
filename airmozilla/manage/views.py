@@ -1229,8 +1229,14 @@ def approval_review(request, id):
         return redirect('manage:approvals')
     else:
         form = forms.ApprovalForm(instance=approval)
-    return render(request, 'manage/approval_review.html',
-                  {'approval': approval, 'form': form})
+
+    context = {'approval': approval, 'form': form}
+    try:
+        suggested_event = SuggestedEvent.objects.get(accepted=approval.event)
+    except SuggestedEvent.DoesNotExist:
+        suggested_event = None
+    context['suggested_event'] = suggested_event
+    return render(request, 'manage/approval_review.html', context)
 
 
 @staff_required

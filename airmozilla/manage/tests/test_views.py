@@ -1529,6 +1529,9 @@ class TestTemplates(ManageTestCase):
 
 
 class TestApprovals(ManageTestCase):
+
+    placeholder = 'airmozilla/manage/tests/firefox.png'
+
     def test_approvals(self):
         event = Event.objects.get(title='Test event')
         group = Group.objects.get(name='testapprover')
@@ -1573,6 +1576,38 @@ class TestApprovals(ManageTestCase):
         ok_(app.approved)
         ok_(app.processed)
         eq_(app.user, User.objects.get(username='fake'))
+
+    def test_approval_review_with_suggested_event(self):
+        event = Event.objects.get(title='Test event')
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        SuggestedEvent.objects.create(
+            user=bob,
+            accepted=event,
+            title='TITLE',
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=event.location,
+            category=event.category,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_PUBLIC,
+            submitted=now,
+        )
+        group = Group.objects.get(name='testapprover')
+        app = Approval.objects.create(event=event, group=group)
+
+        url = reverse('manage:approval_review', kwargs={'id': app.id})
+        response_not_in_group = self.client.get(url)
+        self.assertRedirects(response_not_in_group,
+                             reverse('manage:approvals'))
+        User.objects.get(username='fake').groups.add(1)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Originally requested by' in response.content)
+        ok_(bob.email in response.content)
 
 
 class TestLocations(ManageTestCase):
