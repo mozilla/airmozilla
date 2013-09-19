@@ -3,9 +3,6 @@
 # codebase.
 set -e
 
-DB_HOST="localhost"
-DB_USER="hudson"
-
 cd $WORKSPACE
 VENV=$WORKSPACE/venv
 
@@ -31,7 +28,9 @@ if [ ! -d "$WORKSPACE/vendor" ]; then
 fi
 
 source $VENV/bin/activate
-pip install -q -r requirements/compiled.txt
+export PATH=/usr/pgsql-9.2/bin:$PATH
+
+pip install -v -q -r requirements/compiled.txt
 pip install -q -r requirements/dev.txt
 
 cat > airmozilla/settings/local.py <<SETTINGS
@@ -45,6 +44,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'HOST': 'jenkins-services1.dmz.phx1.mozilla.com',
         'NAME': 'airmozillatests',
+        'TEST_NAME': 'airmozillatests',
         'USER': 'airmozilla',
         'PASSWORD': 'airmozillaTests',
     }
@@ -74,9 +74,6 @@ MOZILLIANS_API_APPNAME = 'some_app_name'
 MOZILLIANS_API_KEY = 'any018273012873019283key'
 
 SETTINGS
-
-echo "Creating database if we need it..."
-echo "CREATE DATABASE IF NOT EXISTS ${JOB_NAME}"|mysql -u $DB_USER -h $DB_HOST
 
 echo "Starting tests..."
 export FORCE_DB=1
