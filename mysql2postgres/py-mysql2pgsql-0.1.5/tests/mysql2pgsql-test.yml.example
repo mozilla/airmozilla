@@ -1,0 +1,38 @@
+# if a socket is specified we will use that
+# if tcp is chosen you can use compression
+mysql:
+ hostname: localhost
+ port: 3306
+ username: root
+ password: 
+ database: mysql2pgsql_test
+ compress: true
+destination:
+ # if file is given, output goes to file, else postgres
+ file: #/tmp/testing.sql
+ postgres:
+  hostname: localhost
+  port: 5432
+  username: postgres
+  password: 
+  database: mysql2pgsql_test
+
+# if tables is given, only the listed tables will be converted.  leave empty to convert all tables.
+only_tables:
+- type_conversion_test_1
+- type_conversion_test_2
+#- tmp_youtube_playlists
+#- table2
+# if exclude_tables is given, exclude the listed tables from the conversion.
+#exclude_tables:
+#- table3
+#- table4
+
+# if supress_data is true, only the schema definition will be exported/migrated, and not the data
+supress_data: false
+
+# if supress_ddl is true, only the data will be exported/imported, and not the schema
+supress_ddl: false
+
+# if force_truncate is true, forces a table truncate before table loading
+force_truncate: false

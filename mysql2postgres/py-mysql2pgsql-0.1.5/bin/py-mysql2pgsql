@@ -1,0 +1,40 @@
+#! /usr/bin/env python
+import os
+import sys
+import argparse
+import mysql2pgsql
+from mysql2pgsql.lib.errors import ConfigurationFileInitialized
+
+if __name__ == '__main__':
+    description = 'Tool for migrating/converting data from mysql to postgresql.'
+    epilog = 'https://github.com/philipsoutham/py-mysql2pgsql'
+
+    parser = argparse.ArgumentParser(
+        description=description,
+        epilog=epilog)
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Show progress of data migration.'
+        )
+    parser.add_argument(
+        '-f', '--file',
+        default='mysql2pgsql.yml',
+        help='Location of configuration file (default: %(default)s). If none exists at that path, one will be created for you.',
+        )
+    parser.add_argument(
+        '-V', '--version',
+        action='store_true',
+        help='Print version and exit.'
+        )
+    options = parser.parse_args()
+
+    if options.version:
+        # Someone wants to know the version, print and exit
+        print(mysql2pgsql.__version__)
+        sys.exit(0)
+
+    try:
+        mysql2pgsql.Mysql2Pgsql(options).convert()
+    except ConfigurationFileInitialized:
+        sys.exit(-1)

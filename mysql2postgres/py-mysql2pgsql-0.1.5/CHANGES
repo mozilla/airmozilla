@@ -1,0 +1,17 @@
+py-mysql2pgsql Changelog
+========================
+
+Version 0.1.2
+-------------
+
+Finally had a chance to test on Windows running Python 2.7
+
+- Fixed import issue with termcolor import on Windows installs
+- Updating documentation to help any potential windows users.
+
+
+Version 0.1.1
+-------------
+
+- Fixed improperly escaped backslashes `\` in `copy` data
+- Updated documentation
