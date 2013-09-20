@@ -44,7 +44,6 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'HOST': 'jenkins-services1.dmz.phx1.mozilla.com',
         'NAME': 'airmozillatests',
-        'TEST_NAME': 'airmozillatests',
         'USER': 'airmozilla',
         'PASSWORD': 'airmozillaTests',
     }
