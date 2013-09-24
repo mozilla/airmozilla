@@ -340,6 +340,16 @@ class ChannelForm(BaseModelForm):
         model = Channel
         exclude = ('created',)
 
+    def __init__(self, *args, **kwargs):
+        super(ChannelForm, self).__init__(*args, **kwargs)
+        self.fields['parent'].required = False
+        if kwargs.get('instance'):
+            self.fields['parent'].choices = [
+                (x, y) for (x, y)
+                in self.fields['parent'].choices
+                if x != kwargs['instance'].pk
+            ]
+
 
 class TemplateEditForm(BaseModelForm):
     class Meta:

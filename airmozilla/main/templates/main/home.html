@@ -9,6 +9,17 @@
   {% endif %}
 {% endblock %}
 
+
+{% block site_css %}
+{{ super() }}
+<style type="text/css">
+p.feed { float: right; }
+.channels p.title a { font-weight: bold; }
+</style>
+{% endblock %}
+
+
+
 {% block content_main %}
   {% if front_page %}
     {% if live %}
@@ -41,13 +52,15 @@
     {% endif %}
     {% if not tags %}
       {% if channel.slug == 'main' %}
-        <h2 class="section-title">{{ _('Recent Videos') }}</h2>
+        <h2 class="section-title">{{ _('Recent Events') }}</h2>
       {% else %}
         {% if channel.image and channel.image_is_banner %}
           {% set thumb = thumbnail(channel.image, '650') %}
           <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
                alt="{{ channel.name }}" class="channel-banner">
+          <p class="feed"><a href="{{ url('main:channel_feed', channel.slug, feed_privacy) }}">Feed</a></p>
         {% else %}
+          <p class="feed"><a href="{{ url('main:channel_feed', channel.slug, feed_privacy) }}">Feed</a></p>
           {% if channel.image %}
             {% set thumb = thumbnail(channel.image, '100x100') %}
             <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
@@ -58,6 +71,19 @@
         <div class="channel-description">
         {{ channel.description|safe }}
         </div>
+        {% for child, count in channel_children %}
+          {% if loop.first %}
+          <h3 class="section-title">Sub channels:</h3>
+          <div class="channels">
+          {% endif %}
+          <p class="feed"><a href="{{ url('main:channel_feed', child.slug, feed_privacy) }}">Feed</a></p>
+          <p class="title"><a href="{{ url('main:home_channels', child.slug) }}">{{ child.name }}</a><br>
+          <span>{% if count == 1 %}1 archived event{% else %}{{ count }} archived events{% endif %}</span>
+          </p>
+          {% if loop.last %}
+          </div>
+          {% endif %}
+        {% endfor %}
       {% endif %}
     {% endif %}
   {% endif %}

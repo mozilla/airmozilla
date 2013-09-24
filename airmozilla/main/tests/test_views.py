@@ -848,6 +848,11 @@ class TestPages(TestCase):
             name='Culture & Context',
             slug='culture-and-context',
         )
+        Channel.objects.create(
+            name='Sub-Culture & Subtle-Context',
+            slug='sub-culture-and-sub-context',
+            parent=channel
+        )
 
         # create an archived event that can belong to this channel
         event1 = Event.objects.get(title='Test event')
@@ -868,9 +873,16 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
         ok_('Main' not in response.content)
         ok_('Culture &amp; Context' in response.content)
+        ok_('Sub-Culture &amp; Subtle-Context' not in response.content)
+
         channel_url = reverse('main:home_channels', args=(channel.slug,))
         ok_(channel_url in response.content)
         ok_('0 archived events' in response.content)
+
+        # visiting that channel, there should be a link to the sub channel
+        response = self.client.get(channel_url)
+        eq_(response.status_code, 200)
+        ok_('Sub-Culture &amp; Subtle-Context' in response.content)
 
         event.privacy = Event.PRIVACY_PUBLIC
         event.save()

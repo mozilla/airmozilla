@@ -138,6 +138,24 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
                       archived_paged.previous_page_number())
             )
 
+    events_qs = Event.objects.archived().all()
+    if request.user.is_active:
+        if is_contributor(request.user):
+            feed_privacy = 'contributors'
+            events_qs = events_qs.exclude(privacy=Event.PRIVACY_COMPANY)
+        else:
+            feed_privacy = 'company'
+    else:
+        events_qs = events_qs.filter(privacy=Event.PRIVACY_PUBLIC)
+        feed_privacy = 'public'
+
+    channel_children = []
+    for child in channel.get_children().order_by('name'):
+        channel_children.append((
+            child,
+            events_qs.filter(channels=child).count()
+        ))
+
     return render(request, 'main/home.html', {
         'events': archived_paged,
         'live': live,
@@ -145,6 +163,8 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         'tags': tags,
         'Event': Event,
         'channel': channel,
+        'channel_children': channel_children,
+        'feed_privacy': feed_privacy,
         'next_page_url': next_page_url,
         'prev_page_url': prev_page_url,
     })
@@ -474,8 +494,7 @@ def channels(request):
     privacy_filter = {}
     privacy_exclude = {}
     if request.user.is_active:
-        profile = get_profile_safely(request.user)
-        if profile and profile.contributor:
+        if is_contributor(request.user):
             feed_privacy = 'contributors'
             privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
         else:
@@ -489,7 +508,12 @@ def channels(request):
     elif privacy_exclude:
         events = events.exclude(**privacy_exclude)
 
-    for channel in Channel.objects.exclude(slug=settings.DEFAULT_CHANNEL_SLUG):
+    channels_qs = (
+        Channel.objects
+        .filter(parent__isnull=True)
+        .exclude(slug=settings.DEFAULT_CHANNEL_SLUG)
+    )
+    for channel in channels_qs:
         event_count = events.filter(channels=channel).count()
         channels.append((channel, event_count))
     data = {

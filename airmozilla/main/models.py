@@ -140,6 +140,7 @@ class Channel(models.Model):
                             db_index=True)
     image = ImageField(upload_to=_upload_path('channels'), blank=True)
     image_is_banner = models.BooleanField(default=False)
+    parent = models.ForeignKey('self', name='parent', null=True)
     description = models.TextField()
     created = models.DateTimeField(default=_get_now)
 
@@ -148,6 +149,9 @@ class Channel(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def get_children(self):
+        return Channel.objects.filter(parent=self)
 
 
 class Tag(models.Model):

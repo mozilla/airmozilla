@@ -10,6 +10,7 @@
     <thead>
       <tr>
         <th>Channel</th>
+        <th>Parent</th>
         <th>Events</th>
         <th></th>
       </tr>
@@ -18,6 +19,11 @@
       {% for channel in channels %}
         <tr>
           <td><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a></td>
+          <td>
+            {% if channel.parent %}
+            <a href="{{ url('main:home_channels', channel.parent.slug) }}">{{ channel.parent.name }}</a>
+            {% endif %}
+          </td>
           <td>{{ channel.event_set.count() }}</td>
           <td>
             <a class="btn" href="{{ url('manage:channel_edit', channel.id) }}">

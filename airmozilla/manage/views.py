@@ -1036,7 +1036,7 @@ def channel_edit(request, id):
     if request.method == 'POST':
         form = forms.ChannelForm(request.POST, request.FILES, instance=channel)
         if form.is_valid():
-            form.save()
+            channel = form.save()
             messages.info(request, 'Channel "%s" saved.' % channel.name)
             return redirect('manage:channels')
     else:
