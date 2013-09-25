@@ -515,7 +515,7 @@ px      68    160    252    344    436    528    620    712    */
   .sub { width: 160px; }
   #content-sub .sidebar.second { float: right; }
 
-  #site-title { font-size: 3em; letter-spacing: -2px; margin-left: 0; }
+  #site-title h1 { font-size: 3em; letter-spacing: -2px; margin-left: 0; }
   #site-description { font-size: 1.5em; letter-spacing: -.5px; }
 
   .entry-header .vcard { width: 338px; }
@@ -550,7 +550,7 @@ px      68    160    252    */
 
   #masthead { background-image: none !important; min-height: 0; padding: 58px 0 24px; border-bottom: 1px solid; margin-bottom: 24px; }
   #masthead hgroup { padding-right: 0; }
-  #site-title { font-size: 2em; letter-spacing: -.5px; margin-left: 0; }
+  #site-title h1 { font-size: 2em; letter-spacing: -.5px; margin-left: 0; }
   #site-description { font-size: 1.2em; letter-spacing: normal; }
   #nav-access a:focus, #nav-access a:active { top: 60em; }
 
@@ -619,7 +619,7 @@ px      68    160    252    344    436    */
 
 @media only screen and (min-width: 480px) and (max-width: 767px) {
   .wrap { width: 436px; padding: 0 22px; }
-  #site-title { font-size: 2.5em; letter-spacing: -1px; margin-left: 0; }
+  #site-title h1 { font-size: 2.5em; letter-spacing: -1px; margin-left: 0; }
   #site-description { font-size: 1.4em; }
 
   #content-sub .sidebar { float: left; width: 205px; }

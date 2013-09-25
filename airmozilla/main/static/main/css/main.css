@@ -35,7 +35,22 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
     margin-top: 19px;
     margin-right: -24px;
 }
-#site-title form input { width: 270px; }
+#site-title form input {
+    width: 270px;
+}
+@media only screen and (max-width: 1000px) {
+    #site-title form {
+        float: none;
+    }
+    #site-title form input {
+        width: 170px;
+   }
+}
+@media only screen and (max-width: 1000px) {
+    #site-title form input {
+        width: 120px;
+   }
+}
 
 #masthead hgroup { padding: 0; }
 #site-title.home { text-align: center; }
