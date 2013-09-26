@@ -263,7 +263,7 @@ def _get_add_event_emails(exclude_superusers=False):
     permission = Permission.objects.get(codename='add_event')
     emails = set()
     for group in permission.group_set.all():
-        emails.update([u.email for u in group.user_set.all()])
+        emails.update([u.email for u in group.user_set.filter(is_active=True)])
     if not exclude_superusers:
         for superuser in User.objects.filter(is_superuser=True):
             if superuser.email:

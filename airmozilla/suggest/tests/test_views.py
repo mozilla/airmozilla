@@ -592,6 +592,13 @@ class TestPages(TestCase):
             email='richard@mozilla.com'
         )
         richard.groups.add(approvers)
+        mrinactive = User.objects.create_user(
+            'mrinactive',
+            email='mr@inactive.com',
+        )
+        mrinactive.is_active = False
+        mrinactive.save()
+        mrinactive.groups.add(approvers)
         permission = Permission.objects.get(codename='add_event')
         approvers.permissions.add(permission)
 
@@ -636,6 +643,12 @@ class TestPages(TestCase):
         ok_(event.submitted)
 
         email_sent = mail.outbox[-1]
+
+        ok_('zandr@mozilla.com' in email_sent.recipients())
+        ok_('richard@mozilla.com' in email_sent.recipients())
+        ok_(self.user.email in email_sent.recipients())
+        ok_('mr@inactive.com' not in email_sent.recipients())
+
         ok_('TitleTitle' in email_sent.subject)
         # but it's truncated
         ok_('...' in email_sent.subject)
