@@ -411,7 +411,7 @@ def events_calendar(request, privacy=None):
                   .order_by('-start_time')[:settings.CALENDAR_SIZE])
     events += list(base_qs
                    .filter(start_time__gte=now)
-                   .order_by('start_time')[:settings.CALENDAR_SIZE])
+                   .order_by('start_time'))
     base_url = '%s://%s/' % (request.is_secure() and 'https' or 'http',
                              RequestSite(request).domain)
     for event in events:
@@ -437,7 +437,7 @@ def events_calendar(request, privacy=None):
     response['Content-Disposition'] = (
         'inline; filename=%s' % filename)
     if not location:
-        cache.set(cache_key, response)
+        cache.set(cache_key, response, 60 * 10)  # 10 minutes
 
     # https://bugzilla.mozilla.org/show_bug.cgi?id=909516
     response['Access-Control-Allow-Origin'] = '*'
