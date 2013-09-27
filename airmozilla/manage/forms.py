@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.flatpages.models import FlatPage
 from django.template.defaultfilters import slugify
-
+from django.utils.timezone import utc
 from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm, BaseForm
@@ -86,10 +86,31 @@ class UserFindForm(BaseForm):
 class EventRequestForm(BaseModelForm):
     tags = forms.CharField(required=False)
     participants = forms.CharField(required=False)
-    timezone = forms.ChoiceField(
-        choices=TIMEZONE_CHOICES,
-        initial=settings.TIME_ZONE, label='Time zone'
-    )
+#    timezone = forms.ChoiceField(
+#        choices=TIMEZONE_CHOICES,
+#        initial=settings.TIME_ZONE, label='Time zone'
+#    )
+
+    class Meta:
+        model = Event
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'short_description': forms.Textarea(attrs={'rows': 2}),
+            'call_info': forms.Textarea(attrs={'rows': 3}),
+            'additional_links': forms.Textarea(attrs={'rows': 3}),
+            'template_environment': forms.Textarea(attrs={'rows': 3}),
+            'additional_links': forms.Textarea(attrs={'rows': 3}),
+            'start_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
+            'archive_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
+        }
+        exclude = ('featured', 'status', 'archive_time', 'slug')
+        # Fields specified to enforce order
+        fields = (
+            'title', 'placeholder_img', 'description',
+            'short_description', 'location', 'start_time',
+            'participants', 'channels', 'category', 'tags', 'call_info',
+            'additional_links', 'privacy'
+        )
 
     def __init__(self, *args, **kwargs):
         super(EventRequestForm, self).__init__(*args, **kwargs)
@@ -118,6 +139,13 @@ class EventRequestForm(BaseModelForm):
             event = kwargs['instance']
             approvals = event.approval_set.all()
             self.initial['approvals'] = [app.group for app in approvals]
+            if event.location:
+                # when the django forms present the start_time form field,
+                # it's going to first change it to UTC, then strftime it
+                self.initial['start_time'] = (
+                    event.location_time.replace(tzinfo=utc)
+                )
+
             if event.pk:
                 tag_format = lambda objects: ','.join(map(unicode, objects))
                 participants_formatted = tag_format(event.participants.all())
@@ -173,27 +201,6 @@ class EventRequestForm(BaseModelForm):
                 self._check_flatpage_slug(data['slug'])
         return data
 
-    class Meta:
-        model = Event
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'short_description': forms.Textarea(attrs={'rows': 2}),
-            'call_info': forms.Textarea(attrs={'rows': 3}),
-            'additional_links': forms.Textarea(attrs={'rows': 3}),
-            'template_environment': forms.Textarea(attrs={'rows': 3}),
-            'additional_links': forms.Textarea(attrs={'rows': 3}),
-            'start_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
-            'archive_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
-        }
-        exclude = ('featured', 'status', 'archive_time', 'slug')
-        # Fields specified to enforce order
-        fields = (
-            'title', 'placeholder_img', 'description',
-            'short_description', 'location', 'start_time', 'timezone',
-            'participants', 'channels', 'category', 'tags', 'call_info',
-            'additional_links', 'privacy'
-        )
-
 
 class EventEditForm(EventRequestForm):
     approvals = forms.ModelMultipleChoiceField(
@@ -209,7 +216,7 @@ class EventEditForm(EventRequestForm):
             'title', 'slug', 'status', 'privacy', 'featured', 'template',
             'template_environment', 'placeholder_img', 'location',
             'description', 'short_description', 'start_time', 'archive_time',
-            'timezone', 'participants', 'channels', 'category', 'tags',
+            'participants', 'channels', 'category', 'tags',
             'call_info', 'additional_links', 'approvals'
         )
 
@@ -225,7 +232,7 @@ class EventExperiencedRequestForm(EventEditForm):
         fields = (
             'title', 'status', 'privacy', 'template',
             'template_environment', 'placeholder_img', 'description',
-            'short_description', 'location', 'start_time', 'timezone',
+            'short_description', 'location', 'start_time',
             'participants', 'channels', 'category', 'tags', 'call_info',
             'additional_links', 'approvals'
         )

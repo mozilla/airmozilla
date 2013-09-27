@@ -24,7 +24,11 @@
       </tr>
       <tr>
         <td>Start time</td>
-        <td>{{ approval.event.start_time|js_date }}</td>
+        <td>{{ approval.event.start_time|js_date }}
+          {% if approval.event.location %}
+          {{ approval.event.location_time.strftime("%I:%M%p") }} in {{ approval.event.location.name }}
+          {% endif %}
+        </td>
       </tr>
       <tr>
         <td>Location</td>

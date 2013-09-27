@@ -50,6 +50,10 @@ from .test_vidly import (
 class ManageTestCase(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
+    def shortDescription(self):
+        # Stop nose using the test docstring and instead the test method name.
+        pass
+
     def setUp(self):
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
@@ -229,7 +233,6 @@ class TestEvents(ManageTestCase):
         'tags': 'xxx',
         'template': '1',
         'start_time': '2012-3-4 12:00',
-        'timezone': 'US/Pacific'
     }
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
@@ -534,57 +537,6 @@ class TestEvents(ManageTestCase):
                  template_environment='failenvironment')
         )
         eq_(response_fail.status_code, 200)
-
-    def test_timezones(self):
-        """Event requests/edits demonstrate correct timezone math."""
-
-        def _tz_test(url, tzdata, correct_date, msg):
-            with open(self.placeholder) as fp:
-                base_data = dict(self.event_base_data,
-                                 title='timezone test', placeholder_img=fp)
-                self.client.post(url, dict(base_data, **tzdata))
-            event = Event.objects.get(title='timezone test',
-                                      start_time=correct_date)
-            ok_(event, msg + ' vs. ' + str(event.start_time))
-        url = reverse('manage:event_request')
-        _tz_test(
-            url,
-            {
-                'start_time': '2012-08-03 12:00',
-                'timezone': 'US/Eastern'
-            },
-            datetime.datetime(2012, 8, 3, 16).replace(tzinfo=utc),
-            'Event request summer date - Eastern UTC-04 input'
-        )
-        _tz_test(
-            url,
-            {
-                'start_time': '2012-11-30 3:00',
-                'timezone': 'Europe/Paris'
-            },
-            datetime.datetime(2012, 11, 30, 2).replace(tzinfo=utc),
-            'Event request winter date - CET UTC+01 input'
-        )
-        event = Event.objects.get(title='Test event')
-        url = reverse('manage:event_edit', kwargs={'id': event.id})
-        _tz_test(
-            url,
-            {
-                'start_time': '2012-08-03 15:00',
-                'timezone': 'US/Pacific'
-            },
-            datetime.datetime(2012, 8, 3, 22).replace(tzinfo=utc),
-            'Modify event summer date - Pacific UTC-07 input'
-        )
-        _tz_test(
-            url,
-            {
-                'start_time': '2012-12-25 15:00',
-                'timezone': 'US/Pacific'
-            },
-            datetime.datetime(2012, 12, 25, 23).replace(tzinfo=utc),
-            'Modify event winter date - Pacific UTC-08 input'
-        )
 
     def test_event_archive(self):
         """Event archive page loads and shows correct archive_time behavior."""
@@ -1275,6 +1227,70 @@ class TestEvents(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
+    def test_event_location_time_create_and_edit(self):
+        """test that the input can be local time but the event is stored in
+        UTC"""
+        paris = Location.objects.create(
+            name='Paris',
+            timezone='Europe/Paris'
+        )
+        with open(self.placeholder) as fp:
+            data = dict(
+                self.event_base_data,
+                placeholder_img=fp,
+                title='In Paris!',
+                start_time='2013-09-25 10:00',
+                location=paris.pk,
+            )
+            response = self.client.post(
+                reverse('manage:event_request'),
+                data
+            )
+            eq_(response.status_code, 302)
+        event = Event.objects.get(title='In Paris!')
+        eq_(event.start_time.tzinfo, utc)
+        eq_(event.start_time.hour, 8)
+
+        url = reverse('manage:event_edit', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # expect the Paris location to be pre-selected
+        ok_(
+            '<option value="%s" selected="selected">Paris</option>' % paris.pk
+            in response.content
+        )
+        start_time_tag = re.findall(
+            '<input.*?id="id_start_time".*?>',
+            response.content
+        )[0]
+        # expect to see the location time in there instead
+        ok_('10:00' in start_time_tag, start_time_tag)
+
+        # suppose now we want to make the event start at 13:00 in Paris
+        response = self.client.post(
+            url,
+            dict(
+                self.event_base_data,
+                location=paris.pk,
+                start_time='2013-09-25 13:00',
+                title='Different Now'
+            ),
+        )
+        eq_(response.status_code, 302)
+        event = Event.objects.get(title='Different Now')
+        eq_(event.start_time.tzinfo, utc)
+        eq_(event.start_time.hour, 11)
+
+        # pull up the edit one more time
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        start_time_tag = re.findall(
+            '<input.*?id="id_start_time".*?>',
+            response.content
+        )[0]
+        # expect to see the location time in there instead
+        ok_('13:00' in start_time_tag, start_time_tag)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):
@@ -1845,7 +1861,7 @@ class TestManagementRoles(ManageTestCase):
            participants, can only see own events."""
         self._add_client_group('Event Organizer')
         self._unprivileged_event_manager_tests(
-            form_contains='Time zone',  # EventRequestForm
+            form_contains='Start time',  # EventRequestForm
             form_not_contains='Approvals'
         )
         self._unprivileged_page_tests(additional_pages=['manage:approvals'])

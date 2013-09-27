@@ -217,8 +217,10 @@ def _event_process(request, form, event):
     if not event.creator:
         event.creator = request.user
     event.modified_user = request.user
-    tz = pytz.timezone(request.POST['timezone'])
+
+    tz = pytz.timezone(event.location.timezone)
     event.start_time = tz_apply(event.start_time, tz)
+
     if event.archive_time:
         event.archive_time = tz_apply(event.archive_time, tz)
     if 'approvals' in form.cleaned_data:
