@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% set page = page|default('home') -%}
 {% set nav_main = [
-    ('Home', 'main:home', 'home', True),
-    ('About', '/about/', 'about', True),
-    ('Channels', 'main:channels', 'channels', True),
-    ('Tag Cloud', 'main:tag_cloud', 'tag_cloud', True),
-    ('Requests', 'suggest:start', 'suggest', request.user.is_active),
-    ('Management', 'manage:home', '', request.user.is_staff),
-    ('Sign out', 'auth:logout', '', request.user.is_active),
+    ('Home', 'main:home', 'home', True, ''),
+    ('About', '/about/', 'about', True, ''),
+    ('Channels', 'main:channels', 'channels', True, ''),
+    ('Tag Cloud', 'main:tag_cloud', 'tag_cloud', True, ''),
+    ('Requests', 'suggest:start', 'suggest', request.user.is_active, ''),
+    ('Management', 'manage:home', '', request.user.is_staff, ''),
+    ('Sign out', '/browserid/logout/', '', request.user.is_active, 'browserid-logout'),
 ] -%}
 
 {% block page_title %}
@@ -22,22 +22,23 @@ Air Mozilla | Mozilla, in Video
   {% compress css %}
     <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/main.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('main/css/persona-button.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
+  {{ browserid_css() }}
   <link href="//mozorg.cdn.mozilla.net/media/css/tabzilla-min.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
+  {{ browserid_info() }}
   <div id="page">
   <div class="wrap">
   <header id="masthead">
     <nav id="nav-main" role="navigation">
       <ul>
-        {% for title, view, id, show in nav_main %}
+        {% for title, view, id, show, class in nav_main %}
           {% if show %}
           <li>
             <a href="{% if '/' in view %}{{ view }}{% else %}{{ url(view) }}{% endif %}"
-              {% if id == page %} class="current"{% endif %}>
+              class="{{ class }}{% if id == page %} current"{% endif %}">
             {{ title }}
             </a>
           </li>
@@ -77,14 +78,7 @@ Air Mozilla | Mozilla, in Video
       </p>
       </aside>
       {% if not request.user.is_active %}
-        <a href="#" class="persona-button dark" id="browserid"
-           title="Sign in with Persona">
-          <span>Sign In</span>
-        </a>
-        <form method="post" action="{{ url('auth:mozilla_browserid_verify') }}">
-          {{ csrf() }}
-          {{ browserid_form.as_p() }}
-        </form>
+        {{ browserid_login(text='Sign in', color='dark', next=request.build_absolute_uri()) }}
       {% endif %}
 
       {% if sidebar_top %}
@@ -142,7 +136,5 @@ Air Mozilla | Mozilla, in Video
   {{ super() }}
   {# the day Air Mozilla uses L10n we can remove this /en-US/ here. For not it reduces redirects. #}
   <script src="//mozorg.cdn.mozilla.net/en-US/tabzilla/tabzilla.js"></script>
-  {% if not request.user.is_active %}
-    {{ browserid_form.media }}
-  {% endif %}
+  {{ browserid_js() }}
 {% endblock %}

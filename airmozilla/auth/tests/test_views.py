@@ -2,14 +2,16 @@ import json
 
 from django.conf import settings
 from django.test import TestCase
+from django.utils.importlib import import_module
 
 from funfactory.urlresolvers import reverse
 
 import mock
-from nose.tools import ok_
+from nose.tools import ok_, eq_
 
 from airmozilla.auth.browserid_mock import mock_browserid
 from airmozilla.auth import mozillians
+from airmozilla.main.models import UserProfile
 
 
 VOUCHED_FOR = """
@@ -125,23 +127,49 @@ class TestMozillians(TestCase):
 
 class TestViews(TestCase):
 
-    def _login_attempt(self, email, assertion='fakeassertion123'):
+    def setUp(self):
+        super(TestViews, self).setUp()
+
+        engine = import_module(settings.SESSION_ENGINE)
+        store = engine.SessionStore()
+        store.save()  # we need to make load() work, or the cookie is worthless
+        self.client.cookies[settings.SESSION_COOKIE_NAME] = store.session_key
+
+    def shortDescription(self):
+        # Stop nose using the test docstring and instead the test method name.
+        pass
+
+    def get_messages(self):
+        return self.client.session['_messages']
+
+    def _login_attempt(self, email, assertion='fakeassertion123', next=None):
+        if not next:
+            next = '/'
         with mock_browserid(email):
-            r = self.client.post(reverse('auth:mozilla_browserid_verify'),
-                                 {'assertion': assertion})
-        return r
+            post_data = {
+                'assertion': assertion,
+                'next': next
+            }
+            return self.client.post(
+                '/browserid/login/',
+                post_data
+            )
 
     def test_invalid(self):
         """Bad BrowserID form (i.e. no assertion) -> failure."""
         response = self._login_attempt(None, None)
-        self.assertRedirects(response,
-                             reverse(settings.LOGIN_REDIRECT_URL_FAILURE))
+        self.assertRedirects(
+            response,
+            settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
+        )
 
     def test_bad_verification(self):
         """Bad verification -> failure."""
         response = self._login_attempt(None)
-        self.assertRedirects(response,
-                             reverse(settings.LOGIN_REDIRECT_URL_FAILURE))
+        self.assertRedirects(
+            response,
+            settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
+        )
 
     @mock.patch('requests.get')
     def test_nonmozilla(self, rget):
@@ -155,17 +183,88 @@ class TestViews(TestCase):
         rget.side_effect = mocked_get
 
         response = self._login_attempt('tmickel@mit.edu')
-        self.assertRedirects(response,
-                             reverse(settings.LOGIN_REDIRECT_URL_FAILURE))
+        self.assertRedirects(
+            response,
+            settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
+        )
 
         # now with a non-mozillian that is vouched for
         response = self._login_attempt('peterbe@gmail.com')
         self.assertRedirects(response,
-                             reverse(settings.LOGIN_REDIRECT_URL))
+                             settings.LOGIN_REDIRECT_URL)
+
+    @mock.patch('requests.get')
+    def test_nonmozilla_vouched_for_second_time(self, rget):
+        assert not UserProfile.objects.all()
+
+        def mocked_get(url, **options):
+            return Response(VOUCHED_FOR)
+
+        rget.side_effect = mocked_get
+
+        # now with a non-mozillian that is vouched for
+        response = self._login_attempt('peterbe@gmail.com')
+        self.assertRedirects(response,
+                             settings.LOGIN_REDIRECT_URL)
+
+        # should be logged in
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Sign in' not in response.content)
+        ok_('Sign out' in response.content)
+
+        profile, = UserProfile.objects.all()
+        ok_(profile.contributor)
+
+        # sign out
+        response = self.client.get(reverse('browserid_logout'))
+        eq_(response.status_code, 302)
+        # should be logged out
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Sign in' in response.content)
+        ok_('Sign out' not in response.content)
+
+        # sign in again
+        response = self._login_attempt('peterbe@gmail.com')
+        self.assertRedirects(response,
+                             settings.LOGIN_REDIRECT_URL)
+        # should not have created another one
+        eq_(UserProfile.objects.all().count(), 1)
+
+        # sign out again
+        response = self.client.get(reverse('browserid_logout'))
+        eq_(response.status_code, 302)
+        # pretend this is lost
+        profile.contributor = False
+        profile.save()
+        response = self._login_attempt('peterbe@gmail.com')
+        self.assertRedirects(response,
+                             settings.LOGIN_REDIRECT_URL)
+        # should not have created another one
+        eq_(UserProfile.objects.filter(contributor=True).count(), 1)
 
     def test_mozilla(self):
         """Mozilla email -> success."""
         # Try the first allowed domain
         response = self._login_attempt('tmickel@' + settings.ALLOWED_BID[0])
         self.assertRedirects(response,
-                             reverse(settings.LOGIN_REDIRECT_URL))
+                             settings.LOGIN_REDIRECT_URL)
+
+    @mock.patch('airmozilla.auth.views.logger')
+    @mock.patch('requests.get')
+    def test_nonmozilla_mozillians_unhappy(self, rget, rlogger):
+        assert not UserProfile.objects.all()
+
+        def mocked_get(url, **options):
+            raise mozillians.BadStatusCodeError('crap!')
+
+        rget.side_effect = mocked_get
+
+        # now with a non-mozillian that is vouched for
+        response = self._login_attempt('peterbe@gmail.com')
+        self.assertRedirects(
+            response,
+            settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
+        )
+        eq_(rlogger.error.call_count, 1)

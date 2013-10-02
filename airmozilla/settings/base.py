@@ -42,12 +42,13 @@ JINGO_EXCLUDE_APPS = [
     'admin',
     'registration',
     'bootstrapform',
+    'browserid',
 ]
 
 # BrowserID configuration
 AUTHENTICATION_BACKENDS = [
-    'django_browserid.auth.BrowserIDBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'django_browserid.auth.BrowserIDBackend',
 ]
 
 AUTH_PROFILE_MODULE = 'main.UserProfile'
@@ -55,13 +56,15 @@ AUTH_PROFILE_MODULE = 'main.UserProfile'
 # Domains allowed for log in
 ALLOWED_BID = ['mozilla.com', 'mozillafoundation.org']
 
-SITE_URL = 'http://127.0.0.1:8000'
+# This is only needed when not in DEBUG mode
+#SITE_URL = 'http://127.0.0.1:8000'
+
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = 'main:home'
-LOGIN_REDIRECT_URL_FAILURE = 'main:login_failure'
+LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL_FAILURE = '/login-failure/'
 
 TEMPLATE_CONTEXT_PROCESSORS += (
-    'django_browserid.context_processors.browserid_form',
+    'django_browserid.context_processors.browserid',
     'airmozilla.manage.context_processors.badges',
     'airmozilla.main.context_processors.sidebar',
     'airmozilla.main.context_processors.analytics',
@@ -160,3 +163,7 @@ URL_TRANSFORM_PASSWORDS = {}
 # Bit.ly URL shortener access token
 # See README about how to generate one
 BITLY_ACCESS_TOKEN = None
+
+# Overridden so we can depend on the LDAP lookup
+BROWSERID_VERIFY_CLASS = '%s.auth.views.CustomBrowserIDVerify' % PROJECT_MODULE
+BROWSERID_REQUEST_ARGS = {'siteName': 'Air Mozilla'}

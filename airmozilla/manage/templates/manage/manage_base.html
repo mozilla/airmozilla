@@ -3,9 +3,7 @@
 {% set navigation_bar = [
     ('manage:home', 'Dashboard', 'home', 'icon-home', True, ''),
     ('main:home', 'Exit Management', '', 'icon-backward', True, ''),
-    ('auth:logout', 'Sign out', '', 'icon-off', True, ''),
-
-      ('', 'Event Tools', '', '', perms.main.add_event, ''),
+    ('', 'Event Tools', '', '', perms.main.add_event, ''),
     ('manage:event_request', 'Initiate event', 'erequest', 'icon-calendar',
      perms.main.add_event, ''),
     ('manage:participants', 'Participants', 'part_edit', 'icon-picture',

@@ -28,3 +28,5 @@ BITLY_ACCESS_TOKEN = '123456789'
 # don't accidentally send anything to sentry whilst running tests
 RAVEN_CONFIG = {}
 SENTRY_DSN = None
+
+SITE_URL = 'http://localhost:8000'

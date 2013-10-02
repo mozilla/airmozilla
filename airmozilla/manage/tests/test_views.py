@@ -94,13 +94,6 @@ class TestPermissions(ManageTestCase):
         response = self.client.get(reverse('manage:home'))
         eq_(response.status_code, 200)
 
-    def test_staff_logout(self):
-        """ Log out makes admin inaccessible. """
-        self.client.get(reverse('auth:logout'))
-        response = self.client.get(reverse('manage:home'))
-        self.assertRedirects(response, settings.LOGIN_URL
-                             + '?next=' + reverse('manage:home'))
-
 
 class TestDashboard(ManageTestCase):
 

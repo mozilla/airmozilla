@@ -167,6 +167,11 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
     }
 }
 
+/* Persona ***************/
+a.persona-button span {
+    color: #fff;
+}
+
 /* @Main feature *********/
 .main-feature { background: #eee; color: #506168; padding: 60px 48px 48px 232px; margin: 0 -48px 48px; position: relative; min-height: 160px; }
 .main-feature .feature-type { font-size: 16px; text-transform: uppercase; position: absolute; left: 48px; top: 24px; }
