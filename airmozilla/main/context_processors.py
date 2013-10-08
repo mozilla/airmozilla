@@ -47,8 +47,8 @@ def sidebar(request):
     data['feed_title'] = feed_title
     data['feed_url'] = feed_url
 
-    featured = featured.filter(channels__in=channels)
-    upcoming = upcoming.filter(channels__in=channels)
+    featured = featured.filter(channels__in=channels).distinct()
+    upcoming = upcoming.filter(channels__in=channels).distinct()
 
     if not request.user.is_active:
         featured = featured.filter(privacy=Event.PRIVACY_PUBLIC)

@@ -21,10 +21,6 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 <script src="{{ static('main/js/embed.js') }}"></script>
 {% endblock %}
 
-{% block banner %}
-  {% include 'main/_banner_small.html' %}
-{% endblock %}
-
 {% block content_main %}
   <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
     {% if warning %}
