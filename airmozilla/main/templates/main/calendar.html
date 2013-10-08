@@ -1,0 +1,34 @@
+{% extends 'main/main_base.html' %}
+{% set page='calendar' %}
+
+{% block page_title %}
+Calendar | {{ super() }}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+    <link href="{{ static('main/fullcalendar/fullcalendar.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ static('main/css/calendar.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+  <link href="{{ static('main/fullcalendar/fullcalendar.print.css') }}" media="print" rel="stylesheet" type="text/css">
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+  <script src="{{ static('main/fullcalendar/fullcalendar.min.js') }}"></script>
+  <script src="{{ static('main/js/calendar.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+
+{% block content_main %}
+  <h2 class="section-title">Calendar</h2>
+  <div id="calendar" data-events-url="{{ url('main:calendar_data') }}"></div>
+
+  <p>All times are in your local timezone</p>
+  <p>For iCal feeds for all locations visit the <a href="{{ url('main:calendars') }}">Calendars page</a>.</p>
+{% endblock %}

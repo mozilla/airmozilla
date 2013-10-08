@@ -1,8 +1,10 @@
 import datetime
+import json
 import uuid
 import urllib2
 import urllib
 import httplib
+import time
 
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser
@@ -43,7 +45,7 @@ class TestPages(TestCase):
         )
 
     def _calendar_url(self, privacy, location=None):
-        url = reverse('main:calendar', args=(privacy,))
+        url = reverse('main:calendar_ical', args=(privacy,))
         if location:
             if 'name' in location:
                 location = location.name
@@ -296,7 +298,7 @@ class TestPages(TestCase):
         eq_(participant.clear_token, '')
         eq_(participant.cleared, Participant.CLEARED_YES)
 
-    def test_calendar(self):
+    def test_calendar_ical(self):
         url = self._calendar_url('public')
         response_public = self.client.get(url)
         eq_(response_public.status_code, 200)
@@ -313,7 +315,7 @@ class TestPages(TestCase):
         ok_(response_changed.content != response_public.content)
         ok_('cache clear!' in response_changed.content)
 
-    def test_calendar_cors_cached(self):
+    def test_calendar_ical_cors_cached(self):
         url = self._calendar_url('public')
         response_public = self.client.get(url)
         eq_(response_public.status_code, 200)
@@ -1407,3 +1409,62 @@ class TestPages(TestCase):
         ok_(tag2.name in response.content)
         ok_(tag3.name in response.content)
         ok_(tag5.name in response.content)
+
+    def test_calendar_page(self):
+        url = reverse('main:calendar')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        data_url = reverse('main:calendar_data')
+        ok_(data_url in response.content)
+        calendars_url = reverse('main:calendars')
+        ok_(calendars_url in response.content)
+
+    def test_calendar_data(self):
+        url = reverse('main:calendar_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {
+            'start': '123',
+            'end': 'not a number'
+        })
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {
+            'start': 'not a number',
+            'end': '123'
+        })
+        eq_(response.status_code, 400)
+
+        first = datetime.datetime.now()
+        while first.day != 1:
+            first -= datetime.timedelta(days=1)
+        first = first.date()
+        last = first
+        while last.month == first.month:
+            last += datetime.timedelta(days=1)
+
+        first_ts = int(time.mktime(first.timetuple()))
+        last_ts = int(time.mktime(last.timetuple()))
+
+        # start > end
+        response = self.client.get(url, {
+            'start': last_ts,
+            'end': first_ts
+        })
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {
+            'start': first_ts,
+            'end': last_ts
+        })
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        test_event = Event.objects.get(title='Test event')
+        assert test_event.start_time.date() >= first
+        assert test_event.start_time.date() < last
+
+        assert len(structure) == 1
+        item, = structure
+        eq_(item['title'], test_event.title)
+        eq_(item['url'], reverse('main:event', args=(test_event.slug,)))

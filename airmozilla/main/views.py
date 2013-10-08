@@ -25,11 +25,13 @@ from airmozilla.main.models import (
 from airmozilla.base.utils import (
     paginate,
     edgecast_tokenize,
-    unhtml
+    unhtml,
+    json_view
 )
 from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
 from . import cloud
+from . import forms
 
 
 def page(request, template):
@@ -372,7 +374,7 @@ def participant_clear(request, clear_token):
         })
 
 
-def events_calendar(request, privacy=None):
+def events_calendar_ical(request, privacy=None):
     cache_key = 'calendar'
     if privacy:
         cache_key += '_%s' % privacy
@@ -587,3 +589,42 @@ def tag_cloud(request, THRESHOLD=1):
         steps=10
     )
     return render(request, 'main/tag_cloud.html', context)
+
+
+def calendar(request):
+    context = {}
+    return render(request, 'main/calendar.html', context)
+
+
+@json_view
+def calendar_data(request):
+    form = forms.CalendarDataForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(str(form.errors))
+
+    start = datetime.datetime.fromtimestamp(form.cleaned_data['start'])
+    end = datetime.datetime.fromtimestamp(form.cleaned_data['end'])
+
+    start = start.replace(tzinfo=utc)
+    end = end.replace(tzinfo=utc)
+
+    events = Event.objects.approved()
+
+    events = events.filter(
+        start_time__gte=start,
+        start_time__lt=end
+    )
+    event_objects = []
+    for event in events.select_related('location'):
+        start_time = event.start_time
+        # We don't need 'end' because we don't yet know how long the event
+        # was or will be.
+        event_objects.append({
+            'title': event.title,
+            'start': start_time.isoformat(),
+            'url': reverse('main:event', args=(event.slug,)),
+            'description': short_desc(event),
+            'allDay': False,
+        })
+
+    return event_objects

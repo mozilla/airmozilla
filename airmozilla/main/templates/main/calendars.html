@@ -14,10 +14,10 @@ Calendar feeds | {{ super() }}
   <h2 class="section-title">Calendar feeds</h2>
   <ul>
     <li>
-      <a href="{{ url('main:calendar', calendar_privacy) }}">All events</a>
+      <a href="{{ url('main:calendar_ical', calendar_privacy) }}">All events</a>
     </li>
     {% for location in locations %}
-    <li><a href="{{ url('main:calendar', calendar_privacy) }}?location={{ location.name|urlencode }}"
+    <li><a href="{{ url('main:calendar_ical', calendar_privacy) }}?location={{ location.name|urlencode }}"
     >All events in <strong>{{ location }}</strong></a>
     </li>
     {% endfor %}

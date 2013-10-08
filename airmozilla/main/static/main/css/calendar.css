@@ -1,0 +1,20 @@
+th.fc-day-header {
+    font-family: "Open Sans Light","Lucida Sans","Lucida Grande","Lucida Sans Unicode",Verdana,sans-serif;
+}
+
+.fc-widget-header, .fc-widget-content {
+    border: 1px solid rgb(101, 101, 101);
+}
+
+a.fc-event span, a.fc-event .fc-event-inner {
+    color: white;
+    font-size: 0.8em;
+}
+
+.fc-header-title h2 {
+    font-size: 1.7em;
+}
+
+.fc-state-highlight {
+    background-color: rgb(42, 49, 52);
+}
