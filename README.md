@@ -13,6 +13,7 @@ Tracking bug: https://bugzilla.mozilla.org/show_bug.cgi?id=712717
 
 Wiki page: https://wiki.mozilla.org/Air_Mozilla
 
+
 Tests and test coverage
 -----------------------
 Included is a set of comprehensive tests, which you can run by:
