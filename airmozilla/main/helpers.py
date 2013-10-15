@@ -7,6 +7,7 @@ import jinja2
 from django.utils.text import truncate_words as _truncate_words
 from django.utils.timezone import utc
 from django.db.utils import IntegrityError
+from django.contrib.sites.models import RequestSite
 
 from jingo import register
 from sorl.thumbnail import get_thumbnail
@@ -92,3 +93,11 @@ def thousands(number):
     except locale.Error:
         locale.setlocale(locale.LC_ALL, '')
     return locale.format('%d', number, True)
+
+
+@register.function
+def make_absolute(uri, request):
+    if '://' not in uri:
+        prefix = request.is_secure() and 'https' or 'http'
+        uri = '%s://%s%s' % (prefix, RequestSite(request).domain, uri)
+    return uri

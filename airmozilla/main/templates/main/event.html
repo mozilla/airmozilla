@@ -16,6 +16,17 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 </style>
 {% endblock %}
 
+{% block extra_head %}
+{{ super() }}
+<meta name="keywords" content="{% if event.category %}{{ event.category}},{% endif %}{{ ','.join(tags) }}">
+<meta property="og:title" content="{{ event.title }}">
+<meta property="og:description" content="{{ short_desc(event) }}">
+{% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
+<meta property="og:image" content="{{ make_absolute(thumb.url, request) }}">
+<meta property="og:image:width" content="{{ thumb.width }}">
+<meta property="og:image:height" content="{{ thumb.height }}">
+{% endblock %}
+
 {% block site_js %}
 {{ super() }}
 <script src="{{ static('main/js/embed.js') }}"></script>
@@ -80,16 +91,14 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
         <p>{{ _('Category') }}: {{ event.category.name }}</p>
       {% endif %}
 
-      {% for tag in event.tags.all() %}
-        {% if loop.first %}
-        <p>
-          {{ _('Tags') }}:
-	{% endif %}
-            <a href="{{ url('main:home') }}?tag={{ tag.name | urlencode }}" class="tag">{{ tag.name }}</a>
-	{% if loop.last %}
-        </p>
-	{% endif %}
-      {% endfor %}
+      {% if tags %}
+      <p>
+        {{ _('Tags') }}:
+        {% for tag in tags %}
+          <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}" class="tag">{{ tag }}</a>
+        {% endfor %}
+      </p>
+      {% endif %}
 
       {% if event.call_info %}
         <p>{{ _('Call info') }}: {{ event.call_info }}</p>

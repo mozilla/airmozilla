@@ -1,9 +1,10 @@
 import datetime
+import httplib
 import json
 import uuid
 import urllib2
 import urllib
-import httplib
+import re
 import time
 
 from django.contrib.flatpages.models import FlatPage
@@ -21,6 +22,7 @@ from airmozilla.main.models import (
     Approval,
     Event,
     EventOldSlug,
+    Category,
     Participant,
     Tag,
     UserProfile,
@@ -1468,3 +1470,40 @@ class TestPages(TestCase):
         item, = structure
         eq_(item['title'], test_event.title)
         eq_(item['url'], reverse('main:event', args=(test_event.slug,)))
+
+    def test_open_graph_details(self):
+        event = Event.objects.get(title='Test event')
+        assert event.placeholder_img
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        head = response.content.split('</head>')[0]
+        ok_('<meta property="og:title" content="%s">' % event.title in head)
+        from airmozilla.main.helpers import short_desc
+        ok_(
+            '<meta property="og:description" content="%s">' % short_desc(event)
+            in head
+        )
+        ok_('<meta property="og:image" content="htt' in head)
+
+    def test_meta_keywords(self):
+        event = Event.objects.get(title='Test event')
+        stuff = Category.objects.create(name="Stuff!")
+        event.category = stuff
+        event.save()
+
+        event.tags.add(Tag.objects.create(name="One"))
+        event.tags.add(Tag.objects.create(name="Two"))
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        head = response.content.split('</head>')[0]
+
+        content = re.findall(
+            '<meta name="keywords" content="([^\"]+)">',
+            head
+        )[0]
+        ok_(stuff.name in content)
+        ok_("One" in content)
+        ok_("Two" in content)

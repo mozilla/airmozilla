@@ -313,6 +313,7 @@ class EventView(View):
             'can_edit_event': can_edit_event,
             'Event': Event,
             'hits': hits,
+            'tags': [t.name for t in event.tags.all()],
         })
 
         return render(request, self.template_name, context)
