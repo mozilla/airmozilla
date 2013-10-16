@@ -5,6 +5,11 @@ Your suggested event, with title "{{ event.title }}" has been accepted.
 At this point the event has not yet been scheduled meaning its exact time
 and place is not confirmed.
 
+
+To see your requested event again go to:
+
+  {{ base_url }}{{ url('suggest:summary', event.pk) }}
+
 --
 Air Mozilla
 {{ base_url }}

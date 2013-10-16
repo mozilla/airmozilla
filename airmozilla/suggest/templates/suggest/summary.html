@@ -11,10 +11,6 @@ Event summary | {{ super() }}
   {% endcompress %}
 {% endblock %}
 
-{% block banner %}
-    {% include 'main/_banner_small.html' %}
-{% endblock %}
-
 {% block content_main %}
   {% include 'suggest/_breadcrumb.html' %}
   <h2 class="section-title">Event summary</h2>
@@ -30,7 +26,19 @@ Event summary | {{ super() }}
           This event has been accepted but is pending approval.
           {% else %}
           This event is
-	  <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.
+	  <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.<br>
+          {% if event.start_time != event.accepted.start_time %}
+            <b>Note!</b><br>
+            The <b>scheduled time</b> is different from what you requested. The scheduled time is:
+            <b>{{ event.accepted.location_time.strftime('%d %B %Y - %H:%M') }}</b>
+            ({{ event.accepted.start_time|js_date }}).<br>
+          {% endif %}
+          {% if event.location != event.accepted.location %}
+            <b>Note!</b><br>
+            The <b>scheduled location</b> is different from what you requested. The scheduled location is:
+            <b>{{ event.accepted.location.name }}</b>.
+          {% endif %}
+
           {% endif %}
         {% elif event.accepted.status == Event.STATUS_REMOVED %}
           This event was accepted but was later removed.

@@ -2130,6 +2130,9 @@ class TestSuggestions(ManageTestCase):
         ok_('accepted' in email_sent.subject)
         ok_('TITLE' in email_sent.subject)
         ok_('TITLE' in email_sent.body)
+        # expect the link to the summary is in there
+        summary_url = reverse('suggest:summary', args=(event.pk,))
+        ok_(summary_url in email_sent.body)
 
     def test_reject_suggested_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')

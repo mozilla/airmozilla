@@ -435,6 +435,65 @@ class TestPages(TestCase):
         # the event is not submitted yet
         ok_('Submit for review' in response.content)
 
+    def test_summary_after_event_approved(self):
+        event = self._make_suggested_event()
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.first_submitted = now
+        event.submitted = now
+        url = reverse('suggest:summary', args=(event.pk,))
+        real = Event.objects.create(
+            title=event.title,
+            slug=event.slug,
+            description=event.description,
+            start_time=event.start_time,
+            location=event.location,
+            placeholder_img=event.placeholder_img,
+            privacy=event.privacy,
+            category=event.category,
+        )
+        event.accepted = real
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Accepted!' in response.content)
+        ok_('Submit for review' not in response.content)
+        real_url = reverse('main:event', args=(real.slug,))
+        ok_(real_url not in response.content)
+
+        # now schedule the real event
+        real.status = Event.STATUS_SCHEDULED
+        real.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Accepted!' in response.content)
+        ok_('accepted and scheduled' in response.content)
+        ok_('Submit for review' not in response.content)
+        ok_(real_url in response.content)
+
+        # suppose we change the start time
+        real.start_time += datetime.timedelta(hours=1)
+        real.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(
+            'The <b>scheduled time</b> is different from what you requested'
+            in response.content
+        )
+
+        toronto = Location.objects.create(
+            name='Toronto',
+            timezone='Canada/Eastern'
+        )
+        real.location = toronto
+        real.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(
+            'The <b>scheduled location</b> is different from what '
+            'you requested'
+            in response.content
+        )
+
     def test_delete(self):
         event = SuggestedEvent.objects.create(
             user=self.user,
