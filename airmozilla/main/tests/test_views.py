@@ -1021,6 +1021,67 @@ class TestPages(TestCase):
         # upcoming
         ok_('Fourth test event' in response.content)
 
+    def test_view_channel_in_reverse_order(self):
+        channel = Channel.objects.create(
+            name='Culture & Context',
+            slug='culture-and-context',
+            description="""
+            <p>The description</p>
+            """,
+            image='animage.png',
+        )
+        event = Event.objects.get(title='Test event')
+        one = Event.objects.create(
+            title='First Title',
+            description=event.description,
+            start_time=event.start_time - datetime.timedelta(2),
+            archive_time=event.start_time - datetime.timedelta(2),
+            location=event.location,
+            placeholder_img=event.placeholder_img,
+            slug='one',
+            status=Event.STATUS_SCHEDULED,
+            privacy=Event.PRIVACY_PUBLIC,
+        )
+        one.channels.add(channel)
+        two = Event.objects.create(
+            title='Second Title',
+            description=event.description,
+            start_time=event.start_time - datetime.timedelta(1),
+            archive_time=event.start_time - datetime.timedelta(1),
+            location=event.location,
+            placeholder_img=event.placeholder_img,
+            slug='two',
+            status=Event.STATUS_SCHEDULED,
+            privacy=Event.PRIVACY_PUBLIC,
+        )
+        two.channels.add(channel)
+
+        assert one in Event.objects.archived()
+        assert two in Event.objects.archived()
+
+        url = reverse('main:home_channels', args=(channel.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(one.title in response.content)
+        ok_(two.title in response.content)
+        ok_(
+            response.content.find(two.title)
+            <
+            response.content.find(one.title)
+        )
+
+        channel.reverse_order = True
+        channel.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(one.title in response.content)
+        ok_(two.title in response.content)
+        ok_(
+            response.content.find(one.title)
+            <
+            response.content.find(two.title)
+        )
+
     def test_render_home_without_channel(self):
         # if there is no "main" channel it gets automatically created
         self.main_channel.delete()

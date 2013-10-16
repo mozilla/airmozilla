@@ -143,6 +143,7 @@ class Channel(models.Model):
     parent = models.ForeignKey('self', name='parent', null=True)
     description = models.TextField()
     created = models.DateTimeField(default=_get_now)
+    reverse_order = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['name']

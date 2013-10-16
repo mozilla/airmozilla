@@ -18,7 +18,11 @@
     <tbody>
       {% for channel in channels %}
         <tr>
-          <td><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a></td>
+          <td><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a>
+          {% if channel.reverse_order %}
+          <span class="label label-info">Reversed order</span>
+          {% endif %}
+          </td>
           <td>
             {% if channel.parent %}
             <a href="{{ url('main:home_channels', channel.parent.slug) }}">{{ channel.parent.name }}</a>

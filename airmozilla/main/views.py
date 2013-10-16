@@ -97,6 +97,7 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
     else:
         live_events = (Event.objects.live()
                        .order_by('start_time'))
+
         if privacy_filter:
             live_events = live_events.filter(**privacy_filter)
         elif privacy_exclude:
@@ -106,6 +107,9 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         # but only do this if it's not filtered by tags
         live_events = live_events.filter(channels=channels)
         archived_events = archived_events.filter(channels=channels)
+
+    if channels and channels[0].reverse_order:
+        archived_events = archived_events.reverse()
 
     archived_paged = paginate(archived_events, page, 10)
     live = None
