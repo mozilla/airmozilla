@@ -143,3 +143,11 @@ To generate it use this command:
 
 That will spit out a 40 character code which you set in
 settings/local.py for the ``BITLY_ACCESS_TOKEN`` setting.
+
+
+About the database
+------------------
+
+Even though we use the Django ORM which is database engine agnostic,
+we have to have PostgreSQL because we rely on its ability to do full
+text index searches.
