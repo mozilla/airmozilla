@@ -39,7 +39,7 @@ Air Mozilla | Mozilla, in Video
           {% if show %}
           <li>
             <a href="{% if '/' in view %}{{ view }}{% else %}{{ url(view) }}{% endif %}"
-              class="{{ class }}{% if id == page %} current"{% endif %}">
+              class="{{ class }}{% if id == page %} current{% endif %}">
             {{ title }}
             </a>
           </li>
