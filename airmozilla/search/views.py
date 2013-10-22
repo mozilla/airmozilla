@@ -24,6 +24,15 @@ def home(request):
     else:
         form = forms.SearchForm()
 
+    def possible_to_or_query(q):
+        """return true if it's possible to turn this query into something with
+        | characters in between"""
+        if len(q.split()) > 1:
+            if '&' in q or '|' in q:
+                return False
+            return True
+        return False
+
     if request.GET.get('q') and form.is_valid():
         context['q'] = request.GET.get('q')
         privacy_filter = {}
@@ -35,11 +44,20 @@ def home(request):
             privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
 
         events = _search(
-            request.GET.get('q'),
+            context['q'],
             privacy_filter=privacy_filter,
             privacy_exclude=privacy_exclude,
             sort=request.GET.get('sort'),
         )
+        if not events.count() and possible_to_or_query(context['q']):
+            events = _search(
+                context['q'],
+                privacy_filter=privacy_filter,
+                privacy_exclude=privacy_exclude,
+                sort=request.GET.get('sort'),
+                fuzzy=True
+            )
+
         try:
             page = int(request.GET.get('page', 1))
             if page < 1:
@@ -88,15 +106,26 @@ def _search(q, **options):
     if options.get('sort') == 'date':
         raise NotImplementedError
 
-    sql = """
-    (
-      to_tsvector('english', title) @@ plainto_tsquery('english', %s)
-      OR
-      to_tsvector('english', description || ' ' || short_description)
-       @@ plainto_tsquery('english', %s)
-    )
-    """
-    search_escaped = q
+    if options.get('fuzzy'):
+        sql = """
+        (
+          to_tsvector('english', title) @@ to_tsquery('english', %s)
+          OR
+          to_tsvector('english', description || ' ' || short_description)
+           @@ to_tsquery('english', %s)
+        )
+        """
+        search_escaped = q.replace(' ', '|')
+    else:
+        sql = """
+        (
+          to_tsvector('english', title) @@ plainto_tsquery('english', %s)
+          OR
+          to_tsvector('english', description || ' ' || short_description)
+           @@ plainto_tsquery('english', %s)
+        )
+        """
+        search_escaped = q
     qs = qs.extra(
         where=[sql],
         params=[search_escaped, search_escaped],

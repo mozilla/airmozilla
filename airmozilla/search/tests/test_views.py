@@ -250,3 +250,48 @@ class TestSearch(TestCase):
         eq_(response.status_code, 200)
         ok_('Nothing found' not in response.content)
         ok_('<script>alert' not in response.content)
+
+    def test_searching_multi_words_finding_with_or(self):
+
+        Event.objects.all().delete()
+
+        today = datetime.datetime.utcnow()
+        event1 = Event.objects.create(
+            title='Blobber Fest',
+            slug='blobbering',
+            start_time=today.replace(tzinfo=utc),
+            placeholder_img=self.placeholder,
+            status=Event.STATUS_SCHEDULED,
+            description="These are my words."
+        )
+        assert event1 in Event.objects.approved()
+
+        event2 = Event.objects.create(
+            title='Beauty and the Beast',
+            slug='beauty-and-beast',
+            start_time=today.replace(tzinfo=utc),
+            placeholder_img=self.placeholder,
+            status=Event.STATUS_SCHEDULED,
+            description="These are other words."
+        )
+        assert event2 in Event.objects.approved()
+
+        url = reverse('search:home')
+
+        response = self.client.get(url, {'q': 'BLOBBER'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event1.title in response.content)
+        ok_(event2.title not in response.content)
+
+        response = self.client.get(url, {'q': 'BEAST'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event1.title not in response.content)
+        ok_(event2.title in response.content)
+
+        response = self.client.get(url, {'q': 'BLOBBER BEAST'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event1.title in response.content)
+        ok_(event2.title in response.content)
