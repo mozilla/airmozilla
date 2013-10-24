@@ -580,7 +580,9 @@ class TestPages(TestCase):
         ok_(event.user.email in email_sent.body)
         ok_(event.title in email_sent.body)
         ok_(event.location.name in email_sent.body)
-        ok_('12:00' in email_sent.body)
+        # The event starts at 12 UTC (see _make_suggested_event())
+        # In US/Pacific that's 04:00
+        ok_('04:00' in email_sent.body)
         summary_url = reverse('suggest:summary', args=(event.pk,))
         ok_(summary_url in email_sent.body)
         manage_url = reverse('manage:suggestions')

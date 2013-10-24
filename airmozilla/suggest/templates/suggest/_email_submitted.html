@@ -7,7 +7,7 @@ A new event suggestion has been submitted.
   {{ event.location }}
 
 *Start time:*
-  {{ event.start_time.strftime('%d %B %Y - %H:%M') }} ({{ event.location.timezone }})
+  {{ event.location_time.strftime('%d %B %Y - %H:%M') }} ({{ event.location.timezone }})
 
 *Submitter:*
   {{ event.user.email }}
