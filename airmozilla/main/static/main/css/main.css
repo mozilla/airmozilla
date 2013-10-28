@@ -54,6 +54,8 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
 
 #masthead hgroup { padding: 0; }
 #site-title.home { text-align: center; }
+/* See https://github.com/mozilla/airmozilla/pull/62 */
+#site-title img { width: 100%; }
 
 #masthead nav {
     float: right;
