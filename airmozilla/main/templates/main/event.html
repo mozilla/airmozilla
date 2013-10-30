@@ -29,7 +29,9 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 
 {% block site_js %}
 {{ super() }}
+{% compress js %}
 <script src="{{ static('main/js/embed.js') }}"></script>
+{% endcompress %}
 {% endblock %}
 
 {% block content_main %}
