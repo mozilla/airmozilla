@@ -1157,6 +1157,24 @@ class TestEvents(ManageTestCase):
         ok_('101' in response.content)
         ok_('0.3' in response.content)
 
+    def test_event_hit_stats_archived_today(self):
+        event = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = now
+        event.archive_time = now
+        event.save()
+
+        EventHitStats.objects.create(
+            event=event,
+            total_hits=1,
+            shortcode='abc123',
+        )
+
+        url = reverse('manage:event_hit_stats')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
+
     def test_event_edit_without_vidly_template(self):
         """based on https://bugzilla.mozilla.org/show_bug.cgi?id=879725"""
         event = Event.objects.get(title='Test event')

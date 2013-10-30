@@ -2015,9 +2015,12 @@ def event_hit_stats(request):
     hits_per_day_sql = (
         'total_hits / extract(days from (now() - main_event.archive_time))'
     )
+    today = datetime.datetime.utcnow().replace(tzinfo=utc)
+    today = today.replace(hour=0, minute=0, second=0)
     stats = (
         EventHitStats.objects
         .exclude(event__archive_time__isnull=True)
+        .filter(event__archive_time__lt=today)
         .order_by('-%s' % order_by)
         .extra(select={
             'hits_per_day': hits_per_day_sql
