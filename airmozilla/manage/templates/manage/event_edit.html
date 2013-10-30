@@ -42,10 +42,12 @@
         {% endif %}
         </li>
       {% endfor %}
+      {% if not almost_equal(event.modified, event.created) %}
       <li>
         <span class="badge badge-info">Modified</span>
         {{ event.modified|js_date }}<br>{{ event.modified_user.email }}
       </li>
+      {% endif %}
       <li>
         <span class="badge badge-info">Created</span>
         {{ event.created|js_date }}<br>{{ event.creator.email }}</li>

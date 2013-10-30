@@ -108,3 +108,11 @@ def format_message(message):
         message = jinja2.Markup(message)
 
     return message
+
+
+@register.function
+def almost_equal(date1, date2):
+    """return true if the only difference between these two dates are
+    their microseconds."""
+    diff = abs(date1 - date2)
+    return not diff.seconds and not diff.days

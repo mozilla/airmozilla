@@ -1443,14 +1443,12 @@ def suggestion_review(request, id):
                     'title': event.title,
                     'description': event.description,
                     'short_description': event.short_description,
-                    'creator': event.user.pk,
                     'start_time': event.start_time,
                     'timezone': event.location.timezone,
                     'location': event.location.pk,
                     'category': event.category and event.category.pk or None,
                     'channels': [x.pk for x in event.channels.all()],
                     'call_info': event.call_info,
-                    #'additional_links': event.additional_links,
                     'privacy': event.privacy,
                 }
                 real_event_form = forms.EventRequestForm(
@@ -1460,10 +1458,10 @@ def suggestion_review(request, id):
                 if real_event_form.is_valid():
                     real = real_event_form.save(commit=False)
                     real.placeholder_img = event.placeholder_img
-
                     real.slug = event.slug
                     real.additional_links = event.additional_links
                     real.remote_presenters = event.remote_presenters
+                    real.creator = request.user
                     real.save()
                     [real.tags.add(x) for x in event.tags.all()]
                     [real.channels.add(x) for x in event.channels.all()]
