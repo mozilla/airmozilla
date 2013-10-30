@@ -9,7 +9,7 @@ To see all details go to:
 
 {% if event.accepted %}
 The event has already been accepted. To edit the event go to:
-  {{ base_url}}{{ url('manage:event_edit', event.pk) }}
+  {{ base_url}}{{ url('manage:event_edit', event.accepted.pk) }}
 {% else %}
 To review it and to turn it into a real event go to:
   {{ base_url }}{{ url('manage:suggestions') }}#s{{ event.pk }}

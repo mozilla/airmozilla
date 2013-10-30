@@ -774,3 +774,58 @@ class TestPages(TestCase):
         ok_('...' in email_sent.subject)
         ok_(event.title not in email_sent.subject)
         ok_(data['comment'].strip() in email_sent.body)
+
+    def test_add_comments_in_summary_after_scheduled(self):
+        # also need a superuser
+        User.objects.create(
+            username='zandr',
+            email='zandr@mozilla.com',
+            is_staff=True,
+            is_superuser=True
+        )
+        event = self._make_suggested_event()
+        event.title = 'Title Title Title'
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.first_submitted = now
+        event.submitted = now
+        event.save()
+
+        real = Event.objects.create(
+            title=event.title,
+            slug=event.slug,
+            description=event.description,
+            start_time=event.start_time,
+            location=event.location,
+            placeholder_img=event.placeholder_img,
+            privacy=event.privacy,
+            category=event.category,
+            status=Event.STATUS_SCHEDULED
+        )
+        event.accepted = real
+        event.save()
+
+        # before anything, we need to create some users
+        # who should get the email notification
+        approvers = Group.objects.get(name='testapprover')
+        richard = User.objects.create_user(
+            'richard',
+            email='richard@mozilla.com'
+        )
+        richard.groups.add(approvers)
+        permission = Permission.objects.get(codename='add_event')
+        approvers.permissions.add(permission)
+
+        data = {
+            'save_comment': 1,
+            'comment': 'I will need a white "rabbit"',
+        }
+        url = reverse('suggest:summary', args=(event.pk,))
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        email_sent = mail.outbox[-1]
+        ok_(data['comment'].strip() in email_sent.body)
+
+        ok_(url in email_sent.body)
+        real_url = reverse('manage:event_edit', args=(real.pk,))
+        ok_(real_url in email_sent.body)

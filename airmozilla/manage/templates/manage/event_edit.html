@@ -51,7 +51,7 @@
         {{ event.created|js_date }}<br>{{ event.creator.email }}</li>
     </ul>
     {% if suggested_event %}
-    <p>This event was originally suggested by
+    <p><a href="{{ url('suggest:summary', suggested_event.pk) }}">This event was originally suggested</a> by
       <strong>{{ suggested_event.user.email }}</strong>
       {% if suggested_event.submitted %}
       {{ suggested_event.submitted|js_date }}.
