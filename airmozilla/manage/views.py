@@ -1537,7 +1537,7 @@ def _email_about_accepted_suggestion(event, real, request):
     if len(event_title) > 30:
         event_title = '%s...' % event_title[:27]
     subject = (
-        '[Air Mozilla] Suggested event accepted! ("%s")'
+        '[Air Mozilla] Requested event accepted! %s'
         % event_title
     )
     base_url = (
@@ -1564,7 +1564,7 @@ def _email_about_accepted_suggestion(event, real, request):
 def _email_about_rejected_suggestion(event, request):
     emails = (event.user.email,)
     subject = (
-        '[Air Mozilla] Suggested event not accepted'
+        '[Air Mozilla] Requested event not accepted: %s' % event.title
     )
     base_url = (
         '%s://%s' % (request.is_secure() and 'https' or 'http',
