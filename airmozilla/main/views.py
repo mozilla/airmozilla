@@ -384,10 +384,16 @@ def events_calendar_ical(request, privacy=None):
     if privacy:
         cache_key += '_%s' % privacy
     if request.GET.get('location'):
-        location = get_object_or_404(
-            Location,
-            name=request.GET.get('location')
-        )
+        if request.GET.get('location').isdigit():
+            location = get_object_or_404(
+                Location,
+                pk=request.GET.get('location')
+            )
+        else:
+            location = get_object_or_404(
+                Location,
+                name=request.GET.get('location')
+            )
         cache_key += str(location.pk)
         cached = None
     else:

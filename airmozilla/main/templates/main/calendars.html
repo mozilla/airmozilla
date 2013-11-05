@@ -17,7 +17,7 @@ Calendar feeds | {{ super() }}
       <a href="{{ url('main:calendar_ical', calendar_privacy) }}">All events</a>
     </li>
     {% for location in locations %}
-    <li><a href="{{ url('main:calendar_ical', calendar_privacy) }}?location={{ location.name|urlencode }}"
+    <li><a href="{{ url('main:calendar_ical', calendar_privacy) }}?location={{ location.pk }}"
     >All events in <strong>{{ location }}</strong></a>
     </li>
     {% endfor %}

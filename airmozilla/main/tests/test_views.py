@@ -49,9 +49,12 @@ class TestPages(TestCase):
     def _calendar_url(self, privacy, location=None):
         url = reverse('main:calendar_ical', args=(privacy,))
         if location:
-            if 'name' in location:
-                location = location.name
-            url += '?location=%s' % urllib.quote_plus(location)
+            if isinstance(location, int):
+                url += '?location=%s' % location
+            else:
+                if not isinstance(location, int) and 'name' in location:
+                    location = location.name
+                url += '?location=%s' % urllib.quote_plus(location)
         return url
 
     def test_is_contributor(self):
@@ -399,8 +402,8 @@ class TestPages(TestCase):
 
         # we can expect three URLs to calendar feeds to be in there
         url_all = self._calendar_url('public')
-        url_lon = self._calendar_url('public', 'London')
-        url_mv = self._calendar_url('public', 'Mountain View')
+        url_lon = self._calendar_url('public', london.pk)
+        url_mv = self._calendar_url('public', event1.location.pk)
         ok_(url_all in response.content)
         ok_(url_lon in response.content)
         ok_(url_mv in response.content)
@@ -418,8 +421,8 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         url_all = self._calendar_url('contributors')
-        url_lon = self._calendar_url('contributors', 'London')
-        url_mv = self._calendar_url('contributors', 'Mountain View')
+        url_lon = self._calendar_url('contributors', london.pk)
+        url_mv = self._calendar_url('contributors', event1.location.pk)
         ok_(url_all in response.content)
         ok_(url_lon in response.content)
         ok_(url_mv in response.content)
@@ -433,8 +436,8 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         url_all = self._calendar_url('company')
-        url_lon = self._calendar_url('company', 'London')
-        url_mv = self._calendar_url('company', 'Mountain View')
+        url_lon = self._calendar_url('company', london.pk)
+        url_mv = self._calendar_url('company', event1.location.pk)
         ok_(url_all in response.content)
         ok_(url_lon in response.content)
         ok_(url_mv in response.content)
@@ -468,8 +471,8 @@ class TestPages(TestCase):
         ok_('Mountain View' in response.content)
         # we can expect three URLs to calendar feeds to be in there
         url_all = self._calendar_url('public')
-        url_lon = self._calendar_url('public', 'London')
-        url_mv = self._calendar_url('public', 'Mountain View')
+        url_lon = self._calendar_url('public', london.pk)
+        url_mv = self._calendar_url('public', event1.location.pk)
         ok_(url_all in response.content)
         ok_(url_lon in response.content)
         ok_(url_mv in response.content)
