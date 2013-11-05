@@ -941,6 +941,41 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 302)
         self.assertRedirects(response, url)
 
+    def test_editing_event_tags(self):
+        # you create an event, edit the tags and mix the case
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_request'),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title='Launch')
+            )
+            eq_(response.status_code, 302)
+        event = Event.objects.get(slug='launch')
+        # now edit the tags
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title=event.title,
+                 tags='One, Two')
+        )
+        eq_(response.status_code, 302)
+        event = Event.objects.get(pk=event.pk)
+
+        ok_(Tag.objects.get(name='One') in list(event.tags.all()))
+        ok_(Tag.objects.get(name='Two') in list(event.tags.all()))
+
+        # Edit a tag that already exists
+        Tag.objects.create(name='three')
+        count_tags_before = Tag.objects.all().count()
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.pk}),
+            dict(self.event_base_data,
+                 title=event.title,
+                 tags='One, Two, THREE')
+        )
+        count_tags_after = Tag.objects.all().count()
+        eq_(count_tags_before, count_tags_after)
+
     def test_event_request_with_clashing_flatpage(self):
         FlatPage.objects.create(
             url='/egg-plants/',

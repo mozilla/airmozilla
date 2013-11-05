@@ -158,7 +158,10 @@ class EventRequestForm(BaseModelForm):
         split_tags = [t.strip() for t in tags.split(',') if t.strip()]
         final_tags = []
         for tag_name in split_tags:
-            t, __ = Tag.objects.get_or_create(name=tag_name)
+            try:
+                t = Tag.objects.get(name__iexact=tag_name)
+            except Tag.DoesNotExist:
+                t = Tag.objects.create(name=tag_name)
             final_tags.append(t)
         return final_tags
 
