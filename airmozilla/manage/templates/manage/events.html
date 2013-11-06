@@ -35,7 +35,7 @@
         </td>
         <td>{{ event.location }}</td>
         <td>
-          {{ event.start_time|js_date }}<br>
+          {{ event.location_time.strftime('%d %B %Y') }}
           {% if event.location %}{{ event.location_time.strftime('%I:%M%p') }}{% endif %}
         </td>
         <td>
