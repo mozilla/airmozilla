@@ -43,7 +43,8 @@ VOUCHED_FOR = """
       "is_vouched": true,
       "email": "peterbe@gmail.com",
       "ircname": "",
-      "allows_community_sites": true
+      "allows_community_sites": true,
+      "full_name": "Peter Bengtsson"
     }
   ]
 }
@@ -78,11 +79,26 @@ NOT_VOUCHED_FOR = """
       "is_vouched": false,
       "email": "tmickel@mit.edu",
       "ircname": "",
-      "allows_community_sites": true
+      "allows_community_sites": true,
+      "full_name": null
     }
   ]
 }
 """
+
+NO_VOUCHED_FOR = """
+{
+  "meta": {
+    "previous": null,
+    "total_count": 0,
+    "offset": 0,
+    "limit": 20,
+    "next": null
+  },
+  "objects": []
+}
+"""
+
 
 assert json.loads(VOUCHED_FOR)
 assert json.loads(NOT_VOUCHED_FOR)
@@ -123,6 +139,33 @@ class TestMozillians(TestCase):
             raise
         except mozillians.BadStatusCodeError, msg:
             ok_(settings.MOZILLIANS_API_KEY not in str(msg))
+
+    @mock.patch('logging.error')
+    @mock.patch('requests.get')
+    def test_is_not_vouched(self, rget, rlogging):
+        def mocked_get(url, **options):
+            if 'tmickel' in url:
+                return Response(NO_VOUCHED_FOR)
+            raise NotImplementedError(url)
+        rget.side_effect = mocked_get
+
+        ok_(not mozillians.is_vouched('tmickel@mit.edu'))
+
+    @mock.patch('logging.error')
+    @mock.patch('requests.get')
+    def test_fetch_user_name(self, rget, rlogging):
+        def mocked_get(url, **options):
+            if 'peterbe' in url:
+                return Response(VOUCHED_FOR)
+            if 'tmickel' in url:
+                return Response(NOT_VOUCHED_FOR)
+            raise NotImplementedError(url)
+        rget.side_effect = mocked_get
+
+        result = mozillians.fetch_user_name('peterbe@gmail.com')
+        eq_(result, 'Peter Bengtsson')
+        result = mozillians.fetch_user_name('tmickel@mit.edu')
+        eq_(result, None)
 
 
 class TestViews(TestCase):

@@ -22,7 +22,7 @@
       <tr>
         <td>
         {% if participant.photo %}
-          {% set thumb = thumbnail(participant.photo, '32x32') %} 
+          {% set thumb = thumbnail(participant.photo, '32x32') %}
           <img src="{{ thumb.url }}" width="{{ thumb.width }}"
                    height="{{ thumb.height }}" alt="Participant photo">
         {% endif %}
@@ -38,7 +38,7 @@
         <td>
           {% if perms.main.change_participant_others
              or participant.creator == request.user %}
-            <a class="btn"
+            <a class="btn btn-small"
                href="{{ url('manage:participant_edit', participant.id) }}">
               <i class="icon-edit"></i>
                 Edit
@@ -47,7 +47,7 @@
               <form method="post" class="confirm"
                 action="{{ url('manage:participant_remove', participant.id) }}">
                 {{ csrf() }}
-                <button class="btn btn-danger" type="submit">
+                <button class="btn btn-danger btn-small" type="submit">
                   <i class="icon-trash"></i>
                   Delete
                 </button>
@@ -68,7 +68,7 @@
     {{ participants_table(participants_not_clear) }}
   {% endif %}
   <h3>All participants</h3>
-  {{ participants_table(participants_clear) }} 
+  {{ participants_table(participants_clear) }}
   {% include 'manage/_paginate.html' %}
   <p>
   <a href="{{ url('manage:participant_new') }}" class="btn">

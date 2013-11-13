@@ -30,6 +30,10 @@ To generate a schema migration, make changes to models.py, then run:
 
 ``./manage.py schemamigration airmozilla.main --auto``
 
+or
+
+``./manage.py schemamigration airmozilla.comments --auto``
+
 To generate a blank data migration, use:
 
 ``./manage.py datamigration airmozilla.main data_migration_name``
@@ -38,7 +42,7 @@ Then fill in the generated file with logic, fixtures, etc.
 
 To apply migrations:
 
-``./manage.py migrate airmozilla.main``
+``./manage.py migrate airmozilla.main airmozilla.comments``
 
 In each command, replace airmozilla.main with the appropriate app.
 

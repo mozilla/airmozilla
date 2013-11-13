@@ -20,7 +20,7 @@ from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Q, Max, Sum
+from django.db.models import Q, Max, Sum, Count
 from django.contrib.flatpages.models import FlatPage
 from django.utils.timezone import utc
 from django.contrib.sites.models import RequestSite
@@ -63,6 +63,7 @@ from airmozilla.manage.tweeter import send_tweet
 from airmozilla.manage import vidly
 from airmozilla.manage import url_transformer
 from airmozilla.manage import archiver
+from airmozilla.comments.models import Discussion, Comment
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -265,8 +266,12 @@ def _event_process(request, form, event):
                 'manage/_email_approval.html',
                 context
             )
-            email = EmailMessage(subject, message,
-                                 settings.EMAIL_FROM_ADDRESS, emails)
+            email = EmailMessage(
+                subject,
+                message,
+                'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
+                emails
+            )
             email.send()
         for approval in approvals_remove:
             app = Approval.objects.get(group=approval, event=event)
@@ -467,7 +472,7 @@ def event_edit(request, id):
         form = form_class(instance=event, initial={
             'timezone': timezone.get_current_timezone()  # UTC
         })
-    data = {
+    context = {
         'form': form,
         'event': event,
         'suggested_event': None,
@@ -476,8 +481,8 @@ def event_edit(request, id):
     }
     try:
         suggested_event = SuggestedEvent.objects.get(accepted=event)
-        data['suggested_event'] = suggested_event
-        data['suggested_event_comments'] = (
+        context['suggested_event'] = suggested_event
+        context['suggested_event_comments'] = (
             SuggestedEventComment.objects
             .filter(suggested_event=suggested_event)
             .select_related('user')
@@ -486,17 +491,17 @@ def event_edit(request, id):
     except SuggestedEvent.DoesNotExist:
         pass
 
-    data['is_vidly_event'] = False
+    context['is_vidly_event'] = False
     if event.template and 'Vid.ly' in event.template.name:
-        data['is_vidly_event'] = True
-        data['vidly_submissions'] = (
+        context['is_vidly_event'] = True
+        context['vidly_submissions'] = (
             VidlySubmission.objects
             .filter(event=event)
             .order_by('-submission_time')
         )
 
     # Is it stuck and won't auto-archive?
-    data['stuck_pending'] = False
+    context['stuck_pending'] = False
     now = datetime.datetime.utcnow().replace(tzinfo=utc)
     time_ago = now - datetime.timedelta(minutes=15)
     if (
@@ -513,9 +518,16 @@ def event_edit(request, id):
         results = vidly.query(tag)
         status = results.get(tag, {}).get('Status')
         if status == 'Finished':
-            data['stuck_pending'] = True
+            context['stuck_pending'] = True
 
-    return render(request, 'manage/event_edit.html', data)
+    try:
+        discussion = Discussion.objects.get(event=event)
+        context['discussion'] = discussion
+        context['comments_count'] = Comment.objects.filter(event=event).count()
+    except Discussion.DoesNotExist:
+        context['discussion'] = None
+
+    return render(request, 'manage/event_edit.html', context)
 
 
 @superuser_required
@@ -921,8 +933,14 @@ def participant_email(request, id):
     )
     if request.method == 'POST':
         cc = [cc_addr] if (('cc' in request.POST) and cc_addr) else None
-        email = EmailMessage(subject, message, from_addr, [to_addr],
-                             cc=cc, headers={'Reply-To': reply_to})
+        email = EmailMessage(
+            subject,
+            message,
+            'Air Mozilla <%s>' % from_addr,
+            [to_addr],
+            cc=cc,
+            headers={'Reply-To': reply_to}
+        )
         email.send()
         messages.success(request, 'Email sent to %s.' % to_addr)
         return redirect('manage:participants')
@@ -1533,7 +1551,7 @@ def _email_about_suggestion_comment(comment, request):
     email = EmailMessage(
         subject,
         message,
-        settings.EMAIL_FROM_ADDRESS,
+        'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
         emails
     )
     email.send()
@@ -1563,7 +1581,7 @@ def _email_about_accepted_suggestion(event, real, request):
     email = EmailMessage(
         subject,
         message,
-        settings.EMAIL_FROM_ADDRESS,
+        'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
         emails
     )
     email.send()
@@ -1589,7 +1607,7 @@ def _email_about_rejected_suggestion(event, request):
     email = EmailMessage(
         subject,
         message,
-        settings.EMAIL_FROM_ADDRESS,
+        'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
         emails
     )
     email.send()
@@ -2057,3 +2075,162 @@ def event_hit_stats(request):
         'events_total': events_total,
     }
     return render(request, 'manage/event_hit_stats.html', data)
+
+
+@staff_required
+@permission_required('main.change_discussion')
+@transaction.commit_on_success
+def event_discussion(request, id):
+    context = {}
+    event = get_object_or_404(Event, id=id)
+    try:
+        discussion = Discussion.objects.get(event=event)
+    except Discussion.DoesNotExist:
+        discussion = None
+
+    if request.method == 'POST':
+        if request.POST.get('cancel'):
+            return redirect('manage:event_edit', event.pk)
+
+        form = forms.DiscussionForm(
+            request.POST,
+            instance=discussion
+        )
+        if form.is_valid():
+            discussion = form.save(commit=False)
+            discussion.event = event
+            discussion.save()
+            discussion.moderators.clear()
+            for user in form.cleaned_data['moderators']:
+                discussion.moderators.add(user)
+            messages.success(
+                request,
+                'Discussion saved'
+            )
+            return redirect('manage:event_discussion', event.pk)
+    else:
+        initial = {}
+        if not discussion:
+            initial['enabled'] = True
+            initial['moderate_all'] = True
+            initial['notify_all'] = True
+        form = forms.DiscussionForm(
+            instance=discussion,
+            initial=initial
+        )
+
+    if not discussion:
+        messages.warning(
+            request,
+            "No discussion configuration previously set up. "
+            "This functions the same as if the discussion is not enabled."
+        )
+
+    context['event'] = event
+    context['discussion'] = discussion
+    form.fields['closed'].help_text = (
+        "Comments posted appears but not possible to post more comments"
+    )
+    form.fields['moderate_all'].help_text = (
+        "Every posted comment must be moderated before being made public"
+    )
+    form.fields['notify_all'].help_text = (
+        "All moderators get an email notification for every posted comment"
+    )
+    form.fields['moderators'].help_text = (
+        "Users who have the ability to approve comments"
+    )
+    _users = (
+        User.objects
+        .filter(is_active=True)
+        .extra(select={'lower_email': 'lower(email)'})
+        .order_by('lower_email')
+    )
+    form.fields['moderators'].choices = [
+        (x.pk, x.email)
+        for x in _users
+    ]
+    context['form'] = form
+
+    comments_base_url = reverse('manage:event_comments', args=(event.pk,))
+    _comments = Comment.objects.filter(event=event)
+    context['counts'] = []
+    context['counts'].append(('All', comments_base_url, _comments.count()))
+    _counts = {}
+    for each in _comments.values('status').annotate(Count('status')):
+        _counts[each['status']] = each['status__count']
+    for status, label in Comment.STATUS_CHOICES:
+        url = comments_base_url + '?status=%s' % status
+        context['counts'].append(
+            (label, url, _counts.get(status, 0))
+        )
+    flagged_url = comments_base_url + '?flagged=1'
+    context['counts'].append(
+        ('Flagged', flagged_url, _comments.filter(flagged__gt=0).count())
+    )
+    return render(request, 'manage/event_discussion.html', context)
+
+
+@staff_required
+@permission_required('main.change_comment')
+def event_comments(request, id):
+    context = {}
+    event = get_object_or_404(Event, id=id)
+    context['event'] = event
+    comments = Comment.objects.filter(event=event)
+    form = forms.CommentsFilterForm(request.GET)
+    filtered = False
+    if form.is_valid():
+        if form.cleaned_data['status'] == 'flagged':
+            comments = comments.filter(flagged__gt=0)
+            filtered = True
+        elif form.cleaned_data['status']:
+            comments = comments.filter(status=form.cleaned_data['status'])
+            filtered = True
+        if form.cleaned_data['user']:
+            user_filter = (
+                Q(user__email__icontains=form.cleaned_data['user'])
+                |
+                Q(user__first_name__icontains=form.cleaned_data['user'])
+                |
+                Q(user__last_name__icontains=form.cleaned_data['user'])
+            )
+            comments = comments.filter(user_filter)
+            filtered = True
+        if form.cleaned_data['comment']:
+            comments = comments.filter(
+                comment__icontains=form.cleaned_data['comment']
+            )
+            filtered = True
+
+    paged = paginate(comments, request.GET.get('page'), 10)
+    context['paginate'] = paged
+    context['form'] = form
+    context['filtered'] = filtered
+    return render(request, 'manage/comments.html', context)
+
+
+@staff_required
+@permission_required('main.change_comment')
+@transaction.commit_on_success
+def comment_edit(request, id):
+    context = {}
+    comment = get_object_or_404(Comment, id=id)
+    if request.method == 'POST':
+        if request.POST.get('cancel'):
+            return redirect('manage:event_comments', comment.event.pk)
+
+        form = forms.CommentEditForm(request.POST, instance=comment)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                'Comment changes saved.'
+            )
+            return redirect('manage:comment_edit', comment.pk)
+    else:
+        form = forms.CommentEditForm(instance=comment)
+    context['comment'] = comment
+    context['event'] = comment.event
+    context['form'] = form
+    return render(request, 'manage/comment_edit.html', context)

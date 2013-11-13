@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils.timesince import timesince as _timesince
 
 from airmozilla.main.models import Event, EventOldSlug
+from airmozilla.comments.models import Comment
 
 
 @register.function
@@ -116,3 +117,13 @@ def almost_equal(date1, date2):
     their microseconds."""
     diff = abs(date1 - date2)
     return not diff.seconds and not diff.days
+
+
+@register.function
+def comment_status_to_css_label(status):
+    # because this just got too messy in the template
+    if status == Comment.STATUS_APPROVED:
+        return 'label-success'
+    elif status == Comment.STATUS_REMOVED:
+        return 'label-danger'
+    return 'label-info'

@@ -420,6 +420,12 @@ class TestPages(TestCase):
         ok_('Test event' not in response.content)
         ok_('Second test event' in response.content)
 
+        # same can be reached by ID
+        response = self.client.get(url, {'location': event1.location.id})
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' not in response.content)
+
     def test_calendars_page(self):
         london = Location.objects.create(
             name='London',

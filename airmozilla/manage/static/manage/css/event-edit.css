@@ -6,16 +6,6 @@ label small {
     padding-left: 5px;
 }
 
-/* event edit status floating box */
-.event-status {
-    position: absolute;
-    right: 2%;
-}
-
-.event-status li {
-    margin-bottom: 10px;
-}
-
 .suggested-event-comments .comment {
     margin-left: 160px;
     margin-bottom: 10px;

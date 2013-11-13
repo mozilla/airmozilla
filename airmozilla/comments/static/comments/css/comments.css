@@ -1,0 +1,61 @@
+#comments .other-error,
+#comments button.cancel,
+#comments .submission-success {
+     display: none;
+}
+
+#comments textarea {
+    width: 100%;
+}
+
+#comments p.submit {
+    float: right;
+}
+
+/* clever indentation */
+#comments .comment .comment {
+    margin-left: 40px;
+}
+
+#comments p.actions {
+    float: right;
+}
+#comments p.meta,
+#comments p.actions {
+    font-size: 80%;
+}
+#comments p.meta .not-approved {
+    color: #a60000;
+}
+#comments p.meta .flagged {
+    color: #666;
+}
+#comments img.avatar {
+    margin-right: 5px;
+    border: 2px solid #2D373B;
+    border-radius: 3px;
+}
+#comments .comment {
+    border-top: 1px dotted #48585E;
+    padding-top: 5px;
+    padding-bottom: 25px;
+    transition: background 0.8s linear;
+}
+#comments label {
+    display: inline;
+    font-family: Georgia,Times,"Times New Roman",serif; /* reset */
+}
+#comments p {
+    margin-bottom: 5px;
+}
+#comments p.text {
+    padding-left: 50px;
+}
+#comments a.permalink {
+    color: #B4B4B4;
+}
+
+#comments .focus-on {
+    background-color: #B4B4B4;
+    transition: background 0.1s linear;
+}

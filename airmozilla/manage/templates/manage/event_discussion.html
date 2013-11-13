@@ -1,0 +1,51 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Discussion Configuration
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('manage/css/select2.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/select2.min.js') }}"></script>
+    <script src="{{ static('manage/js/discussion-configuration.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+{% block manage_content %}
+
+  <div class="sidebar span4 well">
+    <p><strong># <a href="{{ url('manage:event_comments', event.pk) }}">Comments</a></strong></p>
+
+    <table>
+      {% for label, url_, count in counts %}
+      <tr>
+        <td style="padding-right:20px">{{ count }}</td>
+        <td>
+
+          <a href="{{ url_ }}"><b>{{ label }}</b></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+
+  </div>
+
+
+  {% if not discussion %}
+   {% set submit_text="Set up Discussion Configuration" %}
+  {% endif %}
+  {% include 'manage/_default_form.html' %}
+  <p>
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+{% endblock %}

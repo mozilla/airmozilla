@@ -20,14 +20,14 @@
         <td>{{ template.name }}</td>
 	<td>{{ count_events_with_template(template) }}</td>
         <td>
-          <a class="btn" href="{{ url('manage:template_edit', template.id) }}">
+          <a class="btn btn-small" href="{{ url('manage:template_edit', template.id) }}">
             <i class="icon-edit"></i>
             Edit
           </a>
           <form method="post" class="confirm"
                 action="{{ url('manage:template_remove', template.id) }}">
             {{ csrf() }}
-            <button class="btn btn-danger" type="submit">
+            <button class="btn btn-danger btn-small" type="submit">
               <i class="icon-trash"></i>
               Delete
             </button>

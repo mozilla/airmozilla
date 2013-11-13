@@ -9,7 +9,7 @@ class BadStatusCodeError(Exception):
     pass
 
 
-def is_vouched(email):
+def _fetch(email):
     if not getattr(settings, 'MOZILLIANS_API_KEY', None):  # pragma no cover
         logging.warning("'MOZILLIANS_API_KEY' not set up.")
         return False
@@ -27,10 +27,21 @@ def is_vouched(email):
     if not resp.status_code == 200:
         url = url.replace(settings.MOZILLIANS_API_KEY, 'xxxscrubbedxxx')
         raise BadStatusCodeError('%s: on: %s' % (resp.status_code, url))
-    content = json.loads(resp.content)
+    return json.loads(resp.content)
 
-    for obj in content['objects']:
-        if obj['email'].lower() == email.lower():
-            return obj['is_vouched']
 
+def is_vouched(email):
+    content = _fetch(email)
+    if content:
+        for obj in content['objects']:
+            if obj['email'].lower() == email.lower():
+                return obj['is_vouched']
     return False
+
+
+def fetch_user_name(email):
+    content = _fetch(email)
+    if content:
+        for obj in content['objects']:
+            if obj['email'].lower() == email.lower():
+                return obj['full_name']

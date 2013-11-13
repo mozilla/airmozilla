@@ -21,7 +21,7 @@
 
 
 {% block manage_content %}
-  <div class="event-status span4 well">
+  <div class="sidebar span4 well">
     <p><strong>Event status: {{ event.status }}</strong></p>
     <ul>
       {% for approval in event.approval_set.all() %}
@@ -112,6 +112,25 @@
       {% endif %}
     </p>
     {% endif %}
+
+    <p style="margin-top:25px"><strong>Discussions</strong></p>
+    <p>
+      <a href="{{ url('manage:event_discussion', event.pk) }}" class="btn">
+      {% if discussion %}
+        Discussion
+        {% if discussion.enabled %}
+        enabled
+        {% else %}
+        disabled
+        {% endif %}
+      {% else %}
+        Discussion not configured
+      {% endif %}
+      </a>
+      {% if discussion %}
+        {{ comments_count }} posted comments
+      {% endif %}
+    </p>
 
     {% if stuck_pending %}
     <form action="{{ url('manage:event_archive_auto', event.pk) }}" method="post">

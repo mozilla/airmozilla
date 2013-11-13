@@ -28,6 +28,7 @@ from airmozilla.base.utils import (
     unhtml,
     json_view
 )
+from airmozilla.comments.models import Discussion
 from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
 from . import cloud
@@ -312,6 +313,7 @@ class EventView(View):
 
         can_edit_event = (
             request.user.is_active and
+            request.user.is_staff and
             request.user.has_perm('main.change_event')
         )
 
@@ -340,6 +342,11 @@ class EventView(View):
                 if event.pin not in entered_pins:
                     self.template_name = 'main/event_requires_pin.html'
                     context['pin_form'] = forms.PinForm()
+        try:
+            context['discussion'] = Discussion.objects.get(event=event)
+        except Discussion.DoesNotExist:
+            context['discussion'] = {'enabled': False}
+
         return render(request, self.template_name, context)
 
     def post(self, request, slug):

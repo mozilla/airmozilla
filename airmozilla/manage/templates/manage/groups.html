@@ -23,7 +23,7 @@
                     {% endfor %}
                     </td>
                     <td>
-                        <a href="{{ url('manage:group_edit', g.id) }}" class="btn">
+                        <a href="{{ url('manage:group_edit', g.id) }}" class="btn btn-small">
                             <i class="icon-edit"></i>
                             Edit
                         </a>
@@ -32,7 +32,7 @@
                         <form method="post" class="confirm"
                               action="{{ url('manage:group_remove', g.id) }}">
                           {{ csrf() }}
-                          <button class="btn btn-danger" type="submit">
+                          <button class="btn btn-danger btn-small" type="submit">
                             <i class="icon-trash"></i>
                             Delete
                           </button>

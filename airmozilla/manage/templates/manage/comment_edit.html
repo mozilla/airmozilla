@@ -1,0 +1,32 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "events" %}
+
+{% block manage_title %}
+  Editing Event Comment "{{ event.title }}"
+{% endblock %}
+
+
+{% block manage_content %}
+
+
+
+  {% include 'manage/_default_form.html' %}
+
+  {% if comment.reply_to %}
+  <p>
+    This is a reply to <a href="{{ url('manage:comment_edit', comment.reply_to.pk) }}">a comment</a> by
+    {{ comment.reply_to.user.get_full_name() or comment.reply_to.user.email }}.
+  </p>
+  {% endif %}
+
+  <p>
+    <b>Note!</b>
+    Approving comments where will not send out notifications.
+  </p>
+
+  <p>
+    <a href="{{ url('manage:event_comments', event.pk) }}">&larr; Return to all comments</a><br>
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

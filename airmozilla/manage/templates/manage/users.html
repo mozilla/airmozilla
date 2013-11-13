@@ -44,7 +44,7 @@
             </td>
             <td>{{ u.last_login|js_date }}</td>
             <td>{{ 'Yes' if u.is_staff else 'No' }}</td>
-            <td><a href="{{ url('manage:user_edit', u.id) }} " class="btn">
+            <td><a href="{{ url('manage:user_edit', u.id) }} " class="btn btn-small">
                 <i class="icon-edit"></i>
                 Edit
                 </a>

@@ -20,14 +20,14 @@
         <td>{{ location.name }}</td>
         <td>{{ location.timezone }}</td>
         <td>
-          <a class="btn" href="{{ url('manage:location_edit', location.id) }}">
+          <a class="btn btn-small" href="{{ url('manage:location_edit', location.id) }}">
             <i class="icon-edit"></i>
             Edit
           </a>
           <form method="post" class="confirm"
                 action="{{ url('manage:location_remove', location.id) }}">
             {{ csrf() }}
-            <button class="btn btn-danger" type="submit">
+            <button class="btn btn-danger btn-small" type="submit">
               <i class="icon-trash"></i>
               Delete
             </button>

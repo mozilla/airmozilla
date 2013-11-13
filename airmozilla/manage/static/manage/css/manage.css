@@ -110,3 +110,13 @@ p.logged-in {
     margin-right: 10px;
     float: right;
 }
+
+
+.sidebar {
+    position: absolute;
+    right: 2%;
+}
+
+.sidebar li {
+    margin-bottom: 10px;
+}

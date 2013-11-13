@@ -1,0 +1,20 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+{% if comment_found %}Comment Approved{% else %}Unable to Approve Comment{% endif %}
+{% endblock %}
+
+{% block content_main %}
+
+  {% if comment_found %}
+    <h2 class="section-title">Comment Approved</h2>
+    <p>Thank you for that quick action! That comment has now been approved.</p>
+  {% else %}
+    <h2 class="section-title">Unable to Approve Comment</h2>
+    <p>Sorry, that link is not valid. Perhaps it expired.<p>
+  {% endif %}
+  <p>To see the comment go to:<br>
+  <a href="{{ url('main:event', comment.event.slug) }}#comment-{{ comment.pk }}" title="{{ comment.event.title }}">{{ comment.event.title }}</a>
+  </p>
+
+{% endblock %}

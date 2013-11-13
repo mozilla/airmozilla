@@ -1,0 +1,21 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+{% if comment_found %}Comment Removed{% else %}Unable to Remove Comment{% endif %}
+{% endblock %}
+
+{% block content_main %}
+
+  {% if comment_found %}
+    <h2 class="section-title">Comment Removed</h2>
+    <p>Thank you for that quick action! That comment has now been removed.</p>
+  {% else %}
+    <h2 class="section-title">Unable to Remove Comment</h2>
+    <p>Sorry, that link is not valid. Perhaps it expired.<p>
+  {% endif %}
+
+  <p>To go to the event again go to:<br>
+  <a href="{{ url('main:event', comment.event.slug) }}" title="{{ comment.event.title }}">{{ comment.event.title }}</a>
+  </p>
+
+{% endblock %}

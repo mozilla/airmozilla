@@ -7,6 +7,8 @@
 
 {% block site_css %}
 {{ super() }}
+{% compress css %}
+<link href="{{ static('comments/css/comments.css') }}" rel="stylesheet" type="text/css">
 <style type="text/css">
 p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037; padding: 30px; }
 .hidden { display: none; }
@@ -14,6 +16,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 .embed .code { display:none; }
 .embed .code p { margin-bottom: 0; }
 </style>
+{% endcompress %}
 {% endblock %}
 
 {% block extra_head %}
@@ -31,6 +34,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 {{ super() }}
 {% compress js %}
 <script src="{{ static('main/js/embed.js') }}"></script>
+<script src="{{ static('comments/js/comments.js') }}"></script>
 {% endcompress %}
 {% endblock %}
 
@@ -120,6 +124,12 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
             <textarea rows="1" cols="80">{{ embed_code }}</textarea>
           </div>
         </div>
+      {% endif %}
+
+      {% if not pending %}
+        {% if discussion.enabled %}
+        {% include "comments/container.html" %}
+        {% endif %}
       {% endif %}
 
     </div>

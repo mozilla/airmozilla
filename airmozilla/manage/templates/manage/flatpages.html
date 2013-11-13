@@ -39,14 +39,14 @@
             </td>
             <td>{{ p.content | striptags | truncate(length=70) }}
             </td>
-            <td><a href="{{ url('manage:flatpage_edit', p.id) }} " class="btn">
+            <td><a href="{{ url('manage:flatpage_edit', p.id) }} " class="btn btn-small">
                 <i class="icon-edit"></i>
                 Edit
                 </a>
               <form method="post" class="confirm"
                     action="{{ url('manage:flatpage_remove', p.id) }}">
                 {{ csrf() }}
-                <button class="btn btn-danger" type="submit">
+                <button class="btn btn-danger btn-small" type="submit">
                   <i class="icon-trash"></i>
                   Delete
                 </button>

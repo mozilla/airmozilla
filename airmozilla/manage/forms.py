@@ -25,6 +25,7 @@ from airmozilla.main.models import (
     SuggestedEventComment,
     URLMatch
 )
+from airmozilla.comments.models import Discussion, Comment
 
 
 TIMEZONE_CHOICES = [(tz, tz.replace('_', ' ')) for tz in pytz.common_timezones]
@@ -523,3 +524,30 @@ class SuggestedEventCommentForm(BaseModelForm):
     class Meta:
         model = SuggestedEventComment
         fields = ('comment',)
+
+
+class DiscussionForm(BaseModelForm):
+
+    class Meta:
+        model = Discussion
+        fields = ('enabled', 'closed', 'moderate_all', 'notify_all',
+                  'moderators')
+
+
+class CommentEditForm(BaseModelForm):
+
+    class Meta:
+        model = Comment
+        fields = ('status', 'comment', 'flagged')
+
+
+class CommentsFilterForm(BaseForm):
+
+    user = forms.CharField(required=False)
+    comment = forms.CharField(required=False)
+    status = forms.ChoiceField(
+        required=False,
+        choices=(
+            (('', 'ALL'),) + Comment.STATUS_CHOICES + (('flagged', 'Flagged'),)
+        )
+    )
