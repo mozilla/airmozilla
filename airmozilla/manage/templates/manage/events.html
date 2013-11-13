@@ -13,7 +13,7 @@
       <th style="width: 5%"></th>
       <th style="width: 19%">Title</th>
       <th style="width: 8%">Location</th>
-      <th style="width: 19%">Start time/Local time</th>
+      <th style="width: 19%">Start time</th>
       <th style="width: 17%">Archive time</th>
       <th style="width: 12%">Category/Channel</th>
       <th style="width: 8%">Visibility</th>
@@ -35,8 +35,12 @@
         </td>
         <td>{{ event.location }}</td>
         <td>
-          {{ event.location_time.strftime('%d %B %Y') }}
-          {% if event.location %}{{ event.location_time.strftime('%I:%M%p') }}{% endif %}
+          {% if event.location %}
+            {{ event.location_time.strftime('%d %B %Y') }}
+            {{ event.location_time.strftime('%I:%M%p') }}
+          {% else %}
+            {{ event.start_time.strftime('%d %B %Y %I:%M%p %Z') }}
+          {% endif %}
         </td>
         <td>
           {% if event.archive_time %}

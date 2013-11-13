@@ -402,6 +402,23 @@ class TestEvents(ManageTestCase):
         response = self.client.get(reverse('manage:events'))
         eq_(response.status_code, 200)
 
+    def test_events_with_event_without_location(self):
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(reverse('manage:events'))
+        eq_(response.status_code, 200)
+        # the "local" time this event starts is 12:30
+        ok_('12:30PM' in response.content)
+        ok_('21 June 2012' in response.content)
+        ok_('Mountain View' in response.content)
+
+        event.location = None
+        event.save()
+        response = self.client.get(reverse('manage:events'))
+        eq_(response.status_code, 200)
+        ok_('7:30PM' in response.content)
+        ok_('21 June 2012' in response.content)
+        ok_('Mountain View' not in response.content)
+
     def test_events_seen_by_contributors(self):
         # there should be one event of each level of privacy
         event = Event.objects.get(title='Test event')
