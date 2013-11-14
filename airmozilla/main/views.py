@@ -192,6 +192,20 @@ def is_contributor(user):
     return is_
 
 
+def is_employee(user):
+    if not hasattr(user, 'pk'):
+        return False
+    cache_key = 'is-employee-%s' % user.pk
+    is_ = cache.get(cache_key)
+    if is_ is None:
+        is_ = (
+            user.email.endswith('@mozilla.com') or
+            user.email.endswith('@mozillafoundation.org')
+        )
+        cache.set(cache_key, is_, 60 * 60)
+    return is_
+
+
 def can_view_event(event, user):
     """return True if the current user has right to view this event"""
     if event.privacy == Event.PRIVACY_PUBLIC:
@@ -320,7 +334,30 @@ class EventView(View):
             'tags': [t.name for t in event.tags.all()],
         })
 
+        if event.pin:
+            if not is_employee(request.user):
+                entered_pins = request.session.get('entered_pins', [])
+                if event.pin not in entered_pins:
+                    self.template_name = 'main/event_requires_pin.html'
+                    context['pin_form'] = forms.PinForm()
         return render(request, self.template_name, context)
+
+    def post(self, request, slug):
+        event = get_object_or_404(Event, slug=slug)
+        pin_form = forms.PinForm(request.POST, instance=event)
+        if pin_form.is_valid():
+            entered_pins = self.request.session.get('entered_pins', [])
+            pin = pin_form.cleaned_data['pin']
+            if pin not in entered_pins:
+                entered_pins.append(pin)
+                request.session['entered_pins'] = entered_pins
+                return redirect('main:event', slug=slug)
+
+        context = {
+            'event': event,
+            'pin_form': pin_form,
+        }
+        return render(request, 'main/event_requires_pin.html', context)
 
 
 class EventVideoView(EventView):

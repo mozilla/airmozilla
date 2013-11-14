@@ -111,14 +111,20 @@ def dashboard(request):
 @permission_required('auth.change_user')
 def users(request):
     """User editor:  view users and update a user's group."""
+    users = User.objects.all()
     if request.GET.get('email'):
         form = forms.UserFindForm(request.GET)
         if form.is_valid():
-            user = User.objects.get(email=form.cleaned_data['email'])
-            return redirect('manage:user_edit', user.id)
+            email = form.cleaned_data['email']
+            users_ = User.objects.filter(email__icontains=email)
+            if users_.count() == 1:
+                user, = users_
+                return redirect('manage:user_edit', user.id)
+            users = users.filter(email__icontains=email)
+
     else:
         form = forms.UserFindForm()
-    users_paged = paginate(User.objects.all(), request.GET.get('page'), 10)
+    users_paged = paginate(users, request.GET.get('page'), 10)
 
     _mozilla_email_filter = (
         Q(email__endswith='@mozillafoundation.org') |

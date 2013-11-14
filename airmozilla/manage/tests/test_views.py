@@ -526,6 +526,31 @@ class TestEvents(ManageTestCase):
         )
         eq_(response_fail.status_code, 200)
 
+    def test_event_edit_pin(self):
+        """Test editing an event - modifying the pin"""
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(reverse('manage:event_edit',
+                                           kwargs={'id': event.id}))
+
+        eq_(response.status_code, 200)
+        ok_('Pin' in response.content)
+
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.id}),
+            dict(self.event_base_data, title='Tested event',
+                 pin='1')
+        )
+        eq_(response.status_code, 200)
+        ok_('Pin too short' in response.content)
+
+        response = self.client.post(
+            reverse('manage:event_edit', kwargs={'id': event.id}),
+            dict(self.event_base_data, title='Tested event',
+                 pin='12345')
+        )
+        self.assertRedirects(response, reverse('manage:events'))
+        ok_(Event.objects.get(pin='12345'))
+
     def test_event_edit_templates(self):
         """Event editing results in correct template environments."""
         event = Event.objects.get(title='Test event')

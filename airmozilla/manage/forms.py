@@ -73,23 +73,14 @@ class UserFindForm(BaseForm):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        try:
-            user = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
-            try:
-                user = User.objects.get(email__istartswith=email)
-            except User.DoesNotExist:
-                raise forms.ValidationError('User with this email not found.')
-        return user.email
+        if not User.objects.filter(email__icontains=email):
+            raise forms.ValidationError('No users found')
+        return email
 
 
 class EventRequestForm(BaseModelForm):
     tags = forms.CharField(required=False)
     participants = forms.CharField(required=False)
-#    timezone = forms.ChoiceField(
-#        choices=TIMEZONE_CHOICES,
-#        initial=settings.TIME_ZONE, label='Time zone'
-#    )
 
     class Meta:
         model = Event
@@ -220,8 +211,22 @@ class EventEditForm(EventRequestForm):
             'template_environment', 'placeholder_img', 'location',
             'description', 'short_description', 'start_time', 'archive_time',
             'participants', 'channels', 'category', 'tags',
-            'call_info', 'additional_links', 'approvals'
+            'call_info', 'additional_links', 'approvals', 'pin'
         )
+
+    def __init__(self, *args, **kwargs):
+        super(EventEditForm, self).__init__(*args, **kwargs)
+        if 'pin' in self.fields:
+            self.fields['pin'].help_text = (
+                "A Pin is only recommended for events that are only open to "
+                "contributors."
+            )
+
+    def clean_pin(self):
+        value = self.cleaned_data['pin']
+        if value and len(value) < 4:
+            raise forms.ValidationError("Pin too short to be safe")
+        return value
 
 
 class EventExperiencedRequestForm(EventEditForm):
@@ -237,7 +242,7 @@ class EventExperiencedRequestForm(EventEditForm):
             'template_environment', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time',
             'participants', 'channels', 'category', 'tags', 'call_info',
-            'additional_links', 'approvals'
+            'additional_links', 'approvals', 'pin'
         )
 
 

@@ -141,6 +141,54 @@ class TestPages(TestCase):
         ok_(can_view_event(event, employee_wo_profile))
         ok_(can_view_event(event, employee_w_profile))
 
+    def test_view_event_with_pin(self):
+        event = Event.objects.get(title='Test event')
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.description = "My Event Description"
+        event.pin = '12345'
+        event.save()
+        url = reverse('main:event', args=(event.slug,))
+
+        response = self.client.get(url)
+        self.assertRedirects(response, reverse('main:login'))
+
+        User.objects.create_user(
+            'mary', 'mary@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='mary', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.description in response.content)
+
+        contributor = User.objects.create_user(
+            'nigel', 'nigel@live.com', 'secret'
+        )
+        UserProfile.objects.create(
+            user=contributor,
+            contributor=True
+        )
+        assert self.client.login(username='nigel', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.description not in response.content)
+        ok_('id="id_pin"' in response.content)
+
+        # attempt a pin
+        response = self.client.post(url, {'pin': '1'})
+        eq_(response.status_code, 200)
+        ok_(event.description not in response.content)
+        ok_('id="id_pin"' in response.content)
+        ok_('Incorrect pin' in response.content)
+
+        response = self.client.post(url, {'pin': ' 12345 '})
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, url)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.description in response.content)
+        ok_('id="id_pin"' not in response.content)
+
     def test_view_private_events_with_notices(self):
         # for https://bugzilla.mozilla.org/show_bug.cgi?id=821458
         event = Event.objects.get(title='Test event')

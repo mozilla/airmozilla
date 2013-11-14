@@ -297,6 +297,7 @@ class Event(models.Model):
     privacy = models.CharField(max_length=40, choices=PRIVACY_CHOICES,
                                default=PRIVACY_PUBLIC, db_index=True)
     featured = models.BooleanField(default=False, db_index=True)
+    pin = models.CharField(max_length=20, null=True, blank=True)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)
