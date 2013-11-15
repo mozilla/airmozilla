@@ -551,6 +551,42 @@ class TestEvents(ManageTestCase):
         self.assertRedirects(response, reverse('manage:events'))
         ok_(Event.objects.get(pin='12345'))
 
+    def test_event_edit_unset_location(self):
+        """Test editing an event - modifying the pin"""
+        event = Event.objects.get(title='Test event')
+        assert event.location.timezone == 'US/Pacific'
+        assert event.start_time.hour == 19
+        assert event.start_time.minute == 30
+        assert event.start_time.tzinfo == utc
+
+        url = reverse('manage:event_edit', kwargs={'id': event.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # the event's start_time is 19:30 in UTC,
+        # which is 12:30 in US/Pacific
+        ok_('12:30' in response.content)
+
+        # now, set the location to None
+        response = self.client.post(
+            url,
+            dict(self.event_base_data, title='Test event',
+                 location='',
+                 start_time=event.start_time.strftime('%Y-%m-%d %H:%M'))
+        )
+        eq_(response.status_code, 302)
+
+        event = Event.objects.get(title='Test event')
+        # the start time should not have changed
+        assert event.start_time.hour == 19
+        assert event.start_time.minute == 30
+        assert event.start_time.tzinfo == utc
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # now, because no timezone is known, we have to rely on UTC
+        ok_('12:30' not in response.content)
+        ok_('19:30' in response.content)
+
     def test_event_edit_templates(self):
         """Event editing results in correct template environments."""
         event = Event.objects.get(title='Test event')
