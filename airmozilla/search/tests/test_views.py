@@ -154,10 +154,10 @@ class TestSearch(TestCase):
             slug=today.strftime('test-event-%Y%m%d'),
             start_time=today.replace(tzinfo=utc),
             placeholder_img=self.placeholder,
-            status=Event.STATUS_INITIATED,
+            status=Event.STATUS_SCHEDULED,
             description="These are my words."
         )
-        assert event not in Event.objects.approved()
+        assert event in Event.objects.approved()
 
         url = reverse('search:home')
         response = self.client.get(url)
@@ -172,6 +172,69 @@ class TestSearch(TestCase):
         response = self.client.get(url, {'q': 'are'})
         eq_(response.status_code, 200)
         ok_('Nothing found' in response.content)
+
+    def test_search_with_strange_characters(self):
+        Event.objects.all().delete()
+
+        today = datetime.datetime.utcnow()
+        event = Event.objects.create(
+            title='THis is Different',
+            slug=today.strftime('test-event-%Y%m%d'),
+            start_time=today.replace(tzinfo=utc),
+            placeholder_img=self.placeholder,
+            status=Event.STATUS_SCHEDULED,
+            description="These are my words."
+        )
+        assert event in Event.objects.approved()
+
+        url = reverse('search:home')
+
+        # first check that specific words work
+        response = self.client.get(url, {'q': 'WORD'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+
+        response = self.client.get(url, {'q': "O'Brian Should Work"})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+
+        response = self.client.get(url, {'q': 'are my'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+
+        # this won't allow the automatic OR
+        response = self.client.get(url, {'q': 'WORDS | LETTERS'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+
+        response = self.client.get(url, {'q': 'WORDS & LETTERS'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+
+        response = self.client.get(url, {'q': 'WORDS LETTERS'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+
+    def test_search_with_nothing(self):
+        Event.objects.all().delete()
+
+        today = datetime.datetime.utcnow()
+        event = Event.objects.create(
+            title='THis is Different',
+            slug=today.strftime('test-event-%Y%m%d'),
+            start_time=today.replace(tzinfo=utc),
+            placeholder_img=self.placeholder,
+            status=Event.STATUS_SCHEDULED,
+            description="These are my words."
+        )
+        assert event in Event.objects.approved()
+
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': ''})
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
 
     def test_search_by_stemming(self):
         Event.objects.all().delete()

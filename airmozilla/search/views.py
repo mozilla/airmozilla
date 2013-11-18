@@ -9,6 +9,7 @@ from airmozilla.main.views import is_contributor
 from funfactory.urlresolvers import reverse
 
 from . import forms
+from . import utils
 from airmozilla.base.utils import paginator
 
 
@@ -24,17 +25,8 @@ def home(request):
     else:
         form = forms.SearchForm()
 
-    def possible_to_or_query(q):
-        """return true if it's possible to turn this query into something with
-        | characters in between"""
-        if len(q.split()) > 1:
-            if '&' in q or '|' in q:
-                return False
-            return True
-        return False
-
     if request.GET.get('q') and form.is_valid():
-        context['q'] = request.GET.get('q')
+        context['q'] = form.cleaned_data['q']
         privacy_filter = {}
         privacy_exclude = {}
         if request.user.is_active:
@@ -49,7 +41,7 @@ def home(request):
             privacy_exclude=privacy_exclude,
             sort=request.GET.get('sort'),
         )
-        if not events.count() and possible_to_or_query(context['q']):
+        if not events.count() and utils.possible_to_or_query(context['q']):
             events = _search(
                 context['q'],
                 privacy_filter=privacy_filter,
@@ -115,7 +107,7 @@ def _search(q, **options):
            @@ to_tsquery('english', %s)
         )
         """
-        search_escaped = q.replace(' ', '|')
+        search_escaped = utils.make_or_query(q)
     else:
         sql = """
         (
