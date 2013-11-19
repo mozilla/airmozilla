@@ -567,7 +567,9 @@ def channels(request):
     )
     for channel in channels_qs:
         event_count = events.filter(channels=channel).count()
-        channels.append((channel, event_count))
+        subchannel_count = Channel.objects.filter(parent=channel).count()
+        if event_count or subchannel_count:
+            channels.append((channel, event_count, subchannel_count))
     data = {
         'channels': channels,
         'feed_privacy': feed_privacy,

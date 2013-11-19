@@ -19,12 +19,18 @@ p.feed { float: right; }
 {% block content_main %}
   <h2 class="section-title">Channels</h2>
   <div class="channels">
-  {% for channel, event_count in channels %}
+  {% for channel, event_count, subchannel_count in channels %}
     <p class="feed">
       <a href="{{ url('main:channel_feed', channel.slug, feed_privacy) }}">Feed</a>
     </p>
     <h3><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a></h3>
-    <p>{{ event_count }} archived events</p>
+    {% if event_count and subchannel_count %}
+    <p>{{ subchannel_count }} sub-channel{{ subchannel_count|pluralize }}, {{ event_count }} archived event{{ event_count|pluralize }}</p>
+    {% elif event_count %}
+    <p>{{ event_count }} archived event{{ event_count|pluralize }}</p>
+    {% elif subchannel_count %}
+    <p>{{ subchannel_count }} sub-channel{{ subchannel_count|pluralize }}</p>
+    {% endif %}
   {% endfor %}
   </div>
 {% endblock %}

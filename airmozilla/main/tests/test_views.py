@@ -932,7 +932,7 @@ class TestPages(TestCase):
 
         channel_url = reverse('main:home_channels', args=(channel.slug,))
         ok_(channel_url in response.content)
-        ok_('0 archived events' in response.content)
+        ok_('1 sub-channel' in response.content)
 
         # visiting that channel, there should be a link to the sub channel
         response = self.client.get(channel_url)
@@ -944,7 +944,7 @@ class TestPages(TestCase):
 
         response = self.client.get(reverse('main:channels'))
         eq_(response.status_code, 200)
-        ok_('1 archived events' in response.content)
+        ok_('1 archived event' in response.content)
 
         # make it private again
         event.privacy = Event.PRIVACY_COMPANY
@@ -971,7 +971,7 @@ class TestPages(TestCase):
         assert self.client.login(username='nigel', password='secret')
         response = self.client.get(reverse('main:channels'))
         eq_(response.status_code, 200)
-        ok_('0 archived events' in response.content)
+        ok_('1 sub-channel' in response.content)
 
         event.privacy = Event.PRIVACY_CONTRIBUTORS
         event.save()

@@ -6,7 +6,7 @@ from nose.tools import eq_
 from django.test import TestCase
 from django.conf import settings
 from django.db.utils import IntegrityError
-from airmozilla.main.helpers import thumbnail, get_thumbnail
+from airmozilla.main.helpers import thumbnail, get_thumbnail, pluralize
 
 
 class TestThumbnailHelper(TestCase):
@@ -53,3 +53,15 @@ class TestThumbnailHelper(TestCase):
         eq_(nailed.width, 10)
         # we don't want these lying around in local install
         nailed.delete()
+
+
+class TestPluralizer(TestCase):
+
+    def test_pluralize(self):
+        eq_(pluralize(1), '')
+        eq_(pluralize(0), 's')
+        eq_(pluralize(2), 's')
+
+        eq_(pluralize(1, 'ies'), '')
+        eq_(pluralize(0, 'ies'), 'ies')
+        eq_(pluralize(2, 'ies'), 'ies')

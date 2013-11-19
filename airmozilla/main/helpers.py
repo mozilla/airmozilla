@@ -101,3 +101,10 @@ def make_absolute(uri, request):
         prefix = request.is_secure() and 'https' or 'http'
         uri = '%s://%s%s' % (prefix, RequestSite(request).domain, uri)
     return uri
+
+
+@register.filter
+def pluralize(value, form='s'):
+    if value != 1:
+        return form
+    return ''
