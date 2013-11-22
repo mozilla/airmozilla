@@ -68,6 +68,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
     'airmozilla.manage.context_processors.badges',
     'airmozilla.main.context_processors.sidebar',
     'airmozilla.main.context_processors.analytics',
+    'airmozilla.main.context_processors.dev',
 )
 
 # Always generate a CSRF token for anonymous users.

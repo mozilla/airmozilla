@@ -12,6 +12,10 @@ from airmozilla.main.views import is_contributor
 from airmozilla.search.forms import SearchForm
 
 
+def dev(request):
+    return {'DEV': settings.DEV, 'DEBUG': settings.DEBUG}
+
+
 def sidebar(request):
     # none of this is relevant if you're in certain URLs
     if '/manage/' in request.path_info:
