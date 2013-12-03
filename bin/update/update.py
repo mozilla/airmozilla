@@ -37,7 +37,8 @@ def update_db(ctx):
 
     with ctx.lcd(settings.SRC_DIR):
         ctx.local('python2.6 manage.py syncdb')
-        ctx.local('python2.6 manage.py migrate airmozilla.main airmozilla.comments')
+        ctx.local('python2.6 manage.py migrate airmozilla.main')
+        ctx.local('python2.6 manage.py migrate airmozilla.comments')
 
 
 @task
