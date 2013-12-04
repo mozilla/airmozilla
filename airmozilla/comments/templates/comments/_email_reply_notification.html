@@ -14,7 +14,7 @@
   </strong>:
 </p>
 
-<blockquote>
+<blockquote style="margin-bottom:35px; font-style: italic">
 {{ comment.comment | urlize | nl2br }}
 </blockquote>
 
@@ -24,9 +24,9 @@ To response or to view the comment go
 </p>
 
 <p style="font-size:80%;margin-top:20px">
-  Click here to unsubscribe from
-  <a href="{{ base_url }}{{ unsubscribe_discussion_url }}">this discussion</a> or
-  unsubscribe from
-  <a href="{{ base_url }}{{ unsubscribe_all_url }}">all notifications</a> on <a href="{{ base_url }}">Air Mozilla</a>.
+  Click here to
+  <a href="{{ base_url }}{{ unsubscribe_discussion_url }}">unsubscribe from this discussion</a> or
+  <a href="{{ base_url }}{{ unsubscribe_all_url }}">unsubscribe from all notifications</a>
+  on <a href="{{ base_url }}">Air Mozilla</a>.
 </p>
 {% endblock %}

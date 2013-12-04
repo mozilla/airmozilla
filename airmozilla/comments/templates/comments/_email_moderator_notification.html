@@ -5,16 +5,14 @@
   <a href="{{ base_url }}{{ url('main:event', event.slug) }}"
      style="font-weight:bold">{{ event.title }}</a><br/>
   by
-  <strong>
-  {% if comment.user.get_full_name() %}
+  <strong>{%- if comment.user.get_full_name() %}
     {{ comment.user.get_full_name() }}
   {% else %}
     {{ obscure_email(comment.user.email) }}
-  {% endif %}
-  </strong>:
+  {% endif -%}</strong>:
 </p>
 
-<blockquote>
+<blockquote style="margin-bottom:35px; font-style: italic">
 {{ comment.comment | urlize | nl2br }}
 </blockquote>
 
