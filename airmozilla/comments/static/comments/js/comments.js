@@ -1,4 +1,10 @@
+var RELOAD_INTERVAL = 5;  // seconds
+
 var Comments = (function() {
+
+    var since = null;
+    var halt_reload_loop = false;
+    var pause_reload_loop = false;
 
     function approve_comment(clicked, container) {
         var parent = $(clicked).closest('.comment');
@@ -111,6 +117,7 @@ var Comments = (function() {
 
     return {
         load: function(container, callback) {
+            console.log('LOAD');
             var req = $.getJSON(container.data('url'));
             req.then(function(response) {
                 if (!response.discussion.enabled) {
@@ -118,6 +125,7 @@ var Comments = (function() {
                     console.log('Discussion not enabled on this page');
                     return;
                 }
+                since = response.latest_comment;
                 $('.comments-outer', container).html(response.html).show();
                 $('time.timeago', container).timeago();
                 $('a.permalink', container).click(function() {
@@ -155,11 +163,40 @@ var Comments = (function() {
                     unflag_comment(this, container);
                     return false;
                 });
+                $('.failed-loading:visible', container).hide();
                 if (callback) callback();
+            });
+            req.fail(function() {
+                $('.failed-loading', container).fadeIn(300);
             });
             req.always(function() {
                 $('.loading', container).remove();
             });
+        },
+        reload_loop: function(container) {
+            if (halt_reload_loop || pause_reload_loop) {
+                return;
+            }
+            var data = {since: since};
+            var req = $.getJSON(container.data('reload-url'), data);
+            req.then(function(response) {
+                console.log('New latest_comment', response.latest_comment);
+                if (response.latest_comment) {
+                    since = response.latest_comment;
+                    Comments.load(container);
+                }
+            });
+            req.fail(function() {
+                console.warn('Error checking latest, so halt');
+                halt_reload_loop = true;
+            });
+            console.log('SINCE=', since);
+        },
+        pause_loop: function() {
+            pause_reload_loop = true;
+        },
+        resume_loop: function() {
+            pause_reload_loop = false;
         }
     };
 })();
@@ -193,15 +230,24 @@ var Comments = (function() {
                         });
                     }
                 });
-
             }
+            setInterval(function() {
+                Comments.reload_loop(container);
+            }, 5 * 1000);
         });
+
 
         $('button.cancel', container).click(function() {
             $(this).hide();
             $('form', container).detach().insertAfter($('.comments-outer', container));
             $('form input[name="reply_to"]', container).val('');
             return false;
+        });
+
+        $('form textarea', container).on('focus', function() {
+            Comments.pause_loop();
+        }).on('blur', function() {
+            Comments.resume_loop();
         });
 
         $('form', container).submit(function() {
@@ -214,6 +260,8 @@ var Comments = (function() {
                 reply_to: $('input[name="reply_to"]', this).val(),
                 csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', this).val()
             };
+            // We don't want to run the reload loop whilst waiting for the submission post
+            Comments.pause_loop();
             var req = $.post(container.data('url'), data);
             req.done(function(response) {
                 $('form').data('changes', 0);
@@ -223,10 +271,11 @@ var Comments = (function() {
                 Comments.load(container);
                 setTimeout(function() {
                     $('.submission-success', $form).fadeOut(600);
-                }, 5 * 1000);
+                }, RELOAD_INTERVAL * 1000);
             });
             req.always(function() {
                 $('button[type="submit"]').removeProp('disabled');
+                Comments.resume_loop();
             });
             req.fail(function(jqXHR, textStatus, errorThrown) {
                 console.log('jqXHR', jqXHR);

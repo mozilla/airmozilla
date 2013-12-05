@@ -1,3 +1,4 @@
+import calendar
 import json
 import re
 import uuid
@@ -13,6 +14,10 @@ from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
 from airmozilla.main.models import Event
+from airmozilla.comments.views import (
+    can_manage_comments,
+    get_latest_comment
+)
 from airmozilla.comments.models import (
     Discussion,
     Comment,
@@ -74,6 +79,40 @@ class TestComments(TestCase):
             moderate_all=moderate_all,
             notify_all=notify_all
         )
+
+    def test_can_manage_comments(self):
+        event = Event.objects.get(title='Test event')
+
+        jay = User.objects.create(username='jay', email='jay@mozilla.com')
+        bob = User.objects.create(username='bob', email='bob@mozilla.com')
+        richard = User.objects.create(username='richard',
+                                      email='richard@mozilla.com',
+                                      is_superuser=True)
+        discussion = self._create_discussion(event)
+        discussion.moderators.add(jay)
+
+        ok_(not can_manage_comments(bob, discussion))
+        ok_(can_manage_comments(jay, discussion))
+        ok_(can_manage_comments(richard, discussion))
+
+    def test_get_latest_comment(self):
+        event = Event.objects.get(title='Test event')
+        eq_(get_latest_comment(event), None)
+
+        bob = User.objects.create(username='bob', email='bob@mozilla.com')
+        comment = Comment.objects.create(
+            event=event,
+            user=bob,
+            comment="Hi, it's Bob",
+            status=Comment.STATUS_POSTED
+        )
+        latest = get_latest_comment(event)
+        eq_(latest, None)
+        latest = get_latest_comment(event, include_posted=True)
+        modified = calendar.timegm(comment.modified.utctimetuple())
+        eq_(latest, modified)
+        latest = get_latest_comment(event, include_posted=True, since=modified)
+        eq_(latest, None)
 
     def test_basic_event_data(self):
         event = Event.objects.get(title='Test event')
@@ -532,3 +571,56 @@ class TestComments(TestCase):
         })
         eq_(response.status_code, 200)
         ok_(Comment.objects.get(flagged=0))
+
+    def test_event_data_latest_400(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('comments:event_data_latest', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+        discussion = self._create_discussion(event)
+        discussion.enabled = False
+        discussion.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+    def test_event_data_latest(self):
+        event = Event.objects.get(title='Test event')
+        discussion = self._create_discussion(event)
+        url = reverse('comments:event_data_latest', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        eq_(structure['latest_comment'], None)
+
+        jay = User.objects.create(username='jay', email='jay@mozilla.com')
+        bob = User.objects.create(username='bob', email='bob@mozilla.com')
+        discussion.moderators.add(jay)
+
+        comment = Comment.objects.create(
+            user=bob,
+            event=event,
+            comment="Hi, it's Bob",
+            status=Comment.STATUS_POSTED
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        eq_(structure['latest_comment'], None)
+
+        # different if jay checks it
+        jay.set_password('secret')
+        jay.save()
+        assert self.client.login(username='jay', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        modified = calendar.timegm(comment.modified.utctimetuple())
+        eq_(structure['latest_comment'], modified)
+
+        response = self.client.get(url, {'since': 'xxx'})
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {'since': str(modified)})
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        eq_(structure['latest_comment'], None)

@@ -59,3 +59,9 @@
     background-color: #B4B4B4;
     transition: background 0.1s linear;
 }
+
+#comments .failed-loading {
+    display: none;
+    color: #FF9EC5;
+    padding: 3px;
+}

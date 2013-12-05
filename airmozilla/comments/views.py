@@ -1,10 +1,14 @@
+import calendar
+import datetime
+
 from django.contrib.auth.models import User
 from django import http
 from django.shortcuts import get_object_or_404, render, redirect
 from django.template.loader import render_to_string
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.core.cache import cache
 from django.db import transaction
+from django.utils.timezone import utc
 
 from airmozilla.base.utils import json_view
 from airmozilla.main.models import Event
@@ -12,6 +16,41 @@ from .models import Comment, Discussion, Unsubscription
 from airmozilla.auth.mozillians import fetch_user_name
 from . import forms
 from . import sending
+
+
+def get_latest_comment(event, include_posted=False, since=None):
+    latest_comment = (
+        Comment.objects
+        .filter(event=event)
+    )
+    if not include_posted:
+        latest_comment = (
+            latest_comment
+            .filter(Q(status=Comment.STATUS_REMOVED) |
+                    Q(status=Comment.STATUS_APPROVED))
+        )
+
+    if since:
+        since = datetime.datetime.utcfromtimestamp(since)
+        since = since.replace(tzinfo=utc)
+        # add 1 second to counter for lost microseconds
+        since += datetime.timedelta(seconds=1)
+        latest_comment = latest_comment.filter(modified__gt=since)
+
+    latest_comment = latest_comment.aggregate(Max('modified'))
+    if latest_comment:
+        latest_comment = latest_comment['modified__max']
+        if latest_comment:
+            return calendar.timegm(latest_comment.utctimetuple())
+
+
+def can_manage_comments(user, discussion):
+    if user.is_authenticated():
+        if user.is_superuser:
+            return True
+        elif discussion.moderators.filter(id=user.id).exists():
+            return True
+    return False
 
 
 @json_view
@@ -37,12 +76,7 @@ def event_data(request, id):
         else:
             return context
 
-    can_manage_comments = False
-    if request.user.is_authenticated():
-        if request.user.is_superuser:
-            can_manage_comments = True
-        elif request.user in discussion.moderators.all():  # refactor??
-            can_manage_comments = True
+    _can_manage_comments = can_manage_comments(request.user, discussion)
 
     if request.method == 'POST':
 
@@ -53,7 +87,7 @@ def event_data(request, id):
 
         if request.POST.get('approve'):
             # but are you allowed?
-            if not can_manage_comments:
+            if not _can_manage_comments:
                 return http.HttpResponseForbidden(
                     'Unable to approve comment'
                 )
@@ -66,7 +100,7 @@ def event_data(request, id):
 
         if request.POST.get('unapprove'):
             # but are you allowed?
-            if not can_manage_comments:
+            if not _can_manage_comments:
                 return http.HttpResponseForbidden(
                     'Unable to unapprove comment'
                 )
@@ -77,7 +111,7 @@ def event_data(request, id):
 
         if request.POST.get('remove'):
             # but are you allowed?
-            if not can_manage_comments:
+            if not _can_manage_comments:
                 return http.HttpResponseForbidden(
                     'Unable to remove comment'
                 )
@@ -94,7 +128,7 @@ def event_data(request, id):
 
         if request.POST.get('unflag'):
             # but are you allowed?
-            if not can_manage_comments:
+            if not _can_manage_comments:
                 return http.HttpResponseForbidden(
                     'Unable to unflag comment'
                 )
@@ -136,18 +170,19 @@ def event_data(request, id):
 
     if request.user.is_authenticated():
         query_filter = Q(status=Comment.STATUS_APPROVED) | Q(user=request.user)
-        if can_manage_comments:
+        if _can_manage_comments:
             query_filter = query_filter | Q(status=Comment.STATUS_POSTED)
     else:
         query_filter = Q(status=Comment.STATUS_APPROVED)
 
     comments = comments.filter(query_filter)
+
     sub_context = {
         'comments': comments.order_by('created'),
         'discussion': discussion,
         'request': request,
         'Comment': Comment,
-        'can_manage_comments': can_manage_comments,
+        'can_manage_comments': _can_manage_comments,
         'root': True,
         'query_filter': query_filter,
     }
@@ -155,8 +190,33 @@ def event_data(request, id):
         'comments/comments.html',
         sub_context
     )
-
+    context['latest_comment'] = get_latest_comment(
+        event,
+        include_posted=_can_manage_comments
+    )
     return context
+
+
+@json_view
+@transaction.commit_on_success
+def event_data_latest(request, id):
+    event = get_object_or_404(Event, pk=id)
+    try:
+        discussion = Discussion.objects.get(event=event, enabled=True)
+    except Discussion.DoesNotExist:
+        return http.HttpResponseBadRequest('Discussion not enabled')
+    try:
+        since = request.GET.get('since')
+        if since:
+            since = float(since)
+    except ValueError:
+        return http.HttpResponseBadRequest("Invalid 'since'")
+    latest_comment = get_latest_comment(
+        event,
+        include_posted=can_manage_comments(request.user, discussion),
+        since=since
+    )
+    return {'latest_comment': latest_comment}
 
 
 def _first_last_name(name):
