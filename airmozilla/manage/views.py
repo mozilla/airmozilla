@@ -508,6 +508,7 @@ def event_edit(request, id):
         event.status == Event.STATUS_PENDING
         and event.template
         and 'Vid.ly' in event.template.name
+        and event.template_environment  # can be None
         and event.template_environment.get('tag')
         and not VidlySubmission.objects.filter(
             event=event,
