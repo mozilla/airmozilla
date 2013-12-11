@@ -360,8 +360,9 @@ class TestSearch(TestCase):
         ok_(event2.title in response.content)
 
     def test_search_with_sql_injection(self):
+        assert Event.objects.approved()
         url = reverse('search:home')
-        q = '1"|onmouseover=prompt(931357)|bad="'
+        q = '1" onmouseover=prompt(931357) bad="'
         response = self.client.get(url, {'q': q})
         eq_(response.status_code, 200)
         ok_('Nothing found' in response.content)

@@ -2,6 +2,8 @@ import urllib
 
 from django.shortcuts import render
 from django import http
+from django.db.utils import DatabaseError
+from django.db import connection
 
 from airmozilla.main.models import Event
 from airmozilla.main.views import is_contributor
@@ -60,7 +62,21 @@ def home(request):
         # we use the paginator() function to get the Paginator
         # instance so we can avoid calling `events.count()` for the
         # header of the page where it says "XX events found"
-        pager, events_paged = paginator(events, page, 10)
+        try:
+            pager, events_paged = paginator(events, page, 10)
+        except DatabaseError:
+            # If the fulltext SQL causes a low-level Postgres error,
+            # Django re-wraps the exception as a django.db.utils.DatabaseError
+            # exception and then unfortunately you can't simply do
+            # django.db.transaction.rollback() because the connection is dirty
+            # deeper down.
+            # Thanks http://stackoverflow.com/a/7753748/205832
+            # This is supposedly fixed in Django 1.6
+            connection._rollback()
+
+            # don't feed the trolls, just return nothing found
+            pager, events_paged = paginator(Event.objects.none(), 1, 10)
+
         next_page_url = prev_page_url = None
 
         def url_maker(page):
