@@ -3,6 +3,9 @@ A new comment has been posted on an existing event suggestion.
 *Comment:*
 {{ line_indent(comment.comment)|safe }}
 
+*By:*
+  {% if comment.user.first_name %}{{ comment.user.first_name }} {% endif %}{{ comment.user.email }}
+
 
 To see all details go to:
   {{ base_url }}{{ url('suggest:summary', event.pk) }}

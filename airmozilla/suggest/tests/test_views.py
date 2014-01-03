@@ -825,6 +825,7 @@ class TestPages(TestCase):
 
         email_sent = mail.outbox[-1]
         ok_(data['comment'].strip() in email_sent.body)
+        ok_(self.user.email in email_sent.body)
 
         ok_(url in email_sent.body)
         real_url = reverse('manage:event_edit', args=(real.pk,))
