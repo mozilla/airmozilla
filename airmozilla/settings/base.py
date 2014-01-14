@@ -70,6 +70,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
     'airmozilla.main.context_processors.sidebar',
     'airmozilla.main.context_processors.analytics',
     'airmozilla.main.context_processors.dev',
+    'airmozilla.main.context_processors.browserid',
 )
 
 # Always generate a CSRF token for anonymous users.

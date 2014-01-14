@@ -105,3 +105,20 @@ def _get_feed_privacy(user):
             return 'contributors'
         return 'company'
     return 'public'
+
+
+def browserid(request):
+    # by making this a function, it means we only need to run this
+    # when ``redirect_next()`` is called
+    def redirect_next():
+        next = request.GET.get('next')
+        if next:
+            if '://' in next:
+                return reverse('main:home')
+            return next
+        url = request.META['PATH_INFO']
+        if url in (reverse('main:login'), reverse('main:login_failure')):
+            # can't have that!
+            url = reverse('main:home')
+        return url
+    return {'redirect_next': redirect_next}
