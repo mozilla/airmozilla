@@ -23,15 +23,14 @@ $(function() {
             onProgress: function(percent, message) {
                 progress_bar.attr('value', percent);
                 progress_value.text(percent + ' %');
-                //$('#status').html('Upload progress: ' + percent + '% ' + message);
             },
             onFinishS3Put: function(url) {
-                $('#status').html('Upload completed. Verifying upload...');
+                $('.in-progress', form).hide();
+                $('.mid-progress', form).show();
 
                 $.get(verify_size_url, {url: url})
                   .then(function(result) {
                       $('input[name="url"]', form).val(url);
-                      $('.in-progress', form).hide();
                       $('#status').text('');
                       $('.post-progress .file-size', form).text(result.size_human);
                       $('.post-progress', form).show();
@@ -51,6 +50,7 @@ $(function() {
                   }).fail(function() {
                       $('#status').text('Unable to verify size');
                   }).always(function() {
+                      $('.mid-progress', form).hide();
                       $('button.start', form).show();
                   });
                 in_progress = false;
@@ -67,10 +67,6 @@ $(function() {
     });
 
     form.submit(function() {
-        console.log('Submit');
         return $('input[name="url"]', form).val();
-    });
-    $('input[type="file"]', form).change(function() {
-        console.log('File changed');
     });
 });

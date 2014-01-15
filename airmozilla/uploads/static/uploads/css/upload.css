@@ -3,6 +3,7 @@ input[type="file"] {
 }
 
 .in-progress,
+.mid-progress,
 .post-progress,
 .post-save {
     display: none;
