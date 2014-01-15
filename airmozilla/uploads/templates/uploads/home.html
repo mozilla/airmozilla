@@ -1,0 +1,62 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+Uploads | {{ super() }}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  table.uploads {
+      width: 100%;
+  }
+  table.uploads th {
+      text-align: left;
+  }
+  </style>
+{% endblock %}
+
+{% block content_main %}
+  <h2 class="section-title">Uploads</h2>
+  <p><a href="{{ url('uploads:upload') }}">Upload a new file</a></p>
+
+  {% for upload in uploads %}
+    {% if loop.first %}
+    <h3 class="section-title">Your Upload History</h3>
+    <table class="uploads">
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Size</th>
+        <th>Uploaded</th>
+        <th>Suggested Event</th>
+      </tr>
+    </thead>
+    <tbody>
+  {% endif %}
+
+  <tr>
+    <td>{{ upload.file_name | truncate(35) }}</td>
+    <td>{{ upload.size | filesizeformat }}</td>
+    <td>{{ upload.created | js_date }}</td>
+    <td>
+    {% if upload.suggested_event %}
+      <a href="{{ url('suggest:summary', upload.suggested_event.pk) }}">"{{ upload.suggested_event.title }}"</a>
+    {% else %}
+      <a href="{{ url('suggest:start') }}?file_upload={{ upload.id }}">Request Event</a>
+    {% endif %}
+    </td>
+  </tr>
+
+  {% if loop.last %}
+    </tbody>
+  </table>
+  {% endif %}
+
+{% else %}
+  <p>You currently do not have any uploads.</p>
+
+{% endfor %}
+
+
+{% endblock %}

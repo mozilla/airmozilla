@@ -22,6 +22,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     '%s.suggest' % PROJECT_MODULE,
     '%s.search' % PROJECT_MODULE,
     '%s.comments' % PROJECT_MODULE,
+    '%s.uploads' % PROJECT_MODULE,
 
     'bootstrapform',
     'sorl.thumbnail',
@@ -170,3 +171,6 @@ BITLY_ACCESS_TOKEN = None
 # Overridden so we can depend on the LDAP lookup
 BROWSERID_VERIFY_CLASS = '%s.auth.views.CustomBrowserIDVerify' % PROJECT_MODULE
 BROWSERID_REQUEST_ARGS = {'siteName': 'Air Mozilla'}
+
+# Name of the bucket where you upload all large videos
+S3_UPLOAD_BUCKET = 'air-mozilla-uploads'

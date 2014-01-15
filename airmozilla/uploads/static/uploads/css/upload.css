@@ -1,0 +1,57 @@
+input[type="file"] {
+    width: 70%;
+}
+
+.in-progress,
+.post-progress,
+.post-save {
+    display: none;
+}
+
+/* Inspired by http://www.hongkiat.com/blog/html5-progress-bar/ */
+.progress-bar {
+        width: 95%;
+        margin: 30px auto 0;
+	padding: 15px 15px;
+	border-radius: 3px;
+}
+.progress-bar progress {
+	background-color: #f3f3f3;
+	border: 0;
+	width: 80%;
+	height: 22px;
+	border-radius: 4px;
+}
+.progress-bar progress::-webkit-progress-bar {
+	background-color: #f3f3f3;
+	border-radius: 4px;
+}
+.progress-bar progress::-webkit-progress-value {
+	background: #cdeb8e;
+	background: -moz-linear-gradient(top,  #cdeb8e 0%, #a5c956 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cdeb8e), color-stop(100%,#a5c956));
+	background: -webkit-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+	background: -o-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+	background: -ms-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+	background: linear-gradient(to bottom,  #cdeb8e 0%,#a5c956 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cdeb8e', endColorstr='#a5c956',GradientType=0 );
+	border-radius: 4px;
+}
+.progress-bar progress::-moz-progress-bar {
+	background: #cdeb8e;
+	background: -moz-linear-gradient(top,  #cdeb8e 0%, #a5c956 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cdeb8e), color-stop(100%,#a5c956));
+	background: -webkit-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+	background: -o-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+	background: -ms-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+	background: linear-gradient(to bottom,  #cdeb8e 0%,#a5c956 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cdeb8e', endColorstr='#a5c956',GradientType=0 );
+	border-radius: 4px;
+}
+.progress-bar .progress-value {
+	padding: 0px 5px;
+	line-height: 20px;
+	margin-left: 5px;
+	height: 22px;
+	float: right;
+}

@@ -140,3 +140,8 @@ BITLY_ACCESS_TOKEN = ''
 #RAVEN_CONFIG = {
 #    'dsn': ''  # see https://errormill.mozilla.org/
 #}
+
+# Talk to your friendly IT guys to fill this in
+AWS_ACCESS_KEY_ID =
+AWS_SECRET_ACCESS_KEY =
+#S3_UPLOAD_BUCKET = 'air-mozilla-uploads'

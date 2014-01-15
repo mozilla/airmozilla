@@ -30,3 +30,6 @@ RAVEN_CONFIG = {}
 SENTRY_DSN = None
 
 SITE_URL = 'http://localhost:8000'
+
+AWS_ACCESS_KEY_ID = AWS_SECRET_ACCESS_KEY = 'something'
+#S3_UPLOAD_BUCKET = 'air-mozilla-uploads'
