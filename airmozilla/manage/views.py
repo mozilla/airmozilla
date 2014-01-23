@@ -1243,7 +1243,7 @@ def approvals(request):
             group__in=user.groups.all(),
             processed=True)
             .order_by('-processed_time')[:25]
-        )
+        ).select_related('event', 'user', 'group')
     else:
         approvals = recent = Approval.objects.none()
     data = {
@@ -1696,6 +1696,8 @@ def vidly_media(request):
         events = events.filter(id__in=event_ids)
 
     events = events.order_by('-start_time')
+    events = events.select_related('template')
+
     paged = paginate(events, request.GET.get('page'), 15)
     vidly_resubmit_form = forms.VidlyResubmitForm()
     data = {
