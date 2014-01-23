@@ -6,7 +6,8 @@ from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Event,
-    Channel
+    Channel,
+    EventHitStats
 )
 from airmozilla.main.views import is_contributor
 from airmozilla.search.forms import SearchForm
@@ -20,13 +21,21 @@ def sidebar(request):
     # none of this is relevant if you're in certain URLs
     if '/manage/' in request.path_info:
         return {}
-
     data = {
         # used for things like {% if event.attr == Event.ATTR1 %}
         'Event': Event,
     }
-    featured = (Event.objects.archived()
-                .filter(featured=True).order_by('-start_time'))
+    featured = (
+        EventHitStats.objects
+        .filter(event__archive_time__isnull=False)
+        .extra(
+            select={
+                'score': '(featured::int + 1) * total_hits / extract(days from (now() - archive_time)) ^ 1.8'
+            }
+        )
+        .select_related('event')
+        .order_by('-score')
+    )
 
     upcoming = Event.objects.upcoming().order_by('start_time')
     # if viewing a specific page is limited by channel, apply that filtering
@@ -51,15 +60,16 @@ def sidebar(request):
     data['feed_title'] = feed_title
     data['feed_url'] = feed_url
 
-    featured = featured.filter(channels__in=channels).distinct()
+    # `featured` isn't actually a QuerySet on Event
+    featured = featured.filter(event__channels__in=channels)
     upcoming = upcoming.filter(channels__in=channels).distinct()
 
     if not request.user.is_active:
-        featured = featured.filter(privacy=Event.PRIVACY_PUBLIC)
+        featured = featured.filter(event__privacy=Event.PRIVACY_PUBLIC)
         upcoming = upcoming.filter(privacy=Event.PRIVACY_PUBLIC)
     upcoming = upcoming[:settings.UPCOMING_SIDEBAR_COUNT]
     data['upcoming'] = upcoming
-    data['featured'] = featured
+    data['featured'] = [x.event for x in featured[:5]]
 
     data['sidebar_top'] = None
     data['sidebar_bottom'] = None
