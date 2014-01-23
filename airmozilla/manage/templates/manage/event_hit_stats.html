@@ -42,6 +42,13 @@
           <a href="?order=hits_per_day">Hits/day <sup>*</sup></a>
           {% endif %}
         </th>
+        <th>
+          {% if order_by == 'score' %}
+          Score <sup>**</sup>
+          {% else %}
+          <a href="?order=score">Score <sup>**</sup></a>
+          {% endif %}
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -62,6 +69,9 @@
         <td>
           {{ (stat.hits_per_day or 0.0)|round(1) }}
         </td>
+        <td>
+          {{ (stat.score or 0.0)|round(1) }}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -70,7 +80,11 @@
 
   <p>
   *
-  Approximate value since the event was archived.
+  Approximate value since the event was archived.<br>
+  **
+  Score is a function of <code>total hits / days since archived ^ 1.8</code> but if
+  the event is marked as "featured" it gets a <code>2x</code> boost. This is almost the
+  same ranking algorithm used on <a href="https://news.ycombinator.com/item?id=1781013">Hacker News</a>.
   </p>
 
 

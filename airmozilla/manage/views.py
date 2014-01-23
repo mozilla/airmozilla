@@ -2034,14 +2034,11 @@ def cron_pings(request):  # pragma: no cover
 @permission_required('main.add_event')
 def event_hit_stats(request):
 
-    possible_order_by = ('total_hits', 'hits_per_day')
+    possible_order_by = ('total_hits', 'hits_per_day', 'score')
     order_by = request.GET.get('order')
     if order_by not in possible_order_by:
-        order_by = possible_order_by[0]
+        order_by = possible_order_by[-1]
 
-    hits_per_day_sql = (
-        'total_hits / extract(days from (now() - main_event.archive_time))'
-    )
     today = datetime.datetime.utcnow().replace(tzinfo=utc)
     yesterday = today - datetime.timedelta(days=1)
     stats = (
@@ -2050,8 +2047,12 @@ def event_hit_stats(request):
         .filter(event__archive_time__lt=yesterday)
         .order_by('-%s' % order_by)
         .extra(select={
-            'hits_per_day': hits_per_day_sql
+            'hits_per_day': 'total_hits / extract(days from (now() '
+                            '- main_event.archive_time))',
+            'score': '(featured::int + 1) * total_hits'
+                     '/ extract(days from (now() - archive_time)) ^ 1.8',
         })
+        .select_related('event')
     )
 
     stats_total = (
