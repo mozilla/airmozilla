@@ -23,6 +23,7 @@
             {{ event.title }}
           </a>
         </h4>
+        {#
         {% if event.participants.exists() %}
           <p class="entry-summary featuring">
             {{ _('featuring ') }}
@@ -36,6 +37,7 @@
             {% endfor %}
           </p>
         {% endif %}
+        #}
         <p class="event-date">{{ event.start_time|js_date }}</p>
         <p class="entry-summary">{{ short_desc(event, strip_html=True) }}</p>
       </li>
