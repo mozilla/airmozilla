@@ -1,6 +1,9 @@
+import datetime
+
 from django.conf import settings
 from django.contrib.flatpages.models import FlatPage
 from django.db.models import Q
+from django.utils.timezone import utc
 
 from funfactory.urlresolvers import reverse
 
@@ -25,12 +28,20 @@ def sidebar(request):
         # used for things like {% if event.attr == Event.ATTR1 %}
         'Event': Event,
     }
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    yesterday = now - datetime.timedelta(days=1)
+    # subtract one second to not accidentally tip it
+    yesterday -= datetime.timedelta(seconds=1)
     featured = (
         EventHitStats.objects
-        .filter(event__archive_time__isnull=False)
+        .exclude(event__archive_time__isnull=True)
+        .filter(event__archive_time__lt=yesterday)
         .extra(
             select={
-                'score': '(featured::int + 1) * total_hits / extract(days from (now() - archive_time)) ^ 1.8'
+                # being 'featured' pretends the event has twice as
+                # many hits as actually does
+                'score': '(featured::int + 1) * total_hits'
+                         '/ extract(days from (now() - archive_time)) ^ 1.8',
             }
         )
         .select_related('event')

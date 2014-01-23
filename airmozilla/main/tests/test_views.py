@@ -27,7 +27,8 @@ from airmozilla.main.models import (
     Tag,
     UserProfile,
     Channel,
-    Location
+    Location,
+    EventHitStats
 )
 
 
@@ -1052,8 +1053,7 @@ class TestPages(TestCase):
 
         # because the third event is featured, we'll expect to see it
         # also in the sidebar
-        # ...but because it's in the alt text too, multiple by 2
-        eq_(response.content.count('Third test event'), 2 * 2)
+        eq_(response.content.count('Third test event'), 2)
 
         # because it's Upcoming
         ok_('Fourth test event' in response.content)
@@ -1073,8 +1073,8 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
         # featured but not this channel
         ok_('Test event' not in response.content)
-        # featured
-        ok_('Third test event' in response.content)
+        # featured but no event hits
+        ok_('Third test event' not in response.content)
         # upcoming
         ok_('Fourth test event' in response.content)
 
@@ -1270,38 +1270,6 @@ class TestPages(TestCase):
         url = reverse('main:event', args=(event.slug,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
-
-    def test_featured_but_actively_archived_not_in_sidebar(self):
-        # See https://bugzilla.mozilla.org/show_bug.cgi?id=809147
-        event = Event.objects.get(title='Test event')
-        event.featured = True
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
-        event.archive_time = now - datetime.timedelta(hours=1)
-        event.start_time = now - datetime.timedelta(hours=2)
-        event.save()
-
-        # if you go to a static page, the sidebar will be there and
-        # show the featured events
-        flatpage = FlatPage.objects.create(
-            url='/about',
-            title='About',
-            content='About this page',
-        )
-        flatpage.sites.add(Site.objects.get(id=settings.SITE_ID))
-        response = self.client.get('/about/')
-        assert response.status_code == 200, response.status_code
-        ok_('Test event' in response.content)
-        ok_(
-            reverse('main:event', args=(event.slug,))
-            in response.content
-        )
-
-        # now, let's pretend it's not archived for another hour
-        event.archive_time = now + datetime.timedelta(hours=1)
-        event.save()
-        response = self.client.get('/about/')
-        assert response.status_code == 200, response.status_code
-        ok_('Test event' not in response.content)
 
     def test_event_flatpage_fallback(self):
         flatpage = FlatPage.objects.create(
@@ -1625,3 +1593,99 @@ class TestPages(TestCase):
         ok_(stuff.name in content)
         ok_("One" in content)
         ok_("Two" in content)
+
+    def test_featured_in_sidebar(self):
+        # use the calendar page so that we only get events that appear
+        # in the side bar
+        url = reverse('main:calendar')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Trending' not in response.content)
+
+        # set up 3 events
+        event0 = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event1 = Event.objects.create(
+            title='1 Test Event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=3),
+            archive_time=now - datetime.timedelta(days=2),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event0.placeholder_img,
+        )
+        event1.channels.add(self.main_channel)
+        event2 = Event.objects.create(
+            title='2 Test Event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=4),
+            archive_time=now - datetime.timedelta(days=3),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event0.placeholder_img,
+        )
+        event2.channels.add(self.main_channel)
+        event3 = Event.objects.create(
+            title='3 Test Event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=5),
+            archive_time=now - datetime.timedelta(days=4),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event0.placeholder_img,
+        )
+        event3.channels.add(self.main_channel)
+
+        # now, we can expect all of these three to appear in the side bar
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # because they don't have any EventHitStats for these
+        ok_('Trending' not in response.content)
+        EventHitStats.objects.create(
+            event=event1,
+            total_hits=1000,
+            shortcode='abc123'
+        )
+        EventHitStats.objects.create(
+            event=event2,
+            total_hits=1000,
+            shortcode='xyz123'
+        )
+        stats3 = EventHitStats.objects.create(
+            event=event3,
+            total_hits=1000,
+            shortcode='xyz987'
+        )
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Trending' in response.content)
+        ok_(event1.title in response.content)
+        ok_(event2.title in response.content)
+        ok_(event3.title in response.content)
+        # event 1 is top-most because it's the youngest
+        ok_(
+            response.content.find(event1.title) <
+            response.content.find(event2.title) <
+            response.content.find(event3.title)
+        )
+
+        # boost event3 by making it featured
+        event3.featured = True
+        event3.save()
+        # event3 is 3 days old, has 1000 views, thus
+        # score = 2*1000 / 3 ^ 1.8 ~= 276
+        # but event2 is 2 days old and same number of view, thus
+        # score = 1000 / 2 ^ 1.8 ~= 287
+        # so, give event3 a couple more events
+        stats3.total_hits += 100
+        stats3.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # event 1 is top-most because it's the youngest
+        # but now event3 has gone up a bit
+        ok_(
+            response.content.find(event1.title) <
+            response.content.find(event3.title) <
+            response.content.find(event2.title)
+        )
