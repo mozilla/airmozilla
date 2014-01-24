@@ -4,7 +4,6 @@ import hashlib
 import hmac
 import urllib
 import os
-import sha
 import time
 
 from django import http
@@ -80,7 +79,7 @@ def sign(request):
     )
 
     signature = base64.encodestring(
-        hmac.new(AWS_SECRET_KEY, put_request, sha).digest()
+        hmac.new(AWS_SECRET_KEY, put_request, hashlib.sha1).digest()
     )
     signature = urllib.quote_plus(signature.strip())
 
