@@ -36,7 +36,8 @@ Uploads | {{ super() }}
   {% endif %}
 
   <tr>
-    <td>{{ truncate_chars(upload.file_name, 35) }}</td>
+    <td {% if upload.mime_type %}title="{{ upload.mime_type }}"{% endif %}
+      >{{ truncate_chars(upload.file_name, 35) }}</td>
     <td>{{ upload.size | filesizeformat }}</td>
     <td>{{ upload.created | js_date }}</td>
     <td>

@@ -96,6 +96,9 @@ def sign(request):
     )
     cache_key = 'file_name_%s' % hashlib.md5(url).hexdigest()
     cache.set(cache_key, file_name, 60 * 60)
+    cache_key = 'mime_type_%s' % hashlib.md5(url).hexdigest()
+    cache.set(cache_key, mime_type, 60 * 60)
+
     context['signed_request'] = signed_request
     return context
 
@@ -119,11 +122,15 @@ def save(request):
     if not file_name:
         file_name = os.path.basename(url)
 
+    cache_key = 'mime_type_%s' % hashlib.md5(url).hexdigest()
+    mime_type = cache.get(cache_key)
+
     new_upload = Upload.objects.create(
         user=request.user,
         url=url,
         size=size,
-        file_name=file_name
+        file_name=file_name,
+        mime_type=mime_type
     )
     messages.info(
         request,
