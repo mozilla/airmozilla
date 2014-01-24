@@ -117,7 +117,6 @@ var Comments = (function() {
 
     return {
         load: function(container, callback) {
-            console.log('LOAD');
             var req = $.getJSON(container.data('url'));
             req.then(function(response) {
                 if (!response.discussion.enabled) {
@@ -180,7 +179,6 @@ var Comments = (function() {
             var data = {since: since};
             var req = $.getJSON(container.data('reload-url'), data);
             req.then(function(response) {
-                console.log('New latest_comment', response.latest_comment);
                 if (response.latest_comment) {
                     since = response.latest_comment;
                     Comments.load(container);
@@ -190,7 +188,6 @@ var Comments = (function() {
                 console.warn('Error checking latest, so halt');
                 halt_reload_loop = true;
             });
-            console.log('SINCE=', since);
         },
         pause_loop: function() {
             pause_reload_loop = true;
