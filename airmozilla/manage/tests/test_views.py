@@ -2522,7 +2522,7 @@ class TestEventTweets(ManageTestCase):
             .split('>')[1]
             .split('</textarea')[0]
         )
-        ok_(textarea.startswith('Check out This!'))
+        ok_(textarea.strip().startswith('Check out This!'))
         event = Event.objects.get(pk=event.pk)
         event_url = 'http://testserver'
         event_url += reverse('main:event', args=(event.slug,))

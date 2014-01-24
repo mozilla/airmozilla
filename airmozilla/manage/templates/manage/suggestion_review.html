@@ -21,23 +21,81 @@
 
 
 {% block manage_content %}
-  {% set data = [
-    ('Title', event.title),
-    ('Slug', event.slug),
-    ('Placeholder image',
-     '<a href="{url}">View</a>'|fe(url=event.placeholder_img.url)),
-    ('Description', event.description),
-    ('Short description', event.short_description),
-    ('Start time', event.start_time|js_date),
-    ('Location', event.location),
-    ('Privacy', event.get_privacy_display()),
-    ('Category', event.category),
-    ('Additional links', event.additional_links and event.additional_links|urlize|nl2br or ''),
-    ('Remote presenters', event.remote_presenters and event.remote_presenters|urlize|nl2br or ''),
-    ('Creator', event.user.email),
-    ('First submitted', event.first_submitted|js_date),
-  ] -%}
   <table class="table">
+      <tr>
+        <td>Title</td>
+        <td>{{ event.title }}</td>
+      </tr>
+      <tr>
+        <td>Slug</td>
+        <td>{{ event.slug }}</td>
+      </tr>
+      <tr>
+        <td>Placeholder image</td>
+        <td><a href="{{ event.placeholder_img.url }}">View</a></td>
+      </tr>
+      <tr>
+        <td>Description</td>
+        <td>{{ event.description }}</td>
+      </tr>
+      <tr>
+        <td>Short description</td>
+        <td>{{ event.short_description }}</td>
+      </tr>
+      {% if event.upcoming %}
+      <tr>
+        <td>Start time</td>
+        <td>{{ event.start_time|js_date }}</td>
+      </tr>
+      <tr>
+        <td>Location</td>
+        <td>{{ event.location }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td>File Upload</td>
+        <td>
+          <table>
+            <tr>
+              <td>Name</td>
+              <td>{{ event.upload.file_name }}</td>
+            </tr>
+            <tr>
+              <td>Size</td>
+              <td>{{ event.upload.size | filesizeformat }}</td>
+            </tr>
+            <tr>
+              <td>URL</td>
+              <td><a href="{{ event.upload.url }}">Open</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td>Privacy</td>
+        <td>{{ event.get_privacy_display() }}</td>
+      </tr>
+      <tr>
+        <td>Category</td>
+        <td>{{ event.category }}</td>
+      </tr>
+      <tr>
+        <td>Additional links</td>
+        <td>{{ event.additional_links and event.additional_links|urlize|nl2br or '' }}</td>
+      </tr>
+      <tr>
+        <td>Remote presenters</td>
+        <td>{{ event.remote_presenters and event.remote_presenters|urlize|nl2br or '' }}</td>
+      </tr>
+      <tr>
+        <td>Creator</td>
+        <td><a href="mailto:{{ event.user.email }}">{{ event.user.email }}</a></td>
+      </tr>
+      <tr>
+        <td>Submitted</td>
+        <td>{{ event.first_submitted | js_date }}</td>
+      </tr>
     {% for row in data %}
       <tr>
         <td>{{ row[0] }}</td>

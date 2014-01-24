@@ -47,7 +47,8 @@ def user_profile_clear_cache(sender, instance, **kwargs):
 def get_profile_safely(user, create_if_necessary=False):
     try:
         return user.get_profile()
-    except UserProfile.DoesNotExist:
+    except (UserProfile.DoesNotExist, AttributeError):
+        # AttributeErrors happen if user is instance of AnonymousUser
         if create_if_necessary:
             return UserProfile.objects.create(user=user)
 
@@ -354,9 +355,15 @@ class Event(models.Model):
 class SuggestedEvent(models.Model):
     user = models.ForeignKey(User)
     title = models.CharField(max_length=200)
+    upcoming = models.BooleanField(default=True)
     slug = models.SlugField(blank=True, max_length=215, unique=True,
                             db_index=True)
     placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
+    upload = models.ForeignKey(
+        'uploads.Upload',
+        null=True,
+        related_name='upload'
+    )
     description = models.TextField()
     short_description = models.TextField(
         blank=True,

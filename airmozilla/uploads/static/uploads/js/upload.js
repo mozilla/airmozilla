@@ -40,8 +40,16 @@ $(function() {
                           csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val()
                       };
                       $.post(save_url, params)
-                        .then(function() {
+                        .then(function(response) {
                             $('.post-save', form).show();
+                            if (response.suggested_event) {
+                                $('.post-save .suggested-event a')
+                                  .attr('href', response.suggested_event.url)
+                                  .text(response.suggested_event.title);
+                                $('.post-save .suggested-event').show();
+                            } else {
+                                $('.post-save .suggested-event').hide();
+                            }
                         }).fail(function() {
                             $('#status').text('Unable to save the upload.');
                         }).always(function() {

@@ -27,3 +27,15 @@ table.suggestions th {
     display: none;
     margin-top: 15px;
 }
+
+h2.add-event {
+    display: none;
+}
+
+.controls li label, .controls li {
+    display: inline;
+}
+
+.controls li input[type="radio"] {
+    width: 50px;
+}

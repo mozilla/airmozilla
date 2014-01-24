@@ -1,0 +1,20 @@
+.controls li input[type="radio"] {
+    width: 20px;
+}
+
+.controls li {
+    margin: 2px 10px;
+    border-bottom: 1px solid #666;
+}
+
+.controls li .metadata {
+    font-size:80%;
+    padding-left: 32px
+}
+
+li.selected {
+    background-color: #333;
+}
+li.selected label {
+    font-weight: bold;
+}

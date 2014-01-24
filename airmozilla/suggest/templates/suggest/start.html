@@ -47,6 +47,9 @@ Request | {{ super() }}
   <tr>
     <td>
       <a href="{{ next_url(event) }}">{{ event.title }}</a>
+      {% if not event.upcoming %}
+      (pre-recorded)
+      {% endif %}
     </td>
     <td>
       {{ state_description(event) }}
@@ -81,7 +84,8 @@ Request | {{ super() }}
 {% endfor %}
 
 
-  <h2 class="section-title">Schedule an Event</h2>
+  <h2 class="section-title schedule-event">Schedule an Event</h2>
+  <h2 class="section-title add-event">Add an Event</h2>
   <h3 class="section-sub-title">What are you going to call it?</h3>
 
   {% include 'suggest/_default_form.html' %}

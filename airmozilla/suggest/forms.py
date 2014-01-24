@@ -1,6 +1,10 @@
 from django import forms
 from django.template.defaultfilters import slugify
 from django.conf import settings
+from django.template.defaultfilters import filesizeformat
+from django.utils.timesince import timesince
+from django.utils.safestring import mark_safe
+from django.db.models import Q
 
 from airmozilla.base.forms import BaseModelForm
 from airmozilla.main.models import (
@@ -10,17 +14,22 @@ from airmozilla.main.models import (
     Channel,
     SuggestedEventComment
 )
+from airmozilla.uploads.models import Upload
 
 
 class StartForm(BaseModelForm):
 
     class Meta:
         model = SuggestedEvent
-        fields = ('title',)
+        fields = ('title', 'upcoming')
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super(StartForm, self).__init__(*args, **kwargs)
+        self.fields['upcoming'].label = ''
+        self.fields['upcoming'].widget = forms.widgets.RadioSelect(
+            choices=[(True, 'Upcoming'), (False, 'Pre-recorded')]
+        )
 
     def clean_title(self):
         value = self.cleaned_data['title']
@@ -60,6 +69,41 @@ class TitleForm(BaseModelForm):
                 if Event.objects.filter(slug=cleaned_data['slug']):
                     raise forms.ValidationError('Slug already taken')
         return cleaned_data
+
+
+class ChooseFileForm(BaseModelForm):
+
+    class Meta:
+        model = SuggestedEvent
+        fields = ('upload',)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super(ChooseFileForm, self).__init__(*args, **kwargs)
+        this_or_nothing = (
+            Q(suggested_event__isnull=True) |
+            Q(suggested_event=self.instance)
+        )
+        uploads = (
+            Upload.objects
+            .filter(user=self.user)
+            .filter(this_or_nothing)
+            .order_by('created')
+        )
+        self.fields['upload'].widget = forms.widgets.RadioSelect(
+            choices=[(x.pk, self.describe_upload(x)) for x in uploads]
+        )
+
+    @staticmethod
+    def describe_upload(upload):
+        html = (
+            '%s <br><span class="metadata">(%s) uploaded %s ago</span>' % (
+                upload.file_name,
+                filesizeformat(upload.size),
+                timesince(upload.created)
+            )
+        )
+        return mark_safe(html)
 
 
 class DescriptionForm(BaseModelForm):
@@ -108,8 +152,19 @@ class DetailsForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         super(DetailsForm, self).__init__(*args, **kwargs)
         self.fields['channels'].required = False
-        self.fields['location'].required = True
-        self.fields['start_time'].required = True
+        if not self.instance.upcoming:
+            del self.fields['location']
+            del self.fields['start_time']
+        else:
+            self.fields['location'].required = True
+            self.fields['start_time'].required = True
+            self.fields['location'].help_text = (
+                "Choose an Air Mozilla origination point. &lt;br&gt;"
+                "If the location of your event isn't on the list, "
+                "choose Live Remote.  &lt;br&gt;"
+                "Note that live remote dates and times are UTC."
+            )
+
         if 'instance' in kwargs:
             event = kwargs['instance']
             if event.pk:
@@ -117,12 +172,6 @@ class DetailsForm(BaseModelForm):
                 tags_formatted = tag_format(event.tags.all())
                 self.initial['tags'] = tags_formatted
 
-        self.fields['location'].help_text = (
-            "Choose an Air Mozilla origination point. &lt;br&gt;"
-            "If the location of your event isn't on the list, "
-            "choose Live Remote.  &lt;br&gt;"
-            "Note that live remote dates and times are UTC."
-        )
         self.fields['tags'].help_text = (
             "Enter some keywords to help viewers find the recording of your "
             "event. &lt;br&gt;Press return between keywords"
@@ -156,9 +205,7 @@ class DetailsForm(BaseModelForm):
     def clean_channels(self):
         channels = self.cleaned_data['channels']
         if not channels:
-            channels.append(
-                Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
-            )
+            return Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG)
         return channels
 
 

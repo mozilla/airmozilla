@@ -21,8 +21,10 @@ from airmozilla.main.models import (
     SuggestedEvent,
     Event,
     Channel,
-    SuggestedEventComment
+    SuggestedEventComment,
+    Location
 )
+from airmozilla.uploads.models import Upload
 from airmozilla.base.utils import tz_apply
 
 from . import forms
@@ -55,13 +57,27 @@ def start(request):
             event = SuggestedEvent.objects.create(
                 user=request.user,
                 title=form.cleaned_data['title'],
+                upcoming=form.cleaned_data['upcoming'],
                 slug=slug,
             )
+            if not event.upcoming:
+                cyberspace, __ = Location.objects.get_or_create(
+                    name='Cyberspace',
+                    timezone='UTC'
+                )
+                event.location = cyberspace
+                now = datetime.datetime.utcnow().replace(tzinfo=utc)
+                event.start_time = now
+                event.save()
             event.channels.add(
                 Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
             )
             # XXX use next_url() instead?
-            url = reverse('suggest:description', args=(event.pk,))
+            if event.upcoming:
+                url = reverse('suggest:description', args=(event.pk,))
+            else:
+                request.session['active_suggested_event'] = event.pk
+                url = reverse('suggest:file', args=(event.pk,))
             return redirect(url)
     else:
         form = forms.StartForm(user=request.user)
@@ -96,6 +112,60 @@ def title(request, id):
 
     data = {'form': form, 'event': event}
     return render(request, 'suggest/title.html', data)
+
+
+@login_required
+@transaction.commit_on_success
+def choose_file(request, id):
+    event = get_object_or_404(SuggestedEvent, pk=id)
+    if event.user != request.user:
+        return http.HttpResponseBadRequest('Not your event')
+    if event.upcoming:
+        return redirect(reverse('suggest:description', args=(event.pk,)))
+
+    if request.method == 'POST':
+        form = forms.ChooseFileForm(
+            request.POST,
+            user=request.user,
+            instance=event
+        )
+        if form.is_valid():
+            event = form.save()
+            event.upload.suggested_event = event
+            event.upload.save()
+            # did any *other* upload belong to this suggested event?
+            other_uploads = (
+                Upload.objects
+                .filter(suggested_event=event)
+                .exclude(pk=event.upload.pk)
+            )
+            for upload in other_uploads:
+                upload.suggested_event = None
+                upload.save()
+            if request.session.get('active_suggested_event'):
+                del request.session['active_suggested_event']
+            # XXX use next_url() instead?
+            url = reverse('suggest:description', args=(event.pk,))
+            return redirect(url)
+    else:
+        initial = {}
+        if request.GET.get('upload'):
+            try:
+                upload = Upload.objects.get(
+                    pk=request.GET['upload'],
+                    user=request.user
+                )
+                initial['upload'] = upload.pk
+            except Upload.DoesNotExist:
+                pass
+        form = forms.ChooseFileForm(
+            user=request.user,
+            instance=event,
+            initial=initial
+        )
+
+    data = {'form': form, 'event': event}
+    return render(request, 'suggest/file.html', data)
 
 
 @login_required

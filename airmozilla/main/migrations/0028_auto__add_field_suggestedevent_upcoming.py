@@ -7,29 +7,16 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
-    depends_on = (
-        ("main", "0001_initial"),
-    )
-
-
     def forwards(self, orm):
-        # Adding model 'Upload'
-        db.create_table('uploads_upload', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('url', self.gf('django.db.models.fields.URLField')(max_length=400)),
-            ('file_name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
-            ('size', self.gf('django.db.models.fields.IntegerField')()),
-            ('suggested_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.SuggestedEvent'], null=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal('uploads', ['Upload'])
+        # Adding field 'SuggestedEvent.upcoming'
+        db.add_column('main_suggestedevent', 'upcoming',
+                      self.gf('django.db.models.fields.BooleanField')(default=True),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'Upload'
-        db.delete_table('uploads_upload')
+        # Deleting field 'SuggestedEvent.upcoming'
+        db.delete_column('main_suggestedevent', 'upcoming')
 
 
     models = {
@@ -69,6 +56,17 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        'main.approval': {
+            'Meta': {'object_name': 'Approval'},
+            'approved': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
+            'comment': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']"}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.Group']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'processed': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
+            'processed_time': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'})
+        },
         'main.category': {
             'Meta': {'ordering': "['name']", 'object_name': 'Category'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -76,7 +74,7 @@ class Migration(SchemaMigration):
         },
         'main.channel': {
             'Meta': {'ordering': "['name']", 'object_name': 'Channel'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 1, 14, 0, 0)'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 1, 23, 0, 0)'}),
             'description': ('django.db.models.fields.TextField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'image': ('sorl.thumbnail.fields.ImageField', [], {'max_length': '100', 'blank': 'True'}),
@@ -115,6 +113,32 @@ class Migration(SchemaMigration):
             'template_environment': ('airmozilla.main.fields.EnvironmentField', [], {'blank': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         },
+        'main.eventhitstats': {
+            'Meta': {'object_name': 'EventHitStats'},
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']", 'unique': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 1, 23, 0, 0)'}),
+            'shortcode': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'total_hits': ('django.db.models.fields.IntegerField', [], {})
+        },
+        'main.eventoldslug': {
+            'Meta': {'object_name': 'EventOldSlug'},
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '215'})
+        },
+        'main.eventtweet': {
+            'Meta': {'object_name': 'EventTweet'},
+            'creator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
+            'error': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'include_placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'send_date': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 1, 23, 0, 0)'}),
+            'sent_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'text': ('django.db.models.fields.CharField', [], {'max_length': '140'}),
+            'tweet_id': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'})
+        },
         'main.location': {
             'Meta': {'object_name': 'Location'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -146,7 +170,7 @@ class Migration(SchemaMigration):
             'call_info': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Category']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'channels': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['main.Channel']", 'symmetrical': 'False'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 1, 14, 0, 0)'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 1, 23, 0, 0)'}),
             'description': ('django.db.models.fields.TextField', [], {}),
             'featured': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'first_submitted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
@@ -164,7 +188,16 @@ class Migration(SchemaMigration):
             'submitted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'tags': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['main.Tag']", 'symmetrical': 'False', 'blank': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'upcoming': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+        },
+        'main.suggestedeventcomment': {
+            'Meta': {'object_name': 'SuggestedEventComment'},
+            'comment': ('django.db.models.fields.TextField', [], {}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 1, 23, 0, 0)'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'suggested_event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.SuggestedEvent']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'})
         },
         'main.tag': {
             'Meta': {'object_name': 'Tag'},
@@ -177,17 +210,40 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        'uploads.upload': {
-            'Meta': {'object_name': 'Upload'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'file_name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+        'main.urlmatch': {
+            'Meta': {'object_name': 'URLMatch'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'size': ('django.db.models.fields.IntegerField', [], {}),
-            'suggested_event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.SuggestedEvent']", 'null': 'True'}),
-            'url': ('django.db.models.fields.URLField', [], {'max_length': '400'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'string': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'use_count': ('django.db.models.fields.IntegerField', [], {'default': '0'})
+        },
+        'main.urltransform': {
+            'Meta': {'object_name': 'URLTransform'},
+            'find': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'match': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.URLMatch']"}),
+            'order': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
+            'replace_with': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+        },
+        'main.userprofile': {
+            'Meta': {'object_name': 'UserProfile'},
+            'contributor': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+        },
+        'main.vidlysubmission': {
+            'Meta': {'object_name': 'VidlySubmission'},
+            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'null': 'True', 'blank': 'True'}),
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']"}),
+            'hd': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'submission_error': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'submission_time': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 1, 23, 0, 0)'}),
+            'tag': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'token_protection': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'url': ('django.db.models.fields.URLField', [], {'max_length': '200'})
         }
     }
 
-    complete_apps = ['uploads']
+    complete_apps = ['main']

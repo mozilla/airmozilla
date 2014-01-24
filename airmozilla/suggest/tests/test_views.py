@@ -19,6 +19,7 @@ from airmozilla.main.models import (
     Category,
     Tag
 )
+from airmozilla.uploads.models import Upload
 
 
 class TestPages(TestCase):
@@ -28,6 +29,10 @@ class TestPages(TestCase):
     def setUp(self):
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
+        self.cyberspace = Location.objects.create(
+            name='Cyberspace',
+            timezone='UTC'
+        )
 
     def _make_suggested_event(self,
                               title="Cool O'Title",
@@ -84,12 +89,37 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
-        response = self.client.post(url, {'title': 'A New World'})
+        response = self.client.post(url, {
+            'title': 'A New World',
+            'upcoming': True
+        })
         eq_(response.status_code, 302)
 
         event = SuggestedEvent.objects.get(title='A New World')
         url = reverse('suggest:description', args=(event.pk,))
+        ok_(event.upcoming)
         eq_(event.slug, 'a-new-world')
+        ok_(not event.start_time)
+        self.assertRedirects(response, url)
+
+    def test_start_pre_recorded(self):
+        url = reverse('suggest:start')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        response = self.client.post(url, {
+            'title': 'A New World',
+            'upcoming': False
+        })
+        eq_(response.status_code, 302)
+
+        event = SuggestedEvent.objects.get(title='A New World')
+        url = reverse('suggest:file', args=(event.pk,))
+        ok_(not event.upcoming)
+        eq_(event.slug, 'a-new-world')
+        ok_(event.start_time)
+        eq_(event.location.name, self.cyberspace.name)
+        eq_(event.location.timezone, self.cyberspace.timezone)
         self.assertRedirects(response, url)
 
     def test_start_duplicate_slug(self):
@@ -97,7 +127,10 @@ class TestPages(TestCase):
         event.title = 'Some Other Title'
         event.save()
         url = reverse('suggest:start')
-        response = self.client.post(url, {'title': 'TEST Event'})
+        response = self.client.post(url, {
+            'title': 'TEST Event',
+            'upcoming': True
+        })
         eq_(response.status_code, 302)
         suggested_event, = SuggestedEvent.objects.all()
         today = datetime.datetime.utcnow()
@@ -245,6 +278,128 @@ class TestPages(TestCase):
         url = reverse('suggest:delete', args=(event.pk,))
         response = self.client.post(url)
         eq_(response.status_code, 400)
+
+    def test_file(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+        )
+        assert event.upcoming
+        url = reverse('suggest:file', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        # you have no business here on an upcoming event
+        self.assertRedirects(
+            response,
+            reverse('suggest:description', args=(event.pk,))
+        )
+        event.upcoming = False
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = now
+        event.location = self.cyberspace
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # expect a link to the upload history page
+        uploads_url = reverse('uploads:home')
+        ok_(uploads_url in response.content)
+
+    def test_file_not_your_suggested_event(self):
+        event = SuggestedEvent.objects.create(
+            user=User.objects.create(username='someoneelse'),
+            title='Cool Title',
+            slug='cool-title',
+        )
+        url = reverse('suggest:file', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+    def test_file_with_uploads_to_choose(self):
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            upcoming=False,
+            location=self.cyberspace,
+            start_time=now
+        )
+        other_event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Other Title',
+            slug='other-title',
+            upcoming=False,
+            location=self.cyberspace,
+            start_time=now
+        )
+
+        # make some uploads
+        upload1 = Upload.objects.create(
+            user=self.user,
+            url='http://1',
+            file_name='File 1',
+            size=1000000
+        )
+        Upload.objects.create(
+            user=User.objects.create(username='someoneelse'),
+            url='http://1',
+            file_name='File 2',
+            size=1000000
+        )
+        Upload.objects.create(
+            user=self.user,
+            url='http://1',
+            file_name='File 3',
+            size=1000000,
+            suggested_event=other_event
+        )
+        upload4 = Upload.objects.create(
+            user=self.user,
+            url='http://1',
+            file_name='File 4',
+            size=1000000,
+        )
+
+        url = reverse('suggest:file', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('File 1' in response.content)
+        ok_('File 4' in response.content)
+        # someone elses
+        ok_('File 2' not in response.content)
+        # busy
+        ok_('File 3' not in response.content)
+
+        response = self.client.post(url, {
+            'upload': upload1.pk
+        })
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('suggest:description', args=(event.pk,))
+        )
+
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(event.upload, upload1)
+
+        upload1 = Upload.objects.get(pk=upload1.pk)
+        eq_(upload1.suggested_event, event)
+
+        # let's say we change our minds
+        response = self.client.post(url, {
+            'upload': upload4.pk
+        })
+        eq_(response.status_code, 302)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(event.upload, upload4)
+
+        upload1 = Upload.objects.get(pk=upload1.pk)
+        eq_(upload1.suggested_event, None)
+
+        upload4 = Upload.objects.get(pk=upload4.pk)
+        eq_(upload4.suggested_event, event)
 
     def test_description(self):
         event = SuggestedEvent.objects.create(

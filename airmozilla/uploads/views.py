@@ -17,11 +17,12 @@ from django.core.cache import cache
 from django.conf import settings
 
 import requests
+from funfactory.urlresolvers import reverse
 
 from airmozilla.base.utils import (
     json_view
 )
-
+from airmozilla.main.models import SuggestedEvent
 from .models import Upload
 
 
@@ -129,7 +130,17 @@ def save(request):
         request,
         'Upload saved.'
     )
-    return {'id': new_upload.pk}
+    context = {'id': new_upload.pk}
+    if request.session.get('active_suggested_event'):
+        event_id = request.session['active_suggested_event']
+        event = SuggestedEvent.objects.get(pk=event_id)
+        next_url = reverse('suggest:file', args=(event_id,))
+        next_url += '?upload=%s' % new_upload.pk
+        context['suggested_event'] = {
+            'url': next_url,
+            'title': event.title
+        }
+    return context
 
 
 @json_view

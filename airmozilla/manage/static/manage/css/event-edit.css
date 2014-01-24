@@ -14,3 +14,12 @@ label small {
 .suggested-event-comments .comment-text {
     font-style: italic;
 }
+
+table.suggested-event-upload th {
+    text-align: left;
+    vertical-align: top;
+    padding-left: 5px;
+}
+table.suggested-event-upload .file-name {
+    font-size: 80%;
+}

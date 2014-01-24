@@ -5,8 +5,12 @@ input[type="file"] {
 .in-progress,
 .mid-progress,
 .post-progress,
-.post-save {
+.post-save,
+.post-save .suggested-event {
     display: none;
+}
+.suggested-event a {
+    font-weight: bold;
 }
 
 /* Inspired by http://www.hongkiat.com/blog/html5-progress-bar/ */

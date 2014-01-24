@@ -27,16 +27,18 @@ Event summary | {{ super() }}
           {% else %}
           This event is
 	  <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.<br>
-          {% if event.start_time != event.accepted.start_time %}
-            <b>Note!</b><br>
-            The <b>scheduled time</b> is different from what you requested. The scheduled time is:
-            <b>{{ event.accepted.location_time.strftime('%d %B %Y - %H:%M') }}</b>
-            ({{ event.accepted.start_time|js_date }}).<br>
-          {% endif %}
-          {% if event.location != event.accepted.location %}
-            <b>Note!</b><br>
-            The <b>scheduled location</b> is different from what you requested. The scheduled location is:
-            <b>{{ event.accepted.location.name }}</b>.
+          {% if event.upcoming %}
+            {% if event.start_time != event.accepted.start_time %}
+              <b>Note!</b><br>
+              The <b>scheduled time</b> is different from what you requested. The scheduled time is:
+              <b>{{ event.accepted.location_time.strftime('%d %B %Y - %H:%M') }}</b>
+              ({{ event.accepted.start_time|js_date }}).<br>
+            {% endif %}
+            {% if event.location != event.accepted.location %}
+              <b>Note!</b><br>
+              The <b>scheduled location</b> is different from what you requested. The scheduled location is:
+              <b>{{ event.accepted.location.name }}</b>.
+            {% endif %}
           {% endif %}
 
           {% endif %}
@@ -104,6 +106,7 @@ Event summary | {{ super() }}
       <td colspan="2" class="edit-link"><a href="{{ url('suggest:details', event.pk) }}">Change details</a></td>
     </tr>
     {% endif %}
+    {% if event.upcoming %}
     <tr>
       <th>Location</th>
       <td>{{ event.location }} ({{ event.location.timezone }})</td>
@@ -113,6 +116,7 @@ Event summary | {{ super() }}
       <td>{{ event.location_time.strftime('%d %B %Y - %H:%M') }}
           ({{ event.start_time|js_date }})</td>
     </tr>
+    {% endif %}
     <tr>
       <th>Privacy</th>
       <td>{{ event.get_privacy_display() }}</td>

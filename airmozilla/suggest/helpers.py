@@ -96,6 +96,14 @@ def breadcrumbs(event):
         'available': True,
     })
 
+    # file
+    if not event.upcoming:
+        links.append({
+            'url': reverse('suggest:file', args=(event.pk,)),
+            'description': 'File',
+            'available': True,
+        })
+
     available = state['view'] != 'suggest:description'
     # description
     links.append({
