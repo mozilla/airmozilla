@@ -36,7 +36,7 @@ Uploads | {{ super() }}
   {% endif %}
 
   <tr>
-    <td>{{ upload.file_name | truncate(35) }}</td>
+    <td>{{ truncate_chars(upload.file_name, 35) }}</td>
     <td>{{ upload.size | filesizeformat }}</td>
     <td>{{ upload.created | js_date }}</td>
     <td>

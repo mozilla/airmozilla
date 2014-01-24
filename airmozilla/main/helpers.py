@@ -56,6 +56,14 @@ def truncate_words(text, words):
 
 
 @register.function
+def truncate_chars(text, chars):
+    assert chars > 4, chars
+    if len(text) > chars:
+        text = '%s...' % text[:chars - 3].strip()
+    return text
+
+
+@register.function
 def thumbnail(filename, geometry, **options):
     try:
         return get_thumbnail(filename, geometry, **options)

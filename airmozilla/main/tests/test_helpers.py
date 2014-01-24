@@ -11,7 +11,8 @@ from airmozilla.main.helpers import (
     get_thumbnail,
     pluralize,
     short_desc,
-    truncate_words
+    truncate_words,
+    truncate_chars
 )
 
 
@@ -119,3 +120,18 @@ class TestTruncation(TestCase):
     def test_truncate_words(self):
         result = truncate_words('peter Bengtsson', 1)
         eq_(result, 'peter...')
+
+    def test_truncate_chars(self):
+        result = truncate_chars('peter bengtsson', 11)
+        eq_(result, 'peter be...')
+        result = truncate_chars('peter bengtsson', 10)
+        eq_(result, 'peter b...')
+        result = truncate_chars('peter bengtsson', 9)
+        eq_(result, 'peter...')
+
+    def test_truncate_chars_too_short(self):
+        self.assertRaises(
+            AssertionError,
+            truncate_chars,
+            'peter', 4
+        )
