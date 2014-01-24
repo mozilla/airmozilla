@@ -6,7 +6,13 @@ from nose.tools import eq_
 from django.test import TestCase
 from django.conf import settings
 from django.db.utils import IntegrityError
-from airmozilla.main.helpers import thumbnail, get_thumbnail, pluralize
+from airmozilla.main.helpers import (
+    thumbnail,
+    get_thumbnail,
+    pluralize,
+    short_desc,
+    truncate_words
+)
 
 
 class TestThumbnailHelper(TestCase):
@@ -65,3 +71,51 @@ class TestPluralizer(TestCase):
         eq_(pluralize(1, 'ies'), '')
         eq_(pluralize(0, 'ies'), 'ies')
         eq_(pluralize(2, 'ies'), 'ies')
+
+
+class FauxEvent(object):
+    def __init__(self, description, short_description):
+        self.description = description
+        self.short_description = short_description
+
+
+class TestTruncation(TestCase):
+
+    def test_short_desc(self):
+        event = FauxEvent(
+            'Some Long Description',
+            'Some Short Description'
+        )
+        result = short_desc(event)
+        eq_(result, 'Some Short Description')
+
+        # no short description
+        event = FauxEvent(
+            'Some Long Description',
+            ''
+        )
+        result = short_desc(event)
+        eq_(result, 'Some Long Description')
+
+    def test_strip_description_html(self):
+        event = FauxEvent(
+            'Hacking with <script>alert(xss)</script>',
+            ''
+        )
+        result = short_desc(event)
+        eq_(result, 'Hacking with <script>alert(xss)</script>')
+
+        result = short_desc(event, strip_html=True)
+        eq_(result, 'Hacking with')
+
+    def test_truncated_short_description(self):
+        event = FauxEvent(
+            'Word ' * 50,
+            ''
+        )
+        result = short_desc(event, words=10)
+        eq_(result, ('Word ' * 10).strip() + '...')
+
+    def test_truncate_words(self):
+        result = truncate_words('peter Bengtsson', 1)
+        eq_(result, 'peter...')

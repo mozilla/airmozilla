@@ -4,7 +4,7 @@ import datetime
 import urllib
 import jinja2
 
-from django.utils.text import truncate_words as _truncate_words
+from django.utils.text import Truncator
 from django.utils.timezone import utc
 from django.db.utils import IntegrityError
 from django.contrib.sites.models import RequestSite
@@ -47,12 +47,12 @@ def short_desc(event, words=25, strip_html=False):
     description = event.description
     if strip_html:
         description = html_to_text(description)
-    return _truncate_words(description, words)
+    return Truncator(description).words(words)
 
 
 @register.function
-def truncate_words(*args, **kwargs):
-    return _truncate_words(*args, **kwargs)
+def truncate_words(text, words):
+    return Truncator(text).words(words)
 
 
 @register.function
