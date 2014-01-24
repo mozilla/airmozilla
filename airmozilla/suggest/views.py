@@ -78,9 +78,22 @@ def start(request):
             else:
                 request.session['active_suggested_event'] = event.pk
                 url = reverse('suggest:file', args=(event.pk,))
+                if request.session.get('active_upload'):
+                    url += '?upload=%s' % request.session['active_upload']
             return redirect(url)
     else:
-        form = forms.StartForm(user=request.user)
+        initial = {}
+        if request.GET.get('upload'):
+            try:
+                upload = Upload.objects.get(
+                    pk=request.GET['upload'],
+                    user=request.user
+                )
+                initial['upcoming'] = False
+                request.session['active_upload'] = upload.pk
+            except Upload.DoesNotExist:
+                pass
+        form = forms.StartForm(user=request.user, initial=initial)
 
         data['suggestions'] = (
             SuggestedEvent.objects

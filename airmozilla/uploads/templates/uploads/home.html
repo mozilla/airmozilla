@@ -44,7 +44,7 @@ Uploads | {{ super() }}
     {% if upload.suggested_event %}
       <a href="{{ url('suggest:summary', upload.suggested_event.pk) }}">"{{ upload.suggested_event.title }}"</a>
     {% else %}
-      <a href="{{ url('suggest:start') }}?file_upload={{ upload.id }}">Request Event</a>
+      <a href="{{ url('suggest:start') }}?upload={{ upload.pk }}">Request Event</a>
     {% endif %}
     </td>
   </tr>
