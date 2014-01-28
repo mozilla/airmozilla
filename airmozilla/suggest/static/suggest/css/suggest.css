@@ -11,10 +11,12 @@
 .ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
 
 
-form.suggest input,
+
+form.suggest input[type="text"],
 form.suggest textarea {
     width: 100%;
 }
+
 
 .form-actions {
     float: right;
@@ -41,6 +43,6 @@ textarea#id_short_description {
     color: red;
 }
 
-.alert-error h4 {
+.alert-danger h4 {
     color: rgb(60, 60, 60);
 }

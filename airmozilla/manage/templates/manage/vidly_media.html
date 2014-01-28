@@ -15,7 +15,7 @@
 {% block site_css %}
   {{ super() }}
   <style>
-  th.buttons, td.buttons { width: 250px; }
+  th.buttons, td.buttons { width: 280px; }
   form.resubmit { display: none; }
   div.info { display: none; }
   </style>
@@ -39,7 +39,7 @@
 
 <div class="info">
 <p style="text-align:right">
-  <button class="btn btn-mini close-info">&times; close</button>
+  <button class="btn btn-xs close-info">&times; close</button>
 </p>
 <table class="table table-bordered">
 
@@ -81,16 +81,16 @@
           <span data-id="{{ event.pk }}" class="label">Finding out</span>
         </td>
         <td class="buttons">
-          <button name="resubmit" class="btn btn-mini" value="{{ event.pk }}">
-            <i class="icon-repeat"></i>
+          <button name="resubmit" class="btn btn-default btn-xs" value="{{ event.pk }}">
+            <i class="glyphicon glyphicon-repeat"></i>
             Re-submit
           </button>
-          <button name="info" class="btn btn-mini" value="{{ event.pk }}">
-            <i class="icon-search"></i>
+          <button name="info" class="btn btn-default btn-xs" value="{{ event.pk }}">
+            <i class="glyphicon glyphicon-search"></i>
             Show info
           </button>
-          <button name="refresh" class="btn btn-mini" value="{{ event.pk }}">
-            <i class="icon-refresh"></i>
+          <button name="refresh" class="btn btn-default btn-xs" value="{{ event.pk }}">
+            <i class="glyphicon glyphicon-refresh"></i>
             Refresh
           </button>
         </td>

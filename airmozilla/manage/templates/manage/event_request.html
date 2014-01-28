@@ -15,9 +15,12 @@
   {{ super() }}
   {% compress css %}
   <link href="{{ static('manage/css/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('manage/css/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
   <link href="{{ static('manage/css/jquery-ui-1.10.1.custom.min.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 {% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
   {% set submit_text = 'Save and Submit' %}

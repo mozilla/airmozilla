@@ -56,8 +56,8 @@
       <tr>
         <td><a href="{{ url('main:event', stat.event.slug) }}" title="{{ stat.event.title }}">{{ truncate_words(stat.event.title, 10) }}</a></td>
 	<td>
-          <a href="{{ url('manage:event_edit', stat.event.pk) }}" class="btn btn-mini">
-            <i class="icon-edit"></i> Edit
+          <a href="{{ url('manage:event_edit', stat.event.pk) }}" class="btn btn-default tn-xs">
+            <i class="glyphicon glyphicon-edit"></i> Edit
           </a>
 	</td>
         <td class="total_hits">

@@ -44,8 +44,8 @@
             </td>
             <td>{{ u.last_login|js_date }}</td>
             <td>{{ 'Yes' if u.is_staff else 'No' }}</td>
-            <td><a href="{{ url('manage:user_edit', u.id) }} " class="btn btn-small">
-                <i class="icon-edit"></i>
+            <td><a href="{{ url('manage:user_edit', u.id) }} " class="btn btn-default btn-sm">
+                <i class="glyphicon glyphicon-edit"></i>
                 Edit
                 </a>
             </td>
@@ -65,8 +65,8 @@
     <form class="well form-search">
         Find user:
         {{ bootstrapform(form) }}
-        <button type="submit" class="btn">
-            <i class="icon-search"></i>
+        <button type="submit" class="btn btn-primary">
+            <i class="glyphicon glyphicon-search"></i>
             Search
         </button>
     </form>

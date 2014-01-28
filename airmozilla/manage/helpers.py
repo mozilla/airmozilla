@@ -10,6 +10,8 @@ from django.template.loader import get_template
 from django.conf import settings
 from django.utils.timesince import timesince as _timesince
 
+from bootstrapform.templatetags.bootstrap import bootstrap_horizontal
+
 from airmozilla.main.models import Event, EventOldSlug
 from airmozilla.comments.models import Comment
 
@@ -19,6 +21,11 @@ def bootstrapform(form):
     template = get_template("bootstrapform/form.html")
     context = Context({'form': form})
     return template.render(context)
+
+
+@register.function
+def bootstrapform_horizontal(form):
+    return bootstrap_horizontal(form, 'col-sm-2 col-lg-2')
 
 
 @register.function

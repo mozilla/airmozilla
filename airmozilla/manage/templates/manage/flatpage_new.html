@@ -1,17 +1,5 @@
-{% extends 'manage/flatpages.html' %}
+{% extends 'manage/flatpage_edit.html' %}
 
 {% block manage_title %}
   New static page
-{% endblock %}
-
-{% block manage_content %}
-  {% include 'manage/_default_form.html' %}
-  {% include 'manage/_about_sidebar_slugs.html' %}
-{% endblock %}
-
-{% block site_js %}
-  {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/flatpage-edit.js') }}"></script>
-  {% endcompress %}
 {% endblock %}

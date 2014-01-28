@@ -21,6 +21,7 @@
   {% endcompress %}
 {% endblock %}
 
+{% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
   <input type="hidden" name="event_edit_url" value="{{ url('manage:event_edit', event.pk) }}">

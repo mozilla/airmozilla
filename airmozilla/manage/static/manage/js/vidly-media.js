@@ -14,7 +14,7 @@ function qAjax(options) {
 function reset_label($element) {
     $element
       .removeClass('label-success')
-      .removeClass('label-important')
+      .removeClass('label-danger')
       .removeClass('label-warning')
       .removeClass('label-info')
       .removeClass('label-inverse')

@@ -4,6 +4,8 @@
   Editing location "{{ location.name }}"
 {% endblock %}
 
+{% block content_class %}col-md-6{% endblock %}
+
 {% block manage_content %}
   {% include 'manage/_default_form.html' %}
 {% endblock %}
@@ -12,6 +14,7 @@
   {{ super() }}
   {% compress css %}
   <link href="{{ static('manage/css/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('manage/css/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 {% endblock %}
 

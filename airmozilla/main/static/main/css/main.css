@@ -122,7 +122,7 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
     line-height: 20px;
 }
 .alert-danger,
-.alert-error {
+.alert-danger {
     color: #b94a48;
     background-color: #f2dede;
     border-color: #eed3d7;

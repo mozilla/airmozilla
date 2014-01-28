@@ -38,9 +38,11 @@
             <td>{{ form.comment }}</td>
             <td>{{ form.status }}</td>
             <td colspan="2">
-                <button type="submit" class="btn">Filter</button>
+                <button type="submit" class="btn btn-primary">
+                <i class="glyphicon glyphicon-filter"></i>
+                Filter</button>
                 {% if filtered %}
-                <a href="." class="btn">Reset filter</a>
+                <a href="." class="btn btn-primary">Reset filter</a>
                 {% endif %}
             </td>
         </tr>
@@ -53,12 +55,12 @@
             <td>
               <span class="label {{ comment_status_to_css_label(comment.status) }}">{{ comment.get_status_display() }}</span>
               {% if comment.flagged %}
-              <a href="{{ url('manage:comment_edit', comment.id) }}" title="This comment has been flagged"><i class="icon-flag"></i></a>
+              <a href="{{ url('manage:comment_edit', comment.id) }}" title="This comment has been flagged"><i class="glyphicon glyphicon-flag"></i></a>
               {% endif %}
             </td>
             <td>{{ comment.created|js_date }}</td>
-            <td><a href="{{ url('manage:comment_edit', comment.id) }}" class="btn btn-small">
-                <i class="icon-edit"></i>
+            <td><a href="{{ url('manage:comment_edit', comment.id) }}" class="btn btn-default btn-sm">
+                <i class="glyphicon glyphicon-edit"></i>
                 Edit
                 </a>
             </td>

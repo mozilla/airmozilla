@@ -25,7 +25,7 @@
 
   <div class="info">
     <p style="text-align:right">
-      <button class="btn btn-mini close-info">&times; close</button>
+      <button class="btn btn-xs close-info">&times; close</button>
     </p>
     <table class="table table-bordered">
 
@@ -55,25 +55,25 @@
         <td>{{ submission.email }}</td>
         <td>
           {% if submission.token_protection %}
-          <i class="icon-ok"></i>
+          <i class="glyphicon glyphicon-ok"></i>
           {% else %}
-          <i class="icon-minus-sign"></i>
+          <i class="glyphicon glyphicon-minus-sign"></i>
           {% endif %}
         </td>
         <td>
           {% if submission.hd %}
-          <i class="icon-ok"></i>
+          <i class="glyphicon glyphicon-ok"></i>
           {% else %}
-          <i class="icon-minus-sign"></i>
+          <i class="glyphicon glyphicon-minus-sign"></i>
           {% endif %}
         </td>
         <td>
           {% if not submission.submission_error %}
-          <i class="icon-minus-sign"></i>
+          <i class="glyphicon glyphicon-minus-sign"></i>
           {% else %}
-          <i class="icon-ok"></i>
-          <button name="info" class="btn btn-mini" value="{{ submission.pk }}">
-            <i class="icon-search"></i>
+          <i class="glyphicon glyphicon-ok"></i>
+          <button name="info" class="btn btn-xs" value="{{ submission.pk }}">
+            <i class="glyphicon glyphicon-search"></i>
             Show info
           </button>
           {% endif %}

@@ -20,13 +20,13 @@
         <th colspan="3">
         <form action=".">
         <input type="text" name="search" value="{{ search }}">
-        <button type="submit" class="btn">
-            <i class="icon-search"></i>
+        <button type="submit" class="btn btn-primary">
+            <i class="glyphicon glyphicon-search"></i>
             Search
         </button>
         {% if search %}
-        <button type="submit" class="btn clear" name="clear" value="clear">
-            <i class="icon-remove"></i>
+        <button type="submit" class="btn btn-default clear" name="clear" value="clear">
+            <i class="glyphicon glyphicon-remove"></i>
             Clear search
         </button>
         {% endif %}
@@ -39,15 +39,15 @@
         <tr>
             <td><a href="{{ url('main:home') }}?tag={{ tag.name | urlencode }}" class="tag">{{ tag.name }}</a></td>
             <td>{{ count_events_with_tag(tag) }}</td>
-            <td><a href="{{ url('manage:tag_edit', tag.id) }} " class="btn btn-small">
-                <i class="icon-edit"></i>
+            <td><a href="{{ url('manage:tag_edit', tag.id) }} " class="btn btn-default btn-sm">
+                <i class="glyphicon glyphicon-edit"></i>
                 Edit
                 </a>
                         <form method="post" class="confirm"
                               action="{{ url('manage:tag_remove', tag.id) }}">
                           {{ csrf() }}
-                          <button class="btn btn-danger btn-small" type="submit">
-                            <i class="icon-trash"></i>
+                          <button class="btn btn-danger btn-sm" type="submit">
+                            <i class="glyphicon glyphicon-trash"></i>
                             Delete
                           </button>
                         </form>

@@ -4,6 +4,8 @@
     New participant
 {% endblock %}
 
+{% block content_class %}col-md-6{% endblock %}
+
 {% block manage_content %}
   {% set submit_text = 'Save and submit' %}
   {% include 'manage/_default_form_upload.html' %}

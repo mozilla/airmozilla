@@ -20,7 +20,9 @@
 {% endblock %}
 
 
-{% block manage_content %}
+{% block content_class %}col-md-6{% endblock %}
+{% block extra_columns %}
+<div class="col-md-4">
   <div class="sidebar span4 well">
     <p><strong>Event status: {{ event.status }}</strong></p>
     <ul>
@@ -110,9 +112,9 @@
     {% endfor %}
 
     {% if tweets %}
-    <p><a href="{{ url('manage:event_tweets', event.pk) }}" class="btn">Manage tweets</a></p>
+    <p><a href="{{ url('manage:event_tweets', event.pk) }}" class="btn btn-primary btn-sm">Manage tweets</a></p>
     {% else %}
-    <p><a href="{{ url('manage:new_event_tweet', event.pk) }}" class="btn">Prepare a new tweet</a></p>
+    <p><a href="{{ url('manage:new_event_tweet', event.pk) }}" class="btn btn-primary btn-sm">Prepare a new tweet</a></p>
     {% endif %}
 
     {% if is_vidly_event %}
@@ -133,7 +135,7 @@
 
     <p style="margin-top:25px"><strong>Discussions</strong></p>
     <p>
-      <a href="{{ url('manage:event_discussion', event.pk) }}" class="btn">
+      <a href="{{ url('manage:event_discussion', event.pk) }}" class="btn btn-primary btn-sm">
       {% if discussion %}
         Discussion
         {% if discussion.enabled %}
@@ -146,7 +148,7 @@
       {% endif %}
       </a>
       {% if discussion %}
-        {{ comments_count }} posted comments
+        <a href="{{ url('manage:event_comments', event.pk) }}">{{ comments_count }} posted comments</a>
       {% endif %}
     </p>
 
@@ -154,14 +156,17 @@
     <form action="{{ url('manage:event_archive_auto', event.pk) }}" method="post">
     <p style="margin-top:25px"><strong>Pending to archive</strong></p>
     <p>This event is <strong>pending</strong> but has a finished Vid.ly submission.<br>
-    <button class="btn btn-mini">Auto Archive now</button>
+    <button class="btn btn-primary btn-xs">Auto Archive now</button>
     </p>
     {% endif %}
 
   </div>
+</div>
+{% endblock %}
+
+{% block manage_content %}
 
   {% include 'manage/_default_form_upload.html' %}
-
 
   {% if suggested_event_comments %}
   <div class="suggested-event-comments">

@@ -4,6 +4,8 @@
   Editing page '{{ flatpage.title }}'
 {% endblock %}
 
+{% block content_class %}col-md-6{% endblock %}
+
 {% block manage_content %}
   {% include 'manage/_default_form.html' %}
   {% include 'manage/_about_sidebar_slugs.html' %}

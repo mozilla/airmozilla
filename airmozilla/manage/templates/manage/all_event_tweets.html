@@ -1,5 +1,5 @@
 {% extends 'manage/manage_base.html' %}
-{% set page='events' -%}
+{% set page='tweets' -%}
 
 {% block manage_title %}
   All Event Tweets
@@ -34,7 +34,7 @@
           {% include 'manage/_tweet_state.html' %}
         </td>
         <td>
-          <a href="{{ url('manage:event_tweets', tweet.event.pk) }}">Manage tweets</a>
+          <a class="btn btn-default btn-sm" href="{{ url('manage:event_tweets', tweet.event.pk) }}">Manage tweets</a>
         </td>
       </tr>
       {% endfor %}

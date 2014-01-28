@@ -12,7 +12,7 @@ function process_vidly_status_response(response, $element) {
         } else if (response.status == 'New') {
             $element.addClass('label-inverse');
         } else if (response.status == 'Error') {
-            $element.addClass('label-important');
+            $element.addClass('label-danger');
         }
     } else {
         $element.text("Unknown").addClass('label-warning');
@@ -40,7 +40,7 @@ $(function() {
      * one. That opens in the same window which increases the risk of
      * accidentally loading that, going back and losing form changes.
      */
-    $('.controls a').each(function() {
+    $('.form-group a').each(function() {
         var parent = $(this).parent();
         if ($('input[type="file"]', parent).length) {
             $(this).attr('target', '_blank');

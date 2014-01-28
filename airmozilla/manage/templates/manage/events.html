@@ -50,14 +50,14 @@
               Pending
               {% if not event.has_vidly_template() %}
                 {# hackish fix because of a while was possible to put events into pending without a Vidly template #}
-                <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-mini">
-                  <i class="icon-time"></i> Force archive
+                <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
+                  <i class="glyphicon glyphicon-time"></i> Force archive
                 </a>
               {% endif %}
             {% else %}
               {% if perms.main.change_event_others %}
-                <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-mini">
-                  <i class="icon-time"></i> Archive
+                <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
+                  <i class="glyphicon glyphicon-time"></i> Archive
                 </a>
               {% else %}
                 Not archived
@@ -86,16 +86,16 @@
               <span class="label label-inverse">Hidden</span>
             {% endif %}
             {% if event.is_removed() %}
-              <span class="label label-important">Removed</span>
+              <span class="label label-danger">Removed</span>
             {% endif %}
         </td>
         <td>
-          <a href="{{ url('manage:event_edit', event.id) }}" class="btn btn-mini">
-            <i class="icon-edit"></i> Edit
+          <a href="{{ url('manage:event_edit', event.id) }}" class="btn btn-default btn-xs">
+            <i class="glyphicon glyphicon-edit"></i> Edit
           </a>
           {% if request.user.has_perm('main.change_event_others') %}
-            <a href="{{ url('manage:event_duplicate', event.id) }}" class="btn btn-mini">
-              <i class="icon-repeat"></i> Duplicate
+            <a href="{{ url('manage:event_duplicate', event.id) }}" class="btn btn-default btn-xs">
+              <i class="glyphicon glyphicon-repeat"></i> Duplicate
             </a>
           {% endif %}
         </td>
@@ -130,16 +130,16 @@
     {% include 'manage/_paginate.html' %}
   {% endif %}
   <p>
-    <a href="{{ url('manage:event_request') }}" class="btn">
-        <i class="icon-plus-sign"></i>
+    <a href="{{ url('manage:event_request') }}" class="btn btn-default">
+        <i class="glyphicon glyphicon-plus"></i>
         New event
     </a>
     </p>
      <form class="well form-search">
         Find event:
         {{ bootstrapform(form) }}
-        <button type="submit" class="btn">
-            <i class="icon-search"></i>
+        <button type="submit" class="btn btn-default">
+	    <i class="glyphicon glyphicon-search"></i>
             Search
         </button>
         {% if search_results != None %}

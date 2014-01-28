@@ -107,23 +107,23 @@ class EventRequestForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         super(EventRequestForm, self).__init__(*args, **kwargs)
         self.fields['participants'].help_text = (
-            '<a href="%s" class="btn" target="_blank">'
-            '<i class="icon-plus-sign"></i>'
+            '<a href="%s" class="btn btn-default" target="_blank">'
+            '<i class="glyphicon glyphicon-plus-sign"></i>'
             'New Participant'
             '</a>' % reverse('manage:participant_new'))
         self.fields['location'].help_text = (
-            '<a href="%s" class="btn" target="_blank">'
-            '<i class="icon-plus-sign"></i>'
+            '<a href="%s" class="btn btn-default" target="_blank">'
+            '<i class="glyphicon glyphicon-plus-sign"></i>'
             'New location'
             '</a>' % reverse('manage:location_new'))
         self.fields['category'].help_text = (
-            '<a href="%s" class="btn" target="_blank">'
-            '<i class="icon-plus-sign"></i>'
+            '<a href="%s" class="btn btn-default" target="_blank">'
+            '<i class="glyphicon glyphicon-plus-sign"></i>'
             'New category'
             '</a>' % reverse('manage:category_new'))
         self.fields['channels'].help_text = (
-            '<a href="%s" class="btn" target="_blank">'
-            '<i class="icon-plus-sign"></i>'
+            '<a href="%s" class="btn btn-default" target="_blank">'
+            '<i class="glyphicon glyphicon-plus-sign"></i>'
             'New channel'
             '</a>' % reverse('manage:channel_new'))
         self.fields['placeholder_img'].label = 'Placeholder image'
@@ -480,6 +480,9 @@ class AcceptSuggestedEventForm(BaseModelForm):
     class Meta:
         model = SuggestedEvent
         fields = ('review_comments',)
+        widgets = {
+            'review_comments': forms.Textarea(attrs={'rows': 3})
+        }
 
 
 class TagEditForm(BaseModelForm):
@@ -524,6 +527,9 @@ class SuggestedEventCommentForm(BaseModelForm):
     class Meta:
         model = SuggestedEventComment
         fields = ('comment',)
+        widgets = {
+            'comment': forms.Textarea(attrs={'rows': 3})
+        }
 
 
 class DiscussionForm(BaseModelForm):

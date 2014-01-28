@@ -42,9 +42,9 @@
         <td>{{ event.user.email }}</td>
         <td>{{ event.first_submitted|js_date }}</td>
         <td>
-          <a class="btn"
+          <a class="btn btn-primary"
              href="{{ url('manage:suggestion_review', event.id) }}">
-            <i class="icon-wrench"></i>
+            <i class="glyphicon glyphicon-wrench"></i>
             Review
           </a>
         </td>

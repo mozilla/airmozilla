@@ -23,8 +23,8 @@
                     {% endfor %}
                     </td>
                     <td>
-                        <a href="{{ url('manage:group_edit', g.id) }}" class="btn btn-small">
-                            <i class="icon-edit"></i>
+                        <a href="{{ url('manage:group_edit', g.id) }}" class="btn btn-default btn-sm">
+                            <i class="glyphicon glyphicon-edit"></i>
                             Edit
                         </a>
                     </td>
@@ -32,8 +32,8 @@
                         <form method="post" class="confirm"
                               action="{{ url('manage:group_remove', g.id) }}">
                           {{ csrf() }}
-                          <button class="btn btn-danger btn-small" type="submit">
-                            <i class="icon-trash"></i>
+                          <button class="btn btn-danger btn-sm" type="submit">
+                            <i class="glyphicon glyphicon-trash"></i>
                             Delete
                           </button>
                         </form>
@@ -42,8 +42,8 @@
             {% endfor %}
         </tbody>
     </table>
-    <a href="{{ url('manage:group_new') }}" class="btn">
-        <i class="icon-plus-sign"></i>
+    <a href="{{ url('manage:group_new') }}" class="btn btn-primary">
+        <i class="glyphicon glyphicon-plus-sign"></i>
         New group
     </a>
 {% endblock %}

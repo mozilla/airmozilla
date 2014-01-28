@@ -4,14 +4,16 @@
     Editing participant {{ participant.name }}
 {% endblock %}
 
+{% block content_class %}col-md-6{% endblock %}
+
 {% block manage_content %}
   <form method="post" enctype="multipart/form-data" class="form-horizontal">
       {{ csrf() }}
-      {{ bootstrapform(form) }}
-      <div class="control-group">
-        <div class="controls">
+      {{ bootstrapform_horizontal(form) }}
+     <div class="form-group form-buttons">
+       <div class="col-sm-offset-2 col-sm-10">
           <button class="btn btn-success" id="sendmail" name="sendmail">
-            <i class="icon-envelope"></i>
+            <i class="glyphicon glyphicon-envelope"></i>
             Save and email for confirmation
           </button>
         </div>

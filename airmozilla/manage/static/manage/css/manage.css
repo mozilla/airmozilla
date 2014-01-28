@@ -1,3 +1,9 @@
+/* Custom container */
+.container-full {
+    margin: 0 auto;
+    width: 100%;
+}
+
 [class^="icon-"] {
     background-image: url("../img/glyphicons-halflings.png");
 }
@@ -30,13 +36,15 @@ textarea {
     width: 450px;
 }
 
+/*
 input, select {
     width: 240px;
-}
+}*/
 
+/*
 input#id_title {
     width: 350px;
-}
+}*/
 
 /* Optional forms get small bit of text */
 
@@ -109,14 +117,45 @@ p.logged-in {
     margin-top: 10px;
     margin-right: 10px;
     float: right;
+    color: #999;
 }
 
 
+
 .sidebar {
-    position: absolute;
-    right: 2%;
+    margin: 20px 40px;
 }
 
 .sidebar li {
     margin-bottom: 10px;
+}
+
+
+/*
+#menu, #menu .nav {
+    padding-top: 10px;
+    padding-left: 10px;
+}
+#menu .nav li {
+    padding-left: 10px;
+}
+*/
+.nav { margin: 10px; }
+#menu .nav li a {
+    padding: 7px 9px;
+}
+#menu .nav li a i {
+    color: black;
+
+}
+.nav > li.disabled.nav-header > a {
+    cursor: default;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+
+.form-buttons {
+    margin-bottom: 50px;
 }

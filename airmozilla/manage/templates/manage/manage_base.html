@@ -1,48 +1,48 @@
 {% extends 'base.html' %}
 {% set page = page|default('home') -%}
 {% set navigation_bar = [
-    ('manage:home', 'Dashboard', 'home', 'icon-home', True, ''),
-    ('main:home', 'Exit Management', '', 'icon-backward', True, ''),
+    ('manage:home', 'Dashboard', 'home', 'glyphicon-home', True, ''),
+    ('main:home', 'Exit Management', '', 'glyphicon-backward', True, ''),
     ('', 'Event Tools', '', '', perms.main.add_event, ''),
-    ('manage:event_request', 'Initiate event', 'erequest', 'icon-calendar',
+    ('manage:event_request', 'Initiate event', 'erequest', 'glyphicon-calendar',
      perms.main.add_event, ''),
-    ('manage:participants', 'Participants', 'part_edit', 'icon-picture',
+    ('manage:participants', 'Participants', 'part_edit', 'glyphicon-picture',
      perms.main.change_participant, '%s participant(s) need clearing'),
-    ('manage:approvals', 'Approval inbox', 'approvals', 'icon-envelope',
+    ('manage:approvals', 'Approval inbox', 'approvals', 'glyphicon-envelope',
      perms.main.change_approval, '%s event(s) requiring your approval'),
-    ('manage:events', 'Event manager', 'events', 'icon-facetime-video',
+    ('manage:events', 'Event manager', 'events', 'glyphicon-facetime-video',
      perms.main.change_event, '%s new unapproved or unscheduled event(s)'),
-    ('manage:suggestions', 'Event requests', 'suggestions', 'icon-question-sign',
+    ('manage:suggestions', 'Event requests', 'suggestions', 'glyphicon-question-sign',
      perms.main.add_event, '%s new suggested event(s)'),
-    ('manage:all_event_tweets', 'Event tweets', 'tweets', 'icon-bullhorn',
+    ('manage:all_event_tweets', 'Event tweets', 'tweets', 'glyphicon-bullhorn',
      perms.main.change_event, '%s unsent tweet(s)'),
-    ('manage:vidly_media', 'Vid.ly Media', 'vidly_media', 'icon-warning-sign',
+    ('manage:vidly_media', 'Vid.ly Media', 'vidly_media', 'glyphicon-warning-sign',
      is_superuser, ''),
-    ('manage:event_hit_stats', 'Hit Statistics', 'event_hit_stats', 'icon-signal',
+    ('manage:event_hit_stats', 'Hit Statistics', 'event_hit_stats', 'glyphicon-signal',
      perms.main.add_event, ''),
 
     ('', 'Users and groups', '', '', perms.auth.change_user, ''),
-    ('manage:users', 'Edit users', 'users', 'icon-user', perms.auth.change_user,
+    ('manage:users', 'Edit users', 'users', 'glyphicon-user', perms.auth.change_user,
      ''),
-    ('manage:groups', 'Group permissions', 'groups', 'icon-lock',
+    ('manage:groups', 'Group permissions', 'groups', 'glyphicon-lock',
      perms.auth.change_group, ''),
 
     ('', 'Event configuration', '', '', perms.main.change_location, ''),
-    ('manage:categories', 'Categories', 'categories', 'icon-folder-close',
+    ('manage:categories', 'Categories', 'categories', 'glyphicon-folder-close',
      perms.main.change_category, ''),
-    ('manage:channels', 'Channels', 'channels', 'icon-tasks',
+    ('manage:channels', 'Channels', 'channels', 'glyphicon-tasks',
      perms.main.change_channel, ''),
-    ('manage:locations', 'Locations', 'locations', 'icon-globe',
+    ('manage:locations', 'Locations', 'locations', 'glyphicon-globe',
      perms.main.change_location, ''),
-    ('manage:templates', 'Video templates', 'templates', 'icon-film',
+    ('manage:templates', 'Video templates', 'templates', 'glyphicon-film',
      perms.main.change_template, ''),
-    ('manage:tags', 'Event tags', 'tags', 'icon-tags',
+    ('manage:tags', 'Event tags', 'tags', 'glyphicon-tags',
      perms.main.change_event, ''),
 
     ('', 'Other configuration', '', '', perms.flatpages.change_flatpage, ''),
-    ('manage:flatpages', 'Static pages', 'flatpages', 'icon-file',
+    ('manage:flatpages', 'Static pages', 'flatpages', 'glyphicon-file',
      perms.flatpages.change_flatpage, ''),
-    ('manage:url_transforms', 'URL Transforms', 'url_transforms', 'icon-retweet',
+    ('manage:url_transforms', 'URL Transforms', 'url_transforms', 'glyphicon-retweet',
      perms.main.change_urlmatch, ''),
 
 ] -%}
@@ -58,8 +58,8 @@
 {% block content %}
   <div class="navbar navbar-fixed-top navbar-inverse">
     <div class="navbar-inner">
-      <div class="container-fluid">
-        <a class="brand" href="{{ url('manage:home') }}">
+      <div class="container container-full">
+        <a class="navbar-brand" href="{{ url('manage:home') }}">
         <img id="logo-img" src="{{ static('img/logo-airmo-md.png') }}" alt="Air Mozilla"
              width="100">
         </a>
@@ -67,27 +67,25 @@
       </div>
     </div>
   </div>
-    <div class="container-fluid" id="container">
-    <div class="row-fluid">
-        <div class="span12" id="logo">
-       		<div class="row-fluid">
-            <div id="menu" class="span2">
+    <div class="container container-full" id="container">
+      <div class="row">
+          <div id="menu" class="col-md-2">
                 <ul class="nav nav-pills nav-stacked">
 					{% for view, title, id, icon, perm, badge_txt in navigation_bar %}
 						{% if perm %}
 						{% if view == '' %}
-							<li class="nav-header">{{ title }}</li>
+							<li class="nav-header disabled"><a>{{ title }}</a></li>
 						{% else %}
 							<li {% if page == id %} class="active" {% endif %}>
 								<a href="{{ url(view) }}"
                   {%- if id in badges %}
                     title="{{ badge_txt % badges[id] }}"
                   {%- endif -%}>
-									<i class="{{ icon }}{% if page == id %} icon-white{% endif %}"></i>
+									<i class="glyphicon {{ icon }}"></i>
 									{{ title }}
                   {% if id in badges %}
                     <span class="badge badge-
-                      {%- if page != id %}important{% else %}inverse{% endif %}">
+                      {%- if page != id %}danger{% else %}inverse{% endif %}">
                     {{- badges[id] }}</span>
                   {% endif %}
 								</a>
@@ -97,21 +95,20 @@
 					{% endfor %}
                 </ul>
 	    	</div>
-		    <div id="content" class="span10">
-		        <h2>{% block manage_title %}{% endblock %}</h2>
-            {% if messages %}
-                {% for message in messages %}
-                  <div class="alert
-                   {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-                    {{ format_message(message) }}
-                  </div>
-                {% endfor %}
-            {% endif %}
-		        {% block manage_content %}{% endblock %}
-		    </div>
-            </div>
+                <div id="content" class="{% block content_class %}col-md-10{% endblock %}">
+                  <h2>{% block manage_title %}{% endblock %}</h2>
+                  {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert
+                       {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                        {{ format_message(message) }}
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                  {% block manage_content %}{% endblock %}
 		</div>
-	</div>
+                {% block extra_columns %}{% endblock %}
+            </div>
     </div>
 {% endblock %}
 

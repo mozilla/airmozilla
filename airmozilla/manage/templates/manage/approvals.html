@@ -36,9 +36,9 @@
         <td>{{ approval.event.creator.email }}</td>
         <td>{{ approval.event.created|js_date }}</td>
         <td>
-          <a class="btn"
+          <a class="btn btn-primary"
              href="{{ url('manage:approval_review', approval.id) }}">
-            <i class="icon-wrench"></i>
+            <i class="glyphicon glyphicon-wrench"></i>
             Review
           </a>
         </td>

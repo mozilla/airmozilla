@@ -1,4 +1,5 @@
-<div class="form-actions">
+<div class="form-group form-buttons">
+  <div class="col-sm-offset-2 col-sm-10">
     <button type="submit" class="btn btn-primary submit" name="submit">
       {%- if submit_text -%}
         {{ submit_text }}
@@ -6,5 +7,6 @@
         Save changes
       {%- endif -%}
     </button>
-    <button class="btn cancel" name="cancel" value="1">Cancel</button>
+    <button class="btn btn-default cancel" name="cancel" value="1">Cancel</button>
+  </div>
 </div>

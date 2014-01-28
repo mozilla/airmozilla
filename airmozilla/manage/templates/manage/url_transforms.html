@@ -62,7 +62,7 @@
                 action="{{ url('manage:url_match_remove', matcher.id) }}">
             {{ csrf() }}
             <button class="btn btn-danger" type="submit">
-              <i class="icon-trash"></i>
+              <i class="glyphicon glyphicon-trash"></i>
               Delete
             </button>
           </form>
@@ -72,7 +72,7 @@
         <td colspan="4">
           <form method="post">
           {{ csrf() }}
-          <table class="xtable table-bordered">
+          <table class="table">
             <thead>
               <tr>
                 <th>Replace</th>
@@ -85,8 +85,8 @@
                 <td><input name="find" value="{{ matcher.string }}"></td>
                 <td><input name="replace_with" value=""></td>
                 <td>
-                <button class="btn btn-mini" name="add-transform">
-                  <i class="icon-plus"></i>
+                <button class="btn btn-primary btn-xs" name="add-transform">
+                  <i class="glyphicon glyphicon-plus"></i>
                   Add
                 </button>
                 </td>
@@ -98,12 +98,12 @@
                 <td><input name="find" value="{{ transform.find }}"></td>
                 <td><input name="replace_with" value="{{ transform.replace_with }}"></td>
                 <td>
-                <button class="btn btn-mini" name="save-transform">
-                  <i class="icon-ok"></i>
+                <button class="btn btn-primary btn-xs" name="save-transform">
+                  <i class="glyphicon glyphicon-ok"></i>
                   Save
                 </button>
-                <button class="btn btn-danger btn-mini" name="remove-transform">
-                  <i class="icon-trash"></i>
+                <button class="btn btn-danger btn-xs" name="remove-transform">
+                  <i class="glyphicon glyphicon-trash"></i>
                   Remove
                 </button>
                 </td>
@@ -113,8 +113,8 @@
           </table>
           </form>
           <!--
-                <button class="btn btn-mini" name="add-transform">
-                  <i class="icon-plus"></i>
+                <button class="btn btn-xs" name="add-transform">
+                  <i class="glyphicon glyphicon-plus"></i>
                   Add transform
                 </button>
            -->
@@ -127,7 +127,7 @@
 
   <p>
     <a class="btn" href="{{ url('manage:url_match_new') }}">
-      <i class="icon-plus-sign"></i>
+      <i class="glyphicon glyphicon-plus-sign"></i>
       New matcher
     </a>
   </p>
@@ -148,8 +148,8 @@
               <tr>
                 <td><input name="url"></td>
                 <td>
-                <button class="btn btn-mini" name="run">
-                  <i class="icon-play"></i>
+                <button class="btn btn-primary btn-xs" name="run">
+                  <i class="glyphicon glyphicon-play"></i>
                   Run
                 </button>
                 </td>

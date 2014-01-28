@@ -9,6 +9,7 @@
   {{ super() }}
   {% compress css %}
   <link href="{{ static('manage/css/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('manage/css/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 {% endblock %}
 
@@ -20,6 +21,7 @@
   {% endcompress %}
 {% endblock %}
 
+{% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
 

@@ -20,15 +20,15 @@
           <td>{{ category.name }}</td>
           <td>{{ category.event_set.count() }}</td>
           <td>
-            <a class="btn btn-small" href="{{ url('manage:category_edit', category.id) }}">
-            <i class="icon-edit"></i>
+            <a class="btn btn-default btn-sm" href="{{ url('manage:category_edit', category.id) }}">
+            <i class="glyphicon glyphicon-edit"></i>
               Edit
             </a>
             <form method="post" class="confirm"
                   action="{{ url('manage:category_remove', category.id) }}">
               {{ csrf() }}
-              <button class="btn btn-danger btn-small" type="submit">
-                <i class="icon-trash"></i>
+              <button class="btn btn-danger btn-sm" type="submit">
+                <i class="glyphicon glyphicon-trash"></i>
                 Delete
               </button>
             </form>
@@ -38,8 +38,8 @@
     </tbody>
   </table>
   <p>
-    <a class="btn" href="{{ url('manage:category_new') }}">
-      <i class="icon-plus-sign"></i>
+    <a class="btn btn-primary" href="{{ url('manage:category_new') }}">
+      <i class="glyphicon glyphicon-plus-sign"></i>
       New category
     </a>
   </p>

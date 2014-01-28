@@ -4,6 +4,8 @@
   Reviewing event "{{ approval.event.title }}"
 {% endblock %}
 
+{% block content_class %}col-md-6{% endblock %}
+
 {% block manage_content %}
   <table class="table">
       <tr>
@@ -90,19 +92,21 @@
       </tr>
   </table>
   <form method="post" class="form-horizontal">
-  {{ csrf() }}
-  {{ bootstrapform(form) }}
-  <div class="form-actions">
-    <button type="submit" class="btn btn-success btn-large"
-            name="approve" id='submit_approve'>
-      <i class="icon-ok"></i>
-      Approve
-    </button>
-    <button type="submit" class="btn btn-danger btn-large"
-            name="reject" id="submit_reject">
-      <i class="icon-remove"></i>
-      Reject
-    </button>
-  </div>
+    {{ csrf() }}
+    {{ bootstrapform_horizontal(form) }}
+    <div class="form-group form-buttons">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-success btn"
+              name="approve" id="submit_approve">
+          <i class="glyphicon glyphicon-ok"></i>
+          Approve
+        </button>
+        <button type="submit" class="btn btn-danger btn"
+                name="reject" id="submit_reject">
+          <i class="glyphicon glyphicon-remove"></i>
+          Reject
+        </button>
+      </div>
+    </div>
   </form>
 {% endblock %}

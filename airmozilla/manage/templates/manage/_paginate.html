@@ -1,8 +1,8 @@
-<div class="pagination">
-    <ul>
+<div>
+    <ul class="pagination">
         {% if paginate.has_previous() %}
         <li>
-            <a href="?{{ query_string(request, page=paginate.previous_page_number()) }}">&larr;</a>
+            <a href="?{{ query_string(request, page=paginate.previous_page_number()) }}">&laquo;</a>
         </li>
         {% endif %}
         <li class="active">
@@ -11,7 +11,7 @@
         </li>
         {% if paginate.has_next() %}
         <li>
-            <a href="?{{ query_string(request, page=paginate.next_page_number()) }}">&rarr;</a>
+            <a href="?{{ query_string(request, page=paginate.next_page_number()) }}">&raquo;</a>
         </li>
         {% endif %}
     </ul>

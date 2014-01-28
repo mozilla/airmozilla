@@ -4,14 +4,16 @@
   New channel
 {% endblock %}
 
+{% block content_class %}col-md-6{% endblock %}
+
 {% block manage_content %}
   {% include 'manage/_default_form_upload.html' %}
 
   <p>
   {% if use_ace %}
-  <a href="?use_ace=0">Disable fancy HTML editor</a>
+  <a class="btn btn-default btn-sm" href="?use_ace=0">Disable fancy HTML editor</a>
   {% else %}
-  <a href="?use_ace=1">Enable fancy HTML editor</a>
+  <a class="btn btn-default btn-sm" href="?use_ace=1">Enable fancy HTML editor</a>
   {% endif %}
   </p>
 {% endblock %}
