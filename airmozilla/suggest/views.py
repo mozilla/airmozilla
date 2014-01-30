@@ -1,10 +1,10 @@
 import datetime
+
 from django import http
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission, User
-from django.template.defaultfilters import slugify
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import utc, make_naive
@@ -16,6 +16,7 @@ from django.contrib.sites.models import RequestSite
 
 import pytz
 from funfactory.urlresolvers import reverse
+from slugify import slugify
 
 from airmozilla.main.models import (
     SuggestedEvent,
@@ -52,7 +53,7 @@ def start(request):
     if request.method == 'POST':
         form = forms.StartForm(request.POST, user=request.user)
         if form.is_valid():
-            slug = slugify(form.cleaned_data['title'])
+            slug = slugify(form.cleaned_data['title']).lower()
             slug = _increment_slug_if_exists(slug)
             event = SuggestedEvent.objects.create(
                 user=request.user,
@@ -116,7 +117,7 @@ def title(request, id):
     if request.method == 'POST':
         form = forms.TitleForm(request.POST, instance=event)
         if form.is_valid():
-            form.save()
+            event = form.save()
             # XXX use next_url() instead?
             url = reverse('suggest:description', args=(event.pk,))
             return redirect(url)

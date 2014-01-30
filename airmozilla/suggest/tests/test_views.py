@@ -855,6 +855,16 @@ class TestPages(TestCase):
         event = SuggestedEvent.objects.get(pk=event.pk)
         eq_(event.slug, 'something-entirely-different')
 
+        # try with something unicodish
+        data = {
+            'title': u'Walking down the stra\xdfe',
+            'slug': ''
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(event.slug, 'walking-down-the-strasse')
+
     def test_add_comments_in_summary_before_submission(self):
         # also need a superuser
         User.objects.create(

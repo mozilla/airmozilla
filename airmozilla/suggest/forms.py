@@ -1,10 +1,11 @@
 from django import forms
-from django.template.defaultfilters import slugify
 from django.conf import settings
 from django.template.defaultfilters import filesizeformat
 from django.utils.timesince import timesince
 from django.utils.safestring import mark_safe
 from django.db.models import Q
+
+from slugify import slugify
 
 from airmozilla.base.forms import BaseModelForm
 from airmozilla.main.models import (
@@ -65,7 +66,7 @@ class TitleForm(BaseModelForm):
         cleaned_data = super(TitleForm, self).clean()
         if 'slug' in cleaned_data and 'title' in cleaned_data:
             if not cleaned_data['slug']:
-                cleaned_data['slug'] = slugify(cleaned_data['title'])
+                cleaned_data['slug'] = slugify(cleaned_data['title']).lower()
                 if Event.objects.filter(slug=cleaned_data['slug']):
                     raise forms.ValidationError('Slug already taken')
         return cleaned_data

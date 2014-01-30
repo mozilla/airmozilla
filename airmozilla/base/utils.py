@@ -8,11 +8,11 @@ import subprocess
 
 import html2text
 import pytz
+from slugify import slugify
 
 from django import http
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.template.defaultfilters import slugify
 from django.core.exceptions import ImproperlyConfigured
 
 
@@ -37,10 +37,12 @@ def shorten_url(url):
     return result['data']['url']
 
 
-def unique_slugify(data, models, duplicate_key=''):
+def unique_slugify(data, models, duplicate_key='', lower=True):
     """Returns a unique slug string.  If duplicate_key is provided, this is
        appended for non-unique slugs before adding a count."""
     slug_base = slugify(data)
+    if lower:
+        slug_base = slug_base.lower()
     counter = 0
     slug = slug_base
     while any(model.objects.filter(slug=slug).exists() for model in models):

@@ -9,11 +9,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
 from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
-from django.template.defaultfilters import slugify
 from django.contrib.flatpages.views import flatpage
 from django.views.generic.base import View
 from django.db.models import Count, Q
 
+from slugify import slugify
 from funfactory.urlresolvers import reverse
 from jingo import Template
 import vobject

@@ -5,9 +5,10 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.flatpages.models import FlatPage
-from django.template.defaultfilters import slugify
 from django.utils.timezone import utc
 from funfactory.urlresolvers import reverse
+
+from slugify import slugify
 
 from airmozilla.base.forms import BaseModelForm, BaseForm
 from airmozilla.manage import url_transformer
@@ -188,7 +189,7 @@ class EventRequestForm(BaseModelForm):
         if data.get('title') and not data.get('slug'):
             # this means you have submitted a form without being explicit
             # about what the slug will be
-            self._check_flatpage_slug(slugify(data.get('title')))
+            self._check_flatpage_slug(slugify(data.get('title')).lower())
         elif data.get('slug'):
             # are you trying to change it?
             if self.instance.slug != data['slug']:
