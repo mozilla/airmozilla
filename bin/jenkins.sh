@@ -30,7 +30,8 @@ fi
 source $VENV/bin/activate
 export PATH=/usr/pgsql-9.2/bin:$PATH
 
-pip install -q -r requirements/compiled.txt
+#pip install -q -r requirements/compiled.txt
+pip install -r requirements/compiled.txt
 pip install -q -r requirements/dev.txt
 
 cat > airmozilla/settings/local.py <<SETTINGS
