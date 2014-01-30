@@ -229,9 +229,6 @@ def _event_process(request, form, event):
         tz = pytz.timezone(event.location.timezone)
         event.start_time = tz_apply(event.start_time, tz)
 
-        if event.archive_time:
-            event.archive_time = tz_apply(event.archive_time, tz)
-
     if 'approvals' in form.cleaned_data:
         event.save()
         approvals_old = [app.group for app in event.approval_set.all()]
