@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response
 
 _retry_exceptions = []
 try:
-    from MySQLdb import OperationalError
+    from psycopg2 import OperationalError
     # in Django 1.5 the OperationalErrors are going to be replaced with a
     # generic DatabaseError exception. But for now, use this.
     _retry_exceptions.append(OperationalError)
