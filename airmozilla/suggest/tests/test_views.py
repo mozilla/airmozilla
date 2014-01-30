@@ -43,6 +43,7 @@ class TestPages(TestCase):
                               location=None,
                               start_time=None,
                               category=None,
+                              pre_recorded=False
                               ):
         location = location or Location.objects.get(name='Mountain View')
         start_time = start_time or datetime.datetime(
@@ -54,6 +55,7 @@ class TestPages(TestCase):
         event = SuggestedEvent.objects.create(
             user=self.user,
             title=title,
+            upcoming=not pre_recorded,
             slug=slug,
             description=description,
             short_description=short_description,
@@ -68,6 +70,18 @@ class TestPages(TestCase):
         event.tags.add(tag2)
         channel = Channel.objects.create(name='ChannelX', slug='channelx')
         event.channels.add(channel)
+
+        if pre_recorded:
+            upload = Upload.objects.create(
+                user=self.user,
+                url='https://s3.com/file1',
+                file_name='file1',
+                mime_type='image/video',
+                size=12345,
+                suggested_event=event
+            )
+            event.upload = upload
+            event.save()
 
         return event
 
@@ -497,6 +511,24 @@ class TestPages(TestCase):
             sorted(['bar', 'buzz'])
         )
 
+    def test_details_prerecorded_event(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            upcoming=False,
+            title='Cool Title',
+            slug='cool-title',
+            description='Some long description',
+            short_description=''
+        )
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # because it's a pre-recorded event
+        ok_('Remote presenters' not in response.content)
+        ok_('Location' not in response.content)
+        ok_('Start time' not in response.content)
+
     def test_details_timezone_formatting(self):
         location = Location.objects.create(
             name='Paris',
@@ -565,6 +597,12 @@ class TestPages(TestCase):
         url = reverse('suggest:summary', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
+
+        # these appear because it's an upcoming event
+        ok_('Location' in response.content)
+        ok_('Start time' in response.content)
+        ok_('Remote presenters' in response.content)
+
         ok_("Cool O&#39;Title" in response.content)
         ok_('cool-title' in response.content)
         ok_('Some long description' in response.content)
@@ -572,6 +610,40 @@ class TestPages(TestCase):
         ok_('Mountain View' in response.content)
         ok_('US/Pacific' in response.content)
         ok_('12:00' in response.content)
+        ok_('Tag1' in response.content)
+        ok_('Tag2' in response.content)
+        ok_('CategoryX' in response.content)
+        ok_('ChannelX' in response.content)
+        ok_(
+            '<a href="http://www.peterbe.com">http://www.peterbe.com</a>'
+            in response.content
+        )
+        # there should also be links to edit things
+        ok_(reverse('suggest:title', args=(event.pk,)) in response.content)
+        ok_(reverse('suggest:description', args=(event.pk,))
+            in response.content)
+        ok_(reverse('suggest:details', args=(event.pk,)) in response.content)
+        ok_(reverse('suggest:placeholder', args=(event.pk,))
+            in response.content)
+        # the event is not submitted yet
+        ok_('Submit for review' in response.content)
+
+    def test_summary_on_prerecorded_event(self):
+        event = self._make_suggested_event(pre_recorded=True)
+        url = reverse('suggest:summary', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # these do NOT appear because it's a pre-recorded event
+        ok_('Location' not in response.content)
+        ok_('Start time' not in response.content)
+        ok_('Remote presenters' not in response.content)
+
+        ok_("Cool O&#39;Title" in response.content)
+        ok_('cool-title' in response.content)
+        ok_('Some long description' in response.content)
+        ok_('Short description' in response.content)
+        ok_('12:00' not in response.content)
         ok_('Tag1' in response.content)
         ok_('Tag2' in response.content)
         ok_('CategoryX' in response.content)

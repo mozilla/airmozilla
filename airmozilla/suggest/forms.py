@@ -155,6 +155,7 @@ class DetailsForm(BaseModelForm):
         if not self.instance.upcoming:
             del self.fields['location']
             del self.fields['start_time']
+            del self.fields['remote_presenters']
         else:
             self.fields['location'].required = True
             self.fields['start_time'].required = True
@@ -164,6 +165,12 @@ class DetailsForm(BaseModelForm):
                 "choose Live Remote.  &lt;br&gt;"
                 "Note that live remote dates and times are UTC."
             )
+            self.fields['remote_presenters'].help_text = (
+                "If there will be presenters who present remotely, please "
+                "enter email addresses, names and locations about these "
+                "presenters."
+            )
+            self.fields['remote_presenters'].widget.attrs['rows'] = 3
 
         if 'instance' in kwargs:
             event = kwargs['instance']
@@ -185,13 +192,8 @@ class DetailsForm(BaseModelForm):
             "relevant links, list them here and they will appear on "
             "the event page."
         )
-        self.fields['remote_presenters'].help_text = (
-            "If there will be presenters who present remotely, please enter "
-            "email addresses, names and locations about these presenters."
-        )
 
         self.fields['additional_links'].widget.attrs['rows'] = 3
-        self.fields['remote_presenters'].widget.attrs['rows'] = 3
 
     def clean_tags(self):
         tags = self.cleaned_data['tags']
