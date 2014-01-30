@@ -43,6 +43,7 @@ from airmozilla.comments.models import (
     Discussion,
     Comment
 )
+from airmozilla.uploads.models import Upload
 
 from .test_vidly import (
     SAMPLE_XML,
@@ -641,6 +642,44 @@ class TestEvents(ManageTestCase):
             event_modified.archive_time.strftime('%d %H:%M'),
             now.strftime('%d %H:%M')
         )
+
+    def test_event_archive_with_upload(self):
+        """event archive an event that came from a suggested event that has
+        a file upload."""
+        event = Event.objects.get(title='Test event')
+        event.archive_time = None
+        event.save()
+
+        upload = Upload.objects.create(
+            user=self.user,
+            url='http://s3.com/some.flv',
+            size=12345
+        )
+
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        location = Location.objects.get(id=1)
+        category = Category.objects.create(name='CATEGORY')
+        SuggestedEvent.objects.create(
+            user=self.user,
+            title='TITLE',
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            category=category,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            first_submitted=now,
+            accepted=event,
+            upload=upload
+        )
+
+        url = reverse('manage:event_archive', kwargs={'id': event.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('http://s3.com/some.flv' in response.content)
 
     def test_event_archive_with_vidly_template(self):
         """Event archive page loads and shows correct archive_time behavior."""

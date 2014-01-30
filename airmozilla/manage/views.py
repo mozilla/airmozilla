@@ -818,10 +818,17 @@ def event_archive(request, id):
             messages.info(request, 'Event "%s" saved.' % event.title)
             return redirect('manage:events')
     else:
+
         form = forms.EventArchiveForm(instance=event)
     initial = dict(email=request.user.email)
     if event.privacy != Event.PRIVACY_PUBLIC:
         initial['token_protection'] = True
+    try:
+        suggested_event = SuggestedEvent.objects.get(accepted=event)
+        if suggested_event.upload:
+            initial['url'] = suggested_event.upload.url
+    except SuggestedEvent.DoesNotExist:
+        pass
     vidly_shortcut_form = forms.VidlyURLForm(
         initial=initial,
         disable_token_protection=event.privacy != Event.PRIVACY_PUBLIC
