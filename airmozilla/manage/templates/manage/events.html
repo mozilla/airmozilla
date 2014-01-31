@@ -1,160 +1,203 @@
 {% extends "manage/manage_base.html" %}
 {% set page = "events" %}
 
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('manage/js/angular.min.js') }}"></script>
+  {% compress js %}
+  <script src="{{ static('manage/js/bootstrap-datepicker.js') }}"></script>
+  <script src="{{ static('manage/js/events.js') }}"></script>
+  <script src="{{ static('manage/js/angular-moment.min.js') }}"></script>
+  <script src="{{ static('manage/js/eventmanager.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('manage/css/datepicker.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('manage/css/events.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+
 {% block manage_title %}
   Event manager
 {% endblock %}
 
-{% macro event_table(name, events, hidden_tag=False, live_tag=False) -%}
-<h3>{{ name }}</h3>
-<table class="table table-striped table-bordered">
-  <thead>
-    <tr>
-      <th style="width: 5%"></th>
-      <th style="width: 19%">Title</th>
-      <th style="width: 8%">Location</th>
-      <th style="width: 19%">Start time</th>
-      <th style="width: 17%">Archive time</th>
-      <th style="width: 12%">Category/Channel</th>
-      <th style="width: 8%">Visibility</th>
-      <th style="width: 12%"></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for event in events %}
+{% block manage_content %}
+<div ng-app="eventmanagerApp" ng-controller="EventManagerController">
+  <p ng-if="first_loading" class="first-loading">
+    <img src="{{ static('manage/img/spinner.gif') }}">
+    <span class="blinking">Loading some events...</span>
+  </p>
+  <p ng-if="second_loading" class="second-loading">
+    <img src="{{ static('manage/img/spinner.gif') }}">
+    <span class="blinking">Loading all remaining events...</span>
+  </p>
+  {% raw %}
+
+  <table class="table table-striped table-bordered" ng-class="{hidden: loading}">
+    <thead>
       <tr>
-        <td>
-          {% set thumb = thumbnail(event.placeholder_img, '32x32') %}
-          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
-               alt="Placeholder image">
+        <th style="width: 50px" title="Number of events found">{{ filtered_events.length }}</th>
+        <th>Title</th>
+        <th style="width: 14%">Location</th>
+        <th style="width: 190px">Start time</th>
+        <th style="width: 190px">Archive time</th>
+        <th style="width: 15%">Category/Channel</th>
+        <th style="width: 8%">Status/Visibility</th>
+        <th style="width: 10%">&nbsp;</th>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <input type="search" class="form-control" ng-model="search_title" placeholder="Search by title">
         </td>
         <td>
-          <a href="{{ url('main:event', event.slug) }}">
-            {{ event.title }}
-          </a>
-        </td>
-        <td>{{ event.location }}</td>
-        <td>
-          {% if event.location %}
-            {{ event.location_time.strftime('%d %B %Y') }}
-            {{ event.location_time.strftime('%I:%M%p') }}
-          {% else %}
-            {{ event.start_time.strftime('%d %B %Y %I:%M%p %Z') }}
-          {% endif %}
+          <input type="search" class="form-control" ng-model="search_location" placeholder="by location">
         </td>
         <td>
-          {% if event.archive_time %}
-            {{ event.archive_time|js_date }}
-          {% else %}
-            {% if event.is_pending() %}
-              Pending
-              {% if not event.has_vidly_template() %}
-                {# hackish fix because of a while was possible to put events into pending without a Vidly template #}
-                <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
-                  <i class="glyphicon glyphicon-time"></i> Force archive
-                </a>
-              {% endif %}
-            {% else %}
-              {% if perms.main.change_event_others %}
-                <a href="{{ url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
-                  <i class="glyphicon glyphicon-time"></i> Archive
-                </a>
-              {% else %}
-                Not archived
-              {% endif %}
-            {% endif %}
-          {% endif %}
+          <input type="text" class="form-control" value="" id="dp_start_time" ng-model="search_start_time" placeholder="By start time">
+        </td>
+        <td>&nbsp;</td>
+        <td>
+          <input type="search" class="form-control" ng-model="search_cat_chan" placeholder="category or channel">
         </td>
         <td>
-            {{ event.category }}<br>
-            {% for name in event_channel_names.get(event.pk, []) %}
-              {{ name }}
-            {% endfor %}
-        </td>
-        <td>{% if event.is_public() %}
-              <span class="label">Public</span>
-            {% else %}
-              <span class="label label-warning">Internal</span>
-            {% endif %}
-            {% if event.featured %}
-              <span class="label label-success">Featured</span>
-            {% endif %}
-            {% if live_tag %}
-              <span class="label label-info">Live</span>
-            {% endif %}
-            {% if hidden_tag %}
-              <span class="label label-inverse">Hidden</span>
-            {% endif %}
-            {% if event.is_removed() %}
-              <span class="label label-danger">Removed</span>
-            {% endif %}
+          <select name="status" ng-model="search_status">
+            <option value="" class="select-label">By status</option>
+            <option value="initiated">Initiated</option>
+            <option value="pending">Pending</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="removed">Removed</option>
+          </select>
+          <select name="privacy" ng-model="search_privacy">
+            <option value="" class="select-label">By privacy</option>
+            <option value="public">Public</option>
+            <option value="contributors">Contributors</option>
+            <option value="company">Staff</option>
+          </select>
         </td>
         <td>
-          <a href="{{ url('manage:event_edit', event.id) }}" class="btn btn-default btn-xs">
-            <i class="glyphicon glyphicon-edit"></i> Edit
-          </a>
-          {% if request.user.has_perm('main.change_event_others') %}
-            <a href="{{ url('manage:event_duplicate', event.id) }}" class="btn btn-default btn-xs">
-              <i class="glyphicon glyphicon-repeat"></i> Duplicate
-            </a>
-          {% endif %}
+          <a href="#" class="btn btn-default btn-xs btn-primary"
+            ng-if="hasFilter()"
+            ng-click="clearFilter()">Clear filter</a>
         </td>
       </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{%- endmacro %}
+    </thead>
+    <tbody>
+      <tr ng-repeat="event in filtered_events = (events | filter:filterBySearch) | orderBy:'modified':true | startFrom:currentPage*pageSize | limitTo:pageSize">
+        <td><img ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}"
+               alt="Placeholder image">
+        </td>
+        <td><a href="{{ event.url }}">{{ event.title }}</a>
+        <span class="badge" title="Event is currently Live!" ng-if="event.is_live">L</span>
+        <span class="badge" title="Needs approval" ng-if="event.needs_approval">A</span>
+        <span class="badge" title="Event is upcoming" ng-if="event.is_upcoming">U</span>
+        </td>
+        <td>{{ event.location }}</td>
+        <td>{{ event.start_time }}</td>
+        <td>
+          <time ng-if="event.archive_time" title="{{ formatDate(event.archive_time) }}" am-time-ago="event.archive_time"></time>
+          <span ng-if="!event.archive_time">
+            <span ng-if="event.is_pending">
+              Pending
+                <!-- hackish fix because of a while was possible to put events into pending without a Vidly template -->
+                <a ng-if="event.has_vidly_template"
+                   href="{{ event.archive_url }}" class="btn btn-default btn-xs">
+                  <i class="glyphicon glyphicon-time"></i> Force archive
+                </a>
+            </span>
+            <span ng-if="!event.is_pending">
+              <a ng-if="event.archive_url"
+                 href="{{ event.archive_url }}" class="btn btn-default btn-xs">
+                <i class="glyphicon glyphicon-time"></i> Archive
+              </a>
+              <span ng-if="!event.archive_url">Not archived</span>
+            </span>
+          </span>
+        </td>
+        <td>{{ event.category }}<br>
+          {{ event.channels.join(', ') }}
+        </td>
+        <td>
 
-{% block manage_content %}
-  {% if search_results != None %}
-    {{ event_table('Search results', search_results) }}
-  {% else %}
-    {% set paginate = archived %}
-    {% if paginate.number == 1 %}
-      {% if initiated %}
-        {{ event_table('Initiated events, need approval', initiated, True) }}
-      {% endif %}
-      {% if live %}
-        {{ event_table('Live events', live, False, True) }}
-      {% endif %}
-      {% if pending %}
-        {{ event_table('Pending events', pending, True) }}
-      {% endif %}
-      {% if upcoming %}
-        {{ event_table('Upcoming events', upcoming) }}
-      {% endif %}
-    {% endif %}
-    {% if archived %}
-      {{ event_table('Archived events', archived) }}
-    {% endif %}
-    {% include 'manage/_paginate.html' %}
-  {% endif %}
+          <span class="label"
+           ng-class="{'label-default': event.status=='initiated',
+                      'label-primary': event.status=='pending',
+                      'label-success': event.status=='scheduled',
+                      'label-danger': event.status=='removed'}"
+           ng-click="selectSearchStatus(event.status)"
+          >{{ event.status_display }}</span>
+          <br>
+          <span class="label"
+           ng-class="{'label-purple': event.privacy=='company',
+                      'label-info': event.privacy=='public',
+                      'label-warning': event.privacy=='contributors'}"
+           ng-click="selectSearchPrivacy(event.privacy)"
+          >{{ event.privacy_display }}</span>
+        </td>
+        <td>
+          <a href="{{ event.edit_url }}" class="btn btn-default btn-xs">
+            <i class="glyphicon glyphicon-edit"></i> Edit
+          </a>
+          <a ng-if="event.duplicate_url" href="{{ event.duplicate_url }}" class="btn btn-default btn-xs">
+              <i class="glyphicon glyphicon-repeat"></i> Duplicate
+          </a>
+        </td>
+      </tr>
+      <tr ng-if="!filtered_events.length">
+        <td colspan="8">
+          <p><b>Filtered too much?</b></p>
+          <p ng-if="search_title">
+            <a href="#" ng-click="resetFilter('search_title')">Drop title search on <code>{{ search_title }}</code></a>
+          </p>
+          <p ng-if="search_location">
+            <a href="#" ng-click="resetFilter('search_location')">Drop location search on <code>{{ search_location }}</code></a>
+          </p>
+          <p ng-if="search_start_time">
+            <a href="#" ng-click="resetFilter('search_start_time')">Drop start time filter on <code>{{ search_start_time }}</code></a>
+          </p>
+          <p ng-if="search_cat_chan">
+            <a href="#" ng-click="resetFilter('search_cat_chan')">Drop category/channel search on <code>{{ search_cat_chan }}</code></a>
+          </p>
+        </td>
+      </tr>
+      <tr ng-if="filtered_events.length && filtered_events.length < currentPage * pageSize">
+        <td colspan="8">
+          <p>Paged too much?</p>
+          <p><a href="#" ng-click="resetCurrentPage()">Go back to page 1</a></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div ng-class="{hidden: loading}">
+    <ul class="pagination">
+      <li ng-class="{hidden: currentPage == 0}">
+        <a href="#{{ currentPage - 1 }}" ng-click="currentPage = currentPage - 1">&laquo;</a>
+      </li>
+      <li ng-class="{hidden: currentPage == 0}">
+        <a href="#0" ng-click="currentPage = 0">1</a>
+      </li>
+      <li class="active">
+          <a href="#">{{ currentPage + 1 }}/{{ numberOfPages(filtered_events) }}</a>
+      </li>
+      <li ng-class="{hidden: currentPage == numberOfPages(filtered_events) - 1}">
+        <a href="#{{ numberOfPages(filtered_events) }}" ng-click="currentPage = numberOfPages(filtered_events) -1">{{ numberOfPages(filtered_events) }}</a>
+      </li>
+      <li ng-class="{hidden: currentPage >= filtered_events.length/pageSize - 1}">
+        <a href="#{{ currentPage + 1 }}" ng-click="currentPage = currentPage + 1">&raquo;</a>
+      </li>
+    </ul>
+  </div>
+
+  {% endraw %}
   <p>
     <a href="{{ url('manage:event_request') }}" class="btn btn-default">
         <i class="glyphicon glyphicon-plus"></i>
-        New event
+       New event
     </a>
-    </p>
-     <form class="well form-search">
-        Find event:
-        {{ bootstrapform(form) }}
-        <button type="submit" class="btn btn-default">
-	    <i class="glyphicon glyphicon-search"></i>
-            Search
-        </button>
-        {% if search_results != None %}
-        <button type="button" class="btn cancel">
-            Reset
-        </button>
-        {% endif %}
-    </form>
-{% endblock %}
-
-
-{% block site_js %}
-  {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/bootstrap-typeahead.js') }}"></script>
-    <script src="{{ static('manage/js/events.js') }}"></script>
-  {% endcompress %}
+  </p>
+</div> <!-- /ng-app -->
 {% endblock %}

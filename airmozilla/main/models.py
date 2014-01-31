@@ -292,8 +292,8 @@ class Event(models.Model):
     PRIVACY_CONTRIBUTORS = 'contributors'
     PRIVACY_CHOICES = (
         (PRIVACY_PUBLIC, 'Public'),
-        (PRIVACY_CONTRIBUTORS, 'Employees and contributors only'),
-        (PRIVACY_COMPANY, 'Employees only'),
+        (PRIVACY_CONTRIBUTORS, 'Contributors'),
+        (PRIVACY_COMPANY, 'Staff'),
     )
     privacy = models.CharField(max_length=40, choices=PRIVACY_CHOICES,
                                default=PRIVACY_PUBLIC, db_index=True)

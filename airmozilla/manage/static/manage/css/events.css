@@ -1,0 +1,12 @@
+p.first-loading {
+    margin: 50px;
+    text-align: center;
+}
+p.second-loading {
+    float: right;
+    margin-top: -30px;
+}
+
+option.select-label {
+    color: #666;
+}

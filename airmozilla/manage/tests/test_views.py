@@ -416,20 +416,157 @@ class TestEvents(ManageTestCase):
 
     def test_events_with_event_without_location(self):
         event = Event.objects.get(title='Test event')
-        response = self.client.get(reverse('manage:events'))
+        response = self.client.get(reverse('manage:events_data'))
         eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        result = results['events'][0]
         # the "local" time this event starts is 12:30
-        ok_('12:30PM' in response.content)
-        ok_('21 June 2012' in response.content)
-        ok_('Mountain View' in response.content)
+        ok_('12:30PM' in result['start_time'])
+        ok_('21 Jun 2012' in result['start_time'])
+        ok_('Mountain View' in result['location'])
 
         event.location = None
         event.save()
-        response = self.client.get(reverse('manage:events'))
+        response = self.client.get(reverse('manage:events_data'))
         eq_(response.status_code, 200)
-        ok_('7:30PM' in response.content)
-        ok_('21 June 2012' in response.content)
-        ok_('Mountain View' not in response.content)
+        results = json.loads(response.content)
+        result = results['events'][0]
+        ok_('7:30PM' in result['start_time'])
+        ok_('21 Jun 2012' in result['start_time'])
+        ok_('Mountain View' not in result['location'])
+
+    def test_events_data_with_limit(self):
+        event = Event.objects.get(title='Test event')
+        Event.objects.create(
+            title='Contributors Only Event',
+            slug='event2',
+            description=event.description,
+            start_time=event.start_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            placeholder_img=event.placeholder_img,
+            location=event.location,
+        )
+        Event.objects.create(
+            title='MoCo Only Event',
+            slug='event3',
+            description=event.description,
+            start_time=event.start_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            placeholder_img=event.placeholder_img,
+            location=event.location,
+        )
+        url = reverse('manage:events_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        eq_(len(result['events']), 3)
+
+        response = self.client.get(url, {'limit': 2})
+        eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        eq_(len(result['events']), 2)
+
+        response = self.client.get(url, {'limit': -2})
+        eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        eq_(len(result['events']), 3)
+
+    def test_events_data_with_live_and_upcoming(self):
+        # some events will be annotated with is_live and is_upcoming
+        event = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event2 = Event.objects.create(
+            title='Event 2',
+            slug='event2',
+            description=event.description,
+            start_time=now - datetime.timedelta(minutes=1),
+            privacy=Event.PRIVACY_PUBLIC,
+            placeholder_img=event.placeholder_img,
+            location=event.location,
+            status=Event.STATUS_SCHEDULED
+        )
+        assert not event2.archive_time
+        assert event2 in Event.objects.approved()
+        assert event2 in Event.objects.live()
+
+        event3 = Event.objects.create(
+            title='Event 3',
+            slug='event3',
+            description=event.description,
+            start_time=now + datetime.timedelta(days=1),
+            privacy=Event.PRIVACY_PUBLIC,
+            placeholder_img=event.placeholder_img,
+            location=event.location,
+            status=Event.STATUS_SCHEDULED
+        )
+        assert not event3.archive_time
+        assert event3 in Event.objects.approved()
+        assert event3 in Event.objects.upcoming()
+        assert event3 not in Event.objects.live()
+
+        url = reverse('manage:events_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        titles = [x['title'] for x in result['events']]
+        eq_(titles, ['Event 3', 'Event 2', 'Test event'])
+
+        event = result['events'][0]
+        ok_(not event['is_live'])
+        ok_(event['is_upcoming'])
+
+        event = result['events'][1]
+        ok_(event['is_live'])
+        ok_(not event['is_upcoming'])
+
+        event = result['events'][2]
+        ok_(not event['is_live'])
+        ok_(not event['is_upcoming'])
+
+    def test_events_data_with_thumbnail(self):
+        event = Event.objects.get(title='Test event')
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_edit', args=(event.pk,)),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title=event.title)
+            )
+            eq_(response.status_code, 302)
+        url = reverse('manage:events_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        assert result['events'][0]['title'] == event.title
+
+        thumbnail = result['events'][0]['thumbnail']
+        ok_(thumbnail['url'])
+        ok_(thumbnail['width'])
+        ok_(thumbnail['height'])
+
+    def test_events_data_pending_with_has_vidly_template(self):
+        event = Event.objects.get(title='Test event')
+        event.status = Event.STATUS_PENDING
+        event.save()
+
+        url = reverse('manage:events_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        row = result['events'][0]
+        assert row['title'] == event.title
+        ok_(row['is_pending'])
+        ok_(not row['has_vidly_template'])
+
+        template = event.template
+        template.name = 'Vid.ly Fun'
+        template.save()
+        assert event.has_vidly_template()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        row = result['events'][0]
+        ok_(row['is_pending'])
+        ok_(row['has_vidly_template'])
 
     def test_events_seen_by_contributors(self):
         # there should be one event of each level of privacy
@@ -453,12 +590,13 @@ class TestEvents(ManageTestCase):
             placeholder_img=event.placeholder_img,
             location=event.location,
         )
-        response = self.client.get(reverse('manage:events'))
+        response = self.client.get(reverse('manage:events_data'))
         eq_(response.status_code, 200)
-
-        ok_(event.title in response.content)
-        ok_(event2.title in response.content)
-        ok_(event3.title in response.content)
+        result = json.loads(response.content)
+        titles = [x['title'] for x in result['events']]
+        ok_(event.title in titles)
+        ok_(event2.title in titles)
+        ok_(event3.title in titles)
 
         # now log in as a contributor
         contributor = User.objects.create_user(
@@ -483,12 +621,14 @@ class TestEvents(ManageTestCase):
             contributor=True
         )
         assert self.client.login(username='nigel', password='secret')
-        response = self.client.get(reverse('manage:events'))
+        response = self.client.get(reverse('manage:events_data'))
         eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        titles = [x['title'] for x in result['events']]
 
-        ok_(event.title in response.content)
-        ok_(event2.title in response.content)
-        ok_(event3.title not in response.content)
+        ok_(event.title in titles)
+        ok_(event2.title in titles)
+        ok_(event3.title not in titles)
 
         # you can edit the first two events
         edit_url1 = reverse('manage:event_edit', kwargs={'id': event.id})
@@ -500,17 +640,6 @@ class TestEvents(ManageTestCase):
         edit_url3 = reverse('manage:event_edit', kwargs={'id': event3.id})
         response = self.client.get(edit_url3)
         eq_(response.status_code, 302)
-
-    def test_find_event(self):
-        """Find event responds with filtered results or raises error."""
-        response_ok = self.client.get(reverse('manage:events'),
-                                      {'title': 'event'})
-        eq_(response_ok.status_code, 200)
-        ok_(response_ok.content.find('Test event') >= 0)
-        response_fail = self.client.get(reverse('manage:events'),
-                                        {'title': 'laskdjflkajdsf'})
-        eq_(response_fail.status_code, 200)
-        ok_(response_fail.content.find('No event') >= 0)
 
     def test_event_edit_slug(self):
         """Test editing an event - modifying an event's slug
@@ -2008,7 +2137,7 @@ class TestManagementRoles(ManageTestCase):
     def test_producer(self):
         """Producer can see fixture events and edit pages."""
         self._add_client_group('Producer')
-        response_events = self.client.get(reverse('manage:events'))
+        response_events = self.client.get(reverse('manage:events_data'))
         eq_(response_events.status_code, 200)
         ok_('Test event' in response_events.content)
         response_participants = self.client.get(reverse('manage:participants'))
@@ -2028,14 +2157,14 @@ class TestManagementRoles(ManageTestCase):
         eq_(response_event_request.status_code, 200)
         ok_(form_contains in response_event_request.content)
         ok_(form_not_contains not in response_event_request.content)
-        response_events = self.client.get(reverse('manage:events'))
+        response_events = self.client.get(reverse('manage:events_data'))
         eq_(response_events.status_code, 200)
         ok_('Test event' not in response_events.content,
             'Unprivileged viewer can see events which do not belong to it')
         event = Event.objects.get(title='Test event')
         event.creator = self.user
         event.save()
-        response_events = self.client.get(reverse('manage:events'))
+        response_events = self.client.get(reverse('manage:events_data'))
         ok_('Test event' in response_events.content,
             'Unprivileged viewer cannot see events which belong to it.')
         response_event_edit = self.client.get(reverse('manage:event_edit',

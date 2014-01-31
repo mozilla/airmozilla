@@ -30,7 +30,7 @@ import pytz
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 
-from airmozilla.main.helpers import short_desc
+from airmozilla.main.helpers import thumbnail, short_desc
 from airmozilla.manage.helpers import scrub_transform_passwords
 from airmozilla.base import mozillians
 from airmozilla.base.utils import (
@@ -365,83 +365,31 @@ def event_request(request, duplicate_id=None):
 @permission_required('main.change_event')
 def events(request):
     """Event edit/production:  approve, change, and publish events."""
+    return render(request, 'manage/events.html', {})
+
+
+@staff_required
+@permission_required('main.change_event')
+@json_view
+def events_data(request):
+    events = []
+    qs = (
+        Event.objects.all()
+        .select_related('category', 'location')
+        .order_by('-modified')
+    )
+    _can_change_event_others = (
+        request.user.has_perm('main.change_event_others')
+    )
     base_filter = {}
     base_exclude = {}
     if not request.user.has_perm('main.change_event_others'):
         base_filter['creator'] = request.user
     if is_contributor(request.user):
         base_exclude['privacy'] = Event.PRIVACY_COMPANY
+    qs = qs.filter(**base_filter)
+    qs = qs.exclude(**base_exclude)
 
-    search_results = None
-    if request.GET.get('title'):
-        search_form = forms.EventFindForm(request.GET)
-        if search_form.is_valid():
-            search_results = (
-                Event.objects
-                .filter(**base_filter)
-                .exclude(**base_exclude)
-            )
-            exact = search_results.filter(
-                title=search_form.cleaned_data['title']
-            )
-            if exact:
-                search_results = exact
-            else:
-                title_sql = (
-                    "to_tsvector('english', title) "
-                    "@@ plainto_tsquery('english', %s)"
-                )
-                search_results = search_results.extra(
-                    where=[title_sql],
-                    params=[search_form.cleaned_data['title']]
-                )
-                search_results = search_results.order_by('-start_time')
-        else:
-            search_results = Event.objects.none()
-    else:
-        search_form = forms.EventFindForm()
-    initiated = (
-        Event.objects.initiated()
-        .filter(**base_filter)
-        .exclude(**base_exclude)
-        .order_by('start_time')
-        .select_related('category', 'location')
-    )
-    upcoming = (
-        Event.objects.upcoming()
-        .filter(**base_filter)
-        .exclude(**base_exclude)
-        .order_by('start_time')
-        .select_related('category', 'location')
-    )
-    pending = (
-        Event.objects
-        .filter(**base_filter)
-        .exclude(**base_exclude)
-        .filter(status=Event.STATUS_PENDING)
-        .order_by('start_time')
-        .select_related('category', 'location')
-    )
-    live = (
-        Event.objects.live()
-        .filter(**base_filter)
-        .exclude(**base_exclude)
-        .order_by('start_time')
-        .select_related('category', 'location')
-    )
-    #archiving = (Event.objects.archiving().filter(**base_filter)
-    #             .order_by('-archive_time')
-    #             .select_related('category', 'location'))
-    archived = (
-        Event.objects.archived_and_removed()
-        .filter(**base_filter)
-        .exclude(**base_exclude)
-        .order_by('-start_time')
-        .select_related('category', 'location')
-    )
-    archived_paged = paginate(archived, request.GET.get('page'), 10)
-
-    # make a dictionary that maps every event ID to a list of channel names
     event_channel_names = collections.defaultdict(list)
     _channel_names = dict(
         (x['id'], x['name'])
@@ -452,17 +400,90 @@ def events(request):
             _channel_names[each['channel_id']]
         )
 
-    return render(request, 'manage/events.html', {
-        'initiated': initiated,
-        'upcoming': upcoming,
-        'live': live,
-        #'archiving': archiving,
-        'pending': pending,
-        'archived': archived_paged,
-        'form': search_form,
-        'search_results': search_results,
-        'event_channel_names': event_channel_names,
-    })
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    live_time = now + datetime.timedelta(minutes=settings.LIVE_MARGIN)
+
+    all_needs_approval = (
+        Approval.objects
+        .filter(processed=False)
+        .values_list('event_id', flat=True)
+    )
+
+    if request.GET.get('limit'):
+        try:
+            limit = int(request.GET['limit'])
+            assert limit > 0
+            qs = qs[:limit]
+        except (ValueError, AssertionError):
+            pass
+
+    for event in qs:
+        if event.location:
+            start_time = event.location_time.strftime('%d %b %Y %I:%M%p')
+            start_time_iso = event.location_time.isoformat()
+        else:
+            start_time = event.start_time.strftime('%d %b %Y %I:%M%p %Z')
+            start_time_iso = event.start_time.isoformat()
+
+        needs_approval = event.pk in all_needs_approval
+        is_live = False
+        is_upcoming = False
+        if event.status == Event.STATUS_SCHEDULED and not needs_approval:
+            if not event.archive_time and event.start_time < live_time:
+                is_live = True
+            elif not event.archive_time and event.start_time > live_time:
+                is_upcoming = True
+
+        thumbnail_ = {}
+        if event.placeholder_img:
+            thumb = thumbnail(event.placeholder_img, '32x32')
+            if thumb:
+                thumbnail_ = {
+                    'url': thumb.url,
+                    'width': thumb.width,
+                    'height': thumb.height,
+                }
+
+        row = {
+            'thumbnail': thumbnail_,
+            'modified': event.modified,
+            'url': reverse('main:event', args=(event.slug,)),
+            #'state': state,
+            'status': event.status,
+            'status_display': event.get_status_display(),
+            'privacy': event.privacy,
+            'privacy_display': event.get_privacy_display(),
+            'title': event.title,
+            'slug': event.slug,
+            'location': event.location and event.location.name or '',
+            'edit_url': reverse('manage:event_edit', args=(event.pk,)),
+            'start_time': start_time,
+            'start_time_iso': start_time_iso,
+            'category': event.category and event.category.name or '',
+            'channels': event_channel_names.get(event.pk, []),
+            'is_pending': event.status == Event.STATUS_PENDING,
+            'archive_time': event.archive_time,
+            'needs_approval': needs_approval,
+            'is_live': is_live,
+            'is_upcoming': is_upcoming,
+        }
+        if row['is_pending']:
+            # this one is only relevant if it's pending
+            row['has_vidly_template'] = event.has_vidly_template()
+
+        if _can_change_event_others:
+            row['duplicate_url'] = reverse(
+                'manage:event_duplicate',
+                args=(event.pk,)
+            )
+            row['archive_url'] = reverse(
+                'manage:event_archive',
+                args=(event.pk,)
+            )
+
+        events.append(row)
+
+    return {'events': events}
 
 
 @staff_required

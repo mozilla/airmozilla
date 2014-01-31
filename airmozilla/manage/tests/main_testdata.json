@@ -82,7 +82,7 @@
         "pk": 22,
         "model": "main.event",
         "fields": {
-            "placeholder_img": "placeholders/Strawberry.gif",
+            "placeholder_img": "firefox.png",
             "category": 7,
             "channels": [1],
             "description": "sadfasdf",
