@@ -136,6 +136,44 @@ class TestPages(TestCase):
         eq_(event.location.timezone, self.cyberspace.timezone)
         self.assertRedirects(response, url)
 
+    def test_start_with_file_upload_id(self):
+        upload = Upload.objects.create(
+            user=self.user,
+            url='https://s3.com/file',
+            size=1234
+        )
+        url = reverse('suggest:start')
+        response = self.client.get(url, {'upload': upload.pk})
+        eq_(response.status_code, 200)
+
+    def test_start_with_file_upload_twice(self):
+        upload = Upload.objects.create(
+            user=self.user,
+            url='https://s3.com/file',
+            file_name='file.mpg',
+            size=1234
+        )
+        suggested_event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            upload=upload
+        )
+        url = reverse('suggest:start')
+        response = self.client.get(url, {'upload': upload.pk})
+        eq_(response.status_code, 302)
+        """
+        self.assertRedirects(
+            response,
+            reverse('uploads:home')
+        )
+        """
+        response = self.client.get(reverse('uploads:home'))
+        eq_(response.status_code, 200)
+        ok_('The file upload you selected belongs to a requested event '
+            'with the title' in response.content)
+        ok_(suggested_event.title in response.content)
+
     def test_start_duplicate_slug(self):
         event = Event.objects.get(slug='test-event')
         event.title = 'Some Other Title'

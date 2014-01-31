@@ -56,6 +56,7 @@
       <tr>
         <td>File Upload</td>
         <td>
+          {% if event.upload %}
           <table>
             <tr>
               <td>Name</td>
@@ -70,6 +71,9 @@
               <td><a href="{{ event.upload.url }}">Open</td>
             </tr>
           </table>
+          {% else %}
+            <p>Bad. Supposedly a pre-recorded event but no file uploaded.</p>
+          {% endif %}
         </td>
       </tr>
       {% endif %}

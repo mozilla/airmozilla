@@ -90,10 +90,27 @@ def start(request):
                     pk=request.GET['upload'],
                     user=request.user
                 )
+                # is that upload used by some other suggested event
+                # in progress?
+                try:
+                    suggested_event = SuggestedEvent.objects.get(
+                        upload=upload
+                    )
+                    # that's bad!
+                    messages.warning(
+                        request,
+                        'The file upload you selected belongs to a requested '
+                        'event with the title: %s' % suggested_event.title
+                    )
+                    return redirect('uploads:home')
+                except SuggestedEvent.DoesNotExist:
+                    pass
+
                 initial['upcoming'] = False
                 request.session['active_upload'] = upload.pk
             except Upload.DoesNotExist:
                 pass
+
         form = forms.StartForm(user=request.user, initial=initial)
 
         data['suggestions'] = (
