@@ -73,7 +73,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
           {% endfor %}
           &bull;
         {% endif %}
-        {% if event.location and event.location.name != 'Cyberspace' %}
+        {% if event.location and not event.location.name.startswith('Cyberspace') %}
           {{ _('Location') }}: {{ event.location.name }}
         {% endif %}
       </p>

@@ -312,6 +312,34 @@ class TestPages(TestCase):
         assert event.location.timezone == 'US/Pacific'
         ok_('10:00AM' in response.content)
 
+    def test_event_in_cyberspace(self):
+        event = Event.objects.get(title='Test event')
+        assert 'Cyberspace' not in event.location.name
+        event_page = reverse('main:event', kwargs={'slug': event.slug})
+        response = self.client.get(event_page)
+        eq_(response.status_code, 200)
+        ok_(event.location.name in response.content)
+
+        cyberspace, __ = Location.objects.get_or_create(
+            name='Cyberspace',
+            timezone='UTC'
+        )
+        event.location = cyberspace
+        event.save()
+        response = self.client.get(event_page)
+        eq_(response.status_code, 200)
+        ok_(event.location.name not in response.content)
+
+        cyberspace_pacific, __ = Location.objects.get_or_create(
+            name='Cyberspace Pacific',
+            timezone='US/Pacific'
+        )
+        event.location = cyberspace_pacific
+        event.save()
+        response = self.client.get(event_page)
+        eq_(response.status_code, 200)
+        ok_(event.location.name not in response.content)
+
     def test_old_slug(self):
         """An old slug will redirect properly to the current event page."""
         old_event_slug = EventOldSlug.objects.get(slug='test-old-slug')
