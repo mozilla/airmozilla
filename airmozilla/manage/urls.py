@@ -131,4 +131,7 @@ urlpatterns = patterns(
     url(r'^cron-pings/$',
         views.cron_pings,
         name='cron_pings'),
+    url(r'^curated-groups-autocomplete/',
+        views.curated_groups_autocomplete,
+        name='curated_groups_autocomplete'),
 )

@@ -2,12 +2,12 @@
 
 $(function() {
     'use strict';
-    var process_tags = function process_tags(element) {
+    var process_tags = function process_tags(element, callback) {
         var data = [];
         $(element.val().split(',')).each(function () {
             data.push({id: this, text: this});
         });
-        return data;
+        callback(data);
     };
 
     // all the things we're going to do select2 on,

@@ -2,7 +2,7 @@ import logging
 from django.conf import settings
 from django.contrib import messages
 
-from .mozillians import is_vouched, BadStatusCodeError
+from airmozilla.base.mozillians import is_vouched, BadStatusCodeError
 from airmozilla.main.models import UserProfile
 
 from django_browserid.views import Verify

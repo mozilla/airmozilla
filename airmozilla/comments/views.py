@@ -13,7 +13,7 @@ from django.utils.timezone import utc
 from airmozilla.base.utils import json_view
 from airmozilla.main.models import Event
 from .models import Comment, Discussion, Unsubscription
-from airmozilla.auth.mozillians import fetch_user_name
+from airmozilla.base.mozillians import fetch_user_name
 from . import forms
 from . import sending
 

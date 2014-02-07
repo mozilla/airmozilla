@@ -32,6 +32,7 @@ from jinja2 import Environment, meta
 
 from airmozilla.main.helpers import short_desc
 from airmozilla.manage.helpers import scrub_transform_passwords
+from airmozilla.base import mozillians
 from airmozilla.base.utils import (
     json_view,
     paginate,
@@ -55,7 +56,8 @@ from airmozilla.main.models import (
     VidlySubmission,
     URLMatch,
     URLTransform,
-    EventHitStats
+    EventHitStats,
+    CuratedGroup
 )
 from airmozilla.main.views import is_contributor
 from airmozilla.manage import forms
@@ -274,6 +276,34 @@ def _event_process(request, form, event):
             app = Approval.objects.get(group=approval, event=event)
             app.delete()
 
+        if 'curated_groups' in form.cleaned_data:
+            # because this form field acts like "tags",
+            # we split them by ,
+            names = [
+                x.strip() for x in
+                form.cleaned_data['curated_groups'].split(',')
+                if x.strip()
+            ]
+            if names:
+                all = mozillians.get_all_groups_cached()
+            for name in names:
+                group, __ = CuratedGroup.objects.get_or_create(
+                    event=event,
+                    name=name
+                )
+                found = [x for x in all if x['name'] == name]
+                if found and found[0]['url'] != group.url:
+                    group.url = found[0]['url']
+                    group.save()
+
+            # delete any we had before that aren't submitted any more
+            (
+                CuratedGroup.objects
+                .filter(event=event)
+                .exclude(name__in=names)
+                .delete()
+            )
+
 
 @staff_required
 @permission_required('main.add_event')
@@ -451,6 +481,10 @@ def event_edit(request, id):
     else:
         form_class = forms.EventRequestForm
 
+    curated_groups = (
+        CuratedGroup.objects.filter(event=event).order_by('created')
+    )
+
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES, instance=event)
         if form.is_valid():
@@ -466,9 +500,12 @@ def event_edit(request, id):
             return redirect('manage:events')
     else:
         timezone.activate(pytz.timezone('UTC'))
-        form = form_class(instance=event, initial={
-            'timezone': timezone.get_current_timezone()  # UTC
-        })
+        initial = {}
+        initial['timezone'] = timezone.get_current_timezone()  # UTC
+        initial['curated_groups'] = ','.join(
+            x[0] for x in curated_groups.values_list('name')
+        )
+        form = form_class(instance=event, initial=initial)
     context = {
         'form': form,
         'event': event,
@@ -2242,3 +2279,25 @@ def comment_edit(request, id):
     context['event'] = comment.event
     context['form'] = form
     return render(request, 'manage/comment_edit.html', context)
+
+
+@permission_required('main.change_comment')
+@json_view
+def curated_groups_autocomplete(request):
+    q = request.GET.get('q').strip()
+    all = mozillians.get_all_groups_cached()
+
+    def describe_group(group):
+        if group['number_of_members'] == 1:
+            return '%s (1 member)' % (group['name'],)
+        else:
+            return (
+                '%s (%s members)' % (group['name'], group['number_of_members'])
+            )
+
+    groups = [
+        (x['name'], describe_group(x))
+        for x in all
+        if q.lower() in x['name'].lower()
+    ]
+    return {'groups': groups}

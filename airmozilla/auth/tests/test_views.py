@@ -1,5 +1,3 @@
-import json
-
 from django.conf import settings
 from django.test import TestCase
 from django.utils.importlib import import_module
@@ -10,7 +8,7 @@ import mock
 from nose.tools import ok_, eq_
 
 from airmozilla.auth.browserid_mock import mock_browserid
-from airmozilla.auth import mozillians
+from airmozilla.base import mozillians
 from airmozilla.main.models import UserProfile
 
 
@@ -86,86 +84,11 @@ NOT_VOUCHED_FOR = """
 }
 """
 
-NO_VOUCHED_FOR = """
-{
-  "meta": {
-    "previous": null,
-    "total_count": 0,
-    "offset": 0,
-    "limit": 20,
-    "next": null
-  },
-  "objects": []
-}
-"""
-
-
-assert json.loads(VOUCHED_FOR)
-assert json.loads(NOT_VOUCHED_FOR)
-
 
 class Response(object):
     def __init__(self, content=None, status_code=200):
         self.content = content
         self.status_code = status_code
-
-
-class TestMozillians(TestCase):
-
-    @mock.patch('logging.error')
-    @mock.patch('requests.get')
-    def test_is_vouched(self, rget, rlogging):
-        def mocked_get(url, **options):
-            if 'tmickel' in url:
-                return Response(NOT_VOUCHED_FOR)
-            if 'peterbe' in url:
-                return Response(VOUCHED_FOR)
-            if 'trouble' in url:
-                return Response('Failed', status_code=500)
-            raise NotImplementedError(url)
-        rget.side_effect = mocked_get
-
-        ok_(not mozillians.is_vouched('tmickel@mit.edu'))
-        ok_(mozillians.is_vouched('peterbe@gmail.com'))
-
-        self.assertRaises(
-            mozillians.BadStatusCodeError,
-            mozillians.is_vouched,
-            'trouble@live.com'
-        )
-        # also check that the API key is scrubbed
-        try:
-            mozillians.is_vouched('trouble@live.com')
-            raise
-        except mozillians.BadStatusCodeError, msg:
-            ok_(settings.MOZILLIANS_API_KEY not in str(msg))
-
-    @mock.patch('logging.error')
-    @mock.patch('requests.get')
-    def test_is_not_vouched(self, rget, rlogging):
-        def mocked_get(url, **options):
-            if 'tmickel' in url:
-                return Response(NO_VOUCHED_FOR)
-            raise NotImplementedError(url)
-        rget.side_effect = mocked_get
-
-        ok_(not mozillians.is_vouched('tmickel@mit.edu'))
-
-    @mock.patch('logging.error')
-    @mock.patch('requests.get')
-    def test_fetch_user_name(self, rget, rlogging):
-        def mocked_get(url, **options):
-            if 'peterbe' in url:
-                return Response(VOUCHED_FOR)
-            if 'tmickel' in url:
-                return Response(NOT_VOUCHED_FOR)
-            raise NotImplementedError(url)
-        rget.side_effect = mocked_get
-
-        result = mozillians.fetch_user_name('peterbe@gmail.com')
-        eq_(result, 'Peter Bengtsson')
-        result = mozillians.fetch_user_name('tmickel@mit.edu')
-        eq_(result, None)
 
 
 class TestViews(TestCase):

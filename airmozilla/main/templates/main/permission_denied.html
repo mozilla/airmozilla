@@ -1,0 +1,29 @@
+{% extends 'main/main_base.html' %}
+{% set page='permission_denied' %}
+
+
+{% block content_main %}
+  <h2 class="section-title">{{ _('Permission Denied') }}</h2>
+  <article>
+    <p>The event you tried to reach <a href="{{ url('main:event', event.slug) }}">{{ event.title }}</a>
+    requires special permissions which you
+    unfortunately don't have.</p>
+    {% if is_contributor %}
+      <p>You are signed in as a <b>vouched contributor</b> ({{ request.user.email }}).<br>
+      {% if is_company_only %}
+        <b>This event is only for Mozilla staff.</b>
+      {% elif curated_groups %}
+        Access to this event requires that you are a member of:
+        {% for group in curated_groups %}
+          {% if group.url %}
+            <a href="{{ group.url }}"><b>{{ group.name }}</b></a>
+          {% else %}
+            <b>{{ group.name }}</b>
+          {% endif %}
+          {% if not loop.last %}or{% endif %}
+        {% endfor %}
+      {% endif %}
+      </p>
+    {% endif %}
+  </article>
+{% endblock %}

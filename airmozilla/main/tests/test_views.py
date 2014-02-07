@@ -16,7 +16,7 @@ from django.conf import settings
 
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
-from mock import patch
+import mock
 
 from airmozilla.main.models import (
     Approval,
@@ -28,7 +28,14 @@ from airmozilla.main.models import (
     UserProfile,
     Channel,
     Location,
-    EventHitStats
+    EventHitStats,
+    CuratedGroup
+)
+from airmozilla.base.tests.test_mozillians import (
+    Response,
+    GROUPS1,
+    GROUPS2,
+    VOUCHED_FOR
 )
 
 
@@ -221,7 +228,15 @@ class TestPages(TestCase):
         event.save()
 
         response = self.client.get(url)
-        self.assertRedirects(response, reverse('main:login'))
+        permission_denied_url = reverse(
+            'main:permission_denied',
+            args=(event.slug,)
+        )
+        self.assertRedirects(response, permission_denied_url)
+        # actually go there
+        response = self.client.get(permission_denied_url)
+        eq_(response.status_code, 200)
+        ok_('This event is only for Mozilla staff')
 
         User.objects.create_user(
             'worker', 'worker@mozilla.com', 'secret'
@@ -286,7 +301,10 @@ class TestPages(TestCase):
         assert self.client.login(username='nigel', password='secret')
 
         response_fail = self.client.get(event_page)
-        self.assertRedirects(response_fail, reverse('main:login'))
+        self.assertRedirects(
+            response_fail,
+            reverse('main:permission_denied', args=(event.slug,))
+        )
 
         event.privacy = Event.PRIVACY_CONTRIBUTORS
         event.save()
@@ -827,7 +845,7 @@ class TestPages(TestCase):
             in response.content
         )
 
-    @patch('airmozilla.manage.vidly.urllib2.urlopen')
+    @mock.patch('airmozilla.manage.vidly.urllib2.urlopen')
     def test_event_with_vidly_token_urlerror(self, p_urlopen):
         # based on https://bugzilla.mozilla.org/show_bug.cgi?id=811476
         event = Event.objects.get(title='Test event')
@@ -850,7 +868,7 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
         ok_('Temporary network error' in response.content)
 
-    @patch('airmozilla.manage.vidly.urllib2.urlopen')
+    @mock.patch('airmozilla.manage.vidly.urllib2.urlopen')
     def test_event_with_vidly_token_badstatusline(self, p_urlopen):
         # based on https://bugzilla.mozilla.org/show_bug.cgi?id=842588
         event = Event.objects.get(title='Test event')
@@ -1717,3 +1735,69 @@ class TestPages(TestCase):
             response.content.find(event3.title) <
             response.content.find(event2.title)
         )
+
+    @mock.patch('logging.error')
+    @mock.patch('requests.get')
+    def test_view_curated_group_event(self, rget, rlogging):
+
+        def mocked_get(url, **options):
+            if 'peterbe' in url:
+                return Response(VOUCHED_FOR)
+            if 'offset=0' in url:
+                return Response(GROUPS1)
+            if 'offset=500' in url:
+                return Response(GROUPS2)
+            raise NotImplementedError(url)
+        rget.side_effect = mocked_get
+
+        # sign in as a contributor
+        UserProfile.objects.create(
+            user=User.objects.create_user(
+                'peterbe', 'peterbe@gmail.com', 'secret'
+            ),
+            contributor=True
+        )
+        assert self.client.login(username='peterbe', password='secret')
+
+        event = Event.objects.get(title='Test event')
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        permission_denied_url = reverse(
+            'main:permission_denied',
+            args=(event.slug,)
+        )
+        self.assertRedirects(response, permission_denied_url)
+
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+        # make it so that viewing the event requires that you're a
+        # certain group
+        vip_group = CuratedGroup.objects.create(
+            event=event,
+            name='vip',
+            url='https://mozillians.org/vip',
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, permission_denied_url)
+        # and view that page
+        response = self.client.get(permission_denied_url)
+        eq_(response.status_code, 200)
+        ok_(vip_group.url in response.content)
+
+        CuratedGroup.objects.create(
+            event=event,
+            name='ugly tuna',
+            url='https://mozillians.org/ugly-tuna',
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)

@@ -43,4 +43,6 @@ urlpatterns = patterns(
         name='event'),
     url(r'^(?P<slug>[-\w]+)/video/$', views.EventVideoView.as_view(),
         name='event_video'),
+    url(r'^(?P<slug>[-\w]+)/permission-denied/$', views.permission_denied,
+        name='permission_denied'),
 )

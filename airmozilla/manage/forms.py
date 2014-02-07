@@ -31,6 +31,8 @@ from airmozilla.comments.models import Discussion, Comment
 
 TIMEZONE_CHOICES = [(tz, tz.replace('_', ' ')) for tz in pytz.common_timezones]
 
+ONE_HOUR = 60 * 60
+
 
 class UserEditForm(BaseModelForm):
     class Meta:
@@ -203,6 +205,12 @@ class EventEditForm(EventRequestForm):
         queryset=Group.objects.filter(permissions__codename='change_approval'),
         required=False,
         widget=forms.CheckboxSelectMultiple()
+    )
+    curated_groups = forms.CharField(
+        required=False,
+        help_text='Curated groups only matter if the event is open to'
+                  ' "%s".' % [x[1] for x in Event.PRIVACY_CHOICES
+                              if x[0] == Event.PRIVACY_CONTRIBUTORS][0]
     )
 
     class Meta(EventRequestForm.Meta):

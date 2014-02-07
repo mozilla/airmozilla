@@ -19,8 +19,15 @@ from jingo import Template
 import vobject
 
 from airmozilla.main.models import (
-    Event, EventOldSlug, Participant, Tag, get_profile_safely, Channel,
-    Location, EventHitStats
+    Event,
+    EventOldSlug,
+    Participant,
+    Tag,
+    get_profile_safely,
+    Channel,
+    Location,
+    EventHitStats,
+    CuratedGroup
 )
 from airmozilla.base.utils import (
     paginate,
@@ -31,6 +38,7 @@ from airmozilla.base.utils import (
 from airmozilla.comments.models import Discussion
 from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
+from airmozilla.base import mozillians
 from . import cloud
 from . import forms
 
@@ -219,6 +227,16 @@ def can_view_event(event, user):
         # but then it's not good enough to be contributor
         if is_contributor(user):
             return False
+    else:
+        curated_groups = [
+            x[0] for x in
+            CuratedGroup.objects.filter(event=event).values_list('name')
+        ]
+        if curated_groups:
+            return mozillians.in_groups(
+                user.email,
+                curated_groups
+            )
 
     return True
 
@@ -230,7 +248,10 @@ class EventView(View):
 
     def cant_view_event(self, event, request):
         """return a response appropriate when you can't view the event"""
-        return redirect('main:login')
+        if request.user.is_authenticated():
+            return redirect('main:permission_denied', event.slug)
+        else:
+            return redirect('main:login')
 
     def cant_find_event(self, request, slug):
         """return an appropriate response if no event can be found"""
@@ -685,3 +706,21 @@ def calendar_data(request):
         })
 
     return event_objects
+
+
+def permission_denied(request, slug):
+    context = {}
+    event = get_object_or_404(Event, slug=slug)
+    context['event'] = event
+    context['is_contributor'] = is_contributor(request.user)
+    context['is_company_only'] = event.privacy == Event.PRIVACY_COMPANY
+
+    curated_groups = CuratedGroup.objects.filter(event=event).order_by('name')
+    context['curated_groups'] = []
+    for group in curated_groups:
+        context['curated_groups'].append({
+            'name': group.name,
+            'url': group.url
+        })
+
+    return render(request, 'main/permission_denied.html', context)

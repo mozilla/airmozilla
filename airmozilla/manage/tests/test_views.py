@@ -37,14 +37,19 @@ from airmozilla.main.models import (
     URLMatch,
     URLTransform,
     EventHitStats,
-    UserProfile
+    UserProfile,
+    CuratedGroup
 )
 from airmozilla.comments.models import (
     Discussion,
     Comment
 )
 from airmozilla.uploads.models import Upload
-
+from airmozilla.base.tests.test_mozillians import (
+    Response,
+    GROUPS1,
+    GROUPS2
+)
 from .test_vidly import (
     SAMPLE_XML,
     SAMPLE_MEDIALIST_XML,
@@ -1457,6 +1462,48 @@ class TestEvents(ManageTestCase):
         )[0]
         # expect to see the location time in there instead
         ok_('13:00' in start_time_tag, start_time_tag)
+
+    @mock.patch('logging.error')
+    @mock.patch('requests.get')
+    def test_editing_event_curated_groups(self, rget, rlogging):
+
+        def mocked_get(url, **options):
+            if 'offset=0' in url:
+                return Response(GROUPS1)
+            if 'offset=500' in url:
+                return Response(GROUPS2)
+            raise NotImplementedError(url)
+        rget.side_effect = mocked_get
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_edit', args=(event.pk,))
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Curated groups' in response.content)
+        response = self.client.post(
+            url,
+            dict(self.event_base_data,
+                 title=event.title,
+                 curated_groups='Group 1, Group 2'
+                 )
+        )
+        eq_(response.status_code, 302)
+        ok_(CuratedGroup.objects.get(event=event, name='Group 1'))
+        ok_(CuratedGroup.objects.get(event=event, name='Group 2'))
+
+        # edit it again
+        response = self.client.post(
+            url,
+            dict(self.event_base_data,
+                 title=event.title,
+                 curated_groups='Group 1, Group X'
+                 )
+        )
+        eq_(response.status_code, 302)
+        ok_(CuratedGroup.objects.get(event=event, name='Group 1'))
+        ok_(CuratedGroup.objects.get(event=event, name='Group X'))
+        ok_(not CuratedGroup.objects.filter(event=event, name='Group 2'))
 
 
 class TestParticipants(ManageTestCase):
