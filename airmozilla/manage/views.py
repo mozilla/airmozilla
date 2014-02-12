@@ -236,7 +236,7 @@ def _event_process(request, form, event):
         approvals_old = [app.group for app in event.approval_set.all()]
         approvals_new = form.cleaned_data['approvals']
         approvals_add = set(approvals_new).difference(approvals_old)
-        approvals_remove = set(approvals_old).difference(approvals_new)
+        #approvals_remove = set(approvals_old).difference(approvals_new)
         for approval in approvals_add:
             group = Group.objects.get(name=approval)
             app = Approval(group=group, event=event)
@@ -272,9 +272,12 @@ def _event_process(request, form, event):
                 emails
             )
             email.send()
-        for approval in approvals_remove:
-            app = Approval.objects.get(group=approval, event=event)
-            app.delete()
+        # Commented out because we currently do not allow approvals
+        # to be "un-requested". That's because the email has already
+        # gone out and it's too late now.
+        #for approval in approvals_remove:
+        #    app = Approval.objects.get(group=approval, event=event)
+        #    app.delete()
 
         if 'curated_groups' in form.cleaned_data:
             # because this form field acts like "tags",
@@ -561,6 +564,12 @@ def event_edit(request, id):
         context['comments_count'] = Comment.objects.filter(event=event).count()
     except Discussion.DoesNotExist:
         context['discussion'] = None
+
+    context['approvals'] = (
+        Approval.objects
+        .filter(event=event)
+        .select_related('group')
+    )
 
     return render(request, 'manage/event_edit.html', context)
 

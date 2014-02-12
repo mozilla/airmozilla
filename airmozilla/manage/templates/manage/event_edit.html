@@ -152,6 +152,29 @@
       {% endif %}
     </p>
 
+    {% if approvals %}
+    <p style="margin-top:25px"><strong>Approval Requested</strong></p>
+    <dl>
+    {% for approval in approvals %}
+        <dt>{{ approval.group.name }}</dt>
+        <dd>
+        {% if approval.approved %}
+          Approved by {{ approval.user.email }}
+        {% else %}
+          {% if approval.processed %}
+            Rejected by {{ approval.user.email }}
+            {% if approval.comment %}
+            <br><b>Comment:</b> {{ approval.comment }}
+            {% endif %}
+          {% else %}
+            Waiting.
+          {% endif %}
+        {% endif %}
+        </dd>
+    {% endfor %}
+    </dl>
+    {% endif %}
+
     {% if stuck_pending %}
     <form action="{{ url('manage:event_archive_auto', event.pk) }}" method="post">
     <p style="margin-top:25px"><strong>Pending to archive</strong></p>

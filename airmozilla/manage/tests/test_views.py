@@ -351,12 +351,14 @@ class TestEvents(ManageTestCase):
         response_ok = self.client.post(
             reverse('manage:event_edit', kwargs={'id': event.id}),
             dict(self.event_base_data, title='Different title',
-                 approvals=[group1.pk])
+                 approvals=[])
         )
         eq_(response_ok.status_code, 302)
         event = Event.objects.get(title='Different title')
         approvals = event.approval_set.all()
-        eq_(approvals.count(), 1)
+        # it's impossible to un-set approvals
+        # see https://bugzilla.mozilla.org/show_bug.cgi?id=839024
+        eq_(approvals.count(), 2)
 
     def test_tag_autocomplete(self):
         """Autocomplete makes JSON for fixture tags and a nonexistent tag."""
