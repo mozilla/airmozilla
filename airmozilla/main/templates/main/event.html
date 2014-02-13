@@ -101,7 +101,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
       <p>
         {{ _('Tags') }}:
         {% for tag in tags %}
-          <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}" class="tag">{{ tag }}</a>
+          <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}" class="tag">{{ tag }}</a>{% if not loop.last %}, {% endif %}
         {% endfor %}
       </p>
       {% endif %}
