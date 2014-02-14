@@ -2290,7 +2290,7 @@ def comment_edit(request, id):
     return render(request, 'manage/comment_edit.html', context)
 
 
-@permission_required('main.change_comment')
+@permission_required('main.change_event')
 @json_view
 def curated_groups_autocomplete(request):
     q = request.GET.get('q').strip()

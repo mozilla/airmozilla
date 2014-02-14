@@ -108,8 +108,13 @@ def get_all_groups(name_search=None):
 
 def get_all_groups_cached(name_search=None, lasting=60 * 60):
     cache_key = 'all_mozillian_groups'
+    cache_key_lock = cache_key + 'lock'
     all = cache.get(cache_key)
     if all is None:
+        if cache.get(cache_key_lock):
+            return []
+        cache.set(cache_key_lock, True, 60)
         all = get_all_groups()
         cache.set(cache_key, all, lasting)
+        cache.delete(cache_key_lock)
     return all
