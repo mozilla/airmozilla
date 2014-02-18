@@ -158,7 +158,10 @@ class TestPages(TestCase):
         url = reverse('main:event', args=(event.slug,))
 
         response = self.client.get(url)
-        self.assertRedirects(response, reverse('main:login'))
+        self.assertRedirects(
+            response,
+            reverse('main:login') + '?next=%s' % url
+        )
 
         User.objects.create_user(
             'mary', 'mary@mozilla.com', 'secret'
@@ -206,7 +209,10 @@ class TestPages(TestCase):
 
         url = reverse('main:event', args=(event.slug,))
         response = self.client.get(url)
-        self.assertRedirects(response, reverse('main:login'))
+        self.assertRedirects(
+            response,
+            reverse('main:login') + '?next=%s' % url
+        )
 
         contributor = User.objects.create_user(
             'nigel', 'nigel@live.com', 'secret'
@@ -277,11 +283,17 @@ class TestPages(TestCase):
         event.privacy = Event.PRIVACY_COMPANY
         event.save()
         response_fail = self.client.get(event_page)
-        self.assertRedirects(response_fail, reverse('main:login'))
+        self.assertRedirects(
+            response_fail,
+            reverse('main:login') + '?next=%s' % event_page
+        )
         event.privacy = Event.PRIVACY_CONTRIBUTORS
         event.save()
         response_fail = self.client.get(event_page)
-        self.assertRedirects(response_fail, reverse('main:login'))
+        self.assertRedirects(
+            response_fail,
+            reverse('main:login') + '?next=%s' % event_page
+        )
         event.privacy = Event.PRIVACY_PUBLIC
         event.status = Event.STATUS_INITIATED
         event.save()
@@ -294,7 +306,10 @@ class TestPages(TestCase):
         event.status = Event.STATUS_SCHEDULED
         event.save()
         response_fail = self.client.get(event_page)
-        self.assertRedirects(response_fail, reverse('main:login'))
+        self.assertRedirects(
+            response_fail,
+            reverse('main:login') + '?next=%s' % event_page
+        )
 
         nigel = User.objects.create_user('nigel', 'n@live.in', 'secret')
         UserProfile.objects.create(user=nigel, contributor=True)
@@ -310,6 +325,18 @@ class TestPages(TestCase):
         event.save()
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
+
+    def test_private_event_redirect(self):
+        event = Event.objects.get(title='Test event')
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:login') + '?next=%s' % url
+        )
 
     def test_event_upcoming(self):
         """View an upcoming event and it should show the local time"""

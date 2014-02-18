@@ -251,7 +251,9 @@ class EventView(View):
         if request.user.is_authenticated():
             return redirect('main:permission_denied', event.slug)
         else:
-            return redirect('main:login')
+            desired_url = reverse('main:event', args=(event.slug,))
+            url = reverse('main:login')
+            return redirect('%s?next=%s' % (url, urllib.quote(desired_url)))
 
     def cant_find_event(self, request, slug):
         """return an appropriate response if no event can be found"""
