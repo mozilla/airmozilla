@@ -1736,6 +1736,98 @@ class TestPages(TestCase):
             response.content.find(event2.title)
         )
 
+    def test_featured_sidebar_for_contributors(self):
+        """if you're a contributor your shouldn't be tempted to see private
+        events in the sidebar of featured events"""
+
+        # use the calendar page so that we only get events that appear
+        # in the side bar
+        url = reverse('main:calendar')
+        # set up 3 events
+        event0 = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event1 = Event.objects.create(
+            title='1 Test Event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=3),
+            archive_time=now - datetime.timedelta(days=2),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event0.placeholder_img,
+        )
+        event1.channels.add(self.main_channel)
+        event2 = Event.objects.create(
+            title='2 Test Event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=4),
+            archive_time=now - datetime.timedelta(days=3),
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event0.placeholder_img,
+        )
+        event2.channels.add(self.main_channel)
+        event3 = Event.objects.create(
+            title='3 Test Event',
+            description='Anything',
+            start_time=now - datetime.timedelta(days=5),
+            archive_time=now - datetime.timedelta(days=4),
+            privacy=Event.PRIVACY_COMPANY,
+            status=Event.STATUS_SCHEDULED,
+            placeholder_img=event0.placeholder_img,
+        )
+        event3.channels.add(self.main_channel)
+        EventHitStats.objects.create(
+            event=event1,
+            total_hits=1000,
+            shortcode='abc123'
+        )
+        EventHitStats.objects.create(
+            event=event2,
+            total_hits=1000,
+            shortcode='xyz123'
+        )
+        EventHitStats.objects.create(
+            event=event3,
+            total_hits=1000,
+            shortcode='xyz987'
+        )
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Trending' in response.content)
+        ok_(event1.title in response.content)
+        ok_(event2.title not in response.content)
+        ok_(event3.title not in response.content)
+
+        # sign in as a contributor
+        UserProfile.objects.create(
+            user=User.objects.create_user(
+                'peterbe', 'peterbe@gmail.com', 'secret'
+            ),
+            contributor=True
+        )
+        assert self.client.login(username='peterbe', password='secret')
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Trending' in response.content)
+        ok_(event1.title in response.content)
+        ok_(event2.title in response.content)
+        ok_(event3.title not in response.content)
+
+        # sign in as staff
+        User.objects.create_user(
+            'zandr', 'zandr@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='zandr', password='secret')
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Trending' in response.content)
+        ok_(event1.title in response.content)
+        ok_(event2.title in response.content)
+        ok_(event3.title in response.content)
+
     @mock.patch('logging.error')
     @mock.patch('requests.get')
     def test_view_curated_group_event(self, rget, rlogging):

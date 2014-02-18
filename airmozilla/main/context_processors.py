@@ -75,9 +75,16 @@ def sidebar(request):
     featured = featured.filter(event__channels__in=channels)
     upcoming = upcoming.filter(channels__in=channels).distinct()
 
-    if not request.user.is_active:
+    if request.user.is_active:
+        if is_contributor(request.user):
+            # not private
+            featured = featured.exclude(event__privacy=Event.PRIVACY_COMPANY)
+            upcoming = upcoming.exclude(privacy=Event.PRIVACY_COMPANY)
+    else:
+        # only public
         featured = featured.filter(event__privacy=Event.PRIVACY_PUBLIC)
         upcoming = upcoming.filter(privacy=Event.PRIVACY_PUBLIC)
+
     upcoming = upcoming[:settings.UPCOMING_SIDEBAR_COUNT]
     data['upcoming'] = upcoming
     data['featured'] = [x.event for x in featured[:5]]
