@@ -25,7 +25,7 @@
   <form class="form-horizontal" style="display:none">
     {{ csrf() }}
     <h4>URL to Vid.ly shortcutter!</h4>
-    {{ bootstrapform(vidly_shortcut_form) }}
+    {{ bootstrapform_horizontal(vidly_shortcut_form) }}
     <p class="loading" style="float:left;display:none">
       <img src="{{ static('manage/img/spinner.gif') }}" alt="Loading..."> Please wait...
     </p>
