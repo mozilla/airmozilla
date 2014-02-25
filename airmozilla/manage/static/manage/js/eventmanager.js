@@ -84,23 +84,36 @@ function EventManagerController($scope, $http) {
         if (value.trim()) {
             search_slug_regex = new RegExp('^' + escapeRegExp(value.trim()), 'i');
         }
+        $scope.currentPage = 0;
     });
 
     $scope.search_location = '';
     var search_location_regex = null;
     $scope.$watch('search_location', function(value) {
         search_location_regex = new RegExp(escapeRegExp(value), 'i');
+        $scope.currentPage = 0;
     });
 
     $scope.search_cat_chan = '';
     var search_cat_chan_regex = null;
     $scope.$watch('search_cat_chan', function(value) {
         search_cat_chan_regex = new RegExp(escapeRegExp(value), 'i');
+        $scope.currentPage = 0;
     });
 
     $scope.search_status = '';
     $scope.search_privacy = '';
     $scope.search_start_time = '';
+
+    $scope.$watch('search_status', function() {
+        $scope.currentPage = 0;
+    });
+    $scope.$watch('search_privacy', function() {
+        $scope.currentPage = 0;
+    });
+    $scope.$watch('search_start_time', function() {
+        $scope.currentPage = 0;
+    });
 
     $scope.filterBySearch = function(event) {
         if (!$scope.hasFilter()) return true;
