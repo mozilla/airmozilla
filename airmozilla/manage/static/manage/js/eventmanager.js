@@ -60,6 +60,7 @@ function EventManagerController($scope, $http) {
         return ($scope.search_title ||
                 $scope.search_location ||
                 $scope.search_cat_chan ||
+                $scope.search_archived ||
                 $scope.search_status ||
                 $scope.search_start_time ||
                 $scope.search_privacy);
@@ -67,6 +68,7 @@ function EventManagerController($scope, $http) {
     $scope.clearFilter = function() {
         $scope.search_title = '';
         $scope.search_location = '';
+        $scope.search_archived = false;
         $scope.search_cat_chan = '';
         $scope.search_status = '';
         $scope.search_privacy = '';
@@ -104,6 +106,7 @@ function EventManagerController($scope, $http) {
     $scope.search_status = '';
     $scope.search_privacy = '';
     $scope.search_start_time = '';
+    $scope.search_archived = false;
 
     $scope.$watch('search_status', function() {
         $scope.currentPage = 0;
@@ -112,6 +115,9 @@ function EventManagerController($scope, $http) {
         $scope.currentPage = 0;
     });
     $scope.$watch('search_start_time', function() {
+        $scope.currentPage = 0;
+    });
+    $scope.$watch('search_archived', function() {
         $scope.currentPage = 0;
     });
 
@@ -159,6 +165,9 @@ function EventManagerController($scope, $http) {
             return false;
         }
         if ($scope.search_start_time && !in_search_start_time_range(moment(event.start_time_iso))) {
+            return false;
+        }
+        if ($scope.search_archived && !event.archive_time) {
             return false;
         }
         return true;
