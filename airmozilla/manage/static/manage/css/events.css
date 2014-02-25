@@ -10,3 +10,7 @@ p.second-loading {
 option.select-label {
     color: #666;
 }
+
+p.pagesize-option {
+    float: right;
+}

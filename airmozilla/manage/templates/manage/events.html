@@ -176,8 +176,8 @@
   </table>
 
   <p ng-class="{hidden: loading}" class="pagesize-option">
-    <label for="xxx">Events per page
-    <select name="pagesize" ng-model="pageSize">
+    <label for="id_pagesize">Events per page
+    <select id="id_pagesize" name="pagesize" ng-model="pageSize">
       <option ng-repeat="size in [10, 25, 50]"
         >{{ size }}</option>
     </select>
