@@ -39,7 +39,22 @@ function EventManagerController($scope, $http) {
     }
     $scope.events = [];
     $scope.currentPage = 0;
-    $scope.pageSize = 10;
+
+    var pageSize = 10;  // default
+    // attempt to load a different number from localStorage
+    if (window.localStorage) {
+        var localpageSize = window.localStorage.getItem('pageSize');
+        if (localpageSize) {
+            pageSize = +localpageSize;
+        }
+    }
+    $scope.pageSize = pageSize;
+    $scope.$watch('pageSize', function(value) {
+        if (window.localStorage) {
+            window.localStorage.setItem('pageSize', value);
+        }
+    });
+
     $scope.numberOfPages = function(items){
         if (typeof items === 'undefined') return 0;
         return Math.ceil(items.length / $scope.pageSize);

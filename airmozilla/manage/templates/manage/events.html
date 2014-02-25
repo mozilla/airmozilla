@@ -175,6 +175,14 @@
     </tbody>
   </table>
 
+  <p ng-class="{hidden: loading}" class="pagesize-option">
+    <label for="xxx">Events per page
+    <select name="pagesize" ng-model="pageSize">
+      <option ng-repeat="size in [10, 25, 50]"
+        >{{ size }}</option>
+    </select>
+  </p>
+
   <div ng-class="{hidden: loading}">
     <ul class="pagination">
       <li ng-class="{hidden: currentPage == 0}">
