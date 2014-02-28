@@ -85,6 +85,7 @@ urlpatterns = patterns(
         name='template_remove'),
     url(r'^templates/$', views.templates, name='templates'),
     url(r'^tags/$', views.tags, name='tags'),
+    url(r'^tags/data/$', views.tags_data, name='tags_data'),
     url(r'^tags/(?P<id>\d+)/$', views.tag_edit, name='tag_edit'),
     url(r'^tags/remove/(?P<id>\d+)/$', views.tag_remove, name='tag_remove'),
     url(r'^locations/new/$', views.location_new, name='location_new'),

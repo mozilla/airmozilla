@@ -1,0 +1,21 @@
+{% raw %}
+<div ng-class="{hidden: loading}">
+  <ul class="pagination">
+    <li ng-class="{hidden: currentPage == 0}">
+      <a href="#{{ currentPage - 1 }}" ng-click="currentPage = currentPage - 1">&laquo;</a>
+    </li>
+    <li ng-class="{hidden: currentPage == 0}">
+      <a href="#0" ng-click="currentPage = 0">1</a>
+    </li>
+    <li class="active">
+        <a href="#">{{ currentPage + 1 }}/{{ numberOfPages(filtered_items) }}</a>
+    </li>
+    <li ng-class="{hidden: currentPage == numberOfPages(filtered_items) - 1}">
+      <a href="#{{ numberOfPages(filtered_items) }}" ng-click="currentPage = numberOfPages(filtered_items) -1">{{ numberOfPages(filtered_items) }}</a>
+    </li>
+    <li ng-class="{hidden: currentPage >= filtered_items.length/pageSize - 1}">
+      <a href="#{{ currentPage + 1 }}" ng-click="currentPage = currentPage + 1">&raquo;</a>
+    </li>
+  </ul>
+</div>
+{% endraw %}

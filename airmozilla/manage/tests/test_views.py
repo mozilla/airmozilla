@@ -2075,6 +2075,13 @@ class TestTags(ManageTestCase):
         response = self.client.get(reverse('manage:tags'))
         eq_(response.status_code, 200)
 
+    def test_tags_data(self):
+        url = reverse('manage:tags_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        content = json.loads(response.content)
+        ok_(content['tags'])
+
     def test_tag_remove(self):
         """Removing a tag works correctly and leaves associated events
            with null tags."""

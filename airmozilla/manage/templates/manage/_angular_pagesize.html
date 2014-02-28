@@ -1,0 +1,9 @@
+{% raw %}
+<p ng-class="{hidden: loading}" class="pagesize-option">
+  <label for="id_pagesize">Rows per page
+  <select id="id_pagesize" name="pagesize" ng-model="pageSize">
+    <option ng-repeat="size in [10, 25, 50]"
+      >{{ size }}</option>
+  </select>
+</p>
+{% endraw %}

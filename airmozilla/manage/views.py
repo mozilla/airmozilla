@@ -1688,18 +1688,32 @@ def _email_about_rejected_suggestion(event, request):
 @staff_required
 @permission_required('main.change_event')
 def tags(request):
-    if request.GET.get('clear'):
-        return redirect(reverse('manage:tags'))
-    tags = Tag.objects.all()
-    search = request.GET.get('search', '').strip()
-    if search:
-        tags = tags.filter(name__icontains=search)
-    paged = paginate(tags, request.GET.get('page'), 10)
-    data = {
-        'paginate': paged,
-        'search': search,
-    }
-    return render(request, 'manage/tags.html', data)
+    return render(request, 'manage/tags.html')
+
+
+@staff_required
+@permission_required('main.change_event')
+@json_view
+def tags_data(request):
+    tags = []
+
+    counts = {}
+    qs = (
+        Event.tags.through.objects.all()
+        .values('tag_id').annotate(Count('tag'))
+    )
+    for each in qs:
+        counts[each['tag_id']] = each['tag__count']
+
+    for tag in Tag.objects.all():
+        tags.append({
+            'name': tag.name,
+            '_edit_url': reverse('manage:tag_edit', args=(tag.pk,)),
+            '_remove_url': reverse('manage:tag_remove', args=(tag.pk,)),
+            '_usage_count': counts.get(tag.id, 0),
+        })
+
+    return {'tags': tags}
 
 
 @staff_required
@@ -1712,7 +1726,12 @@ def tag_edit(request, id):
         form = forms.TagEditForm(request.POST, instance=tag)
         if form.is_valid():
             form.save()
-            messages.info(request, 'Tag "%s" saved.' % tag)
+
+            edit_url = reverse('manage:tag_edit', args=(tag.pk,))
+            messages.info(
+                request,
+                'Tag "%s" saved. [Edit again](%s)' % (tag, edit_url)
+            )
             return redirect('manage:tags')
     else:
         form = forms.TagEditForm(instance=tag)

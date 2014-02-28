@@ -40,7 +40,7 @@
   <table class="table table-striped table-bordered" ng-class="{hidden: loading}">
     <thead>
       <tr>
-        <th style="width: 50px" title="Number of events found">{{ filtered_events.length }}</th>
+        <th style="width: 50px" title="Number of events found">{{ filtered_items.length }}</th>
         <th>Title</th>
         <th style="width: 14%">Location</th>
         <th style="width: 190px">Start time</th>
@@ -89,7 +89,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr ng-repeat="event in filtered_events = (events | filter:filterBySearch) | orderBy:'modified':true | startFrom:currentPage*pageSize | limitTo:pageSize">
+      <tr ng-repeat="event in filtered_items = (events | filter:filterBySearch) | orderBy:'modified':true | startFrom:currentPage*pageSize | limitTo:pageSize">
         <td><img ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}"
                alt="Placeholder image">
         </td>
@@ -149,7 +149,7 @@
           </a>
         </td>
       </tr>
-      <tr ng-if="!filtered_events.length">
+      <tr ng-if="!filtered_items.length">
         <td colspan="8">
           <p><b>Filtered too much?</b></p>
           <p ng-if="search_title">
@@ -166,7 +166,7 @@
           </p>
         </td>
       </tr>
-      <tr ng-if="filtered_events.length && filtered_events.length < currentPage * pageSize">
+      <tr ng-if="filtered_items.length && filtered_items.length < currentPage * pageSize">
         <td colspan="8">
           <p>Paged too much?</p>
           <p><a href="#" ng-click="resetCurrentPage()">Go back to page 1</a></p>
@@ -175,35 +175,9 @@
     </tbody>
   </table>
 
-  <p ng-class="{hidden: loading}" class="pagesize-option">
-    <label for="id_pagesize">Events per page
-    <select id="id_pagesize" name="pagesize" ng-model="pageSize">
-      <option ng-repeat="size in [10, 25, 50]"
-        >{{ size }}</option>
-    </select>
-  </p>
-
-  <div ng-class="{hidden: loading}">
-    <ul class="pagination">
-      <li ng-class="{hidden: currentPage == 0}">
-        <a href="#{{ currentPage - 1 }}" ng-click="currentPage = currentPage - 1">&laquo;</a>
-      </li>
-      <li ng-class="{hidden: currentPage == 0}">
-        <a href="#0" ng-click="currentPage = 0">1</a>
-      </li>
-      <li class="active">
-          <a href="#">{{ currentPage + 1 }}/{{ numberOfPages(filtered_events) }}</a>
-      </li>
-      <li ng-class="{hidden: currentPage == numberOfPages(filtered_events) - 1}">
-        <a href="#{{ numberOfPages(filtered_events) }}" ng-click="currentPage = numberOfPages(filtered_events) -1">{{ numberOfPages(filtered_events) }}</a>
-      </li>
-      <li ng-class="{hidden: currentPage >= filtered_events.length/pageSize - 1}">
-        <a href="#{{ currentPage + 1 }}" ng-click="currentPage = currentPage + 1">&raquo;</a>
-      </li>
-    </ul>
-  </div>
-
   {% endraw %}
+  {% include "manage/_angular_pagesize.html" %}
+  {% include "manage/_angular_paginate.html" %}
   <p>
     <a href="{{ url('manage:event_request') }}" class="btn btn-default">
         <i class="glyphicon glyphicon-plus"></i>
