@@ -31,6 +31,21 @@ TagManagerController.$inject = ['$scope', '$http'];
 function TagManagerController($scope, $http) {
     'use strict';
 
+    $scope.sort_by = 'name';
+    $scope.sort_by_desc = false;
+
+    $scope.sortBy = function(key, desc_default) {
+        desc_default = desc_default || false;
+        if (key !== $scope.sort_by) {
+            // changing column to sort by
+            $scope.sort_by_desc = desc_default;
+        } else {
+            // just toggle
+            $scope.sort_by_desc = !$scope.sort_by_desc;
+        }
+        $scope.sort_by = key;
+    };
+
     $scope.loading = true;
     function fetchTags(params) {
         var url = location.pathname + 'data/';
@@ -72,11 +87,14 @@ function TagManagerController($scope, $http) {
 
     /* Filtering */
     $scope.hasFilter = function() {
-        return !!$scope.search_name;
+        return ($scope.search_name || $scope.search_minimum);
     };
     $scope.clearFilter = function() {
         $scope.search_name = '';
+        $scope.search_minimum = '';
     };
+
+    $scope.search_minimum = '';
 
     $scope.search_name = '';
     var search_name_regex = null;
@@ -91,6 +109,11 @@ function TagManagerController($scope, $http) {
         // gimme a reason NOT to include this
         if ($scope.search_name) {
             if (!search_name_regex.test(item.name)) {
+                return false;
+            }
+        }
+        if ($scope.search_minimum) {
+            if (item._usage_count < $scope.search_minimum) {
                 return false;
             }
         }
