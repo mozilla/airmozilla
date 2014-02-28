@@ -715,6 +715,50 @@ class TestPages(TestCase):
         # the good tag stays
         ok_('?tag=tag1' in response['Location'])
 
+    def test_filter_by_duplicate_tags(self):
+        """this is mainly a fix for a legacy situation where you might
+        have accidentally allowed in two equal tags that are only
+        different in their case"""
+        url = reverse('main:home')
+        delay = datetime.timedelta(days=1)
+
+        event1 = Event.objects.get(title='Test event')
+        event1.status = Event.STATUS_SCHEDULED
+        event1.start_time -= delay
+        event1.archive_time = event1.start_time
+        event1.save()
+
+        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().count(), 1)
+
+        event2 = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+        )
+        event2.channels.add(self.main_channel)
+
+        eq_(Event.objects.approved().count(), 2)
+        eq_(Event.objects.archived().count(), 2)
+
+        tag1a = Tag.objects.create(name='tag1')
+        tag1b = Tag.objects.create(name='TAG1')
+        event1.tags.add(tag1a)
+        event2.tags.add(tag1b)
+
+        # check that both events appear
+        response = self.client.get(url)
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        response = self.client.get(url, {'tag': 'TaG1'})
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
     def test_feed(self):
         delay = datetime.timedelta(days=1)
 

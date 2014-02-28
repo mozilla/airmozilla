@@ -79,28 +79,22 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         archived_events = archived_events.exclude(**privacy_exclude)
     archived_events = archived_events.order_by('-start_time')
 
-    tags = None
+    found_tags = []
     if request.GET.getlist('tag'):
         requested_tags = request.GET.getlist('tag')
-        found_tags = []
-        not_found_tags = False
         for each in requested_tags:
-            try:
-                found_tags.append(Tag.objects.get(name__iexact=each).name)
-            except Tag.DoesNotExist:
-                not_found_tags = True
-        if not_found_tags:
+            found_tags.extend(Tag.objects.filter(name__iexact=each))
+        if len(found_tags) < len(requested_tags):
             # invalid tags were used in the query string
             url = reverse('main:home')
             if found_tags:
                 # some were good
                 url += '?%s' % urllib.urlencode({
-                    'tag': found_tags
+                    'tag': [x.name for x in found_tags]
                 }, True)
             return redirect(url, permanent=True)
-        tags = Tag.objects.filter(name__in=found_tags)
-        archived_events = archived_events.filter(tags__in=tags)
-    if tags:
+        archived_events = archived_events.filter(tags__in=found_tags)
+    if found_tags:
         # no live events when filtering by tag
         live_events = Event.objects.none()
     else:
@@ -177,7 +171,7 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         'events': archived_paged,
         'live': live,
         'also_live': also_live,
-        'tags': tags,
+        'tags': found_tags,
         'Event': Event,
         'channel': channel,
         'channel_children': channel_children,
