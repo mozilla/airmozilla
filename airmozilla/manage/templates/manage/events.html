@@ -60,8 +60,11 @@
           <input type="text" class="form-control" value="" id="dp_start_time" ng-model="search_start_time" placeholder="By start time">
         </td>
         <td>
-          <input type="checkbox" id="id_search_archived" ng-model="search_archived" name="search_archived">
-          <label for="id_search_archived" style="font-weight:normal">Only Archived</label>
+	  <select name="archived" ng-model="search_archived">
+	    <option value="">Archived or not</option>
+	    <option value="archived">Archived</option>
+	    <option value="not-archived">Not archived</option>
+	  </select>
         </td>
         <td>
           <input type="search" class="form-control" ng-model="search_cat_chan" placeholder="category or channel">
