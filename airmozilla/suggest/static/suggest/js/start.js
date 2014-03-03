@@ -3,6 +3,15 @@
 $(function() {
     'use strict';
 
+    $('a.accepted-and-scheduled').each(function() {
+        $('.hide-accepted-scheduled:hidden').show();
+        $(this).parents('tr').addClass('accepted-scheduled').hide();
+    });
+
+    $('.hide-accepted-scheduled input[name="hide_accepted_scheduled"]').change(function() {
+        $('tr.accepted-scheduled').toggle('slow');
+    });
+
     function reset_buttons() {
         $('.delete-button:hidden').show();
         $('.delete-confirm-question:visible,' +

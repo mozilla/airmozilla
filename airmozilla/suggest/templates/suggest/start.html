@@ -62,7 +62,7 @@ Request | {{ super() }}
           {% if event.accepted.needs_approval() %}
           accepted but pending approval
           {% else %}
-          <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>
+          <a class="accepted-and-scheduled" href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>
           {% endif %}
         {% elif event.accepted.status == Event.STATUS_REMOVED %}
           accepted but removed
@@ -79,6 +79,10 @@ Request | {{ super() }}
   {% if loop.last %}
     </tbody>
   </table>
+  <p class="hide-accepted-scheduled">
+      Hide <b>accepted and scheduled</b> events
+      <input type="checkbox" name="hide_accepted_scheduled" checked>
+  </p>
   {% endif %}
 
 {% endfor %}

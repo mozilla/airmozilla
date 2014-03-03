@@ -39,3 +39,8 @@ h2.add-event {
 .controls li input[type="radio"] {
     width: 50px;
 }
+.hide-accepted-scheduled {
+    display: none;
+    text-align: right;
+    font-size:80%;
+}
