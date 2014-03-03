@@ -26,6 +26,7 @@
         <th>Location</th>
         <th>Creator</th>
         <th>Submitted</th>
+        <th>State</th>
         <th></th>
       </tr>
     </thead>
@@ -41,6 +42,17 @@
         {% endif %}
         <td>{{ event.user.email }}</td>
         <td>{{ event.first_submitted|js_date }}</td>
+        <td>
+            {% if event.first_submitted != event.submitted %}
+                {% if event.review_comments %}
+                Bounced
+                {% else %}
+                Resubmitted
+                {% endif %}
+            {% else %}
+            First submission
+            {% endif %}
+        </td>
         <td>
           <a class="btn btn-primary"
              href="{{ url('manage:suggestion_review', event.id) }}">

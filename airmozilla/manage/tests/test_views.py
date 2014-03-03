@@ -2411,6 +2411,48 @@ class TestSuggestions(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
+    def test_suggestions_page_states(self):
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        location = Location.objects.get(id=1)
+        category = Category.objects.create(name='CATEGORY')
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE',
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            category=category,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            submitted=now,
+            first_submitted=now
+        )
+        url = reverse('manage:suggestions')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('First submission' in response.content)
+
+        event.submitted += datetime.timedelta(days=1)
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('First submission' not in response.content)
+        ok_('Resubmitted' in response.content)
+
+        event.review_comments = "Not good"
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('First submission' not in response.content)
+        ok_('Resubmitted' not in response.content)
+        ok_('Bounced' in response.content)
+
     def test_approve_suggested_event_basic(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)
