@@ -47,6 +47,41 @@ VOUCHED_FOR = """
 }
 """
 
+VOUCHED_FOR_NO_USERNAME = """
+{
+  "meta": {
+    "previous": null,
+    "total_count": 1,
+    "offset": 0,
+    "limit": 20,
+    "next": null
+  },
+  "objects": [
+    {
+      "website": "",
+      "bio": "",
+      "resource_uri": "/api/v1/users/2429/",
+      "last_updated": "2012-11-06T14:41:47",
+      "groups": [
+        "ugly tuna"
+      ],
+      "city": "Casino",
+      "skills": [],
+      "country": "Albania",
+      "region": "Bush",
+      "id": "2429",
+      "languages": [],
+      "allows_mozilla_sites": true,
+      "photo": "http://www.gravatar.com/avatar/0409b497734934400822bb33...",
+      "is_vouched": true,
+      "email": "peterbe@gmail.com",
+      "ircname": "",
+      "allows_community_sites": true
+      }
+  ]
+}
+"""
+
 NOT_VOUCHED_FOR = """
 {
   "meta": {
@@ -272,6 +307,18 @@ class TestMozillians(TestCase):
         eq_(result, 'Peter Bengtsson')
         result = mozillians.fetch_user_name('tmickel@mit.edu')
         eq_(result, None)
+
+    @mock.patch('logging.error')
+    @mock.patch('requests.get')
+    def test_fetch_user_name_no_user_name(self, rget, rlogging):
+        def mocked_get(url, **options):
+            if 'peterbe' in url:
+                return Response(VOUCHED_FOR_NO_USERNAME)
+            raise NotImplementedError(url)
+        rget.side_effect = mocked_get
+
+        result = mozillians.fetch_user_name('peterbe@gmail.com')
+        eq_(result, '')
 
     @mock.patch('logging.error')
     @mock.patch('requests.get')

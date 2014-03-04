@@ -49,7 +49,7 @@ def fetch_user_name(email):
     if content:
         for obj in content['objects']:
             if obj['email'].lower() == email.lower():
-                return obj['full_name']
+                return obj.get('full_name', '')
 
 
 def in_groups(email, groups):
