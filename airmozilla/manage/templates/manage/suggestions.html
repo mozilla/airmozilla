@@ -44,7 +44,7 @@
         <td>{{ event.first_submitted|js_date }}</td>
         <td>
             {% if event.first_submitted != event.submitted %}
-                {% if event.review_comments %}
+                {% if event.review_comments and not event.submitted %}
                 Bounced
                 {% else %}
                 Resubmitted

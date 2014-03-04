@@ -2441,17 +2441,30 @@ class TestSuggestions(ManageTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('TITLE' in response.content)
         ok_('First submission' not in response.content)
         ok_('Resubmitted' in response.content)
 
         event.review_comments = "Not good"
+        event.submitted = None
         event.save()
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('TITLE' in response.content)
         ok_('First submission' not in response.content)
         ok_('Resubmitted' not in response.content)
         ok_('Bounced' in response.content)
+
+        event.submitted = now + datetime.timedelta(seconds=10)
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('TITLE' in response.content)
+        ok_('First submission' not in response.content)
+        ok_('Resubmitted' in response.content)
+        ok_('Bounced' not in response.content)
 
     def test_approve_suggested_event_basic(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
