@@ -66,7 +66,7 @@ Event summary | {{ super() }}
     <h3>Almost there...</h3>
     {% if event.first_submitted %}
     <p>Your event is no longer submitted. It was either retracted or bounced back. See below for
-    possible review comments. Submit again when it's ready.</p>
+    possible <b>review comments</b>. Submit again when it's ready.</p>
     {% else %}
     <p>Your event is not yet submitted. Check through the details and submit when you think you're ready.</p>
     {% endif %}
@@ -87,7 +87,18 @@ Event summary | {{ super() }}
       <th>Slug</th>
       <td>{{ event.slug }}</td>
     </tr>
+    {% if event.popcorn_url %}
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:popcorn', event.pk) }}">Change Popcorn URL</a></td>
+    </tr>
+    {% endif %}
 
+    <tr>
+        <th>Popcorn URL</th>
+        <td><a href="{{ event.popcorn_url }}" target="_blank">{{ truncate_url(event.popcorn_url, 70) }}</a></td>
+    </tr>
+    {% endif %}
     {% if not event.submitted %}
     <tr>
       <td colspan="2" class="edit-link"><a href="{{ url('suggest:description', event.pk) }}">Change description</a></td>

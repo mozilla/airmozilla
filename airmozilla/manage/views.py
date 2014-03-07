@@ -470,6 +470,8 @@ def events_data(request):
         if row['is_pending']:
             # this one is only relevant if it's pending
             row['has_vidly_template'] = event.has_vidly_template()
+        if event.popcorn_url and not is_upcoming:
+            row['popcorn_url'] = event.popcorn_url
 
         if _can_change_event_others:
             row['duplicate_url'] = reverse(
@@ -1168,7 +1170,7 @@ def template_env_autofill(request):
     env = Environment()
     ast = env.parse(template.content)
 
-    exceptions = ('vidly_tokenize', 'edgecast_tokenize')
+    exceptions = ('vidly_tokenize', 'edgecast_tokenize', 'popcorn_url')
     undeclared_variables = [x for x in meta.find_undeclared_variables(ast)
                             if x not in exceptions]
     var_templates = ["%s=" % v for v in undeclared_variables]
@@ -1548,7 +1550,10 @@ def suggestion_review(request, id):
                     'channels': [x.pk for x in event.channels.all()],
                     'call_info': event.call_info,
                     'privacy': event.privacy,
+                    'popcorn_url': event.popcorn_url,
                 }
+                if dict_event['popcorn_url'] == 'https://':
+                    dict_event['popcorn_url'] = ''
                 real_event_form = forms.EventRequestForm(
                     data=dict_event,
                 )
@@ -1560,6 +1565,8 @@ def suggestion_review(request, id):
                     real.additional_links = event.additional_links
                     real.remote_presenters = event.remote_presenters
                     real.creator = request.user
+                    if real.popcorn_url and not event.upcoming:
+                        real.archive_time = real.start_time
                     real.save()
                     [real.tags.add(x) for x in event.tags.all()]
                     [real.channels.add(x) for x in event.channels.all()]

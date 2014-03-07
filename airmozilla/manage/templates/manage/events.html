@@ -104,7 +104,8 @@
         <td>{{ event.location }}</td>
         <td>{{ event.start_time }}</td>
         <td>
-          <time ng-if="event.archive_time" title="{{ formatDate(event.archive_time) }}" am-time-ago="event.archive_time"></time>
+          <time ng-if="event.archive_time && !event.popcorn_url" title="{{ formatDate(event.archive_time) }}" am-time-ago="event.archive_time"></time>
+          <span ng-if="event.archive_time && event.popcorn_url" title="{{ event.popcorn_url }}">Popcorn URL</span>
           <span ng-if="!event.archive_time">
             <span ng-if="event.is_pending">
               Pending

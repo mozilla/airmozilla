@@ -52,6 +52,11 @@
         <td>Location</td>
         <td>{{ event.location }}</td>
       </tr>
+      {% elif event.popcorn_url %}
+      <tr>
+          <td>Popcorn URL</td>
+          <td><a href="{{ event.popcorn_url }}" target="_blank">{{ event.popcorn_url}}</a></td>
+      </tr>
       {% else %}
       <tr>
         <td>File Upload</td>

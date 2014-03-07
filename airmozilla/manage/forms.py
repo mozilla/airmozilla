@@ -104,7 +104,7 @@ class EventRequestForm(BaseModelForm):
             'title', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time',
             'participants', 'channels', 'category', 'tags', 'call_info',
-            'additional_links', 'privacy'
+            'additional_links', 'privacy', 'popcorn_url'
         )
 
     def __init__(self, *args, **kwargs):
@@ -221,7 +221,8 @@ class EventEditForm(EventRequestForm):
             'template_environment', 'placeholder_img', 'location',
             'description', 'short_description', 'start_time', 'archive_time',
             'participants', 'channels', 'category', 'tags',
-            'call_info', 'additional_links', 'approvals', 'pin'
+            'call_info', 'additional_links', 'approvals', 'pin',
+            'popcorn_url',
         )
 
     def __init__(self, *args, **kwargs):
@@ -231,6 +232,7 @@ class EventEditForm(EventRequestForm):
                 "A Pin is only recommended for events that are only open to "
                 "contributors."
             )
+        self.fields['popcorn_url'].label = 'Popcorn URL'
 
     def clean_pin(self):
         value = self.cleaned_data['pin']
@@ -252,7 +254,7 @@ class EventExperiencedRequestForm(EventEditForm):
             'template_environment', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time',
             'participants', 'channels', 'category', 'tags', 'call_info',
-            'additional_links', 'approvals', 'pin'
+            'additional_links', 'approvals', 'pin', 'popcorn_url',
         )
 
 

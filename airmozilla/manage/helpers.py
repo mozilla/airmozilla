@@ -42,11 +42,6 @@ def line_indent(text, indent=' ' * 4):
 
 
 @register.function
-def count_events_with_tag(tag):
-    return Event.objects.filter(tags=tag).count()
-
-
-@register.function
 def query_string(request, **kwargs):
     current = request.META.get('QUERY_STRING')
     parsed = cgi.parse_qs(current)

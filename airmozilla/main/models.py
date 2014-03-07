@@ -172,8 +172,8 @@ class Template(models.Model):
         help_text='The HTML framework for this template.  Use'
         ' <code>{{ any_variable_name }}</code> for per-event'
         ' tags. Other Jinja2 constructs are available, along with the related'
-        ' <code>request</code>, <code>datetime</code>, and <code>event</code>'
-        ' objects, and the <code>md5</code> function. '
+        ' <code>request</code>, <code>datetime</code>, <code>event</code> '
+        ' objects, <code>popcorn_url</code> and the <code>md5</code> function.'
         ' Additionally we have <code>vidly_tokenize(tag, seconds)</code> and'
         ' <code>edgecast_tokenize([seconds], **kwargs)</code>.<br>'
         ' Warning! Changes affect'
@@ -287,6 +287,8 @@ class Event(models.Model):
     additional_links = models.TextField(blank=True)
     remote_presenters = models.TextField(blank=True, null=True)
 
+    popcorn_url = models.URLField(null=True, blank=True)
+
     PRIVACY_PUBLIC = 'public'
     PRIVACY_COMPANY = 'company'
     PRIVACY_CONTRIBUTORS = 'contributors'
@@ -388,6 +390,8 @@ class SuggestedEvent(models.Model):
     call_info = models.TextField(blank=True)
     additional_links = models.TextField(blank=True)
     remote_presenters = models.TextField(blank=True, null=True)
+
+    popcorn_url = models.URLField(null=True, blank=True)
 
     privacy = models.CharField(max_length=40, choices=Event.PRIVACY_CHOICES,
                                default=Event.PRIVACY_PUBLIC)

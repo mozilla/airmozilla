@@ -98,11 +98,18 @@ def breadcrumbs(event):
 
     # file
     if not event.upcoming:
-        links.append({
-            'url': reverse('suggest:file', args=(event.pk,)),
-            'description': 'File',
-            'available': True,
-        })
+        if event.popcorn_url:
+            links.append({
+                'url': reverse('suggest:popcorn', args=(event.pk,)),
+                'description': 'Popcorn URL',
+                'available': True,
+            })
+        else:
+            links.append({
+                'url': reverse('suggest:file', args=(event.pk,)),
+                'description': 'File',
+                'available': True,
+            })
 
     available = state['view'] != 'suggest:description'
     # description
@@ -140,3 +147,17 @@ def breadcrumbs(event):
     })
 
     return links
+
+
+@register.function
+def truncate_url(url, max_length=20, ellipsis=u'\u2026'):
+    print repr(url), len(url)
+    if len(url) < max_length:
+        return url
+    left, right = '', ''
+    i = 0
+    while len(left) + len(right) < max_length:
+        i += 1
+        left = url[:i]
+        right = url[-i:]
+    return u'%s%s%s' % (left, ellipsis, right)

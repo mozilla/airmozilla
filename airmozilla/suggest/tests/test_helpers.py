@@ -6,7 +6,11 @@ from django.utils.timezone import utc
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.suggest.helpers import next_url, state_description
+from airmozilla.suggest.helpers import (
+    next_url,
+    state_description,
+    truncate_url
+)
 from airmozilla.main.models import SuggestedEvent, Event, Location, Participant
 
 
@@ -66,3 +70,18 @@ class TestStateHelpers(TestCase):
         eq_(url, reverse('suggest:summary', args=(event.pk,)))
         description = state_description(event)
         eq_(description, 'Submitted')
+
+
+class TestTruncateURL(TestCase):
+
+    def test_truncate_short(self):
+        url = 'http://www.peterbe.com'
+        result = truncate_url(url, 30)
+        eq_(result, url)
+        assert len(result) <= 30
+
+    def test_truncate_long(self):
+        url = 'http://www.peterbe.com'
+        result = truncate_url(url, 20)
+        expect = url[:10] + u'\u2026' + url[-10:]
+        eq_(result, expect)

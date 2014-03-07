@@ -14,6 +14,7 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 from django.contrib.sites.models import RequestSite
 
+import requests
 import pytz
 from funfactory.urlresolvers import reverse
 from slugify import slugify
@@ -28,6 +29,7 @@ from airmozilla.main.models import (
 from airmozilla.uploads.models import Upload
 from airmozilla.base.utils import tz_apply
 
+from . import utils
 from . import forms
 
 
@@ -55,10 +57,14 @@ def start(request):
         if form.is_valid():
             slug = slugify(form.cleaned_data['title']).lower()
             slug = _increment_slug_if_exists(slug)
+            upcoming = False
+            event_type = form.cleaned_data['event_type']
+            if event_type == 'upcoming':
+                upcoming = True
             event = SuggestedEvent.objects.create(
                 user=request.user,
                 title=form.cleaned_data['title'],
-                upcoming=form.cleaned_data['upcoming'],
+                upcoming=upcoming,
                 slug=slug,
             )
             if not event.upcoming:
@@ -76,6 +82,11 @@ def start(request):
             # XXX use next_url() instead?
             if event.upcoming:
                 url = reverse('suggest:description', args=(event.pk,))
+            elif event_type == 'popcorn':
+                # this is a hack but it works well
+                event.popcorn_url = 'https://'
+                event.save()
+                url = reverse('suggest:popcorn', args=(event.pk,))
             else:
                 request.session['active_suggested_event'] = event.pk
                 url = reverse('suggest:file', args=(event.pk,))
@@ -83,7 +94,9 @@ def start(request):
                     url += '?upload=%s' % request.session['active_upload']
             return redirect(url)
     else:
-        initial = {}
+        initial = {
+            'event_type': 'upcoming'
+        }
         if request.GET.get('upload'):
             try:
                 upload = Upload.objects.get(
@@ -106,7 +119,7 @@ def start(request):
                 except SuggestedEvent.DoesNotExist:
                     pass
 
-                initial['upcoming'] = False
+                initial['event_type'] = 'pre-recorded'
                 request.session['active_upload'] = upload.pk
             except Upload.DoesNotExist:
                 pass
@@ -197,6 +210,56 @@ def choose_file(request, id):
 
     data = {'form': form, 'event': event}
     return render(request, 'suggest/file.html', data)
+
+
+@login_required
+@transaction.commit_on_success
+def popcorn(request, id):
+    event = get_object_or_404(SuggestedEvent, pk=id)
+    if event.user != request.user:
+        return http.HttpResponseBadRequest('Not your event')
+    if event.upcoming:
+        return redirect(reverse('suggest:description', args=(event.pk,)))
+
+    if request.method == 'POST':
+        form = forms.PopcornForm(
+            request.POST,
+            instance=event
+        )
+        if form.is_valid():
+            event = form.save()
+            image_url = utils.find_open_graph_image_url(event.popcorn_url)
+            if image_url:
+                from django.core.files.uploadedfile import InMemoryUploadedFile
+                import os
+                from StringIO import StringIO
+                image_content = requests.get(image_url).content
+                buf = StringIO(image_content)
+                # Seek to the end of the stream, so we can get its
+                # length with `buf.tell()`
+                buf.seek(0, 2)
+                file = InMemoryUploadedFile(
+                    buf,
+                    "image",
+                    os.path.basename(image_url),
+                    None,
+                    buf.tell(),
+                    None
+                )
+                event.placeholder_img = file
+                event.save()
+            # XXX use next_url() instead?
+            url = reverse('suggest:description', args=(event.pk,))
+            return redirect(url)
+    else:
+        initial = {}
+        form = forms.PopcornForm(
+            instance=event,
+            initial=initial
+        )
+
+    data = {'form': form, 'event': event}
+    return render(request, 'suggest/popcorn.html', data)
 
 
 @login_required

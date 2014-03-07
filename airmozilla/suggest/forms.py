@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from django.db.models import Q
 
 from slugify import slugify
+import requests
 
 from airmozilla.base.forms import BaseModelForm
 from airmozilla.main.models import (
@@ -20,17 +21,27 @@ from airmozilla.uploads.models import Upload
 
 class StartForm(BaseModelForm):
 
+    event_type = forms.ChoiceField(
+        label='',
+        choices=[
+            ('upcoming', 'Upcoming'),
+            ('pre-recorded', 'Pre-recorded'),
+            ('popcorn', 'Popcorn')
+        ],
+        widget=forms.widgets.RadioSelect()
+    )
+
     class Meta:
         model = SuggestedEvent
-        fields = ('title', 'upcoming')
+        fields = ('title',)
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super(StartForm, self).__init__(*args, **kwargs)
-        self.fields['upcoming'].label = ''
-        self.fields['upcoming'].widget = forms.widgets.RadioSelect(
-            choices=[(True, 'Upcoming'), (False, 'Pre-recorded')]
-        )
+        # self.fields['upcoming'].label = ''
+        # self.fields['upcoming'].widget = forms.widgets.RadioSelect(
+        #     choices=[(True, 'Upcoming'), (False, 'Pre-recorded')]
+        # )
 
     def clean_title(self):
         value = self.cleaned_data['title']
@@ -105,6 +116,26 @@ class ChooseFileForm(BaseModelForm):
             )
         )
         return mark_safe(html)
+
+
+class PopcornForm(BaseModelForm):
+
+    class Meta:
+        model = SuggestedEvent
+        fields = ('popcorn_url',)
+
+    def __init__(self, *args, **kwargs):
+        super(PopcornForm, self).__init__(*args, **kwargs)
+        self.fields['popcorn_url'].label = 'Popcorn URL'
+
+    def clean_popcorn_url(self):
+        url = self.cleaned_data['popcorn_url']
+        if '://' not in url:
+            url = 'http://' + url
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise forms.ValidationError('URL can not be found')
+        return url
 
 
 class DescriptionForm(BaseModelForm):

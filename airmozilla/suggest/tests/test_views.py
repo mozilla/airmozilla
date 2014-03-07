@@ -1,5 +1,7 @@
+import os
 import datetime
-import pytz
+import tempfile
+import shutil
 
 from django.test import TestCase
 from django.contrib.auth.models import User, Group, Permission
@@ -7,6 +9,8 @@ from django.conf import settings
 from django.utils.timezone import utc
 from django.core import mail
 
+import pytz
+from mock import patch
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
@@ -22,17 +26,34 @@ from airmozilla.main.models import (
 from airmozilla.uploads.models import Upload
 
 
+_here = os.path.dirname(__file__)
+HAS_OPENGRAPH_FILE = os.path.join(_here, 'has_opengraph.html')
+PNG_FILE = os.path.join(_here, 'popcorn.png')
+
+
+class Response(object):
+    def __init__(self, content=None, status_code=200):
+        self.content = content
+        self.status_code = status_code
+
+
 class TestPages(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):
+        super(TestPages, self).setUp()
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
         self.cyberspace = Location.objects.create(
             name='Cyberspace',
             timezone='UTC'
         )
+        self.tmp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        super(TestPages, self).tearDown()
+        shutil.rmtree(self.tmp_dir)
 
     def _make_suggested_event(self,
                               title="Cool O'Title",
@@ -105,13 +126,14 @@ class TestPages(TestCase):
 
         response = self.client.post(url, {
             'title': 'A New World',
-            'upcoming': True
+            'event_type': 'upcoming'
         })
         eq_(response.status_code, 302)
 
         event = SuggestedEvent.objects.get(title='A New World')
         url = reverse('suggest:description', args=(event.pk,))
         ok_(event.upcoming)
+        eq_(event.popcorn_url, None)
         eq_(event.slug, 'a-new-world')
         ok_(not event.start_time)
         self.assertRedirects(response, url)
@@ -123,13 +145,35 @@ class TestPages(TestCase):
 
         response = self.client.post(url, {
             'title': 'A New World',
-            'upcoming': False
+            'event_type': 'pre-recorded'
         })
         eq_(response.status_code, 302)
 
         event = SuggestedEvent.objects.get(title='A New World')
         url = reverse('suggest:file', args=(event.pk,))
         ok_(not event.upcoming)
+        eq_(event.popcorn_url, None)
+        eq_(event.slug, 'a-new-world')
+        ok_(event.start_time)
+        eq_(event.location.name, self.cyberspace.name)
+        eq_(event.location.timezone, self.cyberspace.timezone)
+        self.assertRedirects(response, url)
+
+    def test_start_popcorn(self):
+        url = reverse('suggest:start')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        response = self.client.post(url, {
+            'title': 'A New World',
+            'event_type': 'popcorn'
+        })
+        eq_(response.status_code, 302)
+
+        event = SuggestedEvent.objects.get(title='A New World')
+        url = reverse('suggest:popcorn', args=(event.pk,))
+        ok_(not event.upcoming)
+        eq_(event.popcorn_url, 'https://')
         eq_(event.slug, 'a-new-world')
         ok_(event.start_time)
         eq_(event.location.name, self.cyberspace.name)
@@ -181,7 +225,7 @@ class TestPages(TestCase):
         url = reverse('suggest:start')
         response = self.client.post(url, {
             'title': 'TEST Event',
-            'upcoming': True
+            'event_type': 'upcoming'
         })
         eq_(response.status_code, 302)
         suggested_event, = SuggestedEvent.objects.all()
@@ -203,7 +247,10 @@ class TestPages(TestCase):
             start_time=today.replace(tzinfo=utc),
         )
         url = reverse('suggest:start')
-        response = self.client.post(url, {'title': 'TEST Event'})
+        response = self.client.post(url, {
+            'title': 'TEST Event',
+            'event_type': 'upcoming'
+        })
         eq_(response.status_code, 302)
         suggested_event, = SuggestedEvent.objects.all()
         eq_(
@@ -220,7 +267,10 @@ class TestPages(TestCase):
             description='Long Description',
         )
         url = reverse('suggest:start')
-        response = self.client.post(url, {'title': 'A New World'})
+        response = self.client.post(url, {
+            'title': 'A New World',
+            'event_type': 'upcoming'
+        })
         eq_(response.status_code, 200)
         ok_(
             'You already have a suggest event with this title'
@@ -242,7 +292,10 @@ class TestPages(TestCase):
 
         response = self.client.post(
             url,
-            {'title': 'Cool Title'}
+            {
+                'title': 'Cool Title',
+                'event_type': 'upcoming'
+            }
         )
         eq_(response.status_code, 302)
         suggested_event, = SuggestedEvent.objects.all()
@@ -261,7 +314,7 @@ class TestPages(TestCase):
 
         data = {
             'title': '',
-            'slug': 'contains spaces'
+            'slug': 'contains spaces',
         }
         response = self.client.post(url, data)
         eq_(response.status_code, 200)
@@ -357,6 +410,72 @@ class TestPages(TestCase):
         # expect a link to the upload history page
         uploads_url = reverse('uploads:home')
         ok_(uploads_url in response.content)
+
+    @patch('requests.get')
+    def test_popcorn(self, rget):
+
+        def mocked_get(url, **kwargs):
+            if 'badurl.com' in url:
+                return Response('not found', 404)
+            elif 'goodurl.com' in url:
+                return Response(open(HAS_OPENGRAPH_FILE).read())
+            elif '.png' in url:
+                return Response(open(PNG_FILE, 'rb').read())
+            raise NotImplementedError(url)
+
+        rget.side_effect = mocked_get
+
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+        )
+        assert event.upcoming
+        url = reverse('suggest:popcorn', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        # you have no business here on an upcoming event
+        self.assertRedirects(
+            response,
+            reverse('suggest:description', args=(event.pk,))
+        )
+        event.upcoming = False
+        event.popcorn_url = 'https://'
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = now
+        event.location = self.cyberspace
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        response = self.client.post(url, {'popcorn_url': 'https://'})
+        eq_(response.status_code, 200)
+        ok_('Enter a valid URL' in response.content)
+
+        response = self.client.post(
+            url,
+            {'popcorn_url': 'https://badurl.com/'}
+        )
+        eq_(response.status_code, 200)
+        ok_('URL can not be found' in response.content)
+
+        with self.settings(MEDIA_ROOT=self.tmp_dir):
+            response = self.client.post(
+                url,
+                {'popcorn_url': 'https://goodurl.com/'}
+            )
+            eq_(response.status_code, 302)
+            url = reverse('suggest:description', args=(event.pk,))
+            self.assertRedirects(response, url)
+            # reload
+            event = SuggestedEvent.objects.get(pk=event.pk)
+            eq_(event.popcorn_url, 'https://goodurl.com/')
+            ok_(event.placeholder_img)
+            ok_(os.path.isfile(
+                os.path.join(
+                    self.tmp_dir, event.placeholder_img.path)
+                ))
 
     def test_file_not_your_suggested_event(self):
         event = SuggestedEvent.objects.create(

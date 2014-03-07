@@ -312,6 +312,7 @@ class EventView(View):
                 'datetime': datetime.datetime.utcnow(),
                 'vidly_tokenize': vidly.tokenize,
                 'edgecast_tokenize': edgecast_tokenize,
+                'popcorn_url': event.popcorn_url,
             }
             if isinstance(event.template_environment, dict):
                 context.update(event.template_environment)

@@ -435,6 +435,17 @@ class TestEvents(ManageTestCase):
         ok_('21 Jun 2012' in result['start_time'])
         ok_('Mountain View' not in result['location'])
 
+    def test_events_data_with_popcorn(self):
+        event = Event.objects.get(title='Test event')
+        event.upcoming = False
+        event.popcorn_url = 'https://webmaker.org/123'
+        event.save()
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        result = results['events'][0]
+        eq_(result['popcorn_url'], event.popcorn_url)
+
     def test_events_data_with_limit(self):
         event = Event.objects.get(title='Test event')
         Event.objects.create(
@@ -1922,6 +1933,18 @@ class TestTemplates(ManageTestCase):
         ok_(template_parsed)
         eq_(template_parsed, {'variables': 'tv1=\ntv2='})
 
+    def test_template_env_autofill_with_popcorn_url(self):
+        template = Template.objects.get(name='test template')
+        template.content = """
+        <iframe src="{{ popcorn_url }}"></ifram>
+        """
+        template.save()
+        response = self.client.get(reverse('manage:template_env_autofill'),
+                                   {'template': template.id})
+        eq_(response.status_code, 200)
+        template_parsed = json.loads(response.content)
+        eq_(template_parsed, {'variables': ''})
+
 
 class TestApprovals(ManageTestCase):
 
@@ -2383,16 +2406,18 @@ class TestSuggestions(ManageTestCase):
         category = Category.objects.create(name='CATEGORY')
         SuggestedEvent.objects.create(
             user=bob,
-            title='TITLE',
-            slug='SLUG',
-            short_description='SHORT DESCRIPTION',
-            description='DESCRIPTION',
+            title='TITLE1',
+            slug='SLUG1',
+            short_description='SHORT DESCRIPTION1',
+            description='DESCRIPTION1',
             start_time=tomorrow,
             location=location,
             category=category,
             placeholder_img=self.placeholder,
+            upcoming=True,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             submitted=now,
+            first_submitted=now
         )
         SuggestedEvent.objects.create(
             user=bob,
@@ -2404,12 +2429,33 @@ class TestSuggestions(ManageTestCase):
             location=location,
             category=category,
             placeholder_img=self.placeholder,
-            privacy=Event.PRIVACY_CONTRIBUTORS,
+            upcoming=False,
             submitted=now - datetime.timedelta(days=1),
+            first_submitted=now - datetime.timedelta(days=1),
         )
+        SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE3',
+            slug='SLUG3',
+            short_description='SHORT DESCRIPTION3',
+            description='DESCRIPTION3',
+            start_time=tomorrow,
+            location=location,
+            category=category,
+            placeholder_img=self.placeholder,
+            submitted=now - datetime.timedelta(days=1),
+            first_submitted=now - datetime.timedelta(days=1),
+            upcoming=False,
+            popcorn_url='https://webmaker.org/1234'
+        )
+
         url = reverse('manage:suggestions')
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('TITLE1' in response.content)
+        ok_('TITLE2' in response.content)
+        ok_('TITLE3' in response.content)
+        ok_('popcorn' in response.content)
 
     def test_suggestions_page_states(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
@@ -2493,6 +2539,7 @@ class TestSuggestions(ManageTestCase):
             remote_presenters='RICHARD & ZANDR',
             submitted=now,
             first_submitted=now,
+            popcorn_url='https://',
         )
         event.tags.add(tag1)
         event.tags.add(tag2)
@@ -2531,6 +2578,7 @@ class TestSuggestions(ManageTestCase):
         eq_(real.privacy, event.privacy)
         eq_(real.additional_links, event.additional_links)
         eq_(real.remote_presenters, event.remote_presenters)
+        eq_(real.popcorn_url, '')
         assert real.tags.all()
         eq_([x.name for x in real.tags.all()],
             [x.name for x in event.tags.all()])
@@ -2547,6 +2595,52 @@ class TestSuggestions(ManageTestCase):
         # expect the link to the summary is in there
         summary_url = reverse('suggest:summary', args=(event.pk,))
         ok_(summary_url in email_sent.body)
+
+    def test_approved_suggested_popcorn_event(self):
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        location = Location.objects.get(id=1)
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        category = Category.objects.create(name='CATEGORY')
+        channel = Channel.objects.create(name='CHANNEL')
+
+        # create a suggested event that has everything filled in
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE' * 10,
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            category=category,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            #call_info='CALL INFO',
+            additional_links='ADDITIONAL LINKS',
+            remote_presenters='RICHARD & ZANDR',
+            upcoming=False,
+            popcorn_url='https://goodurl.com/',
+            submitted=now,
+            first_submitted=now,
+        )
+        event.channels.add(channel)
+
+        url = reverse('manage:suggestion_review', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('TITLE' in response.content)
+        ok_('https://goodurl.com' in response.content)
+
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+
+        # re-load it
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        real = event.accepted
+        assert real
+        eq_(real.popcorn_url, event.popcorn_url)
+        eq_(real.start_time, real.archive_time)
 
     def test_reject_suggested_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
