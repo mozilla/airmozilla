@@ -151,7 +151,6 @@ def breadcrumbs(event):
 
 @register.function
 def truncate_url(url, max_length=20, ellipsis=u'\u2026'):
-    print repr(url), len(url)
     if len(url) < max_length:
         return url
     left, right = '', ''
