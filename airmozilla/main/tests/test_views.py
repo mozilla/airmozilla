@@ -1674,6 +1674,15 @@ class TestPages(TestCase):
         eq_(item['title'], test_event.title)
         eq_(item['url'], reverse('main:event', args=(test_event.slug,)))
 
+    def test_calendar_data_bogus_dates(self):
+        url = reverse('main:calendar_data')
+
+        response = self.client.get(url, {
+            'start': '1393196400',
+            'end': '4444444444444444'
+        })
+        eq_(response.status_code, 400)
+
     def test_open_graph_details(self):
         event = Event.objects.get(title='Test event')
         assert event.placeholder_img

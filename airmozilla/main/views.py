@@ -677,8 +677,10 @@ def calendar_data(request):
     if not form.is_valid():
         return http.HttpResponseBadRequest(str(form.errors))
 
-    start = datetime.datetime.fromtimestamp(form.cleaned_data['start'])
-    end = datetime.datetime.fromtimestamp(form.cleaned_data['end'])
+    #start = datetime.datetime.fromtimestamp(form.cleaned_data['start'])
+    start = form.cleaned_data['start']
+    end = form.cleaned_data['end']
+    #end = datetime.datetime.fromtimestamp(form.cleaned_data['end'])
 
     start = start.replace(tzinfo=utc)
     end = end.replace(tzinfo=utc)
