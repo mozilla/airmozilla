@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from airmozilla.main.models import Event
+from airmozilla.main.models import Event, SuggestedEvent
 
 
 class Comment(models.Model):
@@ -42,6 +42,17 @@ class Discussion(models.Model):
     moderate_all = models.BooleanField(default=False)
     notify_all = models.BooleanField(default=False)
     moderators = models.ManyToManyField(User, related_name='moderators')
+
+
+class SuggestedDiscussion(models.Model):
+    event = models.ForeignKey(SuggestedEvent, unique=True)
+    enabled = models.BooleanField(default=False)
+    moderate_all = models.BooleanField(default=False)
+    notify_all = models.BooleanField(default=False)
+    moderators = models.ManyToManyField(
+        User,
+        related_name='suggested_moderators'
+    )
 
 
 class Unsubscription(models.Model):

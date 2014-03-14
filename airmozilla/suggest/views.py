@@ -27,7 +27,8 @@ from airmozilla.main.models import (
     Location
 )
 from airmozilla.uploads.models import Upload
-from airmozilla.base.utils import tz_apply
+from airmozilla.comments.models import SuggestedDiscussion
+from airmozilla.base.utils import tz_apply, json_view
 
 from . import utils
 from . import forms
@@ -290,6 +291,11 @@ def details(request, id):
     if event.user != request.user:
         return http.HttpResponseBadRequest('Not your event')
 
+    try:
+        discussion = SuggestedDiscussion.objects.get(event=event)
+    except SuggestedDiscussion.DoesNotExist:
+        discussion = None
+
     if request.method == 'POST':
         form = forms.DetailsForm(request.POST, instance=event)
         if form.is_valid():
@@ -303,10 +309,35 @@ def details(request, id):
                 pytz.timezone(event.location.timezone)
             )
             event.save()
-            url = reverse('suggest:placeholder', args=(event.pk,))
-            return redirect(url)
-    else:
+            next_url = reverse('suggest:placeholder', args=(event.pk,))
 
+            if form.cleaned_data['enable_discussion']:
+                if discussion:
+                    # make sure it's enabled
+                    discussion.enabled = True
+                    discussion.moderate_all = (
+                        event.privacy != Event.PRIVACY_COMPANY
+                    )
+                    discussion.save()
+                else:
+                    discussion = SuggestedDiscussion.objects.create(
+                        event=event,
+                        enabled=True,
+                        notify_all=True,
+                        moderate_all=event.privacy != Event.PRIVACY_COMPANY
+                    )
+                if request.user not in discussion.moderators.all():
+                    discussion.moderators.add(request.user)
+
+                next_url = reverse('suggest:discussion', args=(event.pk,))
+
+            elif SuggestedDiscussion.objects.filter(event=event):
+                discussion = SuggestedDiscussion.objects.get(event=event)
+                discussion.enabled = False
+                discussion.save()
+
+            return redirect(next_url)
+    else:
         if event.location and event.start_time:
             # Because the modelform is going present our user
             # without input widgets' that are datetimes in
@@ -323,10 +354,78 @@ def details(request, id):
                 event.start_time,
                 pytz.timezone(event.location.timezone)
             )
-        form = forms.DetailsForm(instance=event)
+        initial = {'enable_discussion': True}
+        form = forms.DetailsForm(instance=event, initial=initial)
 
     data = {'form': form, 'event': event}
     return render(request, 'suggest/details.html', data)
+
+
+@login_required
+@transaction.commit_on_success
+def discussion(request, id):
+    event = get_object_or_404(SuggestedEvent, pk=id)
+    if event.user != request.user:
+        return http.HttpResponseBadRequest('Not your event')
+
+    discussion = SuggestedDiscussion.objects.get(event=event)
+
+    if request.method == 'POST':
+        form = forms.DiscussionForm(request.POST, instance=discussion)
+        if form.is_valid():
+            discussion = form.save()
+            if event.privacy != Event.PRIVACY_COMPANY:
+                discussion.moderate_all = True
+                discussion.save()
+            discussion.moderators.clear()
+            for email in form.cleaned_data['emails']:
+                try:
+                    user = User.objects.get(email__iexact=email)
+                except User.DoesNotExist:
+                    user = User.objects.create(
+                        username=email.split('@')[0],
+                        email=email
+                    )
+                    user.set_unusable_password()
+                    user.save()
+                discussion.moderators.add(user)
+            url = reverse('suggest:placeholder', args=(event.pk,))
+            return redirect(url)
+    else:
+        emails = [request.user.email]
+        for moderator in discussion.moderators.all():
+            if moderator.email not in emails:
+                emails.append(moderator.email)
+        initial = {'emails': ', '.join(emails)}
+        form = forms.DiscussionForm(instance=discussion, initial=initial)
+
+    context = {'event': event, 'form': form, 'discussion': discussion}
+    return render(request, 'suggest/discussion.html', context)
+
+
+@login_required
+@json_view
+def autocomplete_emails(request):
+    if 'q' not in request.GET:
+        return http.HttpResponseBadRequest('Missing q')
+    q = request.GET.get('q', '').strip()
+    emails = []
+
+    if len(q) > 1:
+        users = (
+            User.objects
+            .filter(email__istartswith=q)
+            .exclude(email__isnull=True)
+        )
+        for user in users.order_by('email'):
+            if user.email not in emails:
+                emails.append(user.email)
+    if not emails:
+        if utils.is_valid_email(q):
+            emails.append(q)
+        elif utils.is_valid_email('%s@mozilla.com' % q):
+            emails.append('%s@mozilla.com' % q)
+    return {'emails': emails}
 
 
 @login_required
@@ -415,10 +514,15 @@ def summary(request, id):
         .order_by('created')
     )
 
+    discussion = None
+    for each in SuggestedDiscussion.objects.filter(event=event):
+        discussion = each
+
     context = {
         'event': event,
         'comment_form': comment_form,
         'comments': comments,
+        'discussion': discussion,
     }
     return render(request, 'suggest/summary.html', context)
 

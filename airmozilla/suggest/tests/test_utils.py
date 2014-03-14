@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 
-from nose.tools import eq_
+from nose.tools import eq_, ok_
 
 from mock import patch
 
@@ -38,3 +38,12 @@ class TestOpenGraph(TestCase):
 
         result = utils.find_open_graph_image_url('http://badurl.com')
         eq_(result, None)
+
+
+class TestEmailValidation(TestCase):
+
+    def test_is_valid_email(self):
+        result = utils.is_valid_email('not')
+        ok_(not result)
+        result = utils.is_valid_email('is@mozilla.com')
+        ok_(result)

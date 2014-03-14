@@ -7,6 +7,7 @@ from django.db.models import Q
 
 from slugify import slugify
 import requests
+from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm
 from airmozilla.main.models import (
@@ -16,7 +17,9 @@ from airmozilla.main.models import (
     Channel,
     SuggestedEventComment
 )
+from airmozilla.comments.models import SuggestedDiscussion
 from airmozilla.uploads.models import Upload
+from . import utils
 
 
 class StartForm(BaseModelForm):
@@ -168,6 +171,8 @@ class DetailsForm(BaseModelForm):
 
     tags = forms.CharField(required=False)
 
+    enable_discussion = forms.BooleanField(required=False)
+
     class Meta:
         model = SuggestedEvent
         fields = (
@@ -241,6 +246,48 @@ class DetailsForm(BaseModelForm):
         if not channels:
             return Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG)
         return channels
+
+
+class DiscussionForm(BaseModelForm):
+
+    emails = forms.CharField(required=False, label="Moderators")
+
+    class Meta:
+        model = SuggestedDiscussion
+        fields = ('enabled', 'moderate_all')
+
+    def __init__(self, *args, **kwargs):
+        super(DiscussionForm, self).__init__(*args, **kwargs)
+        event = self.instance.event
+        self.fields['moderate_all'].help_text = (
+            'That every comment has to be approved before being shown '
+            'publically. '
+        )
+        self.fields['emails'].widget.attrs.update({
+            'data-autocomplete-url': reverse('suggest:autocomplete_emails')
+        })
+
+        if event.privacy != Event.PRIVACY_COMPANY:
+            self.fields['moderate_all'].widget.attrs.update(
+                {'disabled': 'disabled'}
+            )
+            self.fields['moderate_all'].help_text += (
+                '<br>If the event is not MoCo private you have to have '
+                'full moderation on '
+                'all the time.'
+            )
+
+    def clean_emails(self):
+        value = self.cleaned_data['emails']
+        emails = list(set([
+            x.lower().strip() for x in value.split(',') if x.strip()
+        ]))
+        for email in emails:
+            if not utils.is_valid_email(email):
+                raise forms.ValidationError(
+                    '%s is not a valid email address' % (email,)
+                )
+        return emails
 
 
 class PlaceholderForm(BaseModelForm):

@@ -128,6 +128,15 @@ def breadcrumbs(event):
         'available': available,
     })
 
+    # discussion
+    if available:
+        available = state['view'] != 'suggest:discussion'
+    links.append({
+        'url': reverse('suggest:discussion', args=(event.pk,)),
+        'description': 'Discussion',
+        'available': available,
+    })
+
     # placeholder
     if available:
         available = state['view'] != 'suggest:placeholder'

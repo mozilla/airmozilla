@@ -169,6 +169,32 @@ Event summary | {{ super() }}
 
     {% if not event.submitted %}
     <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:discussion', event.pk) }}">Change discussion</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+        <th>Discussion</th>
+        <td>
+            {% if discussion and discussion.enabled %}
+                <b>Enabled</b><br>
+                {% if discussion.moderate_all %}
+                All comments moderated.
+                {% else %}
+                Comments not moderated.
+                {% endif %}
+                <br>
+                Email notifications sent to:
+                {% for user in discussion.moderators.all() %}
+                  {{ user.email }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            {% else %}
+            Not enabled
+            {% endif %}
+        </td>
+    </tr>
+
+    {% if not event.submitted %}
+    <tr>
       <td colspan="2" class="edit-link"><a href="{{ url('suggest:placeholder', event.pk) }}">Change placeholder</a></td>
     </tr>
     {% endif %}

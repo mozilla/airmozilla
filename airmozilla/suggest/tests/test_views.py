@@ -1,3 +1,4 @@
+import json
 import os
 import datetime
 import tempfile
@@ -24,6 +25,7 @@ from airmozilla.main.models import (
     Tag
 )
 from airmozilla.uploads.models import Upload
+from airmozilla.comments.models import SuggestedDiscussion
 
 
 _here = os.path.dirname(__file__)
@@ -668,6 +670,61 @@ class TestPages(TestCase):
             sorted(['bar', 'buzz'])
         )
 
+    def test_details_enable_discussion(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            description='Some long description',
+            short_description=''
+        )
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        mv = Location.objects.get(name='Mountain View')
+        category = Category.objects.get(name='testing')
+        channel = Channel.objects.create(
+            name='Security',
+            slug='security'
+        )
+
+        data = {
+            'start_time': '2021-01-01 12:00:00',
+            'timezone': 'US/Pacific',
+            'location': mv.pk,
+            'privacy': Event.PRIVACY_CONTRIBUTORS,
+            'category': category.pk,
+            'channels': channel.pk,
+            'enable_discussion': True
+        }
+
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:discussion', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+        discussion = SuggestedDiscussion.objects.get(
+            event=event,
+            enabled=True
+        )
+        eq_(discussion.moderators.all().count(), 1)
+        ok_(self.user in discussion.moderators.all())
+
+        # do it a second time and it shouldn't add us as a moderator again
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, next_url)
+        discussion = SuggestedDiscussion.objects.get(pk=discussion.pk)
+        eq_(discussion.moderators.all().count(), 1)
+
+        # this time, disable it
+        response = self.client.post(url, dict(data, enable_discussion=False))
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:placeholder', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+        discussion = SuggestedDiscussion.objects.get(pk=discussion.pk)
+        ok_(not discussion.enabled)
+
     def test_details_prerecorded_event(self):
         event = SuggestedEvent.objects.create(
             user=self.user,
@@ -749,6 +806,118 @@ class TestPages(TestCase):
              Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG)]
         )
 
+    def test_discussion(self):
+        location, = Location.objects.filter(name='Mountain View')
+        today = datetime.datetime.utcnow()
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            short_description='Short Description',
+            description='Description',
+            start_time=today.replace(tzinfo=utc),
+            location=location
+        )
+        discussion = SuggestedDiscussion.objects.create(
+            event=event,
+            enabled=True,
+            notify_all=True,
+            moderate_all=True,
+        )
+        discussion.moderators.add(self.user)
+        url = reverse('suggest:discussion', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = {
+            'enabled': True,
+            'moderate_all': True,
+            'emails': self.user.email
+        }
+        # disable it
+        response = self.client.post(url, dict(data, enabled=False))
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:placeholder', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+        discussion = SuggestedDiscussion.objects.get(pk=discussion.pk)
+        ok_(not discussion.enabled)
+        # reset that
+        discussion.enabled = True
+
+        # try to disable moderate_all even though the event is not private
+        response = self.client.post(url, dict(data, moderate_all=False))
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, next_url)
+        discussion = SuggestedDiscussion.objects.get(pk=discussion.pk)
+        ok_(discussion.moderate_all)
+
+        # try that again now that the event is private
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        response = self.client.post(url, dict(data, moderate_all=False))
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, next_url)
+        discussion = SuggestedDiscussion.objects.get(pk=discussion.pk)
+        ok_(not discussion.moderate_all)
+
+        # try to add something that doesn't look like a valid email address
+        response = self.client.post(url, dict(data, emails='not an email'))
+        eq_(response.status_code, 200)
+
+        # add two new emails one of which we don't already have a user for
+        bob = User.objects.create_user('bob', 'bob@mozilla.com', 'secret')
+        # note the deliberate duplicate only different in case
+        emails = ' %s , %s, %s, new@mozilla.com ' % (
+            self.user.email,
+            bob.email,
+            self.user.email.upper()
+        )
+        response = self.client.post(url, dict(data, emails=emails))
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, next_url)
+        eq_(discussion.moderators.all().count(), 3)
+        # this should have created a new user
+        new_user = User.objects.get(email='new@mozilla.com')
+        ok_(not new_user.has_usable_password())
+
+        # if you now open the form again these emails should be in there
+        # already
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('fake@f.com, bob@mozilla.com, new@mozilla.com' in response.content)
+
+    def test_autocomplete_email(self):
+        url = reverse('suggest:autocomplete_emails')
+
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+        response = self.client.get(url, {'q': ''})
+        eq_(response.status_code, 200)
+        emails = json.loads(response.content)['emails']
+        eq_(emails, [])
+
+        # fake@f.com is the user set up in the fixtures
+        response = self.client.get(url, {'q': 'fake'})
+        emails = json.loads(response.content)['emails']
+        eq_(emails, ['fake@f.com'])
+
+        # searching for something that isn't an email address
+        # should suggest <q>@mozilla.com
+        response = self.client.get(url, {'q': 'start'})
+        emails = json.loads(response.content)['emails']
+        eq_(emails, ['start@mozilla.com'])
+
+        # searching for something that doesn't exist and isn't a valid
+        # email, nothing should be found
+        response = self.client.get(url, {'q': 'afweef@asd'})
+        emails = json.loads(response.content)['emails']
+        eq_(emails, [])
+
+        # searching for a valid email address should return it
+        response = self.client.get(url, {'q': 'mail@peterbe.com'})
+        emails = json.loads(response.content)['emails']
+        eq_(emails, ['mail@peterbe.com'])
+
     def test_summary(self):
         event = self._make_suggested_event()
         url = reverse('suggest:summary', args=(event.pk,))
@@ -818,6 +987,37 @@ class TestPages(TestCase):
             in response.content)
         # the event is not submitted yet
         ok_('Submit for review' in response.content)
+
+    def test_summary_with_discussion(self):
+        event = self._make_suggested_event()
+        url = reverse('suggest:summary', args=(event.pk,))
+
+        discussion = SuggestedDiscussion.objects.create(
+            enabled=True,
+            moderate_all=True,
+            notify_all=True,
+            event=event
+        )
+        bob = User.objects.create(email='bob@mozilla.com')
+        discussion.moderators.add(self.user)
+        discussion.moderators.add(bob)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Enabled' in response.content)
+        ok_(self.user.email in response.content)
+        ok_(bob.email in response.content)
+
+        # and there should be a link to change the discussion
+        discussion_url = reverse('suggest:discussion', args=(event.pk,))
+        ok_(discussion_url in response.content)
+
+        discussion.enabled = False
+        discussion.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Enabled' not in response.content)
+        ok_('Not enabled' in response.content)
 
     def test_summary_after_event_approved(self):
         event = self._make_suggested_event()

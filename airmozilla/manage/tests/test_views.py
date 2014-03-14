@@ -42,7 +42,8 @@ from airmozilla.main.models import (
 )
 from airmozilla.comments.models import (
     Discussion,
-    Comment
+    Comment,
+    SuggestedDiscussion
 )
 from airmozilla.uploads.models import Upload
 from airmozilla.base.tests.test_mozillians import (
@@ -2641,6 +2642,72 @@ class TestSuggestions(ManageTestCase):
         assert real
         eq_(real.popcorn_url, event.popcorn_url)
         eq_(real.start_time, real.archive_time)
+
+    def test_approved_suggested_event_with_discussion(self):
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        location = Location.objects.get(id=1)
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        category = Category.objects.create(name='CATEGORY')
+        channel = Channel.objects.create(name='CHANNEL')
+
+        # create a suggested event that has everything filled in
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE' * 10,
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            category=category,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            #call_info='CALL INFO',
+            additional_links='ADDITIONAL LINKS',
+            remote_presenters='RICHARD & ZANDR',
+            upcoming=False,
+            popcorn_url='https://goodurl.com/',
+            submitted=now,
+            first_submitted=now,
+        )
+        event.channels.add(channel)
+
+        richard = User.objects.create(email='richard@mozilla.com')
+        discussion = SuggestedDiscussion.objects.create(
+            event=event,
+            moderate_all=True,
+            notify_all=True,
+            enabled=True
+        )
+        discussion.moderators.add(bob)
+        discussion.moderators.add(richard)
+
+        url = reverse('manage:suggestion_review', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('TITLE' in response.content)
+        ok_('Enabled' in response.content)
+        ok_('bob@mozilla.com' in response.content)
+        ok_('richard@mozilla.com' in response.content)
+
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+
+        # re-load it
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        real = event.accepted
+        assert real
+        eq_(real.popcorn_url, event.popcorn_url)
+        eq_(real.start_time, real.archive_time)
+
+        # that should now also have created a discussion
+        real_discussion = Discussion.objects.get(event=real)
+        ok_(real_discussion.enabled)
+        ok_(real_discussion.moderate_all)
+        ok_(real_discussion.notify_all)
+        ok_(richard in real_discussion.moderators.all())
+        ok_(bob in real_discussion.moderators.all())
 
     def test_reject_suggested_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')

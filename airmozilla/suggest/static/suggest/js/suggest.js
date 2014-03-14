@@ -1,7 +1,10 @@
 $(function() {
     $('p.help-block').each(function() {
+        var $controls = $(this).parents('.form-group');
+        if ($('input[type="checkbox"]', $controls).length) {
+            return;
+        }
         $(this).hide();
-        var $controls = $(this).parents('.control-group');
         $('textarea,input', $controls)
           .attr('title', $(this).text())
           .addClass('tooltip');

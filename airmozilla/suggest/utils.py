@@ -3,6 +3,9 @@ from urlparse import urljoin
 
 import requests
 
+from django.core.validators import validate_email, ValidationError
+
+
 meta_tag_regex = re.compile('<meta ([^>]+)>', re.I | re.M)
 content_regex = re.compile('content=[\'""](.*)[\'""]')
 
@@ -15,3 +18,11 @@ def find_open_graph_image_url(url):
         if 'og:image' in meta_tag:
             for meta_url in content_regex.findall(meta_tag):
                 return urljoin(url, meta_url)
+
+
+def is_valid_email(email):
+    try:
+        validate_email(email)
+        return True
+    except ValidationError:
+        return False

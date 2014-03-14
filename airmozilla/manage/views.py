@@ -65,7 +65,7 @@ from airmozilla.manage.tweeter import send_tweet
 from airmozilla.manage import vidly
 from airmozilla.manage import url_transformer
 from airmozilla.manage import archiver
-from airmozilla.comments.models import Discussion, Comment
+from airmozilla.comments.models import Discussion, Comment, SuggestedDiscussion
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -1572,6 +1572,23 @@ def suggestion_review(request, id):
                     [real.channels.add(x) for x in event.channels.all()]
                     event.accepted = real
                     event.save()
+
+                    try:
+                        discussion = SuggestedDiscussion.objects.get(
+                            event=event,
+                            enabled=True
+                        )
+                        real_discussion = Discussion.objects.create(
+                            enabled=True,
+                            event=real,
+                            notify_all=discussion.notify_all,
+                            moderate_all=discussion.moderate_all,
+                        )
+                        for moderator in discussion.moderators.all():
+                            real_discussion.moderators.add(moderator)
+                    except SuggestedDiscussion.DoesNotExist:
+                        pass
+
                     _email_about_accepted_suggestion(event, real, request)
                     messages.info(
                         request,
@@ -1594,14 +1611,19 @@ def suggestion_review(request, id):
         .order_by('created')
     )
 
-    data = {
+    discussion = None
+    for each in SuggestedDiscussion.objects.filter(event=event):
+        discussion = each
+
+    context = {
         'event': event,
         'form': form,
         'real_event_form': real_event_form,
         'comment_form': comment_form,
         'comments': comments,
+        'discussion': discussion,
     }
-    return render(request, 'manage/suggestion_review.html', data)
+    return render(request, 'manage/suggestion_review.html', context)
 
 
 def _email_about_suggestion_comment(comment, request):
