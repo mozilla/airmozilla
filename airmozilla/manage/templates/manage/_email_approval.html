@@ -1,10 +1,36 @@
-A new event has been created that requires approval from someone in your group
-({{ group }}). Please sign in to the Air Mozilla management page
-({{ manage_url }}) to review the request.
+{% extends "email_base.html" %}
 
-Title: {{ title }}
-Creator: {{ creator }}
-{% if suggested_event %}Originally requested by: {{ suggested_event.user.email }}
-{% endif %}
-Date and time: {{ datetime }}
-Description: {{ description|safe }}
+{% block content %}
+<p>
+    A new event has been created that requires approval from someone in your group
+    (<b>{{ group }}</b>). Please sign in to the
+    <a href="{{ base_url }}{{ url('manage:approvals') }}">Air Mozilla management page</a>
+    to review the request.
+</p>
+
+<table>
+    <tr>
+        <td><b>Title:</b></td>
+        <td>{{ title }}</td>
+    </tr>
+    <tr>
+        <td><b>Creator:</b></td>
+        <td>{{ event.creator.email }}</td>
+    </tr>
+    {% if suggested_event %}
+    <tr>
+        <td><b>Requested by:</b></td>
+        <td>{{ suggested_event.user.email }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td><b>Date and time:</b></td>
+        <td>{{ event.start_time }}</td>
+    </tr>
+    <tr>
+        <td><b>Description:</b></td>
+        <td>{{ event.description | safe }}</td>
+    </tr>
+</table>
+
+{% endblock %}

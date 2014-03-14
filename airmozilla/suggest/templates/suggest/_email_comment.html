@@ -1,24 +1,50 @@
-A new comment has been posted on an existing event suggestion.
+{% extends "email_base.html" %}
 
-*Comment:*
-{{ line_indent(comment.comment)|safe }}
+{% block content %}
 
-*By:*
-  {% if comment.user.first_name %}{{ comment.user.first_name }} {% endif %}{{ comment.user.email }}
+<p>
+    A new comment has been posted on an existing event suggestion.
+</p>
+
+<table>
+    <tr>
+        <td><b>Comment:</b></td>
+        <td>
+            <i>{{ comment.comment }}</i>
+        </td>
+    </tr>
+    <tr>
+        <td><b>By:</b></td>
+        <td>
+            {% if comment.user.first_name %}
+                {{ comment.user.first_name }}
+                ({{ comment.user.email }})
+            {% else %}
+                {{ comment.user.email }}
+            {% endif %}
+        </td>
+    </tr>
+</table>
 
 
-To see all details go to:
-  {{ base_url }}{{ url('suggest:summary', event.pk) }}
+<p>
+    To see all details go to the
+    <a href="{{ base_url }}{{ url('suggest:summary', event.pk) }}">Summary page</a>.
+</p>
 
+<p>
 {% if event.accepted %}
-The event has already been accepted. To edit the event go to:
-  {{ base_url}}{{ url('manage:event_edit', event.accepted.pk) }}
+The event has already been accepted. To edit the event go to the
+  <a href="{{ base_url}}{{ url('manage:event_edit', event.accepted.pk) }}">Event edit page</a>.
 {% else %}
-To review it and to turn it into a real event go to:
-  {{ base_url }}{{ url('manage:suggestions') }}#s{{ event.pk }}
+To review it and to turn it into a real event go to the
+  <a href="{{ base_url }}{{ url('manage:suggestions') }}#s{{ event.pk }}">Event requests page</a>.
 {% endif %}
+</p>
 
+<p>
+    You are receiving this automated email because you have permission to add
+    events on Air Mozilla.
+</p>
 
---
-You are receiving this automated email because you have permission to add
-events on Air Mozilla {{ base_url }}
+{% endblock %}

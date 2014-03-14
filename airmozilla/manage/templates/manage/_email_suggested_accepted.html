@@ -1,15 +1,23 @@
-Hi,
+{% extends "email_base.html" %}
 
-Your suggested event, with title "{{ event.title }}" has been accepted.
+{% block content %}
+<p>Hi,</p>
 
-At this point the event has not yet been scheduled meaning its exact time
+<p>
+    Your suggested event, with title <b>{{ event.title }}</b>
+    has been accepted.
+</p>
+
+<p>
+    At this point the event has not yet been scheduled meaning its exact time
 and place is not confirmed.
+</p>
 
 
-To see your requested event again go to:
+<p>
+    To see your requested event again go to the
+    <a href="{{ base_url }}{{ url('suggest:summary', event.pk) }}">Summary page</a>.
+</p>
 
-  {{ base_url }}{{ url('suggest:summary', event.pk) }}
 
---
-Air Mozilla
-{{ base_url }}
+{% endblock %}

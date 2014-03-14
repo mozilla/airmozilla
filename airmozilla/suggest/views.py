@@ -4,15 +4,12 @@ from django import http
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import utc, make_naive
 from django.db import transaction
-from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
 from django.conf import settings
-from django.contrib.sites.models import RequestSite
 
 import requests
 import pytz
@@ -32,6 +29,7 @@ from airmozilla.base.utils import tz_apply, json_view
 
 from . import utils
 from . import forms
+from . import sending
 
 
 def _increment_slug_if_exists(slug):
@@ -478,7 +476,10 @@ def summary(request, id):
                     suggested_event=event
                 )
                 if event.submitted:
-                    _email_about_suggested_event_comment(comment, request)
+                    sending.email_about_suggested_event_comment(
+                        comment,
+                        request
+                    )
                     messages.info(
                         request,
                         'Comment added and producers notified by email.'
@@ -500,7 +501,7 @@ def summary(request, id):
                 if not event.first_submitted:
                     event.first_submitted = now
                 event.save()
-                _email_about_suggested_event(event, request)
+                sending.email_about_suggested_event(event, request)
             url = reverse('suggest:summary', args=(event.pk,))
             return redirect(url)
 
@@ -525,83 +526,6 @@ def summary(request, id):
         'discussion': discussion,
     }
     return render(request, 'suggest/summary.html', context)
-
-
-def _get_add_event_emails(exclude_superusers=False):
-    permission = Permission.objects.get(codename='add_event')
-    emails = set()
-    for group in permission.group_set.all():
-        emails.update([u.email for u in group.user_set.filter(is_active=True)])
-    if not exclude_superusers:
-        for superuser in User.objects.filter(is_superuser=True):
-            if superuser.email:
-                emails.add(superuser.email)
-    return list(emails)
-
-
-def _email_about_suggested_event_comment(comment, request):
-    emails = _get_add_event_emails()
-    event_title = comment.suggested_event.title
-    if len(event_title) > 30:
-        event_title = '%s...' % event_title[:27]
-    subject = (
-        '[Air Mozilla] New comment on suggested event: %s' % event_title
-    )
-    base_url = (
-        '%s://%s' % (request.is_secure() and 'https' or 'http',
-                     RequestSite(request).domain)
-    )
-    message = render_to_string(
-        'suggest/_email_comment.html',
-        {
-            'event': comment.suggested_event,
-            'comment': comment,
-            'base_url': base_url,
-        }
-    )
-    assert emails
-    email = EmailMessage(
-        subject,
-        message,
-        settings.EMAIL_FROM_ADDRESS,
-        emails
-    )
-    email.send()
-
-
-def _email_about_suggested_event(event, request):
-    emails = _get_add_event_emails()
-    event_title = event.title
-    if len(event_title) > 30:
-        event_title = '%s...' % event_title[:27]
-    comments = (
-        SuggestedEventComment.objects
-        .filter(suggested_event=event)
-        .order_by('created')
-    )
-    subject = (
-        '[Air Mozilla] New suggested event: %s' % event_title
-    )
-    base_url = (
-        '%s://%s' % (request.is_secure() and 'https' or 'http',
-                     RequestSite(request).domain)
-    )
-    message = render_to_string(
-        'suggest/_email_submitted.html',
-        {
-            'event': event,
-            'base_url': base_url,
-            'comments': comments,
-        }
-    )
-    assert emails
-    email = EmailMessage(
-        subject,
-        message,
-        settings.EMAIL_FROM_ADDRESS,
-        emails
-    )
-    email.send()
 
 
 @csrf_exempt

@@ -37,7 +37,6 @@ from airmozilla.base.utils import (
     json_view,
     paginate,
     tz_apply,
-    html_to_text,
     unhtml,
     shorten_url
 )
@@ -65,6 +64,7 @@ from airmozilla.manage.tweeter import send_tweet
 from airmozilla.manage import vidly
 from airmozilla.manage import url_transformer
 from airmozilla.manage import archiver
+from airmozilla.manage import sending
 from airmozilla.comments.models import Discussion, Comment, SuggestedDiscussion
 
 
@@ -236,48 +236,17 @@ def _event_process(request, form, event):
         approvals_old = [app.group for app in event.approval_set.all()]
         approvals_new = form.cleaned_data['approvals']
         approvals_add = set(approvals_new).difference(approvals_old)
-        #approvals_remove = set(approvals_old).difference(approvals_new)
         for approval in approvals_add:
             group = Group.objects.get(name=approval)
-            app = Approval(group=group, event=event)
-            app.save()
-            emails = [u.email for u in group.user_set.filter(is_active=True)]
-            if not emails:
-                continue
-            subject = ('[Air Mozilla] Approval requested: "%s"' %
-                       event.title)
-            try:
-                suggested_event = SuggestedEvent.objects.get(accepted=event)
-            except SuggestedEvent.DoesNotExist:
-                suggested_event = None
-            context = {
-                'group': group.name,
-                'manage_url': request.build_absolute_uri(
-                    reverse('manage:approvals')
-                ),
-                'title': event.title,
-                'creator': event.creator.email,
-                'datetime': event.start_time,
-                'description': html_to_text(event.description),
-                'suggested_event': suggested_event,
-            }
-            message = render_to_string(
-                'manage/_email_approval.html',
-                context
+            app = Approval.objects.create(group=group, event=event)
+            sending.email_about_approval_requested(
+                event,
+                group,
+                request
             )
-            email = EmailMessage(
-                subject,
-                message,
-                'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
-                emails
-            )
-            email.send()
-        # Commented out because we currently do not allow approvals
+        # Note! we currently do not allow approvals
         # to be "un-requested". That's because the email has already
         # gone out and it's too late now.
-        #for approval in approvals_remove:
-        #    app = Approval.objects.get(group=approval, event=event)
-        #    app.delete()
 
         if 'curated_groups' in form.cleaned_data:
             # because this form field acts like "tags",
@@ -1514,7 +1483,11 @@ def suggestion_review(request, id):
                     user=request.user,
                     suggested_event=event
                 )
-                _email_about_suggestion_comment(comment, request)
+                sending.email_about_suggestion_comment(
+                    comment,
+                    request.user,
+                    request
+                )
                 messages.info(
                     request,
                     'Comment added and %s notified.' % comment.user.email
@@ -1530,7 +1503,11 @@ def suggestion_review(request, id):
             if reject:
                 event.submitted = None
                 event.save()
-                _email_about_rejected_suggestion(event, request)
+                sending.email_about_rejected_suggestion(
+                    event,
+                    request.user,
+                    request
+                )
                 messages.info(
                     request,
                     'Suggested event bounced back and %s has been emailed'
@@ -1589,7 +1566,11 @@ def suggestion_review(request, id):
                     except SuggestedDiscussion.DoesNotExist:
                         pass
 
-                    _email_about_accepted_suggestion(event, real, request)
+                    sending.email_about_accepted_suggestion(
+                        event,
+                        real,
+                        request
+                    )
                     messages.info(
                         request,
                         'New event created from suggestion.'
@@ -1624,94 +1605,6 @@ def suggestion_review(request, id):
         'discussion': discussion,
     }
     return render(request, 'manage/suggestion_review.html', context)
-
-
-def _email_about_suggestion_comment(comment, request):
-    event = comment.suggested_event
-    emails = (event.user.email,)
-    event_title = comment.suggested_event.title
-    if len(event_title) > 30:
-        event_title = '%s...' % event_title[:27]
-    subject = (
-        '[Air Mozilla] New comment on your suggested event ("%s")'
-        % event_title
-    )
-    base_url = (
-        '%s://%s' % (request.is_secure() and 'https' or 'http',
-                     RequestSite(request).domain)
-    )
-    message = render_to_string(
-        'manage/_email_suggested_comment.html',
-        {
-            'event': event,
-            'comment': comment,
-            'base_url': base_url,
-            'request': request,
-        }
-    )
-    email = EmailMessage(
-        subject,
-        message,
-        'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
-        emails
-    )
-    email.send()
-
-
-def _email_about_accepted_suggestion(event, real, request):
-    emails = (event.user.email,)
-    event_title = real.title
-    if len(event_title) > 30:
-        event_title = '%s...' % event_title[:27]
-    subject = (
-        '[Air Mozilla] Requested event accepted! %s'
-        % event_title
-    )
-    base_url = (
-        '%s://%s' % (request.is_secure() and 'https' or 'http',
-                     RequestSite(request).domain)
-    )
-    message = render_to_string(
-        'manage/_email_suggested_accepted.html',
-        {
-            'event': event,
-            'base_url': base_url,
-            'request': request,
-        }
-    )
-    email = EmailMessage(
-        subject,
-        message,
-        'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
-        emails
-    )
-    email.send()
-
-
-def _email_about_rejected_suggestion(event, request):
-    emails = (event.user.email,)
-    subject = (
-        '[Air Mozilla] Requested event not accepted: %s' % event.title
-    )
-    base_url = (
-        '%s://%s' % (request.is_secure() and 'https' or 'http',
-                     RequestSite(request).domain)
-    )
-    message = render_to_string(
-        'manage/_email_suggested_rejected.html',
-        {
-            'event': event,
-            'base_url': base_url,
-            'request': request,
-        }
-    )
-    email = EmailMessage(
-        subject,
-        message,
-        'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
-        emails
-    )
-    email.send()
 
 
 @staff_required

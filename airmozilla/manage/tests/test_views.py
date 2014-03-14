@@ -345,7 +345,7 @@ class TestEvents(ManageTestCase):
         ok_(inactive_user.email not in email_sent.to)
         ok_(event.title in email_sent.subject)
         ok_(reverse('manage:approvals') in email_sent.body)
-        ok_('Baskin & Robbins' in email_sent.body)  # & not &amp;
+        ok_('Baskin & Robbins' in email_sent.body)
         ok_('<li>One</li>' not in email_sent.body)
         ok_('* One\n' in email_sent.body)
         # edit it and drop the second group
@@ -2589,7 +2589,7 @@ class TestSuggestions(ManageTestCase):
 
         # it should have sent an email back
         email_sent = mail.outbox[-1]
-        ok_(email_sent.recipients(), ['bob@mozilla.com'])
+        eq_(email_sent.recipients(), ['bob@mozilla.com'])
         ok_('accepted' in email_sent.subject)
         ok_('TITLE' in email_sent.subject)
         ok_('TITLE' in email_sent.body)

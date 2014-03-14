@@ -3,25 +3,13 @@ import uuid
 from html2text import html2text
 
 from django.template.loader import render_to_string
-from django.contrib.sites.models import RequestSite
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.core.cache import cache
-from django.core.handlers.wsgi import WSGIRequest
 from django.core.mail import EmailMultiAlternatives
 
+from airmozilla.base.utils import fix_base_url
 from .models import Discussion, Unsubscription
-
-
-def _fix_base_url(base_url):
-    """because most of the functions in this file can take either a
-    base_url (string) or a request, we make this easy with a quick
-    fixing function."""
-    if isinstance(base_url, WSGIRequest):
-        request = base_url
-        protocol = 'https' if request.is_secure() else 'http'
-        base_url = '%s://%s' % (protocol, RequestSite(request).domain)
-    return base_url
 
 
 def _get_unsubscribe_all_url(user):
@@ -40,7 +28,7 @@ def _get_unsubscribe_discussion_url(user, discussion):
 
 
 def send_reply_notification(comment, base_url):
-    base_url = _fix_base_url(base_url)
+    base_url = fix_base_url(base_url)
     parent = comment.reply_to
     assert parent
     event = comment.event
@@ -120,7 +108,7 @@ def _get_remove_comment_url(comment):
 
 
 def send_moderator_notifications(comment, base_url):
-    base_url = _fix_base_url(base_url)
+    base_url = fix_base_url(base_url)
     event = comment.event
     discussion = Discussion.objects.get(event=event)
 

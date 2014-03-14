@@ -5,15 +5,41 @@ import urllib
 import functools
 import json
 import subprocess
+import os
 
 import html2text
 import pytz
 from slugify import slugify
 
 from django import http
+from django.core.handlers.wsgi import WSGIRequest
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ImproperlyConfigured
+from django.contrib.sites.models import RequestSite
+from django.core.mail.backends.filebased import EmailBackend
+
+
+class EmlEmailBackend(EmailBackend):
+    """
+    The django.core.mail.backends.filebased.EmailBackend backend
+    is neat but it creates the files as .log.
+    This makes it not possible to open the files in Postbox until
+    you rename them.
+
+    To use this, put this in your settings/local.py::
+
+        EMAIL_BACKEND = 'airmozilla.base.utils.EmlEmailBackend'
+        EMAIL_FILE_PATH = '/Users/peterbe/tmp/captured-emails/'
+
+    """
+    def _get_filename(self):
+        """Return a unique file name."""
+        if self._fname is None:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            fname = "%s-%s.eml" % (timestamp, abs(id(self)))
+            self._fname = os.path.join(self.file_path, fname)
+        return self._fname
 
 
 class EdgecastEncryptionError(Exception):
@@ -168,3 +194,14 @@ def html_to_text(html):
     if not ('<p' in html or '<br' in html):
         html = html.replace('\n\n', '<br>')
     return html2text.html2text(html)
+
+
+def fix_base_url(base_url):
+    """because most of the functions in this file can take either a
+    base_url (string) or a request, we make this easy with a quick
+    fixing function."""
+    if isinstance(base_url, WSGIRequest):
+        request = base_url
+        protocol = 'https' if request.is_secure() else 'http'
+        base_url = '%s://%s' % (protocol, RequestSite(request).domain)
+    return base_url

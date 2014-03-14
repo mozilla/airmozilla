@@ -1,32 +1,52 @@
-A new event suggestion has been submitted.
+{% extends "email_base.html" %}
 
-*Title:*
-  {{ event.title|safe }}
+{% block content %}
+<p>
+    A new event suggestion has been submitted.
+</p>
 
-*Location:*
-  {{ event.location }}
+<table>
+    <tr>
+        <td><b>Title:</b></td>
+        <td>{{ event.title }}</td>
+    </tr>
+    <tr>
+        <td><b>Location:</b></td>
+        <td>{{ event.location }}</td>
+    </tr>
+    <tr>
+        <td><b>Start time:</b></td>
+        <td>{{ event.location_time.strftime('%d %B %Y - %H:%M') }} ({{ event.location.timezone }})</td>
+    </tr>
+    <tr>
+        <td><b>Submitter:</b></td>
+        <td>{{ event.user.email }}</td>
+    </tr>
+    {% if comments %}
+    <tr>
+        <td style="vertical-align:top"><b>Additional comments:</b></td>
+        <td>{% for comment in comments %}
+            <blockquote style="font-style:italic">{{ comment.comment }}</blockquote>
+            <hr>
+            {% endfor %}
+        </td>
+    </tr>
+    {% endif %}
+</table>
 
-*Start time:*
-  {{ event.location_time.strftime('%d %B %Y - %H:%M') }} ({{ event.location.timezone }})
+<p>
+    To see all details go to the
+    <a href="{{ base_url }}{{ url('suggest:summary', event.pk) }}">Summary page</a>.
+</p>
 
-*Submitter:*
-  {{ event.user.email }}
+<p>
+    To review it and to turn it into a real event go to the
+    <a href="{{ base_url }}{{ url('manage:suggestions') }}#s{{ event.pk }}">Event requests page</a>.
+</p>
 
-{% for comment in comments %}
-{% if loop.first %}*Additional comments:*
-{% endif %}
-{{ line_indent(comment.comment)|safe }}
-    --------------------------------------------------------------------------
-{% endfor %}
+<p>
+    You are receiving this automated email because you have permission to add
+    events on Air Mozilla.
+</p>
 
-
-To see all details go to:
-  {{ base_url }}{{ url('suggest:summary', event.pk) }}
-
-To review it and to turn it into a real event go to:
-  {{ base_url }}{{ url('manage:suggestions') }}#s{{ event.pk }}
-
-
---
-You are receiving this automated email because you have permission to add
-events on Air Mozilla {{ base_url }}
+{% endblock %}
