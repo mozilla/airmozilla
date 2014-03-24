@@ -4,31 +4,25 @@
 from . import base
 
 # to be able to run unit tests enable django_nose
-#INSTALLED_APPS = base.INSTALLED_APPS + ['django_nose']
+INSTALLED_APPS = base.INSTALLED_APPS + ['django_nose']
 
 # To extend any settings from settings/base.py here's an example:
 #INSTALLED_APPS = base.INSTALLED_APPS + ['debug_toolbar']
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'playdoh_app',
-        'USER': 'root',
-        'PASSWORD': '',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'airmozilla',
+        'USER': 'username',
+        'PASSWORD': 'password',
         'HOST': '',
         'PORT': '',
-        'OPTIONS': {
-            'init_command': 'SET storage_engine=InnoDB',
-            'charset' : 'utf8',
-            'use_unicode' : True,
-        },
-        'TEST_CHARSET': 'utf8',
-        'TEST_COLLATION': 'utf8_general_ci',
     },
     # 'slave': {
     #     ...
     # },
 }
+
 
 # Uncomment this and set to all slave DBs in use on the site.
 # SLAVE_DATABASES = ['slave']
@@ -96,6 +90,8 @@ CACHES = {
     }
 }
 
+
+
 # Email backend - fill in with SMTP details
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = ''
@@ -142,6 +138,6 @@ BITLY_ACCESS_TOKEN = ''
 #}
 
 # Talk to your friendly IT guys to fill this in
-AWS_ACCESS_KEY_ID =
-AWS_SECRET_ACCESS_KEY =
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
 #S3_UPLOAD_BUCKET = 'air-mozilla-uploads'
