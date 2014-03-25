@@ -249,6 +249,13 @@ account as a superuser.  Log in to the site, then run the shell command:
 >>> my_user.save()
 ```
 
+
+Contributing
+------------
+
+See CONTRIBUTING.md
+
+
 IRC
 ---
 irc://irc.mozilla.org/airmozilla-dev
