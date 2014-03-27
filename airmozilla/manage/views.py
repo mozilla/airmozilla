@@ -1578,13 +1578,26 @@ def suggestion_review(request, id):
                     # if this is a popcorn event, and there is a default
                     # popcorn template, then assign that
                     if real.popcorn_url:
+                        real.status = Event.STATUS_SCHEDULED
                         templates = Template.objects.filter(
                             default_popcorn_template=True
                         )
                         for template in templates[:1]:
                             real.template = template
-                            real.save()
+                        real.save()
 
+                        # if it's NOT just company private, require a PR
+                        # approval
+                        if real.privacy != Event.PRIVACY_COMPANY:
+                            # to know what groups,
+                            groups = Group.objects.filter(
+                                permissions__codename='change_approval'
+                            )
+                            for group in groups:
+                                Approval.objects.create(
+                                    event=real,
+                                    group=group,
+                                )
                     sending.email_about_accepted_suggestion(
                         event,
                         real,

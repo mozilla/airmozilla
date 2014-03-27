@@ -2630,6 +2630,11 @@ class TestSuggestions(ManageTestCase):
         category = Category.objects.create(name='CATEGORY')
         channel = Channel.objects.create(name='CHANNEL')
 
+        # we need a group that can approve events
+        group = Group.objects.get(name='testapprover')
+        permission = Permission.objects.get(codename='change_approval')
+        group.permissions.add(permission)
+
         # create a suggested event that has everything filled in
         event = SuggestedEvent.objects.create(
             user=bob,
@@ -2674,6 +2679,10 @@ class TestSuggestions(ManageTestCase):
         eq_(real.popcorn_url, event.popcorn_url)
         eq_(real.start_time, real.archive_time)
         eq_(real.template, popcorn_template)
+        eq_(real.status, Event.STATUS_SCHEDULED)
+        # that should also have created an Approval instance
+        approval = Approval.objects.get(event=real)
+        eq_(approval.group, group)
 
     def test_approved_suggested_event_with_discussion(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
