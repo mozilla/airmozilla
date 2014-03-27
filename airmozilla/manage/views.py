@@ -1168,7 +1168,16 @@ def template_edit(request, id):
     if request.method == 'POST':
         form = forms.TemplateEditForm(request.POST, instance=template)
         if form.is_valid():
-            form.save()
+            template = form.save()
+            if template.default_popcorn_template:
+                others = (
+                    Template.objects.filter(default_popcorn_template=True)
+                    .exclude(pk=template.pk)
+                )
+                for other_template in others:
+                    other_template.default_popcorn_template = False
+                    other_template.save()
+
             messages.info(request, 'Template "%s" saved.' % template.name)
             return redirect('manage:templates')
     else:
@@ -1565,6 +1574,16 @@ def suggestion_review(request, id):
                             real_discussion.moderators.add(moderator)
                     except SuggestedDiscussion.DoesNotExist:
                         pass
+
+                    # if this is a popcorn event, and there is a default
+                    # popcorn template, then assign that
+                    if real.popcorn_url:
+                        templates = Template.objects.filter(
+                            default_popcorn_template=True
+                        )
+                        for template in templates[:1]:
+                            real.template = template
+                            real.save()
 
                     sending.email_about_accepted_suggestion(
                         event,

@@ -16,9 +16,13 @@
     </thead>
     <tbody>
     {% for template in templates %}
-      <tr>
-        <td>{{ template.name }}</td>
-	<td>{{ count_events_with_template(template) }}</td>
+    <tr>
+        <td>{{ template.name }}
+            {% if template.default_popcorn_template %}
+            <span class="label ng-binding label-info" title="Default Popcorn template">Popcorn</span>
+            {% endif %}
+        </td>
+	    <td>{{ count_events_with_template(template) }}</td>
         <td>
           <a class="btn btn-default btn-sm" href="{{ url('manage:template_edit', template.id) }}">
             <i class="glyphicon glyphicon-edit"></i>

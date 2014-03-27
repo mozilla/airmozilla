@@ -1919,6 +1919,31 @@ class TestTemplates(ManageTestCase):
         })
         eq_(response_fail.status_code, 200)
 
+    def test_template_edit_default_popcorn_template(self):
+        """Editing a template and setting `default_popcorn_template` should
+        un-set that for any others."""
+        Template.objects.create(
+            name='Template 1',
+            content='Bla bla'
+        )
+        Template.objects.create(
+            name='Template 2',
+            content='Ble ble',
+            default_popcorn_template=True
+        )
+        template = Template.objects.get(name='test template')
+        url = reverse('manage:template_edit', kwargs={'id': template.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'name': 'new name',
+            'content': 'new content',
+            'default_popcorn_content': True
+        })
+        self.assertRedirects(response_ok, reverse('manage:templates'))
+        # only exactly one should have default_popcorn_template on
+        eq_(Template.objects.filter(default_popcorn_template=True).count(), 1)
+
     def test_template_remove(self):
         template = Template.objects.get(name='test template')
         self._delete_test(template, 'manage:template_remove',
@@ -2627,6 +2652,12 @@ class TestSuggestions(ManageTestCase):
         )
         event.channels.add(channel)
 
+        popcorn_template = Template.objects.create(
+            name='Popcorn template',
+            content='Bla bla',
+            default_popcorn_template=True
+        )
+
         url = reverse('manage:suggestion_review', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -2642,6 +2673,7 @@ class TestSuggestions(ManageTestCase):
         assert real
         eq_(real.popcorn_url, event.popcorn_url)
         eq_(real.start_time, real.archive_time)
+        eq_(real.template, popcorn_template)
 
     def test_approved_suggested_event_with_discussion(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')

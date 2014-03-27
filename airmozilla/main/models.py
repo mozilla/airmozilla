@@ -177,7 +177,13 @@ class Template(models.Model):
         ' Additionally we have <code>vidly_tokenize(tag, seconds)</code> and'
         ' <code>edgecast_tokenize([seconds], **kwargs)</code>.<br>'
         ' Warning! Changes affect'
-        ' all events associated with this template.')
+        ' all events associated with this template.'
+    )
+    default_popcorn_template = models.BooleanField(
+        default=False,
+        help_text='If you have more than one templates for Popcorn videos '
+                  'this dictates which one is the default one.'
+    )
 
     def __unicode__(self):
         return self.name
