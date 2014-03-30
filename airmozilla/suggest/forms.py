@@ -179,7 +179,6 @@ class DetailsForm(BaseModelForm):
             'location',
             'start_time',
             'privacy',
-            'category',
             'tags',
             'channels',
             'additional_links',

@@ -124,17 +124,6 @@ class Participant(models.Model):
         return self.name
 
 
-class Category(models.Model):
-    """ Categories globally divide events - one category per event. """
-    name = models.CharField(max_length=50)
-
-    class Meta:
-        ordering = ['name']
-
-    def __unicode__(self):
-        return self.name
-
-
 class Channel(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=100, unique=True,
@@ -285,8 +274,6 @@ class Event(models.Model):
     )
     location = models.ForeignKey(Location, blank=True, null=True,
                                  on_delete=models.SET_NULL)
-    category = models.ForeignKey(Category, blank=True, null=True,
-                                 on_delete=models.SET_NULL)
     tags = models.ManyToManyField(Tag, blank=True)
     channels = models.ManyToManyField(Channel)
     call_info = models.TextField(blank=True)
@@ -403,8 +390,6 @@ class SuggestedEvent(models.Model):
     )
     start_time = models.DateTimeField(db_index=True, blank=True, null=True)
     location = models.ForeignKey(Location, blank=True, null=True,
-                                 on_delete=models.SET_NULL)
-    category = models.ForeignKey(Category, blank=True, null=True,
                                  on_delete=models.SET_NULL)
     tags = models.ManyToManyField(Tag, blank=True)
     channels = models.ManyToManyField(Channel)

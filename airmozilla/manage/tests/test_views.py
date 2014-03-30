@@ -22,7 +22,6 @@ import mock
 
 from airmozilla.main.models import (
     Approval,
-    Category,
     Event,
     EventTweet,
     EventOldSlug,
@@ -232,7 +231,6 @@ class TestEvents(ManageTestCase):
         'participants': 'Tim Mickel',
         'privacy': 'public',
         'location': '1',
-        'category': '7',
         'channels': '1',
         'tags': 'xxx',
         'template': '1',
@@ -271,19 +269,6 @@ class TestEvents(ManageTestCase):
         eq_(response_cancel.status_code, 302)
         self.assertRedirects(response_cancel, reverse('manage:events'))
 
-    def test_event_request_sorted_dropdowns(self):
-        # first create a bunch of categories
-        names = ['Category%s' % x for x in range(5)]
-        random.shuffle(names)
-        [Category.objects.create(name=x) for x in names]
-
-        response = self.client.get(reverse('manage:event_request'))
-        # the order matters
-        c = response.content
-        ok_(-1 <
-            c.find('>Category2<') <
-            c.find('>Category3<') <
-            c.find('>Category4<'))
 
     def test_event_request_with_approvals(self):
         group1, = Group.objects.all()
@@ -807,7 +792,6 @@ class TestEvents(ManageTestCase):
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
-        category = Category.objects.create(name='CATEGORY')
         SuggestedEvent.objects.create(
             user=self.user,
             title='TITLE',
@@ -816,7 +800,6 @@ class TestEvents(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             first_submitted=now,
@@ -1747,51 +1730,6 @@ class TestParticipants(ManageTestCase):
                           'manage:participants')
 
 
-class TestCategories(ManageTestCase):
-    def test_categories(self):
-        """ Categories listing responds OK. """
-        response = self.client.get(reverse('manage:categories'))
-        eq_(response.status_code, 200)
-
-    def test_category_new(self):
-        """ Category form adds new categories. """
-        response = self.client.get(reverse('manage:category_new'))
-        eq_(response.status_code, 200)
-
-        response_ok = self.client.post(
-            reverse('manage:category_new'),
-            {
-                'name': 'Web Dev Talks '
-            }
-        )
-        self.assertRedirects(response_ok, reverse('manage:categories'))
-        ok_(Category.objects.get(name='Web Dev Talks'))
-        response_fail = self.client.post(reverse('manage:category_new'))
-        eq_(response_fail.status_code, 200)
-
-    def test_category_edit(self):
-        """Category edit"""
-        category = Category.objects.get(name='testing')
-        response = self.client.get(
-            reverse('manage:category_edit', args=(category.pk,)),
-        )
-        eq_(response.status_code, 200)
-        ok_('value="testing"' in response.content)
-        response = self.client.post(
-            reverse('manage:category_edit', args=(category.pk,)),
-            {
-                'name': 'different',
-            }
-        )
-        eq_(response.status_code, 302)
-        category = Category.objects.get(name='different')
-
-    def test_category_delete(self):
-        category = Category.objects.get(name='testing')
-        self._delete_test(category, 'manage:category_remove',
-                          'manage:categories')
-
-
 class TestChannels(ManageTestCase):
     def test_channels(self):
         """ Channels listing responds OK. """
@@ -2035,7 +1973,6 @@ class TestApprovals(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=event.location,
-            category=event.category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_PUBLIC,
             submitted=now,
@@ -2248,7 +2185,6 @@ class TestManagementRoles(ManageTestCase):
         pages = additional_pages + [
             'manage:users',
             'manage:groups',
-            'manage:categories',
             'manage:locations',
             'manage:templates'
         ]
@@ -2429,7 +2365,6 @@ class TestSuggestions(ManageTestCase):
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
-        category = Category.objects.create(name='CATEGORY')
         SuggestedEvent.objects.create(
             user=bob,
             title='TITLE1',
@@ -2438,7 +2373,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION1',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             upcoming=True,
             privacy=Event.PRIVACY_CONTRIBUTORS,
@@ -2453,7 +2387,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION2',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             upcoming=False,
             submitted=now - datetime.timedelta(days=1),
@@ -2467,7 +2400,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION3',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             submitted=now - datetime.timedelta(days=1),
             first_submitted=now - datetime.timedelta(days=1),
@@ -2488,7 +2420,6 @@ class TestSuggestions(ManageTestCase):
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
-        category = Category.objects.create(name='CATEGORY')
         event = SuggestedEvent.objects.create(
             user=bob,
             title='TITLE',
@@ -2497,7 +2428,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             submitted=now,
@@ -2543,7 +2473,6 @@ class TestSuggestions(ManageTestCase):
         location = Location.objects.get(id=1)
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
-        category = Category.objects.create(name='CATEGORY')
         tag1 = Tag.objects.create(name='TAG1')
         tag2 = Tag.objects.create(name='TAG2')
         channel = Channel.objects.create(name='CHANNEL')
@@ -2557,7 +2486,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             #call_info='CALL INFO',
@@ -2581,7 +2509,6 @@ class TestSuggestions(ManageTestCase):
         ok_('ADDITIONAL LINKS' in response.content)
         ok_('RICHARD &amp; ZANDR' in response.content)
         ok_(os.path.basename(self.placeholder) in response.content)
-        ok_(category.name in response.content)
         ok_(location.name in response.content)
         ok_(event.get_privacy_display() in response.content)
         #ok_('CALL INFO' in response.content
@@ -2598,7 +2525,6 @@ class TestSuggestions(ManageTestCase):
         eq_(real.short_description, event.short_description)
         eq_(real.description, event.description)
         eq_(real.placeholder_img, event.placeholder_img)
-        eq_(real.category, category)
         eq_(real.location, location)
         eq_(real.start_time, event.start_time)
         eq_(real.privacy, event.privacy)
@@ -2627,7 +2553,6 @@ class TestSuggestions(ManageTestCase):
         location = Location.objects.get(id=1)
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
-        category = Category.objects.create(name='CATEGORY')
         channel = Channel.objects.create(name='CHANNEL')
 
         # we need a group that can approve events
@@ -2644,7 +2569,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             #call_info='CALL INFO',
@@ -2689,7 +2613,6 @@ class TestSuggestions(ManageTestCase):
         location = Location.objects.get(id=1)
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
-        category = Category.objects.create(name='CATEGORY')
         channel = Channel.objects.create(name='CHANNEL')
 
         # create a suggested event that has everything filled in
@@ -2701,7 +2624,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             #call_info='CALL INFO',
@@ -2755,7 +2677,6 @@ class TestSuggestions(ManageTestCase):
         location = Location.objects.get(id=1)
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
-        category = Category.objects.create(name='CATEGORY')
         tag1 = Tag.objects.create(name='TAG1')
         tag2 = Tag.objects.create(name='TAG2')
         channel = Channel.objects.create(name='CHANNEL')
@@ -2769,7 +2690,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             #call_info='CALL INFO',
@@ -2789,7 +2709,6 @@ class TestSuggestions(ManageTestCase):
         ok_('SHORT DESCRIPTION' in response.content)
         ok_('DESCRIPTION' in response.content)
         ok_(os.path.basename(self.placeholder) in response.content)
-        ok_(category.name in response.content)
         ok_(location.name in response.content)
         ok_(event.get_privacy_display() in response.content)
         #ok_('CALL INFO' in response.content
@@ -2824,7 +2743,6 @@ class TestSuggestions(ManageTestCase):
         location = Location.objects.get(id=1)
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
-        category = Category.objects.create(name='CATEGORY')
         tag1 = Tag.objects.create(name='TAG1')
         tag2 = Tag.objects.create(name='TAG2')
         channel = Channel.objects.create(name='CHANNEL')
@@ -2838,7 +2756,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             #call_info='CALL INFO',
@@ -2887,7 +2804,6 @@ class TestSuggestions(ManageTestCase):
         location = Location.objects.get(id=1)
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
-        category = Category.objects.create(name='CATEGORY')
         tag1 = Tag.objects.create(name='TAG1')
         tag2 = Tag.objects.create(name='TAG2')
         channel = Channel.objects.create(name='CHANNEL')
@@ -2901,7 +2817,6 @@ class TestSuggestions(ManageTestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             first_submitted=now,
@@ -2946,7 +2861,6 @@ class TestEventTweets(ManageTestCase):
         'participants': 'Tim Mickel',
         'privacy': 'public',
         'location': '1',
-        'category': '7',
         'channels': '1',
         'tags': 'xxx',
         'template': '1',

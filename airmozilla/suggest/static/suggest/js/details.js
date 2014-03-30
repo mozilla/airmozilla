@@ -44,7 +44,6 @@ $(function() {
         );
     });
     $('#id_timezone').select2();
-    $('#id_category').select2();
     $('#id_channels').select2();
 
     $('div.select2-container').each(function() {

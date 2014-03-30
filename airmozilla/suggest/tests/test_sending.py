@@ -16,7 +16,6 @@ from airmozilla.main.models import (
     SuggestedEvent,
     SuggestedEventComment,
     Location,
-    Category
 )
 
 
@@ -50,7 +49,6 @@ class TestSending(TestCase):
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
-        category = Category.objects.create(name='CATEGORY')
 
         suggested_event = SuggestedEvent.objects.create(
             user=user,
@@ -60,7 +58,6 @@ class TestSending(TestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             first_submitted=now,
@@ -104,7 +101,6 @@ class TestSending(TestCase):
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
-        category = Category.objects.create(name='CATEGORY')
 
         suggested_event = SuggestedEvent.objects.create(
             user=user,
@@ -114,7 +110,6 @@ class TestSending(TestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            category=category,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             first_submitted=now,

@@ -27,7 +27,6 @@ class TweeterTestCase(TestCase):
         'participants': 'Tim Mickel',
         'privacy': 'public',
         'location': '1',
-        'category': '7',
         'channels': '1',
         'tags': 'xxx',
         'template': '1',

@@ -14,7 +14,6 @@ from airmozilla.base.forms import BaseModelForm, BaseForm
 from airmozilla.manage import url_transformer
 from airmozilla.main.models import (
     Approval,
-    Category,
     Event,
     EventTweet,
     Location,
@@ -103,7 +102,7 @@ class EventRequestForm(BaseModelForm):
         fields = (
             'title', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time',
-            'participants', 'channels', 'category', 'tags', 'call_info',
+            'participants', 'channels', 'tags', 'call_info',
             'additional_links', 'privacy', 'popcorn_url'
         )
 
@@ -119,11 +118,6 @@ class EventRequestForm(BaseModelForm):
             '<i class="glyphicon glyphicon-plus-sign"></i>'
             'New location'
             '</a>' % reverse('manage:location_new'))
-        self.fields['category'].help_text = (
-            '<a href="%s" class="btn btn-default" target="_blank">'
-            '<i class="glyphicon glyphicon-plus-sign"></i>'
-            'New category'
-            '</a>' % reverse('manage:category_new'))
         self.fields['channels'].help_text = (
             '<a href="%s" class="btn btn-default" target="_blank">'
             '<i class="glyphicon glyphicon-plus-sign"></i>'
@@ -220,7 +214,7 @@ class EventEditForm(EventRequestForm):
             'title', 'slug', 'status', 'privacy', 'featured', 'template',
             'template_environment', 'placeholder_img', 'location',
             'description', 'short_description', 'start_time', 'archive_time',
-            'participants', 'channels', 'category', 'tags',
+            'participants', 'channels', 'tags',
             'call_info', 'additional_links', 'approvals', 'pin',
             'popcorn_url',
         )
@@ -253,7 +247,7 @@ class EventExperiencedRequestForm(EventEditForm):
             'title', 'status', 'privacy', 'template',
             'template_environment', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time',
-            'participants', 'channels', 'category', 'tags', 'call_info',
+            'participants', 'channels', 'tags', 'call_info',
             'additional_links', 'approvals', 'pin', 'popcorn_url',
         )
 
@@ -355,11 +349,6 @@ class ParticipantFindForm(BaseModelForm):
         if not Participant.objects.filter(name__icontains=name):
             raise forms.ValidationError('No participant with this name found.')
         return name
-
-
-class CategoryForm(BaseModelForm):
-    class Meta:
-        model = Category
 
 
 class ChannelForm(BaseModelForm):

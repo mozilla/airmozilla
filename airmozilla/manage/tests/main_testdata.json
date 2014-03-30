@@ -27,13 +27,6 @@
         }
     },
     {
-        "pk": 7,
-        "model": "main.category",
-        "fields": {
-            "name": "testing"
-        }
-    },
-    {
         "pk": 1,
         "model": "main.channel",
         "fields": {
@@ -50,20 +43,13 @@
             "description": "<p>Stuff!</p>"
         }
     },
-    {
-        "pk": 8,
-        "model": "main.category",
-        "fields": {
-            "name": "category"
-        }
-    },
-       {
+   {
         "pk": 1,
         "model": "main.tag",
         "fields": {
             "name": "testing"
         }
-    },
+   },
     {
         "pk": 2,
         "model": "main.tag",
@@ -83,7 +69,6 @@
         "model": "main.event",
         "fields": {
             "placeholder_img": "firefox.png",
-            "category": 7,
             "channels": [1],
             "description": "sadfasdf",
             "title": "Test event",

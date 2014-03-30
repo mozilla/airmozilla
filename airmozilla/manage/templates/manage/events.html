@@ -45,7 +45,6 @@
         <th style="width: 14%">Location</th>
         <th style="width: 190px">Start time</th>
         <th style="width: 190px">Archive time</th>
-        <th style="width: 15%">Category/Channel</th>
         <th style="width: 8%">Status/Visibility</th>
         <th style="width: 10%">&nbsp;</th>
       </tr>
@@ -67,7 +66,7 @@
 	  </select>
         </td>
         <td>
-          <input type="search" class="form-control" ng-model="search_cat_chan" placeholder="category or channel">
+          <input type="search" class="form-control" ng-model="search_cat_chan" placeholder="channel">
         </td>
         <td>
           <select name="status" ng-model="search_status">
@@ -124,9 +123,6 @@
             </span>
           </span>
         </td>
-        <td>{{ event.category }}<br>
-          {{ event.channels.join(', ') }}
-        </td>
         <td>
 
           <span class="label"
@@ -166,7 +162,7 @@
             <a href="#" ng-click="resetFilter('search_start_time')">Drop start time filter on <code>{{ search_start_time }}</code></a>
           </p>
           <p ng-if="search_cat_chan">
-            <a href="#" ng-click="resetFilter('search_cat_chan')">Drop category/channel search on <code>{{ search_cat_chan }}</code></a>
+            <a href="#" ng-click="resetFilter('search_cat_chan')">Drop channel search on <code>{{ search_cat_chan }}</code></a>
           </p>
         </td>
       </tr>

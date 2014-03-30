@@ -42,7 +42,6 @@ from airmozilla.base.utils import (
 )
 from airmozilla.main.models import (
     Approval,
-    Category,
     Event,
     EventTweet,
     Location,
@@ -428,7 +427,6 @@ def events_data(request):
             'edit_url': reverse('manage:event_edit', args=(event.pk,)),
             'start_time': start_time,
             'start_time_iso': start_time_iso,
-            'category': event.category and event.category.name or '',
             'channels': event_channel_names.get(event.pk, []),
             'is_pending': event.status == Event.STATUS_PENDING,
             'archive_time': event.archive_time,
@@ -1017,59 +1015,6 @@ def participant_new(request):
 
 
 @staff_required
-@permission_required('main.change_category')
-def categories(request):
-    categories = Category.objects.all()
-    return render(request, 'manage/categories.html',
-                  {'categories': categories})
-
-
-@staff_required
-@permission_required('main.add_category')
-@cancel_redirect('manage:categories')
-@transaction.commit_on_success
-def category_new(request):
-    if request.method == 'POST':
-        form = forms.CategoryForm(request.POST, instance=Category())
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Category created.')
-            return redirect('manage:categories')
-    else:
-        form = forms.CategoryForm()
-    return render(request, 'manage/category_new.html', {'form': form})
-
-
-@staff_required
-@permission_required('main.change_category')
-@cancel_redirect('manage:categories')
-@transaction.commit_on_success
-def category_edit(request, id):
-    category = Category.objects.get(id=id)
-    if request.method == 'POST':
-        form = forms.CategoryForm(request.POST, instance=category)
-        if form.is_valid():
-            form.save()
-            messages.info(request, 'Category "%s" saved.' % category.name)
-            return redirect('manage:categories')
-    else:
-        form = forms.CategoryForm(instance=category)
-    return render(request, 'manage/category_edit.html',
-                  {'form': form, 'category': category})
-
-
-@staff_required
-@permission_required('main.delete_category')
-@transaction.commit_on_success
-def category_remove(request, id):
-    if request.method == 'POST':
-        category = Category.objects.get(id=id)
-        category.delete()
-        messages.info(request, 'Category "%s" removed.' % category.name)
-    return redirect('manage:categories')
-
-
-@staff_required
 @permission_required('main.change_channel')
 def channels(request):
     channels = Channel.objects.all()
@@ -1532,7 +1477,6 @@ def suggestion_review(request, id):
                     'start_time': event.start_time,
                     'timezone': event.location.timezone,
                     'location': event.location.pk,
-                    'category': event.category and event.category.pk or None,
                     'channels': [x.pk for x in event.channels.all()],
                     'call_info': event.call_info,
                     'privacy': event.privacy,

@@ -198,12 +198,6 @@ class ForeignKeyTests(TestCase):
         self._successful_delete(event.location)
         self._refresh_ok(event)
 
-    def test_category_remove(self):
-        """Deleting a Category does not delete associated Event."""
-        event = Event.objects.get(id=22)
-        self._successful_delete(event.category)
-        self._refresh_ok(event)
-
     def test_channel_remove(self):
         """Deleting a Channel does not delete associated Event."""
         event = Event.objects.get(id=22)
