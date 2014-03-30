@@ -441,7 +441,7 @@ def events_data(request):
             'thumbnail': thumbnail_,
             'modified': event.modified,
             'url': reverse('main:event', args=(event.slug,)),
-            #'state': state,
+            # 'state': state,
             'status': event.status,
             'status_display': event.get_status_display(),
             'privacy': event.privacy,
@@ -746,7 +746,7 @@ def new_event_tweet(request, id):
             data['shortener_error'] = None
         except (ImproperlyConfigured, ValueError) as err:
             data['shortener_error'] = str(err)
-        #except OtherHttpRelatedErrors?
+        # except OtherHttpRelatedErrors?
         #    data['shortener_error'] = "Network error trying to shorten URL"
 
         initial['text'] = unhtml('%s\n%s' % (short_desc(event), abs_url))

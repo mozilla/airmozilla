@@ -182,6 +182,7 @@ class Location(models.Model):
     """Venue/location of a video/stream/presentation/etc."""
     name = models.CharField(max_length=300)
     timezone = models.CharField(max_length=250)
+    is_active = models.BooleanField(default=True)
 
     def __unicode__(self):
         return self.name
