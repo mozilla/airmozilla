@@ -140,5 +140,5 @@ Air Mozilla | Mozilla, in Video
   {{ super() }}
   {# the day Air Mozilla uses L10n we can remove this /en-US/ here. For now it reduces redirects. #}
   {% if not DEV %}<script src="//mozorg.cdn.mozilla.net/en-US/tabzilla/tabzilla.js"></script>{% endif %}
-<!--   {{ browserid_js() }} --><script>console.warn("TEMPORARILY COMMENT OUT BROWSERID")</script>
+  {{ browserid_js() }}
 {% endblock %}
