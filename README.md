@@ -96,10 +96,10 @@ For local development, make sure the following lines are uncommented:
 ```
 DEBUG = TEMPLATE_DEBUG = True
 ```
-Since Air Mozilla uses a lot of AJAX, it's sometimes useful to not
-let the browser show the errors, when they happen, but instead have
-all errors happen in the terminal console. This is a matter of personal
-taste but if you want all errors in the terminal add:
+Since Air Mozilla uses a lot of AJAX calls, it may not be useful for errors to
+show up in the browser when they happen. It may be more useful to have all
+the errors appear in the terminal console. This is a matter of personal
+taste, but if you want all the errors to appear in the terminal add this line:
 ```
 DEBUG_PROPAGATE_EXCEPTIONS = True
 ```
@@ -133,8 +133,8 @@ CACHES = {
 }
 ```
 
-If you want to use a local in-memory cache instead
-by setting up the `CACHES` setting like this:
+If you want to use a local in-memory cache instead, use the following
+`CACHES` setting:
 ```
 CACHES = {
     'default': {
@@ -146,7 +146,7 @@ CACHES = {
 By default, all the default settings are geared towards production
 deployment. Not local development. For example, the default way of handling
 emails is to actually send them with SMTP. For local development we don't want
-this. So change `EMAIL_BACKEND` to:
+this. So uncomment the line `EMAIL_BACKEND` to:
 ```
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ```
