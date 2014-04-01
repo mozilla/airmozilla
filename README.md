@@ -196,6 +196,14 @@ To see the tests' code coverage, use:
 ``./manage.py test --with-coverage --cover-erase --cover-html --cover-package=airmozilla``
 
 
+Troubleshooting
+--------------
+If you get import errors, make sure the directory `./vendor/src/` is not empty
+or contains only directories that are empty. If they are empty, run the
+following command:
+
+``git submodule update --init --recursive``
+
 Migrations
 ----------
 We're using [South][south] to handle database migrations.
