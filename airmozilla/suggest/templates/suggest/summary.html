@@ -133,10 +133,6 @@ Event summary | {{ super() }}
       <td>{{ event.get_privacy_display() }}</td>
     </tr>
     <tr>
-      <th>Category</th>
-      <td>{{ event.category }}</td>
-    </tr>
-    <tr>
       <th>Tags</th>
       <td>{% for tag in event.tags.all() %}
       {{ tag }}{% if not loop.last %}, {% endif %}

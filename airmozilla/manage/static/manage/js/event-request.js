@@ -12,7 +12,7 @@ $(function() {
 
     // all the things we're going to do select2 on,
     // explicitely make sure they're 100%
-    $('#id_tags, #id_category, #id_participants, #id_location, #id_category, #id_channels').css('width', '100%');
+    $('#id_tags, #id_participants, #id_location,  #id_channels').css('width', '100%');
 
     // Autocomplete tags - uses the select2 library
     $('#id_tags').select2({
@@ -79,7 +79,6 @@ $(function() {
 
     // Fill in the timezone from the selected location
     $('#id_location').select2();
-    $('#id_category').select2();
     $('#id_channels').select2();
 
     // Autofill template environments

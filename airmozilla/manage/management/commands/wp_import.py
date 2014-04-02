@@ -13,7 +13,7 @@ from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import utc
 
-from airmozilla.main.models import Category, Event, Tag, Template
+from airmozilla.main.models import Event, Tag, Template
 
 DEFAULT_VIDLY_TEMPLATE = """
 <video controls width="100%" controls preload="none" poster="https://d3fenhwk93s16g.cloudfront.net/{{ tag }}/poster.jpg">
@@ -143,18 +143,6 @@ class Command(BaseCommand):
                 if item['description']:
                     self.parse_description(event, item['description'])
                 event.short_description = item['short_description'] or ''
-                # Add categories and tags
-                event.save()
-                for category in element.findall('category'):
-                    domain = category.attrib['domain']
-                    text = category.text
-                    if domain == 'category' and not event.category:
-                        cat, _ = Category.objects.get_or_create(name=text)
-                        event.category = cat
-                    else:
-                        tag = text.lower().strip()
-                        tag_add, _ = Tag.objects.get_or_create(name=tag)
-                        event.tags.add(tag_add)
                 # Add thumbnail and save
                 thumbnail_id = 0
                 for meta in element.findall('wp:postmeta',

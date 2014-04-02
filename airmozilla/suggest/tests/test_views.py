@@ -21,7 +21,6 @@ from airmozilla.main.models import (
     Event,
     Location,
     Channel,
-    Category,
     Tag
 )
 from airmozilla.uploads.models import Upload
@@ -65,7 +64,6 @@ class TestPages(TestCase):
                               additional_links='http://www.peterbe.com\n',
                               location=None,
                               start_time=None,
-                              category=None,
                               pre_recorded=False
                               ):
         location = location or Location.objects.get(name='Mountain View')
@@ -73,7 +71,6 @@ class TestPages(TestCase):
             2014, 1, 1, 12, 0, 0
         )
         start_time = start_time.replace(tzinfo=utc)
-        category = category or Category.objects.create(name='CategoryX')
 
         event = SuggestedEvent.objects.create(
             user=self.user,
@@ -85,7 +82,6 @@ class TestPages(TestCase):
             location=location,
             start_time=start_time,
             additional_links=additional_links,
-            category=category,
         )
         tag1 = Tag.objects.create(name='Tag1')
         tag2 = Tag.objects.create(name='Tag2')
@@ -619,7 +615,6 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
 
         mv = Location.objects.get(name='Mountain View')
-        category = Category.objects.get(name='testing')
         channel = Channel.objects.create(
             name='Security',
             slug='security'
@@ -636,7 +631,6 @@ class TestPages(TestCase):
             'timezone': 'US/Pacific',
             'location': mv.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,
-            'category': category.pk,
             'tags': tag1.name + ', ' + tag2.name,
             'channels': channel.pk,
             'additional_links': 'http://www.peterbe.com\n',
@@ -654,7 +648,6 @@ class TestPages(TestCase):
         eq_(event.start_time.strftime('%H:%M'), '20:00')
         eq_(event.start_time.tzname(), 'UTC')
         eq_(event.location, mv)
-        eq_(event.category, category)
         eq_([x.name for x in event.tags.all()], ['foo', 'bar'])
         eq_(event.channels.all()[0], channel)
         eq_(event.additional_links, data['additional_links'].strip())
@@ -683,7 +676,6 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
 
         mv = Location.objects.get(name='Mountain View')
-        category = Category.objects.get(name='testing')
         channel = Channel.objects.create(
             name='Security',
             slug='security'
@@ -694,7 +686,6 @@ class TestPages(TestCase):
             'timezone': 'US/Pacific',
             'location': mv.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,
-            'category': category.pk,
             'channels': channel.pk,
             'enable_discussion': True
         }
@@ -792,7 +783,6 @@ class TestPages(TestCase):
             'timezone': 'US/Pacific',
             'location': mv.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,
-            'category': '',
             'tags': '',
         }
         assert 'channel' not in data
@@ -938,7 +928,6 @@ class TestPages(TestCase):
         ok_('12:00' in response.content)
         ok_('Tag1' in response.content)
         ok_('Tag2' in response.content)
-        ok_('CategoryX' in response.content)
         ok_('ChannelX' in response.content)
         ok_(
             '<a href="http://www.peterbe.com">http://www.peterbe.com</a>'
@@ -972,7 +961,6 @@ class TestPages(TestCase):
         ok_('12:00' not in response.content)
         ok_('Tag1' in response.content)
         ok_('Tag2' in response.content)
-        ok_('CategoryX' in response.content)
         ok_('ChannelX' in response.content)
         ok_(
             '<a href="http://www.peterbe.com">http://www.peterbe.com</a>'
@@ -1033,7 +1021,6 @@ class TestPages(TestCase):
             location=event.location,
             placeholder_img=event.placeholder_img,
             privacy=event.privacy,
-            category=event.category,
         )
         event.accepted = real
         event.save()
@@ -1392,7 +1379,6 @@ class TestPages(TestCase):
             location=event.location,
             placeholder_img=event.placeholder_img,
             privacy=event.privacy,
-            category=event.category,
             status=Event.STATUS_SCHEDULED
         )
         event.accepted = real

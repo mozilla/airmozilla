@@ -22,7 +22,6 @@ from airmozilla.main.models import (
     Approval,
     Event,
     EventOldSlug,
-    Category,
     Participant,
     Tag,
     UserProfile,
@@ -1700,8 +1699,6 @@ class TestPages(TestCase):
 
     def test_meta_keywords(self):
         event = Event.objects.get(title='Test event')
-        stuff = Category.objects.create(name="Stuff!")
-        event.category = stuff
         event.save()
 
         event.tags.add(Tag.objects.create(name="One"))
@@ -1716,7 +1713,6 @@ class TestPages(TestCase):
             '<meta name="keywords" content="([^\"]+)">',
             head
         )[0]
-        ok_(stuff.name in content)
         ok_("One" in content)
         ok_("Two" in content)
 

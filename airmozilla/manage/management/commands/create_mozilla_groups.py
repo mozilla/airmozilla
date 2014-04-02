@@ -23,9 +23,6 @@ class Command(BaseCommand):
             'add_event_scheduled'
         ]
         perms_producer = perms_experienced_event_organizer + [
-            'add_category',
-            'change_category',
-            'delete_category',
             'change_event_others',
             'change_participant_others',
             'delete_participant',

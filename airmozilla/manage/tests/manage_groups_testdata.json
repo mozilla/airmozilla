@@ -138,21 +138,6 @@
                     "approval"
                 ], 
                 [
-                    "add_category", 
-                    "main", 
-                    "category"
-                ], 
-                [
-                    "change_category", 
-                    "main", 
-                    "category"
-                ], 
-                [
-                    "delete_category", 
-                    "main", 
-                    "category"
-                ], 
-                [
                     "add_event", 
                     "main", 
                     "event"

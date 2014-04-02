@@ -21,7 +21,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 
 {% block extra_head %}
 {{ super() }}
-<meta name="keywords" content="{% if event.category %}{{ event.category}},{% endif %}{{ ','.join(tags) }}">
+<meta name="keywords" content="{{ ','.join(tags) }}">
 <meta property="og:title" content="{{ event.title }}">
 <meta property="og:description" content="{{ short_desc(event) }}">
 {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
@@ -93,9 +93,6 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
         {% endif %}
       {% endif %}
       <p>{{ event.description|carefulnl2br|safe }}</p>
-      {% if event.category %}
-        <p>{{ _('Category') }}: {{ event.category.name }}</p>
-      {% endif %}
 
       {% if tags %}
       <p>
