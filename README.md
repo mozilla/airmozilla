@@ -45,6 +45,13 @@ cd airmozilla
 pip install -r requirements/compiled.txt
 ```
 
+If you intend to use this for also running tests, you need to install
+one more file:
+
+```
+pip install -r requirements/dev.txt
+```
+
 **Step 3 - Create a database**
 
 To create a database in PostgreSQL there are different approaches. The simplest

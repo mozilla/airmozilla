@@ -1,6 +1,6 @@
 # This file pulls in everything you need to run tests.
 
 nose
-mock==1.0.1
+mock
 -e git://github.com/jbalogh/django-nose.git#egg=django_nose
 -e git://github.com/jbalogh/test-utils.git#egg=test-utils
