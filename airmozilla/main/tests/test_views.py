@@ -1783,6 +1783,10 @@ class TestPages(TestCase):
             shortcode='xyz987'
         )
 
+        # to reset the cache on the sidebar queries, some event
+        # needs to change
+        event3.save()
+
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('Trending' in response.content)

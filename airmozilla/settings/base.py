@@ -142,6 +142,9 @@ THUMBNAIL_FORMAT = 'PNG'
 # Number of upcoming events to display in the sidebar
 UPCOMING_SIDEBAR_COUNT = 3
 
+# Number of featured/trending events to display in the sidebar
+FEATURED_SIDEBAR_COUNT = 5
+
 # Use memcached for session storage
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 

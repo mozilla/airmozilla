@@ -6,7 +6,13 @@ from django.utils.timezone import utc
 
 from nose.tools import ok_, eq_
 
-from airmozilla.main.models import Approval, Event, EventOldSlug, Location
+from airmozilla.main.models import (
+    Approval,
+    Event,
+    EventOldSlug,
+    Location,
+    most_recent_event
+)
 
 
 class EventTests(TestCase):
@@ -31,6 +37,32 @@ class EventTests(TestCase):
         event.location = paris
         event.save()
         eq_(event.location_time.hour, 19)
+
+    def test_most_recent_event(self):
+        date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
+        mountain_view = Location.objects.create(
+            name='Mountain View',
+            timezone='US/Pacific',
+        )
+        eq_(most_recent_event(), None)
+        event1 = Event.objects.create(
+            title='Event 1',
+            status=Event.STATUS_INITIATED,
+            start_time=date,
+            location=mountain_view,
+        )
+        eq_(most_recent_event(), event1)
+        event2 = Event.objects.create(
+            title='Event 2',
+            status=Event.STATUS_INITIATED,
+            start_time=date + datetime.timedelta(days=1),
+            location=mountain_view,
+        )
+        eq_(most_recent_event(), event2)
+
+        event1.start_time -= datetime.timedelta(days=1)
+        event1.save()
+        eq_(most_recent_event(), event1)
 
 
 class EventStateTests(TestCase):

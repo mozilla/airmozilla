@@ -360,6 +360,21 @@ class Event(models.Model):
         return tz.normalize(self.start_time)
 
 
+def most_recent_event():
+    cache_key = 'most_recent_event'
+    event = cache.get(cache_key)
+    if event is None:
+        for event in Event.objects.all().order_by('-modified')[:1]:
+            cache.set(cache_key, event, 60 * 60)
+    return event
+
+
+@receiver(models.signals.post_save, sender=Event)
+def reset_most_recent_event(sender, instance, *args, **kwargs):
+    cache_key = 'most_recent_event'
+    cache.delete(cache_key)
+
+
 class CuratedGroup(models.Model):
 
     event = models.ForeignKey(Event)
