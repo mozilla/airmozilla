@@ -11,6 +11,10 @@ option.select-label {
     color: #666;
 }
 
-p.pagesize-option {
+.table-options {
     float: right;
+    margin-top: -40px;
+}
+.table-options div {
+    display: inline;
 }

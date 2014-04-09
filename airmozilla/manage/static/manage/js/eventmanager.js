@@ -39,6 +39,16 @@ function EventManagerController($scope, $http) {
     }
     $scope.events = [];
     $scope.currentPage = 0;
+    $scope.sorting = 'modified';
+    $scope.sorting_reverse = true;
+
+    $scope.$watch('sorting', function(value) {
+        if (value === 'title') {
+            $scope.sorting_reverse = false;
+        } else {
+            $scope.sorting_reverse = true;
+        }
+    });
 
     var pageSize = 10;  // default
     // attempt to load a different number from localStorage

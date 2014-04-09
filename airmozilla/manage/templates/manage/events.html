@@ -27,6 +27,10 @@
 
 {% block manage_content %}
 <div ng-app="eventmanagerApp" ng-controller="EventManagerController">
+  <div ng-class="{hidden: first_loading || second_loading}" class="table-options">
+    {% include "manage/_angular_sorting.html" %}
+    {% include "manage/_angular_pagesize.html" %}
+  </div>
   <p ng-if="first_loading" class="first-loading">
     <img src="{{ static('manage/img/spinner.gif') }}">
     <span class="blinking">Loading some events...</span>
@@ -90,7 +94,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr ng-repeat="event in filtered_items = (events | filter:filterBySearch) | orderBy:'modified':true | startFrom:currentPage*pageSize | limitTo:pageSize">
+          <tr ng-repeat="event in filtered_items = (events | filter:filterBySearch) | orderBy:sorting:sorting_reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
         <td><img ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}"
                alt="Placeholder image">
         </td>
@@ -170,7 +174,6 @@
   </table>
 
   {% endraw %}
-  {% include "manage/_angular_pagesize.html" %}
   {% include "manage/_angular_paginate.html" %}
   <p>
     <a href="{{ url('manage:event_request') }}" class="btn btn-default">
