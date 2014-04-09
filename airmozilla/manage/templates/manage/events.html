@@ -46,7 +46,11 @@
         <th style="width: 190px">Start time</th>
         <th style="width: 190px">Archive time</th>
         <th style="width: 8%">Status/Visibility</th>
-        <th style="width: 10%">&nbsp;</th>
+        <th style="width: 10%">
+            <a href="#" class="btn btn-default btn-xs btn-primary"
+              ng-if="hasFilter()"
+              ng-click="clearFilter()">Clear filter</a>
+        </th>
       </tr>
       <tr>
         <td colspan="2">
@@ -59,11 +63,11 @@
           <input type="text" class="form-control" value="" id="dp_start_time" ng-model="search_start_time" placeholder="By start time">
         </td>
         <td>
-	  <select name="archived" ng-model="search_archived">
-	    <option value="">Archived or not</option>
-	    <option value="archived">Archived</option>
-	    <option value="not-archived">Not archived</option>
-	  </select>
+    	  <select name="archived" ng-model="search_archived">
+    	    <option value="">Archived or not</option>
+    	    <option value="archived">Archived</option>
+    	    <option value="not-archived">Not archived</option>
+    	  </select>
         </td>
         <td>
           <input type="search" class="form-control" ng-model="search_cat_chan" placeholder="channel">
@@ -82,11 +86,6 @@
             <option value="contributors">Contributors</option>
             <option value="company">Staff</option>
           </select>
-        </td>
-        <td>
-          <a href="#" class="btn btn-default btn-xs btn-primary"
-            ng-if="hasFilter()"
-            ng-click="clearFilter()">Clear filter</a>
         </td>
       </tr>
     </thead>
@@ -108,19 +107,14 @@
           <span ng-if="!event.archive_time">
             <span ng-if="event.is_pending">
               Pending
-                <!-- hackish fix because of a while was possible to put events into pending without a Vidly template -->
-                <a ng-if="event.has_vidly_template"
-                   href="{{ event.archive_url }}" class="btn btn-default btn-xs">
-                  <i class="glyphicon glyphicon-time"></i> Force archive
-                </a>
             </span>
             <span ng-if="!event.is_pending">
-              <a ng-if="event.archive_url"
-                 href="{{ event.archive_url }}" class="btn btn-default btn-xs">
-                <i class="glyphicon glyphicon-time"></i> Archive
-              </a>
               <span ng-if="!event.archive_url">Not archived</span>
             </span>
+            <a ng-if="event.archive_url && (event.is_pending || event.is_scheduled)"
+               href="{{ event.archive_url }}" class="btn btn-default btn-xs">
+              <i class="glyphicon glyphicon-time"></i> Archive
+            </a>
           </span>
         </td>
         <td>
