@@ -14,6 +14,12 @@ from bootstrapform.templatetags.bootstrap import bootstrap_horizontal
 
 from airmozilla.main.models import Event, EventOldSlug
 from airmozilla.comments.models import Comment
+from airmozilla.main.views import is_contributor as _is_contributor
+
+
+@register.function
+def is_contributor(user):
+    return _is_contributor(user)
 
 
 @register.function

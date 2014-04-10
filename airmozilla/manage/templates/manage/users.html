@@ -31,7 +31,11 @@
     <tbody>
     {% for u in paginate %}
         <tr>
-            <td>{{ u.email }}</td>
+            <td>{{ u.email }}
+                {% if is_contributor(u) %}
+                <span class="label ng-binding label-info" title="Vouched Mozillians">Contributor</span>
+                {% endif %}
+            </td>
             <td>{% for g in u.groups.all() %}
                     <p>{{ g }}</p>
                 {% endfor %}

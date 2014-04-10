@@ -3,7 +3,6 @@ import re
 import cgi
 import datetime
 import json
-import random
 from cStringIO import StringIO
 
 from django.conf import settings
@@ -142,6 +141,7 @@ class TestDashboard(ManageTestCase):
 
 
 class TestUsersAndGroups(ManageTestCase):
+
     def test_user_group_pages(self):
         """User and group listing pages respond with success."""
         response = self.client.get(reverse('manage:users'))
@@ -150,6 +150,16 @@ class TestUsersAndGroups(ManageTestCase):
         eq_(response.status_code, 200)
         response = self.client.get(reverse('manage:groups'))
         eq_(response.status_code, 200)
+
+    def test_users_contributors(self):
+        user = User.objects.create_user('yes', 'yes@yes.com', 'yes')
+        UserProfile.objects.create(
+            user=user,
+            contributor=True
+        )
+        response = self.client.get(reverse('manage:users'))
+        eq_(response.status_code, 200)
+        ok_('Contributor' in response.content)
 
     def test_user_edit(self):
         """Add superuser and staff status via the user edit form."""
@@ -268,7 +278,6 @@ class TestEvents(ManageTestCase):
         eq_(event.creator, self.user)
         eq_(response_cancel.status_code, 302)
         self.assertRedirects(response_cancel, reverse('manage:events'))
-
 
     def test_event_request_with_approvals(self):
         group1, = Group.objects.all()
