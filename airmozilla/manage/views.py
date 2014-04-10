@@ -2244,7 +2244,10 @@ def comment_edit(request, id):
 @permission_required('main.change_event')
 @json_view
 def curated_groups_autocomplete(request):
-    q = request.GET.get('q').strip()
+    q = request.GET.get('q', '').strip()
+    if not q:
+        return {'groups': []}
+
     all = mozillians.get_all_groups_cached()
 
     def describe_group(group):
