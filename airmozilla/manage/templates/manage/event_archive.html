@@ -36,6 +36,11 @@
 
   {% set submit_text = 'Archive this event' %}
   {% include 'manage/_default_form.html' %}
+
+  <p>
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
 {% endblock %}
 
 

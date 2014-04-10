@@ -66,8 +66,8 @@
     {% endif %}
 
     {% if suggested_event and suggested_event.upload %}
-    <p style="margin-top:25px"><strong>File Upload:</strong> (from requested event)</p>
-        <table class="suggested-event-upload">
+        <p style="margin-top:25px"><strong>File Upload:</strong> (from requested event)</p>
+        <table class="event-upload">
           <tr>
             <th>Name:</th>
             <td class="file-name">{{ suggested_event.upload.file_name }}</td>
@@ -81,6 +81,26 @@
             <td><a href="{{ suggested_event.upload.url }}">Open</td>
           </tr>
         </table>
+    {% elif event.upload %}
+        <p style="margin-top:25px"><strong>File Upload:</strong></p>
+        <table class="event-upload">
+           <tr>
+             <th>Name:</th>
+             <td class="file-name">{{ event.upload.file_name }}</td>
+           </tr>
+           <tr>
+             <th>Size:</th>
+             <td>{{ event.upload.size | filesizeformat }}</td>
+           </tr>
+           <tr>
+             <th>URL:</th>
+             <td><a href="{{ event.upload.url }}">Open</td>
+           </tr>
+        </table>
+        <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
+    {% elif event.is_pending() %}
+        <p style="margin-top:25px"><strong>File Upload:</strong></p>
+        <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload original file</a></p>
     {% endif %}
 
     <p style="margin-top:25px"><strong>Tweets:</strong></p>

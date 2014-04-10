@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from airmozilla.main.models import SuggestedEvent
+from airmozilla.main.models import Event, SuggestedEvent
 
 
 class Upload(models.Model):
@@ -14,6 +14,11 @@ class Upload(models.Model):
         SuggestedEvent,
         null=True,
         related_name='suggested_event'
+    )
+    event = models.ForeignKey(
+        Event,
+        null=True,
+        related_name='event'
     )
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

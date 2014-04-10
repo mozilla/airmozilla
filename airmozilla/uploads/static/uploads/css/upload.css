@@ -9,14 +9,15 @@ input[type="file"] {
 .post-save .suggested-event {
     display: none;
 }
-.suggested-event a {
+.suggested-event a,
+.event a {
     font-weight: bold;
 }
 
 /* Inspired by http://www.hongkiat.com/blog/html5-progress-bar/ */
 .progress-bar {
-        width: 95%;
-        margin: 30px auto 0;
+    width: 95%;
+    margin: 30px auto 0;
 	padding: 15px 15px;
 	border-radius: 3px;
 }

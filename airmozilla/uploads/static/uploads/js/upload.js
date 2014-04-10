@@ -50,6 +50,11 @@ $(function() {
                             } else {
                                 $('.post-save .suggested-event').hide();
                             }
+                            if (response.event) {
+                                $('.post-save .event a')
+                                    .attr('href', response.event.url)
+                                    .text(response.event.title);
+                            }
                         }).fail(function() {
                             $('#status').text('Unable to save the upload.');
                         }).always(function() {

@@ -21,7 +21,7 @@ from funfactory.urlresolvers import reverse
 from airmozilla.base.utils import (
     json_view
 )
-from airmozilla.main.models import SuggestedEvent
+from airmozilla.main.models import Event, SuggestedEvent
 from .models import Upload
 
 
@@ -137,7 +137,20 @@ def save(request):
         'Upload saved.'
     )
     context = {'id': new_upload.pk}
-    if request.session.get('active_suggested_event'):
+    if request.session.get('active_event'):
+        event_id = request.session['active_event']
+        event = Event.objects.get(pk=event_id)
+        event.upload = new_upload
+        event.save()
+        new_upload.event = event
+        new_upload.save()
+        next_url = reverse('manage:event_archive', args=(event_id,))
+        next_url += '#vidly-shortcutter'
+        context['event'] = {
+            'url': next_url,
+            'title': event.title,
+        }
+    elif request.session.get('active_suggested_event'):
         event_id = request.session['active_suggested_event']
         event = SuggestedEvent.objects.get(pk=event_id)
         next_url = reverse('suggest:file', args=(event_id,))

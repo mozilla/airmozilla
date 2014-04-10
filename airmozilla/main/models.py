@@ -260,6 +260,11 @@ class Event(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
                               default=STATUS_INITIATED, db_index=True)
     placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
+    upload = models.ForeignKey(
+        'uploads.Upload',
+        null=True,
+        related_name='event_upload'
+    )
     description = models.TextField()
     short_description = models.TextField(
         blank=True,

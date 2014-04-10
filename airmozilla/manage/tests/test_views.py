@@ -1640,6 +1640,26 @@ class TestEvents(ManageTestCase):
         ok_(CuratedGroup.objects.get(event=event, name='Group X'))
         ok_(not CuratedGroup.objects.filter(event=event, name='Group 2'))
 
+    def test_event_upload(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_upload', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # if the event has a file upload, you'd expect to see a link to it here
+        upload = Upload.objects.create(
+            user=self.user,
+            url='https://aws.com/file.foo',
+            file_name='file.foo',
+            size=123456,
+            event=event,
+        )
+        event.upload = upload
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('file.foo' in response.content)
+
 
 class TestParticipants(ManageTestCase):
     def test_participant_pages(self):

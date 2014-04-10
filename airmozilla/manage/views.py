@@ -564,6 +564,15 @@ def event_edit(request, id):
     return render(request, 'manage/event_edit.html', context)
 
 
+@permission_required('upload.add_upload')
+def event_upload(request, id):
+    event = get_object_or_404(Event, id=id)
+    context = {}
+    context['event'] = event
+    request.session['active_event'] = event.pk
+    return render(request, 'manage/event_upload.html', context)
+
+
 @superuser_required
 def event_vidly_submissions(request, id):
     event = get_object_or_404(Event, id=id)
@@ -856,12 +865,16 @@ def event_archive(request, id):
     initial = dict(email=request.user.email)
     if event.privacy != Event.PRIVACY_PUBLIC:
         initial['token_protection'] = True
-    try:
-        suggested_event = SuggestedEvent.objects.get(accepted=event)
-        if suggested_event.upload:
-            initial['url'] = suggested_event.upload.url
-    except SuggestedEvent.DoesNotExist:
-        pass
+    if event.upload:
+        initial['url'] = event.upload.url
+    else:
+        try:
+            suggested_event = SuggestedEvent.objects.get(accepted=event)
+            if suggested_event.upload:
+                initial['url'] = suggested_event.upload.url
+        except SuggestedEvent.DoesNotExist:
+            pass
+
     vidly_shortcut_form = forms.VidlyURLForm(
         initial=initial,
         disable_token_protection=event.privacy != Event.PRIVACY_PUBLIC

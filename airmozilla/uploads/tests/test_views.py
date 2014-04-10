@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 from funfactory.urlresolvers import reverse
 
 from airmozilla.uploads.models import Upload
+from airmozilla.main.models import Event, SuggestedEvent
 
 
 class HeadResponse(object):
@@ -21,6 +22,7 @@ class HeadResponse(object):
 
 
 class TestUploads(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def _login(self):
         user = User.objects.create_user('richard', password='secret')
@@ -102,6 +104,74 @@ class TestUploads(TestCase):
         eq_(upload.url, 'https://aws.com/foo.flv')
         eq_(upload.file_name, 'foo.flv')
         eq_(upload.user, user)
+
+    @mock.patch('requests.head')
+    def test_save_on_an_active_event_edit(self, rhead):
+        def mocked_head(url, **options):
+            return HeadResponse(**{'content-length': 123456})
+        rhead.side_effect = mocked_head
+
+        user = self._login()
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+
+        event = Event.objects.get(title='Test event')
+        event_upload_url = reverse('manage:event_upload', args=(event.pk,))
+        response = self.client.get(event_upload_url)
+        eq_(response.status_code, 200)
+
+        url = reverse('uploads:save')
+        response = self.client.post(url, {
+            'url': 'https://aws.com/foo.flv'
+        })
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        new_id = structure['id']
+        upload = Upload.objects.get(pk=new_id)
+        eq_(upload.size, 123456)
+        eq_(upload.url, 'https://aws.com/foo.flv')
+        eq_(upload.file_name, 'foo.flv')
+        eq_(upload.user, user)
+        eq_(upload.event, event)
+
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.upload, upload)
+
+    @mock.patch('requests.head')
+    def test_save_on_an_active_suggested_event(self, rhead):
+        def mocked_head(url, **options):
+            return HeadResponse(**{'content-length': 123456})
+        rhead.side_effect = mocked_head
+
+        self._login()
+        # start suggesting a pre-recorded event
+        url = reverse('suggest:start')
+        response = self.client.post(url, {
+            'title': 'My Video',
+            'event_type': 'pre-recorded'
+        })
+        eq_(response.status_code, 302)
+        event = SuggestedEvent.objects.get(title='My Video')
+        assert not event.upcoming
+
+        url = reverse('uploads:save')
+        response = self.client.post(url, {
+            'url': 'https://aws.com/foo.flv'
+        })
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        new_id = structure['id']
+        upload = Upload.objects.get(pk=new_id)
+        next_url = reverse('suggest:file', args=(event.pk,))
+        next_url += '?upload=%s' % upload.pk
+        eq_(
+            structure['suggested_event'],
+            {
+                'title': event.title,
+                'url': next_url
+            }
+        )
 
     @mock.patch('requests.head')
     def test_verify_size(self, rhead):
