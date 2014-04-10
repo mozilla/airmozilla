@@ -1849,6 +1849,7 @@ class TestChannels(ManageTestCase):
 
 
 class TestTemplates(ManageTestCase):
+
     def test_templates(self):
         """Templates listing responds OK."""
         response = self.client.get(reverse('manage:templates'))
@@ -1905,8 +1906,13 @@ class TestTemplates(ManageTestCase):
         response_ok = self.client.post(url, {
             'name': 'new name',
             'content': 'new content',
-            'default_popcorn_content': True
+            'default_popcorn_template': True
         })
+        # print response.content
+        eq_(response_ok.status_code, 302)
+        # reload
+        template = Template.objects.get(pk=template.id)
+        ok_(template.default_popcorn_template)
         self.assertRedirects(response_ok, reverse('manage:templates'))
         # only exactly one should have default_popcorn_template on
         eq_(Template.objects.filter(default_popcorn_template=True).count(), 1)
