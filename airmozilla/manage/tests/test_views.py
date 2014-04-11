@@ -2583,6 +2583,44 @@ class TestSuggestions(ManageTestCase):
         summary_url = reverse('suggest:summary', args=(event.pk,))
         ok_(summary_url in email_sent.body)
 
+    def test_approve_suggested_event_pre_recorded(self):
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        location = Location.objects.get(id=1)
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        channel = Channel.objects.create(name='CHANNEL')
+
+        # create a suggested event that has everything filled in
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE' * 10,
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            #call_info='CALL INFO',
+            additional_links='ADDITIONAL LINKS',
+            remote_presenters='RICHARD & ZANDR',
+            submitted=now,
+            first_submitted=now,
+            popcorn_url='https://',
+            upcoming=False,
+        )
+        event.channels.add(channel)
+
+        url = reverse('manage:suggestion_review', args=(event.pk,))
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('manage:events')
+        )
+        real = Event.objects.get(title=event.title)
+        eq_(real.status, Event.STATUS_PENDING)
+
     def test_approved_suggested_popcorn_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)

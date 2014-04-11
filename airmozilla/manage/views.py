@@ -1510,6 +1510,8 @@ def suggestion_review(request, id):
                     real.creator = request.user
                     if real.popcorn_url and not event.upcoming:
                         real.archive_time = real.start_time
+                    if not event.upcoming:
+                        real.status = Event.STATUS_PENDING
                     real.save()
                     [real.tags.add(x) for x in event.tags.all()]
                     [real.channels.add(x) for x in event.channels.all()]
@@ -1564,7 +1566,10 @@ def suggestion_review(request, id):
                         request,
                         'New event created from suggestion.'
                     )
-                    url = reverse('manage:event_edit', args=(real.pk,))
+                    if real.popcorn_url or not event.upcoming:
+                        url = reverse('manage:events')
+                    else:
+                        url = reverse('manage:event_edit', args=(real.pk,))
                     return redirect(url)
                 else:
                     print real_event_form.errors
