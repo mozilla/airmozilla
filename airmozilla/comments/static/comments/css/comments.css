@@ -38,7 +38,7 @@
 #comments .comment {
     border-top: 1px dotted #48585E;
     padding-top: 5px;
-    padding-bottom: 25px;
+    padding-bottom: 20px;
     transition: background 0.8s linear;
 }
 #comments label {
