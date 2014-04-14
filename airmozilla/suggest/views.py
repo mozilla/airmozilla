@@ -34,16 +34,18 @@ from . import sending
 
 def _increment_slug_if_exists(slug):
     base = slug
-    count = 0
-    while Event.objects.filter(slug__iexact=slug):
-        if not count:
-            # add the date
-            now = datetime.datetime.utcnow()
-            slug = base = slug + now.strftime('-%Y%m%d')
-            count = 2
-        else:
-            slug = base + '-%s' % count
-            count += 1
+    count = 2
+
+    def exists(slug):
+        return (
+            Event.objects.filter(slug__iexact=slug)
+            or
+            SuggestedEvent.objects.filter(slug__iexact=slug)
+        )
+
+    while exists(slug):
+        slug = base + '-%s' % count
+        count += 1
     return slug
 
 

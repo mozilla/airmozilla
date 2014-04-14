@@ -39,8 +39,9 @@ textarea#id_short_description {
     width: 200px;
 }
 
-.error .help-inline {
-    color: red;
+.error .help-inline,
+.has-error .help-block {
+    color: #B94A48;
 }
 
 .alert-danger h4 {

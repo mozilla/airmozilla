@@ -46,16 +46,6 @@ class StartForm(BaseModelForm):
         #     choices=[(True, 'Upcoming'), (False, 'Pre-recorded')]
         # )
 
-    def clean_title(self):
-        value = self.cleaned_data['title']
-        if Event.objects.filter(title__iexact=value):
-            raise forms.ValidationError("Event title already used")
-        if SuggestedEvent.objects.filter(title__iexact=value, user=self.user):
-            raise forms.ValidationError(
-                "You already have a suggest event with this title"
-            )
-        return value
-
 
 class TitleForm(BaseModelForm):
 
@@ -68,12 +58,6 @@ class TitleForm(BaseModelForm):
         if value:
             if Event.objects.filter(slug__iexact=value):
                 raise forms.ValidationError('Already taken')
-        return value
-
-    def clean_title(self):
-        value = self.cleaned_data['title']
-        if Event.objects.filter(title__iexact=value):
-            raise forms.ValidationError("Event title already used")
         return value
 
     def clean(self):

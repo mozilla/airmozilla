@@ -227,10 +227,9 @@ class TestPages(TestCase):
         })
         eq_(response.status_code, 302)
         suggested_event, = SuggestedEvent.objects.all()
-        today = datetime.datetime.utcnow()
         eq_(
             suggested_event.slug,
-            today.strftime('test-event-%Y%m%d')
+            'test-event-2'
         )
 
     def test_start_duplicate_slug_desperate(self):
@@ -253,7 +252,7 @@ class TestPages(TestCase):
         suggested_event, = SuggestedEvent.objects.all()
         eq_(
             suggested_event.slug,
-            today.strftime('test-event-%Y%m%d-2')
+            'test-event-2'
         )
 
     def test_start_duplicate_title(self):
@@ -269,11 +268,10 @@ class TestPages(TestCase):
             'title': 'A New World',
             'event_type': 'upcoming'
         })
-        eq_(response.status_code, 200)
-        ok_(
-            'You already have a suggest event with this title'
-            in response.content
-        )
+        eq_(response.status_code, 302)
+        eq_(SuggestedEvent.objects.filter(title='A New World').count(), 2)
+        eq_(SuggestedEvent.objects.filter(slug='a-new-world').count(), 1)
+        eq_(SuggestedEvent.objects.filter(slug='a-new-world-2').count(), 1)
 
     def test_start_invalid_entry(self):
         # you can either get a form error if the slug is already
