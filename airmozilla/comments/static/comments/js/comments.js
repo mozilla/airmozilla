@@ -140,6 +140,7 @@ var Comments = (function() {
                     var comment_container = $(this).closest('.comment');
                     $('form', container).detach().appendTo(comment_container);
                     $('form button.cancel', container).show();
+                    $('textarea', container).focus();
                     return false;
                 });
                 $('a.action-approve', container).click(function() {
@@ -275,9 +276,9 @@ var Comments = (function() {
                 Comments.resume_loop();
             });
             req.fail(function(jqXHR, textStatus, errorThrown) {
-                console.log('jqXHR', jqXHR);
-                console.log('textStatus', textStatus);
-                console.log('errorThrown', errorThrown);
+                console.warn('jqXHR', jqXHR);
+                console.warn('textStatus', textStatus);
+                console.warn('errorThrown', errorThrown);
                 $('.other-error', container).show();
             });
             return false;
