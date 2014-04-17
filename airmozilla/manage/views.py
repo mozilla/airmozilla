@@ -564,7 +564,7 @@ def event_edit(request, id):
     return render(request, 'manage/event_edit.html', context)
 
 
-@permission_required('upload.add_upload')
+@permission_required('uploads.add_upload')
 def event_upload(request, id):
     event = get_object_or_404(Event, id=id)
     context = {}
