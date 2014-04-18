@@ -6,12 +6,12 @@ import logging
 import re
 import uuid
 import urlparse
+import warnings
 
 from django.conf import settings
 from django import http
-from django.contrib.auth.decorators import (permission_required,
-                                            user_passes_test)
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User, Group, Permission
 from django.core.cache import cache
 from django.contrib import messages
 from django.core.mail import EmailMessage
@@ -82,6 +82,31 @@ STOPWORDS = (
     "wants was we were what when where which while who whom why "
     "will with would yet you your".split()
 )
+
+
+def permission_required(perm):
+    if settings.DEBUG:
+        ct, codename = perm.split('.', 1)
+        if not Permission.objects.filter(
+            content_type__app_label=ct,
+            codename=codename
+        ):
+            warnings.warn(
+                "No known permission called %r" % perm,
+                UserWarning,
+                2
+            )
+
+    def inner_render(fn):
+        @functools.wraps(fn)
+        def wrapped(request, *args, **kwargs):
+            # if you're not even authenticated, redirect to /login
+            if not request.user.has_perm(perm):
+                request.session['failed_permission'] = perm
+                return redirect(reverse('manage:insufficient_permissions'))
+            return fn(request, *args, **kwargs)
+        return wrapped
+    return inner_render
 
 
 def cancel_redirect(redirect_view):
@@ -564,6 +589,7 @@ def event_edit(request, id):
     return render(request, 'manage/event_edit.html', context)
 
 
+@staff_required
 @permission_required('uploads.add_upload')
 def event_upload(request, id):
     event = get_object_or_404(Event, id=id)
@@ -1898,7 +1924,7 @@ def vidly_media_resubmit(request):
 
 
 @staff_required
-@permission_required('main.change_url_match')
+@permission_required('main.change_urlmatch')
 def url_transforms(request):
     data = {}
 
@@ -1920,7 +1946,7 @@ def url_transforms(request):
 
 
 @staff_required
-@permission_required('main.change_url_match')
+@permission_required('main.change_urlmatch')
 @transaction.commit_on_success
 def url_match_new(request):
     if request.method == 'POST':
@@ -1935,7 +1961,7 @@ def url_match_new(request):
 
 
 @staff_required
-@permission_required('main.change_url_match')
+@permission_required('main.change_urlmatch')
 @transaction.commit_on_success
 @require_POST
 def url_match_remove(request, id):
@@ -1958,7 +1984,7 @@ def url_match_run(request):
 
 
 @staff_required
-@permission_required('main.change_url_match')
+@permission_required('main.change_urlmatch')
 @transaction.commit_on_success
 @require_POST
 @json_view
@@ -1991,7 +2017,7 @@ def url_transform_add(request, id):
 
 
 @staff_required
-@permission_required('main.change_url_match')
+@permission_required('main.change_urlmatch')
 @transaction.commit_on_success
 @require_POST
 @json_view
@@ -2003,7 +2029,7 @@ def url_transform_remove(request, id, transform_id):
 
 
 @staff_required
-@permission_required('main.change_url_match')
+@permission_required('main.change_urlmatch')
 @transaction.commit_on_success
 @require_POST
 @json_view
@@ -2088,7 +2114,7 @@ def event_hit_stats(request):
 
 
 @staff_required
-@permission_required('main.change_discussion')
+@permission_required('comments.change_discussion')
 @transaction.commit_on_success
 def event_discussion(request, id):
     context = {}
@@ -2182,7 +2208,7 @@ def event_discussion(request, id):
 
 
 @staff_required
-@permission_required('main.change_comment')
+@permission_required('comments.change_comment')
 def event_comments(request, id):
     context = {}
     event = get_object_or_404(Event, id=id)
@@ -2221,7 +2247,7 @@ def event_comments(request, id):
 
 
 @staff_required
-@permission_required('main.change_comment')
+@permission_required('comments.change_comment')
 @transaction.commit_on_success
 def comment_edit(request, id):
     context = {}
@@ -2269,3 +2295,20 @@ def curated_groups_autocomplete(request):
         if q.lower() in x['name'].lower()
     ]
     return {'groups': groups}
+
+
+def insufficient_permissions(request):
+    context = {}
+    perm = request.session.get('failed_permission')
+    if perm:
+        # convert that into the actual Permission object
+        ct, codename = perm.split('.', 1)
+        try:
+            permission = Permission.objects.get(
+                content_type__app_label=ct,
+                codename=codename
+            )
+            context['failed_permission'] = permission
+        except Permission.DoesNotExist:
+            warnings.warn('Unable to find permission %r' % perm)
+    return render(request, 'manage/insufficient_permissions.html', context)

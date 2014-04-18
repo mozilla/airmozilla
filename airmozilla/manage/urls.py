@@ -133,4 +133,8 @@ urlpatterns = patterns(
     url(r'^curated-groups-autocomplete/',
         views.curated_groups_autocomplete,
         name='curated_groups_autocomplete'),
+    url(r'^insufficient-permissions/',
+        views.insufficient_permissions,
+        name='insufficient_permissions'),
+
 )

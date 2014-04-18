@@ -2225,8 +2225,10 @@ class TestManagementRoles(ManageTestCase):
         ]
         for page in pages:
             response = self.client.get(reverse(page))
-            self.assertRedirects(response, settings.LOGIN_URL +
-                                 '?next=' + reverse(page))
+            self.assertRedirects(
+                response,
+                reverse('manage:insufficient_permissions')
+            )
 
     def test_event_organizer(self):
         """Event organizer: ER with unprivileged form, can only edit own
@@ -2257,6 +2259,31 @@ class TestManagementRoles(ManageTestCase):
         )
         response_approvals = self.client.get(reverse('manage:approvals'))
         eq_(response_approvals.status_code, 200)
+
+    def test_redirect_to_insufficient_permissions(self):
+        """If you're a staff user but lacking a certain permission
+        there are certain pages you can't go to and they should redirect
+        you to the insufficient_permissions page with a note about which
+        permission is missing."""
+
+        url = reverse('manage:insufficient_permissions')
+        assert self.user.is_staff
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # now try to access a page you don't have access to
+        event = Event.objects.get(title='Test event')
+        uploads_url = reverse('manage:event_upload', args=(event.pk,))
+        response = self.client.get(uploads_url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            url
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # the permission needed for that URL was called...
+        ok_('Can add upload' in response.content)
 
 
 class TestFlatPages(ManageTestCase):

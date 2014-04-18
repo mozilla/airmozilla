@@ -1,0 +1,17 @@
+{% extends 'manage/manage_base.html' %}
+
+{% block manage_title %}
+    Insufficient Permissions
+{% endblock %}
+
+{% block manage_content %}
+    <p>The page or action you tried requires you to have a permission you
+    currently do not have.</p>
+
+    {% if failed_permission %}
+    <p>
+        The permission you needed is called <code>{{ failed_permission.name }}</code>.
+    </p>
+    {% endif %}
+
+{% endblock %}
