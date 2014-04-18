@@ -101,7 +101,16 @@ DOMAIN_METHODS['messages'] = [
 #    ('media/js/**.js', 'javascript'),
 # ]
 
-LOGGING = dict(loggers=dict(playdoh={'level': logging.DEBUG}))
+# This disables all mail_admins on all django.request errors.
+# We can do this because we use Sentry now instead
+LOGGING = {
+    'loggers': {
+        'django.request': {
+            'handlers': []
+        }
+    }
+}
+
 
 # Remove localization middleware
 MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
