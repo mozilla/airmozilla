@@ -6,6 +6,8 @@
 {% endblock %}
 
 {% block manage_content %}
+  <div>Note: You cannot create new events with inactive locations, which are indicated
+    by gray row(s).</div>
   <table class="table table-bordered table-striped">
     <thead>
       <tr>
@@ -16,7 +18,8 @@
     </thead>
     <tbody>
     {% for location in locations %}
-      <tr>
+      <tr style={% if not location.is_active %}"color:gray"
+        {% endif %}>
         <td>{{ location.name }}</td>
         <td>{{ location.timezone }}</td>
         <td>
