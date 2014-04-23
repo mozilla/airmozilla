@@ -9,7 +9,7 @@ class Upload(models.Model):
     url = models.URLField(max_length=400)
     file_name = models.CharField(max_length=200, null=True, blank=True)
     mime_type = models.CharField(max_length=200, null=True, blank=True)
-    size = models.IntegerField()
+    size = models.BigIntegerField()
     suggested_event = models.ForeignKey(
         SuggestedEvent,
         null=True,
