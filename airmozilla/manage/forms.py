@@ -215,16 +215,16 @@ class EventEditForm(EventRequestForm):
             'template_environment', 'placeholder_img', 'location',
             'description', 'short_description', 'start_time', 'archive_time',
             'participants', 'channels', 'tags',
-            'call_info', 'additional_links', 'approvals', 'pin',
+            'call_info', 'additional_links', 'approvals',
             'popcorn_url',
+            'pin',
         )
 
     def __init__(self, *args, **kwargs):
         super(EventEditForm, self).__init__(*args, **kwargs)
         if 'pin' in self.fields:
             self.fields['pin'].help_text = (
-                "A Pin is only recommended for events that are only open to "
-                "contributors."
+                "Use of pins is deprecated. Use Curated groups instead."
             )
         self.fields['popcorn_url'].label = 'Popcorn URL'
 
