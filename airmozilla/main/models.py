@@ -184,6 +184,9 @@ class Location(models.Model):
     timezone = models.CharField(max_length=250)
     is_active = models.BooleanField(default=True)
 
+    class Meta:
+        ordering = ['name']
+
     def __unicode__(self):
         return self.name
 

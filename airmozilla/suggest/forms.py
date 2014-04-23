@@ -192,12 +192,23 @@ class DetailsForm(BaseModelForm):
             )
             self.fields['remote_presenters'].widget.attrs['rows'] = 3
 
+        # The list of available locations should only be those that are
+        # still active. However, if you have a previously chosen location
+        # that is now inactive, it should still be available
+        location_field_q = Q(is_active=True)
         if 'instance' in kwargs:
             event = kwargs['instance']
             if event.pk:
                 tag_format = lambda objects: ','.join(map(unicode, objects))
                 tags_formatted = tag_format(event.tags.all())
                 self.initial['tags'] = tags_formatted
+
+                if event.location:
+                    location_field_q |= Q(pk=event.location.pk)
+        if 'location' in self.fields:
+            self.fields['location'].queryset = (
+                self.fields['location'].queryset.filter(location_field_q)
+            )
 
         self.fields['tags'].help_text = (
             "Enter some keywords to help viewers find the recording of your "

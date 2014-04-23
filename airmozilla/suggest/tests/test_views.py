@@ -714,6 +714,77 @@ class TestPages(TestCase):
         discussion = SuggestedDiscussion.objects.get(pk=discussion.pk)
         ok_(not discussion.enabled)
 
+    def test_details_disbled_location_options(self):
+        mv = Location.objects.get(name='Mountain View')
+        # create two other locations
+        Location.objects.create(
+            name='Atlantis',
+            timezone='US/Pacific',
+            is_active=False
+        )
+        babylon = Location.objects.create(
+            name='Babylon',
+            timezone='US/Pacific'
+        )
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            description='Some long description',
+            short_description=''
+        )
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        ok_('Atlantis' not in response.content)
+        ok_('Babylon' in response.content)
+        # one of the fixtures
+        ok_('Mountain View' in response.content)
+
+        channel = Channel.objects.create(
+            name='Security',
+            slug='security'
+        )
+
+        data = {
+            'start_time': '2021-01-01 12:00:00',
+            'timezone': 'US/Pacific',
+            'location': babylon.pk,
+            'privacy': Event.PRIVACY_CONTRIBUTORS,
+            'channels': channel.pk,
+            'enable_discussion': True
+        }
+
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        # Now suppose Babylon becomes inactive too
+        babylon.is_active = False
+        babylon.save()
+
+        # go back to edit again
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        ok_('Atlantis' not in response.content)
+        # available because it was chosen
+        ok_('Babylon' in response.content)
+        ok_('Mountain View' in response.content)
+
+        # but suppose we now switch to Mountain View
+        data['location'] = mv.pk
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        # now we can't go back to Babylon again
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        ok_('Atlantis' not in response.content)
+        ok_('Babylon' not in response.content)
+        ok_('Mountain View' in response.content)
+
     def test_details_prerecorded_event(self):
         event = SuggestedEvent.objects.create(
             user=self.user,
