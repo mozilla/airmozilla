@@ -56,7 +56,11 @@ AUTHENTICATION_BACKENDS = [
 AUTH_PROFILE_MODULE = 'main.UserProfile'
 
 # Domains allowed for log in
-ALLOWED_BID = ['mozilla.com', 'mozillafoundation.org']
+ALLOWED_BID = (
+    'mozilla.com',
+    'mozillafoundation.org',
+    'mozilla-japan.org',
+)
 
 # This is only needed when not in DEBUG mode
 #SITE_URL = 'http://127.0.0.1:8000'
