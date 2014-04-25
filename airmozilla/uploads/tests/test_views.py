@@ -162,9 +162,9 @@ class TestUploads(TestCase):
         eq_(response.status_code, 200)
         structure = json.loads(response.content)
         new_id = structure['id']
-        upload = Upload.objects.get(pk=new_id)
-        next_url = reverse('suggest:file', args=(event.pk,))
-        next_url += '?upload=%s' % upload.pk
+        # this should exist
+        Upload.objects.get(pk=new_id)
+        next_url = reverse('suggest:description', args=(event.pk,))
         eq_(
             structure['suggested_event'],
             {

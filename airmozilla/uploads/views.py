@@ -153,8 +153,11 @@ def save(request):
     elif request.session.get('active_suggested_event'):
         event_id = request.session['active_suggested_event']
         event = SuggestedEvent.objects.get(pk=event_id)
-        next_url = reverse('suggest:file', args=(event_id,))
-        next_url += '?upload=%s' % new_upload.pk
+        event.upload = new_upload
+        event.save()
+        new_upload.suggested_event = event
+        new_upload.save()
+        next_url = reverse('suggest:description', args=(event_id,))
         context['suggested_event'] = {
             'url': next_url,
             'title': event.title

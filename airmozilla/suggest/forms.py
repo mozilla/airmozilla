@@ -87,7 +87,7 @@ class ChooseFileForm(BaseModelForm):
             Upload.objects
             .filter(user=self.user)
             .filter(this_or_nothing)
-            .order_by('created')
+            .order_by('-created')
         )
         self.fields['upload'].widget = forms.widgets.RadioSelect(
             choices=[(x.pk, self.describe_upload(x)) for x in uploads]

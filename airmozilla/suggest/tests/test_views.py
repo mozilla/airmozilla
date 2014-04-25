@@ -32,6 +32,11 @@ HAS_OPENGRAPH_FILE = os.path.join(_here, 'has_opengraph.html')
 PNG_FILE = os.path.join(_here, 'popcorn.png')
 
 
+class HeadResponse(object):
+    def __init__(self, **headers):
+        self.headers = headers
+
+
 class Response(object):
     def __init__(self, content=None, status_code=200):
         self.content = content
@@ -148,14 +153,48 @@ class TestPages(TestCase):
         eq_(response.status_code, 302)
 
         event = SuggestedEvent.objects.get(title='A New World')
-        url = reverse('suggest:file', args=(event.pk,))
         ok_(not event.upcoming)
         eq_(event.popcorn_url, None)
         eq_(event.slug, 'a-new-world')
         ok_(event.start_time)
         eq_(event.location.name, self.cyberspace.name)
         eq_(event.location.timezone, self.cyberspace.timezone)
+        url = reverse('uploads:upload')
         self.assertRedirects(response, url)
+
+    @patch('requests.head')
+    def test_start_pre_recorded_and_upload_file(self, rhead):
+        def mocked_head(url, **options):
+            return HeadResponse(**{'content-length': 123456})
+        rhead.side_effect = mocked_head
+
+        url = reverse('suggest:start')
+        response = self.client.post(url, {
+            'title': 'A New World',
+            'event_type': 'pre-recorded'
+        })
+        eq_(response.status_code, 302)
+        url = reverse('uploads:upload')
+        self.assertRedirects(response, url)
+
+        event = SuggestedEvent.objects.get(title='A New World')
+
+        # now go there and save an upload
+        save_url = reverse('uploads:save')
+        response = self.client.post(save_url, {
+            'url': 'https://aws.com/foo.mpg'
+        })
+        eq_(response.status_code, 200)
+        information = json.loads(response.content)
+        eq_(
+            information['suggested_event']['url'],
+            reverse('suggest:description', args=(event.pk,))
+        )
+        upload = Upload.objects.get(url='https://aws.com/foo.mpg')
+        # reload
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        eq_(event.upload, upload)
+        eq_(upload.suggested_event, event)
 
     def test_start_popcorn(self):
         url = reverse('suggest:start')
@@ -943,7 +982,11 @@ class TestPages(TestCase):
         # already
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('fake@f.com, bob@mozilla.com, new@mozilla.com' in response.content)
+
+        # it can't trust the sort order on these expected email addresses
+        ok_('fake@f.com' in response.content)
+        ok_('bob@mozilla.com' in response.content)
+        ok_('new@mozilla.com' in response.content)
 
     def test_autocomplete_email(self):
         url = reverse('suggest:autocomplete_emails')

@@ -12,6 +12,7 @@ input[type="file"] {
 .suggested-event a,
 .event a {
     font-weight: bold;
+    font-size: 120%;
 }
 
 /* Inspired by http://www.hongkiat.com/blog/html5-progress-bar/ */
