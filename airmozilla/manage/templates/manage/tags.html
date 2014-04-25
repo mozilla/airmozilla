@@ -44,8 +44,11 @@
     </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="tag in filtered_items = (tags | filter:filterBySearch) | orderBy:sort_by:sort_by_desc | startFrom:currentPage*pageSize | limitTo:pageSize">
-            <td><a href="/?tag={{ tag.name }}" class="tag">{{ tag.name }}</a></td>
+        <tr ng-repeat="tag in filtered_items = (tags | filter:filterBySearch | filter:filterByRepeated) | orderBy:sort_by:sort_by_desc | startFrom:currentPage*pageSize | limitTo:pageSize">
+            <td>
+              <a href="/?tag={{ tag.name }}" class="tag">{{ tag.name }}</a>
+              <span ng-if="tag._repeated" class="label label-warning">repeated</span>
+            </td>
             <td>{{ tag._usage_count }}</td>
             <td><a href="{{ tag._edit_url }} " class="btn btn-default btn-xs">
                 <i class="glyphicon glyphicon-edit"></i>
@@ -67,5 +70,13 @@
   {% endraw %}
   {% include "manage/_angular_pagesize.html" %}
   {% include "manage/_angular_paginate.html" %}
+  {% raw %}
+  <div class="repeated-option" style="margin-bottom:25px">
+    <label for="id_repeated">Only show repeated tags
+      <input type="radio" value="yes"  ng-model="show_only_repeated"> Yes
+      <input type="radio" value="no" ng-model="show_only_repeated"> No
+    </label>
+  </div>
+  {% endraw %}
 
 {% endblock %}

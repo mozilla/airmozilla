@@ -2146,6 +2146,50 @@ class TestTags(ManageTestCase):
         })
         self.assertRedirects(response_ok, reverse('manage:tags'))
 
+    def test_tag_merge(self):
+        t1 = Tag.objects.create(name='Tagg')
+        t2 = Tag.objects.create(name='TaGG')
+        t3 = Tag.objects.create(name='tAgg')
+
+        event = Event.objects.get(title='Test event')
+        event.tags.add(t1)
+
+        event2 = Event.objects.create(
+            title='Other Title',
+            start_time=event.start_time,
+        )
+        event2.tags.add(t1)
+        event2.tags.add(t2)
+        event3 = Event.objects.create(
+            title='Other Title Again',
+            start_time=event.start_time,
+        )
+        event3.tags.add(t2)
+        event3.tags.add(t3)
+
+        # t1 is now repeated
+        edit_url = reverse('manage:tag_edit', args=(t1.id,))
+        response = self.client.get(edit_url)
+        eq_(response.status_code, 200)
+
+        merge_url = reverse('manage:tag_merge', args=(t1.id,))
+        ok_(merge_url in response.content)
+        response = self.client.post(merge_url, {'name': t2.name})
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('manage:tag_edit', args=(t2.id,))
+        )
+
+        eq_(Tag.objects.filter(name__iexact='TAGG').count(), 1)
+        eq_(Tag.objects.filter(name='TaGG').count(), 1)
+        eq_(Tag.objects.filter(name='Tagg').count(), 0)
+        eq_(Tag.objects.filter(name='tAgg').count(), 0)
+
+        eq_(Event.objects.filter(tags__name='TaGG').count(), 3)
+        eq_(Event.objects.filter(tags__name='Tagg').count(), 0)
+        eq_(Event.objects.filter(tags__name='tAgg').count(), 0)
+
 
 class TestManagementRoles(ManageTestCase):
     """Basic tests to ensure management roles / permissions are working."""

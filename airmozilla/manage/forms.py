@@ -500,6 +500,30 @@ class TagEditForm(BaseModelForm):
         return name
 
 
+class TagMergeForm(BaseForm):
+
+    name = forms.ChoiceField(
+        label='Name to keep',
+        widget=forms.widgets.RadioSelect()
+    )
+
+    def __init__(self, name, *args, **kwargs):
+        super(TagMergeForm, self).__init__(*args, **kwargs)
+
+        def describe_tag(tag):
+            count = Event.objects.filter(tags=tag).count()
+            if count == 1:
+                tmpl = '%s (%d time)'
+            else:
+                tmpl = '%s (%d times)'
+            return tmpl % (tag.name, count)
+
+        self.fields['name'].choices = [
+            (x.name, describe_tag(x))
+            for x in Tag.objects.filter(name__iexact=name)
+        ]
+
+
 class VidlyResubmitForm(VidlyURLForm):
     id = forms.IntegerField(widget=forms.widgets.HiddenInput())
 

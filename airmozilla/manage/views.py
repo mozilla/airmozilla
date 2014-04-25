@@ -1635,12 +1635,17 @@ def tags_data(request):
     for each in qs:
         counts[each['tag_id']] = each['tag__count']
 
+    _repeats = collections.defaultdict(int)
+    for tag in Tag.objects.all():
+        _repeats[tag.name.lower()] += 1
+
     for tag in Tag.objects.all():
         tags.append({
             'name': tag.name,
             '_edit_url': reverse('manage:tag_edit', args=(tag.pk,)),
             '_remove_url': reverse('manage:tag_remove', args=(tag.pk,)),
             '_usage_count': counts.get(tag.id, 0),
+            '_repeated': _repeats[tag.name.lower()] > 1,
         })
 
     return {'tags': tags}
@@ -1665,8 +1670,15 @@ def tag_edit(request, id):
             return redirect('manage:tags')
     else:
         form = forms.TagEditForm(instance=tag)
-    return render(request, 'manage/tag_edit.html', {'form': form,
-                                                    'tag': tag})
+    repeated = Tag.objects.filter(name__iexact=tag.name).count()
+    context = {
+        'form': form,
+        'tag': tag,
+        'repeated': repeated > 1
+    }
+    if repeated:
+        context['repeated_form'] = forms.TagMergeForm(name=tag.name)
+    return render(request, 'manage/tag_edit.html', context)
 
 
 @staff_required
@@ -1680,6 +1692,30 @@ def tag_remove(request, id):
         messages.info(request, 'Tag "%s" removed.' % tag.name)
         tag.delete()
     return redirect(reverse('manage:tags'))
+
+
+@staff_required
+@permission_required('main.change_event')
+@cancel_redirect('manage:tags')
+@transaction.commit_on_success
+def tag_merge(request, id):
+    tag = get_object_or_404(Tag, id=id)
+    name_to_keep = request.POST['name']
+
+    tag_to_keep = None
+    for t in Tag.objects.filter(name__iexact=tag.name):
+        if t.name == name_to_keep:
+            tag_to_keep = t
+            break
+
+    for t in Tag.objects.filter(name__iexact=tag.name):
+        if t.name != name_to_keep:
+            for event in Event.objects.filter(tags=t):
+                event.tags.remove(t)
+                event.tags.add(tag_to_keep)
+            t.delete()
+
+    return redirect('manage:tag_edit', tag_to_keep.id)
 
 
 @superuser_required

@@ -85,6 +85,7 @@ urlpatterns = patterns(
     url(r'^tags/data/$', views.tags_data, name='tags_data'),
     url(r'^tags/(?P<id>\d+)/$', views.tag_edit, name='tag_edit'),
     url(r'^tags/remove/(?P<id>\d+)/$', views.tag_remove, name='tag_remove'),
+    url(r'^tags/merge/(?P<id>\d+)/$', views.tag_merge, name='tag_merge'),
     url(r'^locations/new/$', views.location_new, name='location_new'),
     url(r'^locations/(?P<id>\d+)/$', views.location_edit,
         name='location_edit'),

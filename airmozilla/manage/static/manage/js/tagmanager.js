@@ -33,6 +33,7 @@ function TagManagerController($scope, $http) {
 
     $scope.sort_by = 'name';
     $scope.sort_by_desc = false;
+    $scope.show_only_repeated = 'no';
 
     $scope.sortBy = function(key, desc_default) {
         desc_default = desc_default || false;
@@ -116,6 +117,13 @@ function TagManagerController($scope, $http) {
             if (item._usage_count < $scope.search_minimum) {
                 return false;
             }
+        }
+        return true;
+    };
+
+    $scope.filterByRepeated = function(item) {
+        if ($scope.show_only_repeated === 'yes') {
+            return item._repeated;
         }
         return true;
     };
