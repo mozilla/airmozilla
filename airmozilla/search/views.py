@@ -155,5 +155,5 @@ def _search(q, **options):
             search_escaped
         ],
     )
-    qs = qs.order_by('-rank_title', '-rank_desc', '-start_time')
+    qs = qs.order_by('-rank_title', '-start_time', '-rank_desc')
     return qs
