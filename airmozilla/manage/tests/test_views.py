@@ -2670,7 +2670,7 @@ class TestSuggestions(ManageTestCase):
             start_time=tomorrow,
             location=location,
             placeholder_img=self.placeholder,
-            privacy=Event.PRIVACY_CONTRIBUTORS,
+            privacy=Event.PRIVACY_PUBLIC,
             #call_info='CALL INFO',
             additional_links='ADDITIONAL LINKS',
             remote_presenters='RICHARD & ZANDR',
@@ -2704,9 +2704,8 @@ class TestSuggestions(ManageTestCase):
         eq_(real.start_time, real.archive_time)
         eq_(real.template, popcorn_template)
         eq_(real.status, Event.STATUS_SCHEDULED)
-        # that should also have created an Approval instance
-        approval = Approval.objects.get(event=real)
-        eq_(approval.group, group)
+        # that should NOT have created an Approval instance
+        ok_(not Approval.objects.filter(event=real))
 
     def test_approved_suggested_event_with_discussion(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
