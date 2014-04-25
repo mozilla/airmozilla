@@ -1,3 +1,7 @@
+#comments {
+    clear: left;
+    padding-top: 25px;
+}
 #comments .other-error,
 #comments button.cancel,
 #comments .submission-success {
