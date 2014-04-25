@@ -158,8 +158,13 @@ def event_data(request, id):
                 request.user.first_name = first_name
                 request.user.last_name = last_name
                 request.user.save()
-            if created and discussion.moderate_all and discussion.notify_all:
-                sending.send_moderator_notifications(new_comment, request)
+            if created:
+                if discussion.moderate_all and _can_manage_comments:
+                    new_comment.status = Comment.STATUS_APPROVED
+                    new_comment.save()
+                if discussion.moderate_all and discussion.notify_all:
+                    sending.send_moderator_notifications(new_comment, request)
+
         else:
             return http.HttpResponseBadRequest(str(form.errors))
 
