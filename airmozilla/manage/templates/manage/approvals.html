@@ -30,7 +30,7 @@
     <tbody>
       {% for approval in approvals %}
       <tr>
-        <td>{{ approval.event.title }}</td>
+        <td><a href="{{ url('main:event', approval.event.slug) }}">{{ approval.event.title }}</a></td>
         <td>{{ approval.event.start_time|js_date }}</td>
         <td>{{ approval.event.location }}</td>
         <td>{{ approval.event.creator.email }}</td>
