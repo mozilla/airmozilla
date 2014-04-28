@@ -1674,7 +1674,8 @@ def tag_edit(request, id):
     context = {
         'form': form,
         'tag': tag,
-        'repeated': repeated > 1
+        'repeated': repeated,
+        'is_repeated': repeated > 1
     }
     if repeated:
         context['repeated_form'] = forms.TagMergeForm(name=tag.name)

@@ -9,7 +9,7 @@
 {% block manage_content %}
   {% include 'manage/_default_form.html' %}
 
-  {% if repeated %}
+  {% if is_repeated %}
   <div id="repeated">
     <p>This tag is repeated <b>{{ repeated }} times</b> in different case.</p>
     <form action="{{ url('manage:tag_merge', tag.pk) }}" method="post" class="form-horizontal" role="form">
