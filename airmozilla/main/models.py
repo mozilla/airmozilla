@@ -174,6 +174,9 @@ class Template(models.Model):
                   'this dictates which one is the default one.'
     )
 
+    class Meta:
+        ordering = ['name']
+
     def __unicode__(self):
         return self.name
 
