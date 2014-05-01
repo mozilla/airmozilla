@@ -55,7 +55,8 @@ from airmozilla.main.models import (
     URLMatch,
     URLTransform,
     EventHitStats,
-    CuratedGroup
+    CuratedGroup,
+    EventAssignment
 )
 from airmozilla.main.views import is_contributor
 from airmozilla.manage import forms
@@ -115,7 +116,11 @@ def cancel_redirect(redirect_view):
         @functools.wraps(fn)
         def wrapped(request, *args, **kwargs):
             if request.method == 'POST' and 'cancel' in request.POST:
-                return redirect(reverse(redirect_view))
+                if callable(redirect_view):
+                    url = redirect_view(request, *args, **kwargs)
+                else:
+                    url = reverse(redirect_view)
+                return redirect(url)
             return fn(request, *args, **kwargs)
         return wrapped
     return inner_render
@@ -586,6 +591,11 @@ def event_edit(request, id):
         .select_related('group')
     )
 
+    try:
+        context['assignment'] = EventAssignment.objects.get(event=event)
+    except EventAssignment.DoesNotExist:
+        context['assignment'] = None
+
     return render(request, 'manage/event_edit.html', context)
 
 
@@ -597,6 +607,34 @@ def event_upload(request, id):
     context['event'] = event
     request.session['active_event'] = event.pk
     return render(request, 'manage/event_upload.html', context)
+
+
+@staff_required
+@cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
+@permission_required('main.change_eventassignment')
+def event_assignment(request, id):
+    event = get_object_or_404(Event, id=id)
+    context = {}
+    assignment, __ = EventAssignment.objects.get_or_create(event=event)
+    if request.method == 'POST':
+        assignment.event = event
+        assignment.save()
+        form = forms.EventAssignmentForm(instance=assignment, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                'Event assignment saved.'
+            )
+            return redirect('manage:event_edit', event.pk)
+
+    else:
+        form = forms.EventAssignmentForm(instance=assignment)
+
+    context['event'] = event
+    context['assignment'] = assignment
+    context['form'] = form
+    return render(request, 'manage/event_assignment.html', context)
 
 
 @superuser_required
@@ -2337,3 +2375,30 @@ def insufficient_permissions(request):
         except Permission.DoesNotExist:
             warnings.warn('Unable to find permission %r' % perm)
     return render(request, 'manage/insufficient_permissions.html', context)
+
+
+@json_view
+@staff_required
+def event_assignments(request):
+    context = {}
+    assigned_users = []
+    _users_count = collections.defaultdict(int)
+    for each in EventAssignment.users.through.objects.all().values():
+        _users_count[each['user_id']] += 1
+    users = User.objects.filter(pk__in=_users_count.keys()).order_by('email')
+
+    class _AssignedUser(object):
+        def __init__(self, user, count):
+            self.user = user
+            self.count = count
+
+    for user in users:
+        assigned_users.append(
+            _AssignedUser(
+                user,
+                _users_count[user.pk]
+            )
+        )
+
+    context['assigned_users'] = assigned_users
+    return render(request, 'manage/event_assignments.html', context)

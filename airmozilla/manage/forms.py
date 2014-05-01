@@ -23,7 +23,8 @@ from airmozilla.main.models import (
     Channel,
     SuggestedEvent,
     SuggestedEventComment,
-    URLMatch
+    URLMatch,
+    EventAssignment
 )
 from airmozilla.comments.models import Discussion, Comment
 
@@ -584,3 +585,45 @@ class CommentsFilterForm(BaseForm):
             (('', 'ALL'),) + Comment.STATUS_CHOICES + (('flagged', 'Flagged'),)
         )
     )
+
+
+class EventAssignmentForm(BaseModelForm):
+
+    class Meta:
+        model = EventAssignment
+        fields = ('locations', 'users')
+
+    def __init__(self, *args, **kwargs):
+        super(EventAssignmentForm, self).__init__(*args, **kwargs)
+        users = (
+            User.objects
+            .extra(select={
+                'email_lower': 'LOWER(email)'
+            })
+            .filter(is_active=True)
+            .order_by('email_lower')
+        )
+        def describe_user(user):
+            ret = user.email
+            if user.first_name or user.last_name:
+                name = (user.first_name + ' ' + user.last_name).strip()
+                ret += ' (%s)' % name
+            return ret
+
+        self.fields['users'].choices = [
+            (x.pk, describe_user(x)) for x in users
+        ]
+        self.fields['users'].required = False
+        self.fields['users'].help_text = 'Start typing to find users.'
+
+        locations = (
+            Location.objects.all()
+            .order_by('name')
+        )
+        if self.instance.event.location:
+            locations = locations.exclude(pk=self.instance.event.location.pk)
+        self.fields['locations'].choices = [
+            (x.pk, x.name) for x in locations
+        ]
+        self.fields['locations'].required = False
+        self.fields['locations'].help_text = 'Start typing to find locations.'

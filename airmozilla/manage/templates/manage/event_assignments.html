@@ -1,0 +1,35 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='event_assignments' -%}
+
+{% block manage_title %}
+  Event Assignments
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+
+  <p>
+    The following people are assigned to events.
+  </p>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th># Events</th>
+        <th>Feed URL</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for assigned_user in assigned_users %}
+      <tr>
+        <td>{{ assigned_user.user.email }}</td>
+        <td>{{ assigned_user.count }}</td>
+        <td><a href="?assignee={{ assigned_user.user.email }}">Feed</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock %}

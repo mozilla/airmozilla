@@ -16,10 +16,13 @@
      perms.main.add_event, '%s new suggested event(s)'),
     ('manage:all_event_tweets', 'Event tweets', 'tweets', 'glyphicon-bullhorn',
      perms.main.change_event, '%s unsent tweet(s)'),
-    ('manage:vidly_media', 'Vid.ly Media', 'vidly_media', 'glyphicon-warning-sign',
+    ('manage:vidly_media', 'Vid.ly media', 'vidly_media', 'glyphicon-warning-sign',
      is_superuser, ''),
-    ('manage:event_hit_stats', 'Hit Statistics', 'event_hit_stats', 'glyphicon-signal',
+    ('manage:event_hit_stats', 'Hit statistics', 'event_hit_stats', 'glyphicon-signal',
      perms.main.add_event, ''),
+    ('manage:event_assignments', 'Event assignments', 'event_assignments', 'glyphicon-phone-alt',
+     perms.main.change_eventassignment, ''),
+
 
     ('', 'Users and groups', '', '', perms.auth.change_user, ''),
     ('manage:users', 'Edit users', 'users', 'glyphicon-user', perms.auth.change_user,
@@ -40,7 +43,7 @@
     ('', 'Other configuration', '', '', perms.flatpages.change_flatpage, ''),
     ('manage:flatpages', 'Static pages', 'flatpages', 'glyphicon-file',
      perms.flatpages.change_flatpage, ''),
-    ('manage:url_transforms', 'URL Transforms', 'url_transforms', 'glyphicon-retweet',
+    ('manage:url_transforms', 'URL transforms', 'url_transforms', 'glyphicon-retweet',
      perms.main.change_urlmatch, ''),
 
 ] -%}

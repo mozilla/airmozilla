@@ -203,6 +203,19 @@
     </p>
     {% endif %}
 
+    <p style="margin-top:25px"><strong>Event Assignment</strong></p>
+    <p>
+      <a href="{{ url('manage:event_assignment', event.pk) }}" class="btn btn-primary btn-sm">
+        {% if assignment %}
+          {% set users_count = assignment.users.count() %}
+          {% set locations_count = assignment.locations.count() %}
+          {{ users_count }} user{{ users_count|pluralize }},
+          {{ locations_count }} location{{ locations_count|pluralize }} assigned
+        {% else %}
+          No assignments set up
+        {% endif %}
+      </a>
+    </p>
   </div>
 </div>
 {% endblock %}

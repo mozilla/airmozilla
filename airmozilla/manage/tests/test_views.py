@@ -36,7 +36,8 @@ from airmozilla.main.models import (
     URLTransform,
     EventHitStats,
     UserProfile,
-    CuratedGroup
+    CuratedGroup,
+    EventAssignment
 )
 from airmozilla.comments.models import (
     Discussion,
@@ -4170,3 +4171,33 @@ class TestCuratedGroups(ManageTestCase):
                 ]
             ]
         )
+
+
+class TestEventAssignment(ManageTestCase):
+
+    def test_event_assignment(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_assignment', args=(event.pk,))
+        edit_url = reverse('manage:event_edit', args=(event.pk,))
+        response = self.client.get(edit_url)
+        eq_(response.status_code, 200)
+        ok_(url in response.content)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.location.name in response.content)
+
+        bob = User.objects.create(username='bob')
+        harry = User.objects.create(username='harry')
+        barcelona = Location.objects.create(name='Barcelona')
+        data = {
+            'users': [bob.pk, harry.pk],
+            'locations': [barcelona.pk]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        assignment = EventAssignment.objects.get(event=event)
+        ok_(bob in assignment.users.all())
+        ok_(harry in assignment.users.all())
+        ok_(barcelona in assignment.locations.all())

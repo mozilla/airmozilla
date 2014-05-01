@@ -1,0 +1,40 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Event Assignment for "{{ event.title }}"
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('manage/css/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('manage/css/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+    <script src="{{ static('manage/js/select2.min.js') }}"></script>
+    <script src="{{ static('manage/js/event-assignment.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+  {% if event.location %}
+  <p>
+    The main location of this event is: <b>{{ event.location }}</b>
+  </p>
+  {% endif %}
+
+  {% include 'manage/_default_form.html' %}
+
+  <p style="margin-top:25px">
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

@@ -374,6 +374,15 @@ def reset_most_recent_event(sender, instance, *args, **kwargs):
     cache.delete(cache_key)
 
 
+class EventAssignment(models.Model):
+
+    event = models.ForeignKey(Event, unique=True)
+    locations = models.ManyToManyField(Location)
+    users = models.ManyToManyField(User)
+    created = models.DateTimeField(default=_get_now)
+    modified = models.DateTimeField(auto_now=True)
+
+
 class CuratedGroup(models.Model):
 
     event = models.ForeignKey(Event)
