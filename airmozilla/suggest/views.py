@@ -90,10 +90,9 @@ def start(request):
                 url = reverse('suggest:popcorn', args=(event.pk,))
             else:
                 request.session['active_suggested_event'] = event.pk
-                # url = reverse('suggest:file', args=(event.pk,))
+                if request.session.get('active_event'):
+                    del request.session['active_event']
                 url = reverse('uploads:upload')
-                #if request.session.get('active_upload'):
-                #    url += '?upload=%s' % request.session['active_upload']
             return redirect(url)
     else:
         initial = {
