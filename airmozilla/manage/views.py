@@ -29,6 +29,7 @@ from django.core.exceptions import ImproperlyConfigured
 import pytz
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
+import vobject
 
 from airmozilla.main.helpers import thumbnail, short_desc
 from airmozilla.manage.helpers import scrub_transform_passwords
@@ -2399,6 +2400,89 @@ def event_assignments(request):
                 _users_count[user.pk]
             )
         )
-
     context['assigned_users'] = assigned_users
+
+    events = []
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    qs = Event.objects.filter(start_time__gte=now)
+    for event in qs.order_by('start_time'):
+        try:
+            assignment = EventAssignment.objects.get(event=event)
+            assignment = {
+                'users': assignment.users.all().order_by('email'),
+                'locations': assignment.locations.all().order_by('name'),
+            }
+        except EventAssignment.DoesNotExist:
+            assignment = {
+                'users': [],
+                'locations': []
+            }
+        event._assignments = assignment
+        events.append(event)
+    context['events'] = events
+
     return render(request, 'manage/event_assignments.html', context)
+
+
+def event_assignments_ical(request):
+    cache_key = 'event_assignements_ical'
+    assignee = request.GET.get('assignee')
+
+    if assignee:
+        assignee = get_object_or_404(User, email=assignee)
+        cache_key += str(assignee.pk)
+
+    cached = cache.get(cache_key)
+    if cached:
+        # additional response headers aren't remembered so add them again
+        cached['Access-Control-Allow-Origin'] = '*'
+        return cached
+
+    cal = vobject.iCalendar()
+
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    base_qs = EventAssignment.objects.all().order_by('-event__start_time')
+    if assignee:
+        base_qs = base_qs.filter(users=assignee)
+
+    title = 'Airmo'
+    if assignee:
+        title += ' for %s' % assignee.email
+    cal.add('X-WR-CALNAME').value = title
+    assignments = list(
+        base_qs
+        .filter(event__start_time__lt=now)
+        [:settings.CALENDAR_SIZE]
+    )
+    assignments += list(
+        base_qs
+        .filter(event__start_time__gte=now)
+    )
+    base_url = '%s://%s' % (request.is_secure() and 'https' or 'http',
+                             RequestSite(request).domain)
+    for assignment in assignments:
+        event = assignment.event
+        vevent = cal.add('vevent')
+        vevent.add('summary').value = "[AirMo crew] %s" % event.title
+        vevent.add('dtstart').value = event.start_time
+        vevent.add('dtend').value = (event.start_time +
+                                     datetime.timedelta(hours=1))
+        vevent.add('description').value = unhtml(short_desc(event))
+        vevent.add('url').value = (
+            base_url + reverse('main:event', args=(event.slug,))
+        )
+    icalstream = cal.serialize()
+    # response = http.HttpResponse(icalstream,
+    #                          mimetype='text/plain; charset=utf-8')
+    response = http.HttpResponse(icalstream,
+                                 mimetype='text/calendar; charset=utf-8')
+    filename = 'AirMozillaEventAssignments'
+    filename += '.ics'
+    response['Content-Disposition'] = (
+        'inline; filename=%s' % filename)
+    cache.set(cache_key, response, 60 * 10)  # 10 minutes
+
+    # https://bugzilla.mozilla.org/show_bug.cgi?id=909516
+    response['Access-Control-Allow-Origin'] = '*'
+
+    return response

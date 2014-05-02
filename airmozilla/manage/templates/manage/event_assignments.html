@@ -5,20 +5,18 @@
   Event Assignments
 {% endblock %}
 
-{% block content_class %}col-md-6{% endblock %}
-
 {% block manage_content %}
 
-  <p>
-    The following people are assigned to events.
-  </p>
+  <h4>
+    People with Events Assigned
+  </h4>
 
   <table class="table table-striped">
     <thead>
       <tr>
         <th>User</th>
         <th># Events</th>
-        <th>Feed URL</th>
+        <th>iCal Feed URL</th>
       </tr>
     </thead>
     <tbody>
@@ -26,9 +24,46 @@
       <tr>
         <td>{{ assigned_user.user.email }}</td>
         <td>{{ assigned_user.count }}</td>
-        <td><a href="?assignee={{ assigned_user.user.email }}">Feed</a></td>
+        <td><a href="{{ url('manage:event_assignments_ical') }}?assignee={{ assigned_user.user.email }}">Feed</a></td>
       </tr>
       {% endfor %}
+    </tbody>
+  </table>
+
+  <h4>
+    Upcoming Events
+  </h4>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Locations</th>
+        <th>Users</th>
+        <th>&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for event in events %}
+      <tr>
+        <td><a href="{{ url('manage:event_edit', event.pk) }}">{{ event.title }}</a></td>
+        <td>
+            {% for location in event._assignments['locations'] %}
+              {{ location }}<br>
+            {% endfor %}
+        </td>
+        <td>
+            {% for user in event._assignments['users'] %}
+              {{ user.email }}<br>
+            {% endfor %}
+        </td>
+        <td>
+          <a href="{{ url('manage:event_assignment', event.pk) }}" class="btn btn-default btn-xs">
+            <i class="glyphicon glyphicon-edit"></i> Edit assignments
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
     </tbody>
   </table>
 

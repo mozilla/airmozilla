@@ -70,47 +70,46 @@
   </div>
     <div class="container container-full" id="container">
       <div class="row">
-          <div id="menu" class="col-md-2">
-                <ul class="nav nav-pills nav-stacked">
-					{% for view, title, id, icon, perm, badge_txt in navigation_bar %}
-						{% if perm %}
-						{% if view == '' %}
-							<li class="nav-header disabled"><a>{{ title }}</a></li>
-						{% else %}
-							<li {% if page == id %} class="active" {% endif %}>
-								<a href="{{ url(view) }}"
+        <div id="menu" class="col-md-2">
+          <ul class="nav nav-pills nav-stacked">
+          {% for view, title, id, icon, perm, badge_txt in navigation_bar %}
+            {% if perm %}
+            {% if view == '' %}
+              <li class="nav-header disabled"><a>{{ title }}</a></li>
+            {% else %}
+              <li {% if page == id %} class="active" {% endif %}>
+                <a href="{{ url(view) }}"
                   {%- if id in badges %}
                     title="{{ badge_txt % badges[id] }}"
                   {%- endif -%}>
-									<i class="glyphicon {{ icon }}"></i>
-									{{ title }}
+                  <i class="glyphicon {{ icon }}"></i>
+                  {{ title }}
                   {% if id in badges %}
                     <span class="badge badge-
                       {%- if page != id %}danger{% else %}inverse{% endif %}">
                     {{- badges[id] }}</span>
                   {% endif %}
-								</a>
-							</li>
-						{% endif %}
-						{% endif %}
-					{% endfor %}
-                </ul>
-	    	</div>
-                <div id="content" class="{% block content_class %}col-md-10{% endblock %}">
-                  <h2>{% block manage_title %}{% endblock %}</h2>
-                  {% if messages %}
-                    {% for message in messages %}
-                      <div class="alert
-                       {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-                        {{ format_message(message) }}
-                      </div>
-                    {% endfor %}
-                  {% endif %}
-                  {% block manage_content %}{% endblock %}
-		</div>
-                {% block extra_columns %}{% endblock %}
-            </div>
-    </div>
+                </a>
+              </li>
+            {% endif %}
+            {% endif %}
+          {% endfor %}
+          </ul>
+        </div>
+        <div id="content" class="{% block content_class %}col-md-10{% endblock %}">
+          <h2>{% block manage_title %}{% endblock %}</h2>
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ format_message(message) }}
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% block manage_content %}{% endblock %}
+        </div>
+        {% block extra_columns %}{% endblock %}
+      </div>
+  </div>
 {% endblock %}
 
 {% block site_js %}
