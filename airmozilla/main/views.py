@@ -526,11 +526,13 @@ class EventsFeed(Feed):
     description_template = 'main/feeds/event_description.html'
 
     def get_object(self, request, private_or_public='',
-                   channel_slug=settings.DEFAULT_CHANNEL_SLUG):
+                   channel_slug=settings.DEFAULT_CHANNEL_SLUG,
+                   format_type=None):
         if private_or_public == 'private':
             # old URL
             private_or_public = 'company'
         self.private_or_public = private_or_public
+        self.format_type = format_type
         prefix = request.is_secure() and 'https' or 'http'
         self._root_url = '%s://%s' % (prefix, RequestSite(request).domain)
         self._channel = get_object_or_404(Channel, slug=channel_slug)
@@ -559,7 +561,14 @@ class EventsFeed(Feed):
         return event.title
 
     def item_link(self, event):
+        if self.format_type == 'webm':
+            if event.template and 'vid.ly' in event.template.name.lower():
+                return self._get_webm_link(event)
         return self._root_url + reverse('main:event', args=(event.slug,))
+
+    def _get_webm_link(self, event):
+        tag = event.template_environment['tag']
+        return 'https://vid.ly/%s?content=video&format=webm' % tag
 
     def item_pubdate(self, event):
         return event.start_time

@@ -27,6 +27,7 @@ from airmozilla.main.models import (
     UserProfile,
     Channel,
     Location,
+    Template,
     EventHitStats,
     CuratedGroup
 )
@@ -801,6 +802,31 @@ class TestPages(TestCase):
         ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
 
+    def test_feed_with_webm_format(self):
+        delay = datetime.timedelta(days=1)
+
+        event1 = Event.objects.get(title='Test event')
+        event1.status = Event.STATUS_SCHEDULED
+        event1.start_time -= delay
+        event1.archive_time = event1.start_time
+        vidly_template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<script>'
+        )
+        event1.template = vidly_template
+        event1.template_environment = {'tag': 'abc123'}
+        event1.save()
+        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().count(), 1)
+
+        url = reverse('main:feed_format_type', args=('public', 'webm'))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(
+            '<link>https://vid.ly/abc123?content=video&amp;format=webm</link>'
+            in response.content
+        )
+
     def test_feed_cache(self):
         delay = datetime.timedelta(days=1)
 
@@ -882,6 +908,55 @@ class TestPages(TestCase):
         eq_(response.status_code, 200)
         ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
+
+    def test_feeds_by_channel_with_webm_format(self):
+        channel = Channel.objects.create(
+            name='Culture and Context',
+            slug='culture-and-context',
+        )
+        delay = datetime.timedelta(days=1)
+
+        event1 = Event.objects.get(title='Test event')
+        event1.status = Event.STATUS_SCHEDULED
+        event1.start_time -= delay
+        event1.archive_time = event1.start_time
+        vidly_template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<script>'
+        )
+        event1.template = vidly_template
+        event1.template_environment = {'tag': 'abc123'}
+        event1.save()
+        event1.channels.clear()
+        event1.channels.add(channel)
+
+        event = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+        )
+
+        event.channels.add(channel)
+
+        eq_(Event.objects.approved().count(), 2)
+        eq_(Event.objects.archived().count(), 2)
+        eq_(Event.objects.filter(channels=channel).count(), 2)
+
+        url = reverse(
+            'main:channel_feed_format_type',
+            args=('culture-and-context', 'public', 'webm')
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        assert 'Second test event' in response.content
+        ok_(
+            '<link>https://vid.ly/abc123?content=video&amp;format=webm</link>'
+            in response.content
+        )
 
     def test_rendering_additional_links(self):
         event = Event.objects.get(title='Test event')

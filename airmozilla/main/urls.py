@@ -28,9 +28,13 @@ urlpatterns = patterns(
     url(r'^calendars/$', views.calendars, name='calendars'),
     url(r'^calendar/(company|contributors|public).ics$',
         views.events_calendar_ical, name='calendar_ical'),
-    url(r'^feed/(company|public|private|contributors)?/?$',
+    url(r'^feed/(?P<private_or_public>company|public|private|contributors)?/?$',
         cache_page(60 * 60)(views.EventsFeed()),
         name='feed'),
+    url(r'^feed/(?P<private_or_public>company|public|private|contributors)'
+        r'/(?P<format_type>webm)/?$',
+        cache_page(60 * 60)(views.EventsFeed()),
+        name='feed_format_type'),
     url(r'^feed/(?P<channel_slug>[-\w]+)/$',
         cache_page(60 * 60)(views.EventsFeed()),
         name='channel_feed_default'),
@@ -38,6 +42,11 @@ urlpatterns = patterns(
         r'(?P<private_or_public>company|public|private|contributors)/?$',
         cache_page(60 * 60)(views.EventsFeed()),
         name='channel_feed'),
+    url(r'^feed/(?P<channel_slug>[-\w]+)/'
+        r'(?P<private_or_public>company|public|private|contributors)/'
+        r'(?P<format_type>webm)/?$',
+        cache_page(60 * 60)(views.EventsFeed()),
+        name='channel_feed_format_type'),
     url(r'^tagcloud/$', views.tag_cloud, name='tag_cloud'),
     url(r'^(?P<slug>[-\w]+)/$', views.EventView.as_view(),
         name='event'),
