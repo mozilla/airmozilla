@@ -202,6 +202,8 @@ Included is a set of comprehensive tests, which you can run by:
 To see the tests' code coverage, use:
 ``./manage.py test --with-coverage --cover-erase --cover-html --cover-package=airmozilla``
 
+Then, when it completes, open the file `./cover/index.html`.
+
 
 Troubleshooting
 --------------
