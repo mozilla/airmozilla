@@ -114,6 +114,30 @@ class TestComments(TestCase):
         latest = get_latest_comment(event, include_posted=True, since=modified)
         eq_(latest, None)
 
+    def test_get_latest_comment_caching(self):
+        event = Event.objects.get(title='Test event')
+        bob = User.objects.create(username='bob', email='bob@mozilla.com')
+        comment = Comment.objects.create(
+            event=event,
+            user=bob,
+            comment="Hi, it's Bob",
+            status=Comment.STATUS_POSTED
+        )
+        latest = get_latest_comment(event, include_posted=True)
+        modified = calendar.timegm(comment.modified.utctimetuple())
+        eq_(latest, modified)
+        latest_again = get_latest_comment(event, include_posted=True)
+        eq_(latest, latest_again)
+
+        latest = get_latest_comment(event, include_posted=True, since=modified)
+        eq_(latest, None)
+
+        comment.status = Comment.STATUS_APPROVED
+        comment.save()
+        latest_third = get_latest_comment(event, include_posted=True, since=modified - 1)
+        modified_second = calendar.timegm(comment.modified.utctimetuple())
+        eq_(latest_third, modified_second)
+
     def test_basic_event_data(self):
         event = Event.objects.get(title='Test event')
         # render the event and there should be no comments
@@ -187,6 +211,21 @@ class TestComments(TestCase):
         ok_(url in email_sent.body)
         ok_(url + '#comment-%d' % comment.pk in email_sent.body)
 
+    def test_post_comment_no_moderation(self):
+        event = Event.objects.get(title='Test event')
+        discussion = self._create_discussion(event, moderate_all=False)
+        User.objects.create_user('richard', password='secret')
+        assert self.client.login(username='richard', password='secret')
+        comments_url = reverse('comments:event_data', args=(event.pk,))
+        response = self.client.post(comments_url, {
+            'name': 'Richard',
+            'comment': 'Bla bla'
+        })
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        comment = Comment.objects.get(event=event)
+        eq_(comment.status, Comment.STATUS_APPROVED)
+
     def test_moderation_immediately(self):
         """when you post a comment that needs moderation, the moderator
         can click a link in the email notification that immediately
@@ -251,7 +290,6 @@ class TestComments(TestCase):
         ok_('Unable to Remove Comment' in response.content)
 
     def test_unsubscribe_on_reply_notifications(self):
-
         event = Event.objects.get(title='Test event')
         discussion = self._create_discussion(event)
         jay = User.objects.create(username='jay', email='jay@mozilla.com')
@@ -339,7 +377,6 @@ class TestComments(TestCase):
         ok_(unsubscribed_url in response['location'])
 
     def test_unsubscribed_reply_notifications_discussion(self):
-
         event = Event.objects.get(title='Test event')
         discussion = self._create_discussion(event)
         jay = User.objects.create(username='jay', email='jay@mozilla.com')
@@ -381,7 +418,6 @@ class TestComments(TestCase):
         ok_(not mail.outbox)
 
     def test_unsubscribed_reply_notifications_all(self):
-
         event = Event.objects.get(title='Test event')
         discussion = self._create_discussion(event)
         jay = User.objects.create(username='jay', email='jay@mozilla.com')

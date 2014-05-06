@@ -19,6 +19,23 @@ from . import sending
 
 
 def get_latest_comment(event, include_posted=False, since=None):
+    cache_key = 'latest_comment-%s-%s' % (event.pk, bool(include_posted))
+    latest = cache.get(cache_key, -1)
+    if latest != -1:
+        # cache hit
+        if since and since >= latest:
+            return
+    # cache miss, call in the real work horse
+    latest = _get_latest_comment(
+        event,
+        include_posted=include_posted,
+        since=since
+    )
+    cache.set(cache_key, latest, 60)
+    return latest
+
+
+def _get_latest_comment(event, include_posted=False, since=None):
     latest_comment = (
         Comment.objects
         .filter(event=event)

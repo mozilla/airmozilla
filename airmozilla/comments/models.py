@@ -1,5 +1,7 @@
+from django.core.cache import cache
 from django.db import models
 from django.contrib.auth.models import User
+from django.dispatch import receiver
 
 from airmozilla.main.models import Event, SuggestedEvent
 
@@ -27,6 +29,16 @@ class Comment(models.Model):
     @property
     def anonymous(self):
         return not self.user_id
+
+
+@receiver(models.signals.post_save, sender=Comment)
+def invalidate_latest_comment_cache(sender, instance, **kwargs):
+    event = instance.event
+    cache_keys = []
+    # there's one cache key for moderators and one for non-moderators
+    cache_keys.append('latest_comment-%s-False' % event.id)
+    cache_keys.append('latest_comment-%s-True' % event.id)
+    [cache.delete(x) for x in cache_keys]
 
 
 #class CommentVotes(models.Model):
