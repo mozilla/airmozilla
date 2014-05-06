@@ -87,7 +87,7 @@ STOPWORDS = (
 
 
 def permission_required(perm):
-    if settings.DEBUG:
+    if settings.DEBUG:  # pragma: no cover
         ct, codename = perm.split('.', 1)
         if not Permission.objects.filter(
             content_type__app_label=ct,

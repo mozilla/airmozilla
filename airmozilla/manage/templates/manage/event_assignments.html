@@ -38,9 +38,10 @@
     <thead>
       <tr>
         <th>Event</th>
+        <th>Start time</th>
         <th>Locations</th>
         <th>Users</th>
-        <th>&nbsp;</th>
+        <th>Edit</th>
       </tr>
     </thead>
     <tbody>
@@ -48,6 +49,17 @@
       <tr>
         <td><a href="{{ url('manage:event_edit', event.pk) }}">{{ event.title }}</a></td>
         <td>
+          {% if event.location %}
+            {{ event.location_time.strftime('%d %b %Y %I:%M%p') }}
+          {% else %}
+            {{ event.start_time.strftime('%d %b %Y %I:%M%p %Z') }}
+          {% endif %}
+        </td>
+        <td>
+            {% if event.location %}
+            <b>{{ event.location }}</b>
+            <br>
+            {% endif %}
             {% for location in event._assignments['locations'] %}
               {{ location }}<br>
             {% endfor %}
@@ -60,6 +72,9 @@
         <td>
           <a href="{{ url('manage:event_assignment', event.pk) }}" class="btn btn-default btn-xs">
             <i class="glyphicon glyphicon-edit"></i> Edit assignments
+          </a>
+          <a href="{{ url('manage:event_edit', event.pk) }}" class="btn btn-default btn-xs">
+            <i class="glyphicon glyphicon-edit"></i> Edit event
           </a>
         </td>
       </tr>

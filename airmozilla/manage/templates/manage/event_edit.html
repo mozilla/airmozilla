@@ -215,6 +215,9 @@
           No assignments set up
         {% endif %}
       </a>
+      {% if event.location %}
+      <br><small>(default location: {{ event.location }})</small>
+      {% endif %}
     </p>
   </div>
 </div>
