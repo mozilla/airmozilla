@@ -201,10 +201,11 @@ def is_employee(user):
     cache_key = 'is-employee-%s' % user.pk
     is_ = cache.get(cache_key)
     if is_ is None:
-        is_ = (
-            user.email.endswith('@mozilla.com') or
-            user.email.endswith('@mozillafoundation.org')
-        )
+        is_ = False
+        for bid in settings.ALLOWED_BID:
+            if user.email.endswith('@%s' % bid):
+                is_ = True
+                break
         cache.set(cache_key, is_, 60 * 60)
     return is_
 
@@ -355,7 +356,10 @@ class EventView(View):
         })
 
         if event.pin:
-            if not is_employee(request.user):
+            if (
+                not request.user.is_authenticated() or
+                not is_employee(request.user)
+            ):
                 entered_pins = request.session.get('entered_pins', [])
                 if event.pin not in entered_pins:
                     self.template_name = 'main/event_requires_pin.html'

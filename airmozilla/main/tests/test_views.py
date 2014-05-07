@@ -98,6 +98,18 @@ class TestPages(TestCase):
         )
         ok_(is_contributor(contributor))
 
+    def test_is_employee(self):
+        from airmozilla.main.views import is_employee
+        user = User.objects.create(username='a', email='some@crack.com')
+        ok_(not is_employee(user))
+
+        from random import choice
+        user = User.objects.create(
+            username='b',
+            email='foo@' + choice(settings.ALLOWED_BID)
+        )
+        ok_(is_employee(user))
+
     def test_can_view_event(self):
         event = Event.objects.get(title='Test event')
         assert event.privacy == Event.PRIVACY_PUBLIC  # default
@@ -191,6 +203,27 @@ class TestPages(TestCase):
         ok_('id="id_pin"' in response.content)
         ok_('Incorrect pin' in response.content)
 
+        response = self.client.post(url, {'pin': ' 12345 '})
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, url)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.description in response.content)
+        ok_('id="id_pin"' not in response.content)
+
+    def test_view_public_event_with_pin(self):
+        event = Event.objects.get(title='Test event')
+        event.privacy = Event.PRIVACY_PUBLIC
+        event.description = "My Event Description"
+        event.pin = '12345'
+        event.save()
+        url = reverse('main:event', args=(event.slug,))
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # expect the pin input to be there
+        ok_('id="id_pin"' in response.content)
         response = self.client.post(url, {'pin': ' 12345 '})
         eq_(response.status_code, 302)
         self.assertRedirects(response, url)
