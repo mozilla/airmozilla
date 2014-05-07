@@ -88,7 +88,8 @@ function EventManagerController($scope, $http) {
                 $scope.search_archived ||
                 $scope.search_status ||
                 $scope.search_start_time ||
-                $scope.search_privacy);
+                $scope.search_privacy ||
+                $scope.search_only);
     };
     $scope.clearFilter = function() {
         $scope.search_title = '';
@@ -98,6 +99,7 @@ function EventManagerController($scope, $http) {
         $scope.search_status = '';
         $scope.search_privacy = '';
         $scope.search_start_time = '';
+        $scope.search_only = '';
     };
 
     $scope.search_title = '';
@@ -132,6 +134,7 @@ function EventManagerController($scope, $http) {
     $scope.search_privacy = '';
     $scope.search_start_time = '';
     $scope.search_archived = '';
+    $scope.search_only = '';
 
     $scope.$watch('search_status', function() {
         $scope.currentPage = 0;
@@ -143,6 +146,9 @@ function EventManagerController($scope, $http) {
         $scope.currentPage = 0;
     });
     $scope.$watch('search_archived', function() {
+        $scope.currentPage = 0;
+    });
+    $scope.$watch('search_only', function() {
         $scope.currentPage = 0;
     });
 
@@ -203,6 +209,17 @@ function EventManagerController($scope, $http) {
                 }
             }
         }
+        if ($scope.search_only) {
+            if ($scope.search_only === 'upcoming') {
+                return !!event.is_upcoming;
+            } else if ($scope.search_only === 'needs_approval') {
+                return !!event.needs_approval;
+            } else if ($scope.search_only === 'live') {
+                return !!event.is_live;
+            } else {
+                console.warn('Unrecognized option', $scope.search_only);
+            }
+        }
         return true;
     };
     var search_start_times = [];
@@ -221,6 +238,13 @@ function EventManagerController($scope, $http) {
     };
     $scope.selectSearchPrivacy = function(privacy) {
         $scope.search_privacy = privacy;
+    };
+    $scope.selectSearchOnly = function(only) {
+        if (only === $scope.search_only) {
+            $scope.search_only = '';
+        } else {
+            $scope.search_only = only;
+        }
     };
     /* End filtering */
 

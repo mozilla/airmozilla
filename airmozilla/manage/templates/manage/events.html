@@ -45,7 +45,15 @@
     <thead>
       <tr>
         <th style="width: 50px" title="Number of events found">{{ filtered_items.length }}</th>
-        <th>Title</th>
+        <th>Title
+
+          <span class="badge" title="Only events that are currently live"
+           ng-class="{active: search_only==='live'}" ng-click="selectSearchOnly('live')">L</span>
+          <span class="badge" title="Only events that need approval"
+           ng-class="{active: search_only==='needs_approval'}" ng-click="selectSearchOnly('needs_approval')">A</span>
+          <span class="badge" title="Only events that are upcoming"
+           ng-class="{active: search_only==='upcoming'}" ng-click="selectSearchOnly('upcoming')">U</span>
+        </th>
         <th style="width: 14%">Location</th>
         <th style="width: 190px">Start time</th>
         <th style="width: 190px">Archive time</th>

@@ -18,3 +18,16 @@ option.select-label {
 .table-options div {
     display: inline;
 }
+
+th .badge {
+    float: right;
+    margin-left: 3px;
+}
+
+span[ng-click] {
+    cursor: pointer;
+}
+
+span.badge.active {
+    background-color: black;
+}
