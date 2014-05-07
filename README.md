@@ -204,6 +204,17 @@ To see the tests' code coverage, use:
 
 Then, when it completes, open the file `./cover/index.html`.
 
+You can run tests with any level of granularity:
+To run a specific file, use:
+``./manage.py test -s -x airmozilla/manage/tests/test_forms.py``
+
+To run a specific test case class in a file:
+``./manage.py test -s -x airmozilla/manage/tests/test_forms.py:SomeTestCaseClass``
+
+To run a specific test in a class in a specific file:
+``./manage.py test -s -x airmozilla/manage/tests/test_forms.py:SomeTestCaseClass.test_some_function``
+
+The -s makes it so that any print statements aren't swallowed if tests pass. The -x means it bails as soon as 1 test fails.
 
 Troubleshooting
 --------------
