@@ -37,7 +37,8 @@ from airmozilla.main.models import (
     EventHitStats,
     UserProfile,
     CuratedGroup,
-    EventAssignment
+    EventAssignment,
+    LocationDefaultEnvironment
 )
 from airmozilla.comments.models import (
     Discussion,
@@ -2075,6 +2076,49 @@ class TestLocations(ManageTestCase):
         })
         eq_(response_fail.status_code, 200)
 
+    def test_location_edit_default_environment(self):
+        location = Location.objects.get(id=1)
+        url = reverse('manage:location_edit', kwargs={'id': location.id})
+        # suppose you try to submit a new LocationDefaultEnvironment
+        template = Template.objects.create(name='My Template')
+        response = self.client.post(url, {
+            'default': 1,
+            'privacy': Event.PRIVACY_PUBLIC,
+            'template': template.pk
+        })
+        ok_('This field is required')
+        eq_(response.status_code, 200)
+        response = self.client.post(url, {
+            'default': 1,
+            'privacy': Event.PRIVACY_PUBLIC,
+            'template': template.pk,
+            'template_environment': 'foo=bar\nbaz=fuzz'
+        })
+        eq_(response.status_code, 302)
+
+        default = LocationDefaultEnvironment.objects.get(location=location)
+        eq_(default.privacy, Event.PRIVACY_PUBLIC)
+        eq_(default.template, template)
+        eq_(default.template_environment, {'foo': 'bar', 'baz': 'fuzz'})
+
+        # you can't create another one with only
+        # different template_environment
+        response = self.client.post(url, {
+            'default': 1,
+            'privacy': Event.PRIVACY_PUBLIC,
+            'template': template.pk,
+            'template_environment': 'diff=erent'
+        })
+        eq_(response.status_code, 302)
+        eq_(LocationDefaultEnvironment.objects.all().count(), 1)
+
+        # and now delete it
+        response = self.client.post(url, {
+            'delete': default.pk,
+        })
+        eq_(response.status_code, 302)
+        eq_(LocationDefaultEnvironment.objects.all().count(), 0)
+
     def test_location_timezone(self):
         """Test timezone-ajax autofill."""
         url = reverse('manage:location_timezone')
@@ -2692,6 +2736,61 @@ class TestSuggestions(ManageTestCase):
         )
         real = Event.objects.get(title=event.title)
         eq_(real.status, Event.STATUS_PENDING)
+
+    def test_approve_suggested_event_with_default_template_environment(self):
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        location = Location.objects.get(id=1)
+        template = Template.objects.create(name='My Template')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        channel = Channel.objects.create(name='CHANNEL')
+
+        LocationDefaultEnvironment.objects.create(
+            location=location,
+            privacy=Event.PRIVACY_COMPANY,
+            template=template,
+            template_environment={'pri': 'vate'}
+        )
+        # and another one to make it slightly more challening
+        LocationDefaultEnvironment.objects.create(
+            location=location,
+            privacy=Event.PRIVACY_PUBLIC,
+            template=template,
+            template_environment={'pub': 'lic'}
+        )
+
+        # create a suggested event that has everything filled in
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE' * 10,
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_COMPANY,
+            #call_info='CALL INFO',
+            additional_links='ADDITIONAL LINKS',
+            remote_presenters='RICHARD & ZANDR',
+            submitted=now,
+            first_submitted=now,
+            popcorn_url='https://',
+            upcoming=True,
+        )
+        event.channels.add(channel)
+
+        url = reverse('manage:suggestion_review', args=(event.pk,))
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+        real = Event.objects.get(title=event.title)
+        self.assertRedirects(
+            response,
+            reverse('manage:event_edit', args=(real.pk,))
+        )
+        real = Event.objects.get(title=event.title)
+        eq_(real.template, template)
+        eq_(real.template_environment, {'pri': 'vate'})
 
     def test_approved_suggested_popcorn_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')

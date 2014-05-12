@@ -588,3 +588,17 @@ def update_modified(sender, instance, raw, *args, **kwargs):
     if raw:
         return
     instance.modified = _get_now()
+
+
+class LocationDefaultEnvironment(models.Model):
+    location = models.ForeignKey(Location)
+    privacy = models.CharField(max_length=40, choices=Event.PRIVACY_CHOICES,
+                               default=Event.PRIVACY_PUBLIC)
+    template = models.ForeignKey(Template)
+    template_environment = EnvironmentField(
+        help_text='Specify the template variables in the format'
+        '<code>variable1=value</code>, one per line.'
+    )
+
+    class Meta:
+        unique_together = ('location', 'privacy', 'template')

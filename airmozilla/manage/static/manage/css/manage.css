@@ -120,7 +120,12 @@ p.logged-in {
     color: #999;
 }
 
-
+/* Django uses the word "error" but bootstrap uses "danger" so copy that */
+.alert-error {
+    color: #A94442;
+    background-color: #F2DEDE;
+    border-color: #EBCCD1;
+}
 
 .sidebar {
     margin: 20px 40px;

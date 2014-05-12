@@ -57,7 +57,8 @@ from airmozilla.main.models import (
     URLTransform,
     EventHitStats,
     CuratedGroup,
-    EventAssignment
+    EventAssignment,
+    LocationDefaultEnvironment
 )
 from airmozilla.main.views import is_contributor
 from airmozilla.manage import forms
@@ -1248,8 +1249,17 @@ def locations(request):
 @cancel_redirect('manage:locations')
 @transaction.commit_on_success
 def location_edit(request, id):
-    location = Location.objects.get(id=id)
-    if request.method == 'POST':
+    location = get_object_or_404(Location, id=id)
+
+    if request.method == 'POST' and request.POST.get('delete'):
+        LocationDefaultEnvironment.objects.get(
+            id=request.POST.get('delete'),
+            location=location
+        ).delete()
+        messages.info(request, 'Configuration deleted.')
+        return redirect('manage:location_edit', location.id)
+
+    if request.method == 'POST' and not request.POST.get('default'):
         form = forms.LocationEditForm(request.POST, instance=location)
         if form.is_valid():
             form.save()
@@ -1257,10 +1267,62 @@ def location_edit(request, id):
             return redirect('manage:locations')
     else:
         form = forms.LocationEditForm(instance=location)
-    return render(request, 'manage/location_edit.html', {'form': form,
-                                                         'location': location})
+
+    if request.method == 'POST' and request.POST.get('default'):
+
+        default_environment_form = forms.LocationDefaultEnvironmentForm(
+            request.POST
+        )
+        if default_environment_form.is_valid():
+            fc = default_environment_form.cleaned_data
+            try:
+                LocationDefaultEnvironment.objects.get(
+                    location=location,
+                    privacy=fc['privacy'],
+                    template=fc['template']
+                )
+                # a problem!
+                messages.error(
+                    request,
+                    'A combination of %s and %s for this location already '
+                    'exists.' % (fc['privacy'], fc['template'])
+                )
+            except LocationDefaultEnvironment.DoesNotExist:
+                # good!
+                LocationDefaultEnvironment.objects.create(
+                    location=location,
+                    privacy=fc['privacy'],
+                    template=fc['template'],
+                    template_environment=fc['template_environment']
+                )
+
+                messages.info(request, 'Default location environment saved.')
+            return redirect('manage:location_edit', location.id)
+    else:
+        default_environment_form = forms.LocationDefaultEnvironmentForm()
+
+    context = {
+        'form': form,
+        'location': location,
+        'default_environment_form': default_environment_form
+    }
+
+    context['location_default_environments'] = (
+        LocationDefaultEnvironment.objects
+        .filter(location=location).order_by('privacy', 'template')
+    )
+
+    return render(request, 'manage/location_edit.html', context)
 
 
+# @staff_required
+# @permission_required('main.change_location')
+# @cancel_redirect(lambda r, id: reverse('manage:location_edit', args=(id,)))
+# @transaction.commit_on_success
+# def location_default_environment(request, id):
+#     location = get_object_or_404(Location, id=id)
+#     raise NotImplementedError
+#
 @staff_required
 @permission_required('main.add_location')
 @cancel_redirect('manage:home')
@@ -1575,7 +1637,25 @@ def suggestion_review(request, id):
                     real.creator = request.user
                     if real.popcorn_url and not event.upcoming:
                         real.archive_time = real.start_time
-                    if not event.upcoming:
+                    if event.upcoming:
+                        # perhaps we have a default location template
+                        # environment
+                        if real.location:
+                            try:
+                                default = (
+                                    LocationDefaultEnvironment.objects
+                                    .get(
+                                        location=real.location,
+                                        privacy=real.privacy
+                                    )
+                                )
+                                real.template = default.template
+                                real.template_environment = (
+                                    default.template_environment
+                                )
+                            except LocationDefaultEnvironment.DoesNotExist:
+                                pass
+                    else:
                         real.status = Event.STATUS_PENDING
                     real.save()
                     [real.tags.add(x) for x in event.tags.all()]

@@ -24,7 +24,8 @@ from airmozilla.main.models import (
     SuggestedEvent,
     SuggestedEventComment,
     URLMatch,
-    EventAssignment
+    EventAssignment,
+    LocationDefaultEnvironment
 )
 from airmozilla.comments.models import Discussion, Comment
 
@@ -392,6 +393,13 @@ class LocationEditForm(BaseModelForm):
 
     class Meta:
         model = Location
+
+
+class LocationDefaultEnvironmentForm(BaseModelForm):
+
+    class Meta:
+        model = LocationDefaultEnvironment
+        fields = ('privacy', 'template', 'template_environment')
 
 
 class ApprovalForm(BaseModelForm):
