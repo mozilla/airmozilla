@@ -8,16 +8,16 @@
 {% block site_css %}
   {{ super() }}
   {% compress css %}
-  <link href="{{ static('manage/css/select2.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ static('manage/css/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('select2/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('select2/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
+  <script src="{{ static('select2/select2.min.js') }}"></script>
   {% compress js %}
-    <script src="{{ static('manage/js/select2.min.js') }}"></script>
-    <script src="{{ static('manage/js/discussion-configuration.js') }}"></script>
+  <script src="{{ static('manage/js/discussion-configuration.js') }}"></script>
   {% endcompress %}
 {% endblock %}
 

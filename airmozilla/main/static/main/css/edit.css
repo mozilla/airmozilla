@@ -1,0 +1,38 @@
+.main form input[type="text"],
+.main form textarea {
+    width: 100%;
+}
+.main form textarea {
+    height: 140px;
+}
+
+button.btn-primary {
+    font-weight: bold;
+}
+
+.form-group {
+    margin-bottom: 28px;
+
+}
+
+.saving {
+    display: none;
+}
+
+.has-error label {
+    color: #B94A48;
+    font-weight: bold;
+
+}
+.has-error .help-block {
+    font-size: 80%;
+    color: #B94A48;
+}
+
+.form-group .existing-picture {
+    float: right;
+}
+
+ul.conflict-errors li {
+    margin-left: 20px;
+}

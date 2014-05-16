@@ -55,4 +55,15 @@ urlpatterns = patterns(
         name='event_video'),
     url(r'^(?P<slug>[-\w]+)/permission-denied/$', views.permission_denied,
         name='permission_denied'),
+    url(r'^(?P<slug>[-\w]+)/edit/$', views.EventEditView.as_view(),
+        name='event_edit'),
+    url(r'^(?P<slug>[-\w]+)/(?P<id>\d+)/change/$',
+        views.EventRevisionView.as_view(),
+        name='event_change'),
+    url(r'^(?P<slug>[-\w]+)/(?P<id>\d+)/difference/$',
+        views.EventRevisionView.as_view(difference=True),
+        name='event_difference'),
+
+
+
 )

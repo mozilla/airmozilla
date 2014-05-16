@@ -1,3 +1,4 @@
+import os
 import datetime
 import httplib
 import json
@@ -10,10 +11,10 @@ import time
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser
 from django.contrib.sites.models import Site
-from django.test import TestCase
 from django.utils.timezone import utc
 from django.conf import settings
 from django.core.cache import cache
+from django.core.files import File
 
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
@@ -30,7 +31,8 @@ from airmozilla.main.models import (
     Location,
     Template,
     EventHitStats,
-    CuratedGroup
+    CuratedGroup,
+    EventRevision
 )
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -38,9 +40,10 @@ from airmozilla.base.tests.test_mozillians import (
     GROUPS2,
     VOUCHED_FOR
 )
+from airmozilla.base.tests.testbase import DjangoTestCase
 
 
-class TestPages(TestCase):
+class TestPages(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def setUp(self):
@@ -2083,3 +2086,534 @@ class TestPages(TestCase):
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
+
+
+class TestEventEdit(DjangoTestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    main_image = 'airmozilla/manage/tests/firefox.png'
+    other_image = 'airmozilla/manage/tests/other_logo.png'
+    third_image = 'airmozilla/manage/tests/other_logo_reversed.png'
+
+    def _login(self):
+        user = User.objects.create_user(
+            'mary', 'mary@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='mary', password='secret')
+        return user
+
+    def _event_to_dict(self, event):
+        from airmozilla.main.views import EventEditView
+        return EventEditView.event_to_dict(event)
+
+    def _attach_file(self, event, image):
+        with open(image, 'rb') as f:
+            img = File(f)
+            event.placeholder_img.save(os.path.basename(image), img)
+            assert os.path.isfile(event.placeholder_img.path)
+
+    def test_link_to_edit(self):
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(reverse('main:event', args=(event.slug,)))
+        eq_(response.status_code, 200)
+
+        url = reverse('main:event_edit', args=(event.slug,))
+        ok_(url not in response.content)
+        self._login()
+        response = self.client.get(reverse('main:event', args=(event.slug,)))
+        eq_(response.status_code, 200)
+        ok_(url in response.content)
+
+    def test_cant_view(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('main:event_edit', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        response = self.client.post(url, {})
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+
+    def test_edit_title(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+
+        user = self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        data = {
+            'previous': previous,
+            'title': 'Different title',
+            'short_description': event.short_description,
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        # this should have created 2 EventRevision objects.
+        initial, current = EventRevision.objects.all().order_by('created')
+        eq_(initial.event, event)
+        eq_(current.event, event)
+        eq_(initial.user, None)
+        eq_(current.user, user)
+
+        eq_(initial.title, 'Test event')
+        eq_(current.title, 'Different title')
+        # reload the event
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.title, 'Different title')
+
+    def test_edit_nothing(self):
+        """basically pressing save without changing anything"""
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        data = {
+            'previous': previous,
+            'title': event.title,
+            'short_description': event.short_description,
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        self._login()
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        ok_(not EventRevision.objects.all())
+
+    def test_bad_edit_title(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+        self._login()
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        data = {
+            'previous': previous,
+            'title': '',
+            'short_description': event.short_description,
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('This field is required' in response.content)
+
+    def test_edit_on_bad_url(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=('xxx',))
+
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        old_slug = event.slug
+        event.slug = 'new-slug'
+        event.save()
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+        data = {
+            'previous': previous,
+            'title': event.title,
+            'short_description': event.short_description,
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()]
+        }
+
+        url = reverse('main:event_edit', args=(old_slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+
+        url = reverse('main:event_edit', args=(event.slug,))
+        response = self.client.get(url)
+        # because you're not allowed to view it
+        eq_(response.status_code, 302)
+
+        url = reverse('main:event_edit', args=(event.slug,))
+        response = self.client.post(url, data)
+        # because you're not allowed to view it, still
+        eq_(response.status_code, 302)
+
+    def test_edit_all_simple_fields(self):
+        """similar to test_edit_title() but changing all fields
+        other than the placeholder_img
+        """
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        assert event.tags.all()
+        assert event.channels.all()
+        url = reverse('main:event_edit', args=(event.slug,))
+        self._login()
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        new_channel = Channel.objects.create(
+            name='New Stuff',
+            slug='new-stuff'
+        )
+        new_channel2 = Channel.objects.create(
+            name='New Stuff II',
+            slug='new-stuff-2'
+        )
+        data = {
+            'previous': previous,
+            'title': 'Different title',
+            'short_description': 'new short description',
+            'description': 'new description',
+            'additional_links': 'new additional_links',
+            'tags': 'newtag',
+            'channels': [new_channel.pk, new_channel2.pk]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        # this should have created 2 EventRevision objects.
+        initial, current = EventRevision.objects.all().order_by('created')
+        eq_(initial.event, event)
+        eq_(initial.title, 'Test event')
+        eq_(current.title, 'Different title')
+        # reload the event
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.title, 'Different title')
+        eq_(event.description, 'new description')
+        eq_(event.short_description, 'new short description')
+        eq_(event.additional_links, 'new additional_links')
+        eq_(
+            sorted(x.name for x in event.tags.all()),
+            ['newtag']
+        )
+        eq_(
+            sorted(x.name for x in event.channels.all()),
+            ['New Stuff', 'New Stuff II']
+        )
+
+    def test_edit_placeholder_img(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+        self._login()
+
+        old_placeholder_img_path = event.placeholder_img.path
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        with open(self.other_image) as fp:
+            data = {
+                'previous': previous,
+                'title': event.title,
+                'short_description': event.short_description,
+                'description': event.description,
+                'additional_links': event.additional_links,
+                'tags': ', '.join(x.name for x in event.tags.all()),
+                'channels': [x.pk for x in event.channels.all()],
+                'placeholder_img': fp,
+            }
+            response = self.client.post(url, data)
+            eq_(response.status_code, 302)
+            self.assertRedirects(
+                response,
+                reverse('main:event', args=(event.slug,))
+            )
+        # this should have created 2 EventRevision objects.
+        initial, current = EventRevision.objects.all().order_by('created')
+        ok_(initial.placeholder_img)
+        ok_(current.placeholder_img)
+        # reload the event
+        event = Event.objects.get(pk=event.pk)
+        new_placeholder_img_path = event.placeholder_img.path
+        ok_(old_placeholder_img_path != new_placeholder_img_path)
+        ok_(os.path.isfile(old_placeholder_img_path))
+        ok_(os.path.isfile(new_placeholder_img_path))
+
+    def test_edit_conflict(self):
+        """You can't edit the title if someone else edited it since the
+        'previous' JSON dump was taken."""
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+        self._login()
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        event.title = 'Sneak Edit'
+        event.save()
+
+        data = {
+            'previous': previous,
+            'title': 'Different title',
+            'short_description': event.short_description,
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('Conflict error!' in response.content)
+
+    def test_edit_conflict_on_placeholder_img(self):
+        """You can't edit the title if someone else edited it since the
+        'previous' JSON dump was taken."""
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+        self._login()
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        self._attach_file(event, self.other_image)
+
+        with open(self.third_image) as fp:
+            data = {
+                'previous': previous,
+                'title': event.title,
+                'short_description': event.short_description,
+                'description': event.description,
+                'additional_links': event.additional_links,
+                'tags': ', '.join(x.name for x in event.tags.all()),
+                'channels': [x.pk for x in event.channels.all()],
+                'placeholder_img': fp
+            }
+            response = self.client.post(url, data)
+            eq_(response.status_code, 200)
+            ok_('Conflict error!' in response.content)
+
+    def test_edit_conflict_near_miss(self):
+        """If the event changes between the time you load the edit page
+        and you pressing 'Save' it shouldn't be a problem as long as
+        you're changing something different."""
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+        self._login()
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        event.title = 'Sneak Edit'
+        event.save()
+
+        data = {
+            'previous': previous,
+            'title': 'Test event',
+            'short_description': 'new short description',
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.title, 'Sneak Edit')
+        eq_(event.short_description, 'new short description')
+
+    def test_view_revision_change_links(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+        user = self._login()
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        data = {
+            'previous': previous,
+            'title': 'Test event',
+            'short_description': 'new short description',
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        eq_(EventRevision.objects.filter(event=event).count(), 2)
+        base_revision = EventRevision.objects.get(
+            event=event,
+            user__isnull=True
+        )
+        user_revision = EventRevision.objects.get(
+            event=event,
+            user=user
+        )
+
+        # reload the event edit page
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # because there's no difference between this and the event now
+        # we should NOT have a link to see the difference for the user_revision
+        ok_(
+            reverse('main:event_difference',
+                    args=(event.slug, user_revision.pk))
+            not in response.content
+        )
+        # but there should be a link to the change
+        ok_(
+            reverse('main:event_change',
+                    args=(event.slug, user_revision.pk))
+            in response.content
+        )
+        # since the base revision doesn't have any changes there shouldn't
+        # be a link to it
+        ok_(
+            reverse('main:event_change',
+                    args=(event.slug, base_revision.pk))
+            not in response.content
+        )
+        # but there should be a link to the change
+        ok_(
+            reverse('main:event_difference',
+                    args=(event.slug, base_revision.pk))
+            in response.content
+        )
+
+    def test_cant_view_all_revision_changes(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+
+        # base revision
+        base_revision = EventRevision.objects.create_from_event(event)
+
+        # change the event without saving so we can make a new revision
+        event.title = 'Different title'
+        user = User.objects.create_user(
+            'mary', 'mary@mozilla.com', 'secret'
+        )
+        user_revision = EventRevision.objects.create_from_event(
+            event,
+            user=user
+        )
+        change_url = reverse(
+            'main:event_change',
+            args=(event.slug, user_revision.pk)
+        )
+        difference_url = reverse(
+            'main:event_difference',
+            args=(event.slug, base_revision.pk)
+        )
+        # you're not allowed to view these if you're not signed in
+        response = self.client.get(change_url)
+        eq_(response.status_code, 302)
+
+        response = self.client.get(difference_url)
+        eq_(response.status_code, 302)
+
+    def test_view_revision_change(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+
+        # base revision
+        base_revision = EventRevision.objects.create_from_event(event)
+
+        # change the event without saving so we can make a new revision
+        event.title = 'Different title'
+        event.description = 'New description'
+        event.short_description = 'New short description'
+        event.additional_links = 'New additional links'
+        event.save()
+        user = User.objects.create_user(
+            'bob', 'bob@mozilla.com', 'secret'
+        )
+        user_revision = EventRevision.objects.create_from_event(
+            event,
+            user=user
+        )
+        user_revision.tags.add(Tag.objects.create(name='newtag'))
+        user_revision.channels.remove(Channel.objects.get(name='Main'))
+        user_revision.channels.add(
+            Channel.objects.create(name='Web dev', slug='webdev')
+        )
+        with open(self.other_image, 'rb') as f:
+            img = File(f)
+            user_revision.placeholder_img.save(
+                os.path.basename(self.other_image),
+                img
+            )
+
+        # view the change
+        url = reverse('main:event_change', args=(event.slug, user_revision.pk))
+        self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Different title' in response.content)
+        ok_('New description' in response.content)
+        ok_('New short description' in response.content)
+        ok_('New additional links' in response.content)
+        ok_('Web dev' in response.content)
+        ok_('newtag, testing' in response.content)
+
+        event.tags.add(Tag.objects.create(name='newtag'))
+        event.channels.remove(Channel.objects.get(name='Main'))
+        event.channels.add(
+            Channel.objects.get(name='Web dev')
+        )
+
+        # view the difference
+        url = reverse(
+            'main:event_difference',
+            args=(event.slug, base_revision.pk))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Different title' in response.content)
+        ok_('New description' in response.content)
+        ok_('New short description' in response.content)
+        ok_('New additional links' in response.content)
+        ok_('Web dev' in response.content)
+        ok_('newtag, testing' in response.content)

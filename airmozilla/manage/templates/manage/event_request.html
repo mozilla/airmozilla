@@ -3,6 +3,17 @@
     {% set page = "erequest" %}
 {% endif %}
 
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('select2/select2.min.js') }}"></script>
+  <script src="{{ static('manage/js/jquery-ui-1.10.1.custom.min.js') }}"></script>
+  {% compress js %}
+    <script src="{{ static('manage/js/jquery-ui-timepicker-addon.js') }}"></script>
+    <script src="{{ static('manage/js/event-request.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
 {% block manage_title %}
   {% if duplicate_event %}
     Duplicating event "{{ duplicate_event.title }}"
@@ -14,10 +25,10 @@
 {% block site_css %}
   {{ super() }}
   {% compress css %}
-  <link href="{{ static('manage/css/select2.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ static('manage/css/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ static('manage/css/jquery-ui-1.10.1.custom.min.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('select2/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('select2/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
+  <link href="{{ static('manage/css/jquery-ui-1.10.1.custom.min.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block content_class %}col-md-6{% endblock %}
@@ -25,14 +36,4 @@
 {% block manage_content %}
   {% set submit_text = 'Save and Submit' %}
   {% include 'manage/_default_form_upload.html' %}
-{% endblock %}
-
-{% block site_js %}
-  {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/select2.min.js') }}"></script>
-    <script src="{{ static('manage/js/jquery-ui-1.10.1.custom.min.js') }}"></script>
-    <script src="{{ static('manage/js/jquery-ui-timepicker-addon.js') }}"></script>
-    <script src="{{ static('manage/js/event-request.js') }}"></script>
-  {% endcompress %}
 {% endblock %}

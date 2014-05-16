@@ -2,6 +2,8 @@ import locale
 import time
 import datetime
 import urllib
+import json
+
 import jinja2
 
 from django.utils.text import Truncator
@@ -116,3 +118,8 @@ def pluralize(value, form='s'):
     if value != 1:
         return form
     return ''
+
+
+@register.filter
+def json_print(value):
+    return jinja2.Markup(json.dumps(value))

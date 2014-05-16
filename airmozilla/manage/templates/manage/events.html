@@ -32,11 +32,11 @@
     {% include "manage/_angular_pagesize.html" %}
   </div>
   <p ng-if="first_loading" class="first-loading">
-    <img src="{{ static('manage/img/spinner.gif') }}">
+    <img src="{{ static('img/spinner.gif') }}">
     <span class="blinking">Loading some events...</span>
   </p>
   <p ng-if="second_loading" class="second-loading">
-    <img src="{{ static('manage/img/spinner.gif') }}">
+    <img src="{{ static('img/spinner.gif') }}">
     <span class="blinking">Loading all remaining events...</span>
   </p>
   {% raw %}

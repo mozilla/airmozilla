@@ -374,6 +374,47 @@ def reset_most_recent_event(sender, instance, *args, **kwargs):
     cache.delete(cache_key)
 
 
+class EventRevisionManager(models.Manager):
+
+    def create_from_event(self, event, user=None):
+        revision = self.create(
+            event=event,
+            user=user,
+            title=event.title,
+            placeholder_img=event.placeholder_img,
+            description=event.description,
+            short_description=event.short_description,
+            call_info=event.call_info,
+            additional_links=event.additional_links,
+        )
+        for channel in event.channels.all():
+            revision.channels.add(channel)
+        for tag in event.tags.all():
+            revision.tags.add(tag)
+        return revision
+
+
+class EventRevision(models.Model):
+    event = models.ForeignKey(Event)
+    user = models.ForeignKey(User, null=True)
+    title = models.CharField(max_length=200)
+    placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
+    description = models.TextField()
+    short_description = models.TextField(
+        blank=True,
+        help_text='If not provided, this will be filled in by the first '
+        'words of the full description.'
+    )
+    channels = models.ManyToManyField(Channel)
+    tags = models.ManyToManyField(Tag, blank=True)
+    call_info = models.TextField(blank=True)
+    additional_links = models.TextField(blank=True)
+
+    created = models.DateTimeField(default=_get_now)
+
+    objects = EventRevisionManager()
+
+
 class EventAssignment(models.Model):
 
     event = models.ForeignKey(Event, unique=True)

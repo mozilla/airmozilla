@@ -40,6 +40,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 
 {% block content_main %}
   <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
+
     {% if warning %}
       <div class="warning">Warning: {{ warning }}</div>
     {% endif %}
@@ -48,16 +49,23 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
         {{ event.title }}
       </h1>
       {% include 'main/_event_privacy.html' %}
-      {% if can_edit_event %}
-      <p class="entry-edit-shortcut">
-        <a href="{{ url('manage:event_edit', event.pk) }}" title="Shortcut to edit this event">Edit event &raquo;</a>
-      </p>
+      {% if can_manage_edit_event or can_edit_event %}
+        <p class="entry-edit-shortcut">
+          {% if can_manage_edit_event %}
+          <a href="{{ url('manage:event_edit', event.pk) }}" title="Shortcut to edit this event">Producer edit event &raquo;</a><br>
+          {% endif %}
+          {% if can_edit_event %}
+          <a href="{{ url('main:event_edit', event.slug) }}"
+             title="Click to edit any of the meta data about this event">Edit event data &raquo;</a>
+          {% endif %}
+        </p>
       {% endif %}
+
       <p>
       {% if not pending %}
       <h2 class="event-date">
         {{ event.start_time|js_date }}
-	{% if event.is_upcoming() %}
+	      {% if event.is_upcoming() %}
           &mdash;
           {{ event.location_time.strftime("%I:%M%p") }} in {{ event.location.name }}
         {% endif %}
@@ -85,7 +93,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
         </p>
       {% else %}
         {% if video %}
-          {{ video|safe }}
+           {{ video|safe }}
         {% else %}
           {% set thumb = thumbnail(event.placeholder_img, '120x120') %}
           <img src="{{ thumb.url }}" width="{{ thumb.width }}"
@@ -108,8 +116,9 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
       {% endif %}
       {% if event.additional_links %}
         <p>{{ _('Additional links') }}:<br>
-	{{ event.additional_links|urlize|nl2br }}</p>
+	         {{ event.additional_links|urlize|nl2br }}</p>
       {% endif %}
+
       {% if hits %}
         <p>{{ _('Views since archived') }}: {{ thousands(hits) }}</p>
       {% endif %}

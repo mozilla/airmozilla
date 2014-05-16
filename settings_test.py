@@ -37,3 +37,6 @@ AWS_ACCESS_KEY_ID = AWS_SECRET_ACCESS_KEY = 'something'
 EDGECAST_SECURE_KEY = 'soemthing'
 
 BROWSERID_AUDIENCES = ['http://testserver']
+
+import tempfile
+MEDIA_ROOT = tempfile.mkdtemp(prefix='testmedia')

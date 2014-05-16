@@ -1,7 +1,8 @@
 import datetime
 
 from django import forms
-from airmozilla.base.forms import BaseForm
+from airmozilla.base.forms import BaseModelForm, BaseForm
+from airmozilla.main.models import EventRevision
 
 
 class CalendarDataForm(BaseForm):
@@ -49,3 +50,17 @@ class PinForm(BaseForm):
         if value != self.instance.pin:
             raise forms.ValidationError("Incorrect pin")
         return value
+
+
+class EventEditForm(BaseModelForm):
+
+    tags = forms.CharField(required=False)
+
+    class Meta:
+        model = EventRevision
+        exclude = ('event', 'user', 'created', 'change')
+
+    def __init__(self, *args, **kwargs):
+        super(EventEditForm, self).__init__(*args, **kwargs)
+        self.fields['placeholder_img'].required = False
+        self.fields['channels'].help_text = ""

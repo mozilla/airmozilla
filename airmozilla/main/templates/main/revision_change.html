@@ -1,0 +1,77 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+{% if difference %}
+Difference between this revision and the event.
+{% else %}
+Changes made just in this revision.
+{% endif %}
+{% endblock %}
+
+{% block site_css %}
+{{ super() }}
+<style>
+div.change {
+    margin-top: 25px;
+}
+div.change label {
+    border-bottom: 1px solid #999;
+}
+.change-from, .change-to { color: #333; margin: 5px; }
+.change-from { background-color: #FDD; }
+.change-to { background-color: #DFD; }
+</style>
+{% endblock %}
+
+{% block site_js %}
+{{ super() }}
+{% endblock %}
+
+{% block content_main %}
+  <article class="post type-post status-publish format-standard hentry no-author no-comments">
+    <h3>
+      {% if difference %}
+      Difference between this revision and the event.
+      {% else %}
+      Changes made just in this revision.
+      {% endif %}
+    </h3>
+    <h5>
+      By <a href="mailto:{{ revision.user.email }}">{{ revision.user.email }}</a>
+      {{ revision.created | js_date }}
+    </h5>
+    <p>
+      <a href="{{ url('main:event_edit', event.slug) }}">&laquo; Go back to edit event</a>
+    </p>
+
+
+    {% for difference in differences %}
+    <div class="change form-group">
+      <label>{{ difference.label }}</label>
+      {% if difference.key == 'placeholder_img' %}
+        {% if difference.before %}
+        <div class="change-from" style="text-align: center">
+          {% set thumb = thumbnail(difference.before, '68x68', crop='center') %}
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+               alt="Previous image">
+        </div>
+        {% endif %}
+        <div class="change-to" style="text-align: center">
+          {% set thumb = thumbnail(difference.after, '68x68', crop='center') %}
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+               alt="New image">
+        </div>
+
+      {% else %}
+      <div class="change-from">
+        {{ difference.before }}
+      </div>
+      <div class="change-to">
+        {{ difference.after }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+  </article>
+{% endblock %}

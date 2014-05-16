@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import json
 import urllib
 
 from django import http
@@ -12,11 +13,13 @@ from django.contrib.syndication.views import Feed
 from django.contrib.flatpages.views import flatpage
 from django.views.generic.base import View
 from django.db.models import Count, Q
+from django.db import transaction
 
 from slugify import slugify
 from funfactory.urlresolvers import reverse
 from jingo import Template
 import vobject
+from sorl.thumbnail import get_thumbnail
 
 from airmozilla.main.models import (
     Event,
@@ -27,7 +30,8 @@ from airmozilla.main.models import (
     Channel,
     Location,
     EventHitStats,
-    CuratedGroup
+    CuratedGroup,
+    EventRevision
 )
 from airmozilla.base.utils import (
     paginate,
@@ -280,12 +284,12 @@ class EventView(View):
         )
         return context
 
-    def get(self, request, slug):
+    def get_event(self, slug, request):
         try:
-            event = Event.objects.get(slug=slug)
+            return Event.objects.get(slug=slug)
         except Event.DoesNotExist:
             try:
-                event = Event.objects.get(slug__iexact=slug)
+                return Event.objects.get(slug__iexact=slug)
             except Event.DoesNotExist:
                 try:
                     old_slug = EventOldSlug.objects.get(slug=slug)
@@ -293,6 +297,11 @@ class EventView(View):
                 except EventOldSlug.DoesNotExist:
                     # does it exist as a static page
                     return self.cant_find_event(request, slug)
+
+    def get(self, request, slug):
+        event = self.get_event(slug, request)
+        if isinstance(event, http.HttpResponse):
+            return event
 
         if not self.can_view_event(event, request.user):
             return self.cant_view_event(event, request)
@@ -338,10 +347,13 @@ class EventView(View):
             for total_hits in stats_query:
                 hits = total_hits
 
-        can_edit_event = (
+        can_manage_edit_event = (
             request.user.is_active and
             request.user.is_staff and
             request.user.has_perm('main.change_event')
+        )
+        can_edit_event = (
+            request.user.is_active
         )
 
         request.channels = event.channels.all()
@@ -357,6 +369,7 @@ class EventView(View):
             'video': template_tagged,
             'participants': participants,
             'warning': warning,
+            'can_manage_edit_event': can_manage_edit_event,
             'can_edit_event': can_edit_event,
             'Event': Event,
             'hits': hits,
@@ -397,6 +410,80 @@ class EventView(View):
         return render(request, 'main/event_requires_pin.html', context)
 
 
+class EventRevisionView(EventView):
+
+    template_name = 'main/revision_change.html'
+    difference = False
+
+    def can_view_event(self, event, user):
+        return (
+            user.is_active and
+            super(EventRevisionView, self).can_view_event(event, user)
+        )
+
+    def get(self, request, slug, id):
+        event = self.get_event(slug, request)
+        if isinstance(event, http.HttpResponse):
+            return event
+
+        if not self.can_view_event(event, request.user):
+            return self.cant_view_event(event, request)
+
+        revision = get_object_or_404(
+            EventRevision,
+            event=event,
+            pk=id
+        )
+
+        if self.difference:
+            # compare this revision against the current event
+            previous = event
+        else:
+            previous = revision.get_previous_by_created(event=event)
+
+        fields = (
+            ('title', 'Title'),
+            ('placeholder_img', 'Placeholder image'),
+            ('description', 'Description'),
+            ('short_description', 'Short description'),
+            ('channels', 'Channels'),
+            ('tags', 'Tags'),
+            ('call_info', 'Call info'),
+            ('additional_links', 'Additional links'),
+        )
+        differences = []
+
+        def getter(key, obj):
+            if key == 'tags' or key == 'channels':
+                return ', '.join(sorted(
+                    x.name for x in getattr(obj, key).all()
+                ))
+            return getattr(obj, key)
+
+        class _Difference(object):
+            """use a simple class so we can use dot notation in templates"""
+            def __init__(self, **kwargs):
+                self.__dict__.update(kwargs)
+
+        for key, label in fields:
+            before = getter(key, previous)
+            after = getter(key, revision)
+            if before != after:
+                differences.append(_Difference(
+                    key=key,
+                    label=label,
+                    before=before,
+                    after=after
+                ))
+
+        context = {}
+        context['difference'] = self.difference
+        context['event'] = event
+        context['revision'] = revision
+        context['differences'] = differences
+        return render(request, self.template_name, context)
+
+
 class EventVideoView(EventView):
     template_name = 'main/event_video.html'
 
@@ -430,6 +517,196 @@ class EventVideoView(EventView):
         # ALLOWALL is what YouTube uses for sharing
         response['X-Frame-Options'] = 'ALLOWALL'
         return response
+
+
+class EventEditView(EventView):
+    template_name = 'main/event_edit.html'
+
+    def can_edit_event(self, event, user):
+        # this might change in the future to only be
+        # employees and vouched mozillians
+        return user.is_active
+
+    def cant_edit_event(self, event, user):
+        return redirect('main:event', event.slug)
+
+    @staticmethod
+    def event_to_dict(event):
+        data = {
+            'title': event.title,
+            'description': event.description,
+            'short_description': event.short_description,
+            'channels': [x.pk for x in event.channels.all()],
+            'tags': ', '.join([x.name for x in event.tags.all()]),
+            'call_info': event.call_info,
+            'additional_links': event.additional_links,
+            #'placeholder_img': event.placeholder_img.url,
+            #'thumbnail_url': thumbnail(event.)
+        }
+        if event.placeholder_img:
+            data['placeholder_img'] = event.placeholder_img.url
+            data['thumbnail_url'] = (
+                get_thumbnail(
+                    event.placeholder_img,
+                    '68x68',
+                    crop='center'
+                ).url
+            )
+        return data
+
+    def get(self, request, slug, form=None, conflict_errors=None):
+        event = self.get_event(slug, request)
+        if isinstance(event, http.HttpResponse):
+            return event
+
+        if not self.can_view_event(event, request.user):
+            return self.cant_view_event(event, request)
+        if not self.can_edit_event(event, request.user):
+            return self.cant_edit_event(event, request)
+
+        initial = self.event_to_dict(event)
+        if form is None:
+            form = forms.EventEditForm(initial=initial)
+
+        context = {
+            'event': event,
+            'form': form,
+            'previous': json.dumps(initial),
+            'conflict_errors': conflict_errors,
+        }
+        if 'thumbnail_url' in initial:
+            context['thumbnail_url'] = initial['thumbnail_url']
+
+        context['revisions'] = (
+            EventRevision.objects
+            .filter(event=event)
+            .order_by('-created')
+            .select_related('user')
+        )
+
+        return render(request, self.template_name, context)
+
+    @transaction.commit_on_success
+    @json_view
+    def post(self, request, slug):
+        event = self.get_event(slug, request)
+        if isinstance(event, http.HttpResponse):
+            return event
+
+        if not self.can_view_event(event, request.user):
+            return self.cant_view_event(event, request)
+        if not self.can_edit_event(event, request.user):
+            return self.cant_edit_event(event, request)
+
+        previous = request.POST['previous']
+        previous = json.loads(previous)
+        form = forms.EventEditForm(request.POST, request.FILES)
+        base_revision = None
+
+        if form.is_valid():
+            if not EventRevision.objects.filter(event=event).count():
+                base_revision = EventRevision.objects.create_from_event(event)
+
+            changes = {}
+            conflict_errors = []
+            for key, value in form.cleaned_data.items():
+
+                # figure out what the active current value is in the database
+                if key == 'placeholder_img':
+                    current_value = event.placeholder_img.url
+                elif key == 'tags':
+                    current_value = ', '.join(x.name for x in event.tags.all())
+                elif key == 'channels':
+                    current_value = [x.pk for x in event.channels.all()]
+                else:
+                    current_value = getattr(event, key)
+
+                if key == 'channels':
+                    prev = set([
+                        Channel.objects.get(pk=x)
+                        for x in previous[key]
+                    ])
+                    value = set(value)
+                    for channel in prev - value:
+                        event.channels.remove(channel)
+                    for channel in value - prev:
+                        event.channels.add(channel)
+                    if prev != value:
+                        changes['channels'] = {
+                            'from': ', '.join(
+                                sorted(x.name for x in prev)
+                            ),
+                            'to': ', '.join(
+                                sorted(x.name for x in value)
+                            )
+                        }
+                elif key == 'tags':
+                    value = set([
+                        x.strip()
+                        for x in value.split(',')
+                        if x.strip()
+                    ])
+                    prev = set([
+                        x.strip()
+                        for x in previous['tags'].split(',')
+                        if x.strip()
+                    ])
+                    for tag in prev - value:
+                        tag_obj = Tag.objects.get(name=tag)
+                        event.tags.remove(tag_obj)
+                    for tag in value - prev:
+                        try:
+                            tag_obj = Tag.objects.get(name__iexact=tag)
+                        except Tag.DoesNotExist:
+                            tag_obj = Tag.objects.create(name=tag)
+                        event.tags.add(tag_obj)
+                    if prev != value:
+                        changes['tags'] = {
+                            'from': ', '.join(sorted(prev)),
+                            'to': ', '.join(sorted(value))
+                        }
+                elif key == 'placeholder_img':
+                    if value:
+                        changes[key] = {
+                            'from': event.placeholder_img.url,
+                            'to': '__saved__event_placeholder_img'
+                        }
+                        event.placeholder_img = value
+                else:
+                    if value != previous[key]:
+                        changes[key] = {
+                            'from': previous[key],
+                            'to': value
+                        }
+                        setattr(event, key, value)
+                if key in changes:
+                    # you wanted to change it, but has your reference changed
+                    # since you loaded it?
+                    previous_value = previous[key]
+                    if previous_value != current_value:
+                        conflict_errors.append(key)
+                        continue
+
+            if conflict_errors:
+                return self.get(
+                    request,
+                    slug,
+                    form=form,
+                    conflict_errors=conflict_errors
+                )
+            elif changes:
+                event.save()
+                EventRevision.objects.create_from_event(
+                    event,
+                    user=request.user,
+                )
+            else:
+                if base_revision:
+                    base_revision.delete()
+
+            return redirect('main:event', event.slug)
+
+        return self.get(request, slug, form=form)
 
 
 def participant(request, slug):
