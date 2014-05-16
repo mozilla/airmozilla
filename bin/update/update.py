@@ -87,7 +87,6 @@ def update_info(ctx):
 def pre_update(ctx, ref=settings.UPDATE_REF):
     """Update code to pick up changes to this file."""
     update_code(ref)
-    update_info()
 
 
 @task
@@ -102,6 +101,7 @@ def deploy(ctx):
     checkin_changes()
     deploy_app()
     #update_celery()
+    update_info()
 
 
 @task
