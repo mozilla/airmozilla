@@ -3,7 +3,15 @@ from django.utils.functional import wraps
 
 from mock import patch
 
-### From Mozillians
+# From Mozillians
+
+
+class MockedResponse(object):
+    def __init__(self, response):
+        self.response = response
+
+    def json(self):
+        return self.response
 
 
 class mock_browserid(object):
@@ -14,24 +22,28 @@ class mock_browserid(object):
                 ('django_browserid.auth.BrowserIDBackend',),
             ),
             patch.object(
-                settings, 'SITE_URL',
-                'http://testserver',
+                settings, 'BROWSERID_AUDIENCES',
+                ['http://testserver'],
             )
         )
-        self.patcher = patch('django_browserid.base._verify_http_request')
+        self.patcher = patch('django_browserid.base.requests.post')
         if email is not None:
-            self.return_value = {'status': 'okay', 'email': email}
+            self.return_value = MockedResponse(
+                {'status': 'okay', 'email': email}
+            )
         else:
-            self.return_value = {'status': 'failure'}
+            self.return_value = MockedResponse(
+                {'status': 'failure'}
+            )
 
     def __enter__(self):
-        for patch in self.settings_patches:
-            patch.start()
+        for patch_ in self.settings_patches:
+            patch_.start()
         self.patcher.start().return_value = self.return_value
 
     def __exit__(self, exc_type, exc_value, traceback):
-        for patch in self.settings_patches:
-            patch.stop()
+        for patch_ in self.settings_patches:
+            patch_.stop()
         self.patcher.stop()
 
     def __call__(self, func):

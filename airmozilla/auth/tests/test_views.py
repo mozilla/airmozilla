@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.test import TestCase
 from django.utils.importlib import import_module
@@ -124,18 +126,24 @@ class TestViews(TestCase):
     def test_invalid(self):
         """Bad BrowserID form (i.e. no assertion) -> failure."""
         response = self._login_attempt(None, None)
-        self.assertRedirects(
-            response,
-            settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
-        )
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL_FAILURE)
+        # self.assertRedirects(
+        #     response,
+        #     settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
+        # )
 
     def test_bad_verification(self):
         """Bad verification -> failure."""
         response = self._login_attempt(None)
-        self.assertRedirects(
-            response,
-            settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
-        )
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL_FAILURE)
+        # self.assertRedirects(
+        #    response,
+        #    settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
+        # )
 
     @mock.patch('requests.get')
     def test_nonmozilla(self, rget):
@@ -149,15 +157,21 @@ class TestViews(TestCase):
         rget.side_effect = mocked_get
 
         response = self._login_attempt('tmickel@mit.edu')
-        self.assertRedirects(
-            response,
-            settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
-        )
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL_FAILURE)
+        # self.assertRedirects(
+        #     response,
+        #     settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
+        # )
 
         # now with a non-mozillian that is vouched for
         response = self._login_attempt('peterbe@gmail.com')
-        self.assertRedirects(response,
-                             settings.LOGIN_REDIRECT_URL)
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL)
+        # self.assertRedirects(response,
+        #                      settings.LOGIN_REDIRECT_URL)
 
     @mock.patch('requests.get')
     def test_nonmozilla_vouched_for_second_time(self, rget):
@@ -170,8 +184,11 @@ class TestViews(TestCase):
 
         # now with a non-mozillian that is vouched for
         response = self._login_attempt('peterbe@gmail.com')
-        self.assertRedirects(response,
-                             settings.LOGIN_REDIRECT_URL)
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL)
+        # self.assertRedirects(response,
+        #                      settings.LOGIN_REDIRECT_URL)
 
         # should be logged in
         response = self.client.get('/')
@@ -183,8 +200,14 @@ class TestViews(TestCase):
         ok_(profile.contributor)
 
         # sign out
-        response = self.client.get(reverse('browserid_logout'))
-        eq_(response.status_code, 302)
+        response = self.client.get(reverse('browserid.logout'))
+        eq_(response.status_code, 405)
+        response = self.client.post(reverse('browserid.logout'))
+        eq_(response.status_code, 200)
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL)
+
         # should be logged out
         response = self.client.get('/')
         eq_(response.status_code, 200)
@@ -193,20 +216,31 @@ class TestViews(TestCase):
 
         # sign in again
         response = self._login_attempt('peterbe@gmail.com')
-        self.assertRedirects(response,
-                             settings.LOGIN_REDIRECT_URL)
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL)
+        # self.assertRedirects(response,
+        #                      settings.LOGIN_REDIRECT_URL)
         # should not have created another one
         eq_(UserProfile.objects.all().count(), 1)
 
         # sign out again
-        response = self.client.get(reverse('browserid_logout'))
-        eq_(response.status_code, 302)
+        response = self.client.post(reverse('browserid.logout'))
+        eq_(response.status_code, 200)
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL)
+
         # pretend this is lost
         profile.contributor = False
         profile.save()
         response = self._login_attempt('peterbe@gmail.com')
-        self.assertRedirects(response,
-                             settings.LOGIN_REDIRECT_URL)
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL)
+
+        # self.assertRedirects(response,
+        #                      settings.LOGIN_REDIRECT_URL)
         # should not have created another one
         eq_(UserProfile.objects.filter(contributor=True).count(), 1)
 
@@ -214,8 +248,11 @@ class TestViews(TestCase):
         """Mozilla email -> success."""
         # Try the first allowed domain
         response = self._login_attempt('tmickel@' + settings.ALLOWED_BID[0])
-        self.assertRedirects(response,
-                             settings.LOGIN_REDIRECT_URL)
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL)
+        # self.assertRedirects(response,
+        #                      settings.LOGIN_REDIRECT_URL)
 
     @mock.patch('airmozilla.auth.views.logger')
     @mock.patch('requests.get')
@@ -229,8 +266,11 @@ class TestViews(TestCase):
 
         # now with a non-mozillian that is vouched for
         response = self._login_attempt('peterbe@gmail.com')
-        self.assertRedirects(
-            response,
-            settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
-        )
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL_FAILURE)
+        # self.assertRedirects(
+        #     response,
+        #     settings.LOGIN_REDIRECT_URL_FAILURE + '?bid_login_failed=1'
+        # )
         eq_(rlogger.error.call_count, 1)

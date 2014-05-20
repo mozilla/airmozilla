@@ -18,7 +18,7 @@ urlpatterns = patterns(
     (r'^uploads/', include('airmozilla.uploads.urls', namespace='uploads')),
     ('^(?P<path>favicon\.ico)$', 'django.views.static.serve',
      {'document_root': settings.ROOT + '/airmozilla/base/static/img'}),
-    (r'^browserid/', include('django_browserid.urls')),
+    (r'', include('django_browserid.urls')),
     (r'', include('airmozilla.main.urls', namespace='main')),
     ('^pages/', include('django.contrib.flatpages.urls')),
 )

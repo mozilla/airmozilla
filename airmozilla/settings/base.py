@@ -70,7 +70,6 @@ LOGIN_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL_FAILURE = '/login-failure/'
 
 TEMPLATE_CONTEXT_PROCESSORS += (
-    'django_browserid.context_processors.browserid',
     'airmozilla.manage.context_processors.badges',
     'airmozilla.main.context_processors.sidebar',
     'airmozilla.main.context_processors.analytics',
@@ -184,7 +183,7 @@ URL_TRANSFORM_PASSWORDS = {}
 # See README about how to generate one
 BITLY_ACCESS_TOKEN = None
 
-# Overridden so we can depend on the LDAP lookup
+# Overridden so we can depend on more complex checking
 BROWSERID_VERIFY_CLASS = '%s.auth.views.CustomBrowserIDVerify' % PROJECT_MODULE
 BROWSERID_REQUEST_ARGS = {'siteName': 'Air Mozilla'}
 
