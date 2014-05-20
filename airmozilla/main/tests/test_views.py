@@ -13,6 +13,7 @@ from django.contrib.sites.models import Site
 from django.test import TestCase
 from django.utils.timezone import utc
 from django.conf import settings
+from django.core.cache import cache
 
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
@@ -162,6 +163,7 @@ class TestPages(TestCase):
         ok_(can_view_event(event, employee_w_profile))
 
     def test_view_event_with_pin(self):
+        cache.clear()
         event = Event.objects.get(title='Test event')
         event.privacy = Event.PRIVACY_CONTRIBUTORS
         event.description = "My Event Description"
