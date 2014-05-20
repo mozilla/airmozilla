@@ -583,6 +583,7 @@ class CommentEditForm(BaseModelForm):
         fields = ('status', 'comment', 'flagged')
 
 
+
 class CommentsFilterForm(BaseForm):
 
     user = forms.CharField(required=False)
@@ -593,6 +594,11 @@ class CommentsFilterForm(BaseForm):
             (('', 'ALL'),) + Comment.STATUS_CHOICES + (('flagged', 'Flagged'),)
         )
     )
+
+
+class CommentsFilterForm(CommentsFilterForm):
+
+    event = forms.CharField(required=False)
 
 
 class EventAssignmentForm(BaseModelForm):

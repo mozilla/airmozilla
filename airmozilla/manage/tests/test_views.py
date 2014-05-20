@@ -4197,6 +4197,88 @@ class TestDiscussionAndComments(ManageTestCase):
         ok_(comment3.comment not in response.content)
         ok_(comment4.comment in response.content)
 
+    def test_all_comments(self):
+        event = Event.objects.get(title='Test event')
+        event2 = Event.objects.create(
+            title='Other event',
+            start_time=event.start_time,
+            location=event.location,
+        )
+        url = reverse('manage:all_comments')
+        self._create_discussion(event)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        bob = User.objects.create(username='bob', email='bob@mozilla.com')
+        jay = User.objects.create(username='jay', email='jay@mozilla.com')
+        comment1 = Comment.objects.create(
+            event=event,
+            user=bob,
+            comment='First Comment',
+            status=Comment.STATUS_POSTED
+        )
+        comment2 = Comment.objects.create(
+            event=event,
+            user=bob,
+            comment='Second Comment',
+            status=Comment.STATUS_APPROVED
+        )
+        comment3 = Comment.objects.create(
+            event=event2,
+            user=bob,
+            comment='Third Comment',
+            status=Comment.STATUS_REMOVED
+        )
+        comment4 = Comment.objects.create(
+            event=event2,
+            user=jay,
+            comment='Fourth Comment',
+            status=Comment.STATUS_APPROVED,
+            flagged=1
+        )
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(comment1.comment in response.content)
+        ok_(comment2.comment in response.content)
+        ok_(comment3.comment in response.content)
+        ok_(comment4.comment in response.content)
+
+        response = self.client.get(url, {'user': 'jay@'})
+        eq_(response.status_code, 200)
+        ok_(comment1.comment not in response.content)
+        ok_(comment2.comment not in response.content)
+        ok_(comment3.comment not in response.content)
+        ok_(comment4.comment in response.content)
+
+        response = self.client.get(url, {'comment': 'First'})
+        eq_(response.status_code, 200)
+        ok_(comment1.comment in response.content)
+        ok_(comment2.comment not in response.content)
+        ok_(comment3.comment not in response.content)
+        ok_(comment4.comment not in response.content)
+
+        response = self.client.get(url, {'status': Comment.STATUS_REMOVED})
+        eq_(response.status_code, 200)
+        ok_(comment1.comment not in response.content)
+        ok_(comment2.comment not in response.content)
+        ok_(comment3.comment in response.content)
+        ok_(comment4.comment not in response.content)
+
+        response = self.client.get(url, {'status': 'flagged'})
+        eq_(response.status_code, 200)
+        ok_(comment1.comment not in response.content)
+        ok_(comment2.comment not in response.content)
+        ok_(comment3.comment not in response.content)
+        ok_(comment4.comment in response.content)
+
+        response = self.client.get(url, {'event': 'OTHER'})
+        eq_(response.status_code, 200)
+        ok_(comment1.comment not in response.content)
+        ok_(comment2.comment not in response.content)
+        ok_(comment3.comment in response.content)
+        ok_(comment4.comment in response.content)
+
     def test_comment_edit(self):
         event = Event.objects.get(title='Test event')
         self._create_discussion(event)

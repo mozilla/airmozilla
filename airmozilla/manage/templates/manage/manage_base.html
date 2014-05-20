@@ -22,7 +22,8 @@
      perms.main.add_event, ''),
     ('manage:event_assignments', 'Event assignments', 'event_assignments', 'glyphicon-phone-alt',
      perms.main.change_eventassignment, ''),
-
+    ('manage:all_comments', 'All comments', 'comments', 'glyphicon-comment',
+    perms.comments.change_discussion, ''),
 
     ('', 'Users and groups', '', '', perms.auth.change_user, ''),
     ('manage:users', 'Edit users', 'users', 'glyphicon-user', perms.auth.change_user,

@@ -2383,6 +2383,7 @@ def event_comments(request, id):
             )
             filtered = True
 
+    context['count'] = comments.count()
     paged = paginate(comments, request.GET.get('page'), 10)
     context['paginate'] = paged
     context['form'] = form
@@ -2414,6 +2415,51 @@ def comment_edit(request, id):
     context['event'] = comment.event
     context['form'] = form
     return render(request, 'manage/comment_edit.html', context)
+
+
+@staff_required
+@permission_required('comments.change_discussion')
+@transaction.commit_on_success
+def all_comments(request):
+    context = {}
+
+    comments = Comment.objects.all()
+    form = forms.CommentsFilterForm(request.GET)
+    filtered = False
+    if form.is_valid():
+        if form.cleaned_data['event']:
+            comments = comments.filter(
+                event__title__icontains=form.cleaned_data['event']
+            )
+        if form.cleaned_data['status'] == 'flagged':
+            comments = comments.filter(flagged__gt=0)
+            filtered = True
+        elif form.cleaned_data['status']:
+            comments = comments.filter(status=form.cleaned_data['status'])
+            filtered = True
+        if form.cleaned_data['user']:
+            user_filter = (
+                Q(user__email__icontains=form.cleaned_data['user'])
+                |
+                Q(user__first_name__icontains=form.cleaned_data['user'])
+                |
+                Q(user__last_name__icontains=form.cleaned_data['user'])
+            )
+            comments = comments.filter(user_filter)
+            filtered = True
+        if form.cleaned_data['comment']:
+            comments = comments.filter(
+                comment__icontains=form.cleaned_data['comment']
+            )
+            filtered = True
+
+    comments = comments.order_by('-created')
+    context['count'] = comments.count()
+    paged = paginate(comments, request.GET.get('page'), 20)
+    context['paginate'] = paged
+    context['form'] = form
+    context['filtered'] = filtered
+    return render(request, 'manage/comments.html', context)
 
 
 @permission_required('main.change_event')
