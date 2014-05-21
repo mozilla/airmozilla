@@ -46,7 +46,7 @@ from . import forms
 def debugger__(request):
     r = http.HttpResponse()
     r.write('BROWSERID_AUDIENCES=%r\n' % settings.BROWSERID_AUDIENCES)
-    r.write('Todays date: 2014-05-21 13:56 PST\n')
+    r.write('Todays date: 2014-05-21 14:02 PST\n')
     r['Content-Type'] = 'text/plain'
     return r
 
