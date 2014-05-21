@@ -60,7 +60,8 @@ def checkin_changes(ctx):
 def deploy_app(ctx):
     """Call the remote update script to push changes to webheads."""
     ctx.remote(settings.REMOTE_UPDATE_SCRIPT)
-    ctx.remote('/bin/touch %s' % settings.REMOTE_WSGI)
+    # old way ctx.remote('/bin/touch %s' % settings.REMOTE_WSGI)
+    ctx.remote('/etc/init.d/httpd graceful')
 
 
 @hostgroups(settings.CELERY_HOSTGROUP, remote_kwargs={'ssh_key': settings.SSH_KEY})
