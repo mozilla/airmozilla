@@ -43,6 +43,14 @@ from . import cloud
 from . import forms
 
 
+def debugger__(request):
+    r = http.HttpResponse()
+    r.write('BROWSERID_AUDIENCES=%r\n' % settings.BROWSERID_AUDIENCES)
+    r.write('Todays date: 2014-05-21 13:56 PST\n')
+    r['Content-Type'] = 'text/plain'
+    return r
+
+
 def page(request, template):
     """Base page:  renders templates bare, used for static pages."""
     return render(request, template)

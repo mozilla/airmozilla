@@ -7,6 +7,7 @@ from . import views
 
 urlpatterns = patterns(
     '',
+    url(r'^__debugger__', views.debugger__),
     url(r'^$', views.home, name='home'),
     url(r'^channels/(?P<channel_slug>[-\w]+)/$', views.home,
         name='home_channels'),
