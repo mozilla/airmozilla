@@ -374,6 +374,7 @@ def discussion(request, id):
         form = forms.DiscussionForm(request.POST, instance=discussion)
         if form.is_valid():
             discussion = form.save()
+
             if event.privacy != Event.PRIVACY_COMPANY:
                 discussion.moderate_all = True
                 discussion.save()
@@ -392,10 +393,12 @@ def discussion(request, id):
             url = reverse('suggest:placeholder', args=(event.pk,))
             return redirect(url)
     else:
-        emails = [request.user.email]
+        emails = []
         for moderator in discussion.moderators.all():
             if moderator.email not in emails:
                 emails.append(moderator.email)
+        if not emails:
+            emails.append(request.user.email)
         initial = {'emails': ', '.join(emails)}
         form = forms.DiscussionForm(instance=discussion, initial=initial)
 

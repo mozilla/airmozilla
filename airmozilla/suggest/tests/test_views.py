@@ -988,6 +988,40 @@ class TestPages(TestCase):
         ok_('bob@mozilla.com' in response.content)
         ok_('new@mozilla.com' in response.content)
 
+    def test_discussion_default_moderator(self):
+        location, = Location.objects.filter(name='Mountain View')
+        today = datetime.datetime.utcnow()
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            short_description='Short Description',
+            description='Description',
+            start_time=today.replace(tzinfo=utc),
+            location=location
+        )
+        discussion = SuggestedDiscussion.objects.create(
+            event=event,
+            enabled=True,
+            notify_all=True,
+            moderate_all=True,
+        )
+        discussion.moderators.add(self.user)
+        url = reverse('suggest:discussion', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(self.user.email in response.content)
+
+        # suppose you have previously saved that there should another
+        # moderator that isn't you
+        bob = User.objects.create(username='bob', email='bob@mozilla.com')
+        discussion.moderators.clear()
+        discussion.moderators.add(bob)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(bob.email in response.content)
+        ok_(self.user.email not in response.content)
+
     def test_autocomplete_email(self):
         url = reverse('suggest:autocomplete_emails')
 
