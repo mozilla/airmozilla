@@ -821,19 +821,6 @@ def all_event_tweets(request):
 
 
 @staff_required
-@permission_required('main.add_event')
-@json_view
-def tag_autocomplete(request):
-    """Feeds JSON tag names to the Event request/edit form."""
-    query = request.GET['q']
-    tags = Tag.objects.filter(name__istartswith=query)[:5]
-    tag_names = [{'id': t.name, 'text': t.name} for t in tags]
-    # for new tags - the first tag is the query
-    tag_names.insert(0, {'id': query, 'text': query})
-    return {'tags': tag_names}
-
-
-@staff_required
 @json_view
 def event_autocomplete(request):
     form = forms.EventsAutocompleteForm(request.GET)

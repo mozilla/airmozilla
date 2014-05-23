@@ -49,6 +49,7 @@ urlpatterns = patterns(
         cache_page(60 * 60)(views.EventsFeed()),
         name='channel_feed_format_type'),
     url(r'^tagcloud/$', views.tag_cloud, name='tag_cloud'),
+    url(r'^all-tags/$', views.all_tags, name='all_tags'),
     url(r'^(?P<slug>[-\w]+)/$', views.EventView.as_view(),
         name='event'),
     url(r'^(?P<slug>[-\w]+)/video/$', views.EventVideoView.as_view(),

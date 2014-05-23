@@ -12,17 +12,15 @@ $(function() {
     // Autocomplete tags - uses the select2 library
     $('#id_tags').select2({
         tags: [],
-        ajax: {
-            url: '/manage/tag-autocomplete',
-            dataType: 'json',
-            data: function (term, page) {
-                return {q: term};
-            },
-            results: function (data, page) {
-                return {results: data.tags};
-            }
-        },
         initSelection: process_tags
+    });
+
+    $.getJSON('/all-tags/')
+    .then(function(response) {
+        $('#id_tags').select2({tags: response.tags});
+    }).fail(function() {
+        console.log('Unable to download all tags');
+        console.error(arguments);
     });
 
     // Datetime picker (jQuery UI)

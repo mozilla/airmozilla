@@ -1769,6 +1769,16 @@ class TestPages(DjangoTestCase):
         ok_(tag3.name in response.content)
         ok_(tag5.name in response.content)
 
+    def test_all_tags(self):
+        url = reverse('main:all_tags')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        eq_(
+            sorted(data['tags']),
+            sorted(x.name for x in Tag.objects.all())
+        )
+
     def test_calendar_page(self):
         url = reverse('main:calendar')
         response = self.client.get(url)

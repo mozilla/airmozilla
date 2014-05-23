@@ -357,21 +357,6 @@ class TestEvents(ManageTestCase):
         # see https://bugzilla.mozilla.org/show_bug.cgi?id=839024
         eq_(approvals.count(), 2)
 
-    def test_tag_autocomplete(self):
-        """Autocomplete makes JSON for fixture tags and a nonexistent tag."""
-        response = self.client.get(
-            reverse('manage:tag_autocomplete'),
-            {
-                'q': 'tes'
-            }
-        )
-        eq_(response.status_code, 200)
-        parsed = json.loads(response.content)
-        ok_('tags' in parsed)
-        tags = [t['text'] for t in parsed['tags'] if 'text' in t]
-        eq_(len(tags), 3)
-        ok_(('tes' in tags) and ('test' in tags) and ('testing' in tags))
-
     def test_participant_autocomplete(self):
         """Autocomplete makes JSON pages and correct results for fixtures."""
         response = self.client.get(

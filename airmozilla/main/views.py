@@ -709,6 +709,12 @@ class EventEditView(EventView):
         return self.get(request, slug, form=form)
 
 
+@json_view
+def all_tags(request):
+    tags = list(Tag.objects.all().values_list('name', flat=True))
+    return {'tags': tags}
+
+
 def participant(request, slug):
     """Individual participant/speaker profile."""
     participant = get_object_or_404(Participant, slug=slug)

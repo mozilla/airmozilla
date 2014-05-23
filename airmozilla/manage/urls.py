@@ -63,8 +63,6 @@ urlpatterns = patterns(
     url(r'^comments/(?P<id>\d+)/$',
         views.comment_edit,
         name='comment_edit'),
-    url(r'^tag-autocomplete/$', views.tag_autocomplete,
-        name='tag_autocomplete'),
     url(r'^events-autocomplete/$', views.event_autocomplete,
         name='event_autocomplete'),
     url(r'^participant-autocomplete/$', views.participant_autocomplete,
