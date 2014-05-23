@@ -877,7 +877,7 @@ def channels(request):
     else:
         privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
         feed_privacy = 'public'
-    events = Event.objects.archived().all()
+    events = Event.objects.filter(status=Event.STATUS_SCHEDULED)
     if privacy_filter:
         events = events.filter(**privacy_filter)
     elif privacy_exclude:

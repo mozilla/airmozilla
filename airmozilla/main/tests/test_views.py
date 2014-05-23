@@ -1215,6 +1215,48 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('1 archived event' in response.content)
 
+    def test_channels_page_without_archived_events(self):
+        channel = Channel.objects.create(
+            name='Culture & Context',
+            slug='culture-and-context',
+        )
+        url = reverse('main:channels')
+        channel_url = reverse('main:home_channels', args=(channel.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(channel_url not in response.content)
+
+        # create an event in that channel
+        event1 = Event.objects.get(title='Test event')
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event = Event.objects.create(
+            title='Third test event',
+            description='Anything',
+            start_time=now + datetime.timedelta(days=1),
+            privacy=Event.PRIVACY_PUBLIC,
+            status=Event.STATUS_INITIATED,
+            placeholder_img=event1.placeholder_img,
+        )
+        assert event not in list(Event.objects.archived().all())
+        assert event not in list(Event.objects.live().all())
+        assert event not in list(Event.objects.upcoming().all())
+        event.channels.add(channel)
+
+        url = reverse('main:channels')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # still not there because it's not scheduled
+        ok_(channel_url not in response.content)
+
+        # make it upcoming
+        event.status = Event.STATUS_SCHEDULED
+        event.save()
+        assert event in list(Event.objects.upcoming().all())
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(channel_url in response.content)
+
     def test_channel_page(self):
         event1 = Event.objects.get(title='Test event')
         event1.featured = True
