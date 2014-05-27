@@ -325,18 +325,49 @@ def event_request(request, duplicate_id=None):
     if duplicate_id:
         # Use a blank event, but fill in the initial data from duplication_id
         event_initial = Event.objects.get(id=duplicate_id)
+
+        try:
+            discussion = Discussion.objects.get(event=event_initial)
+        except Discussion.DoesNotExist:
+            discussion = None
+
+        if discussion:
+            # We need to extend the current form class with one more
+            # boolean field.
+            from django import forms as django_forms
+
+            class _Form(form_class):
+                enable_discussion = django_forms.BooleanField(
+                    help_text=(
+                        '"%s" had discussion enabled. '
+                        'Duplicate that configuration?' % event_initial.title
+                    )
+                )
+
+            form_class = _Form
+
         # We copy the initial data from a form generated on the origin event
         # to retain initial data processing, e.g., on EnvironmentField.
         event_initial_form = form_class(instance=event_initial)
         for field in event_initial_form.fields:
-            if field in event_initial_form.initial:
-                # Usual initial form data
-                initial[field] = event_initial_form.initial[field]
+            if field == 'start_time':
+                if event_initial.location:
+                    initial['start_time'] = event_initial.location_time
+                else:
+                    initial['start_time'] = event_initial.start_time
+                # safer to do this here
+                initial['start_time'] = (
+                    initial['start_time'].replace(tzinfo=None)
+                )
             else:
-                # Populated by form __init__ (e.g., approvals)
-                initial[field] = event_initial_form.fields[field].initial
+                if field in event_initial_form.initial:
+                    # Usual initial form data
+                    initial[field] = event_initial_form.initial[field]
+                else:
+                    # Populated by form __init__ (e.g., approvals)
+                    initial[field] = event_initial_form.fields[field].initial
         # Excluded fields in an event copy
-        blank_fields = ('slug', 'start_time')
+        blank_fields = ('slug',)
         for field in blank_fields:
             initial[field] = ''
 
@@ -352,13 +383,30 @@ def event_request(request, duplicate_id=None):
             _event_process(request, form, event)
             event.save()
             form.save_m2m()
+            if form.cleaned_data.get('enable_discussion'):
+                dup_discussion = Discussion.objects.create(
+                    event=event,
+                    enabled=True,
+                    closed=False,
+                    moderate_all=discussion.moderate_all,
+                    notify_all=discussion.notify_all
+                )
+                for moderator in discussion.moderators.all():
+                    dup_discussion.moderators.add(moderator)
+
             messages.success(request,
                              'Event "%s" created.' % event.title)
             return redirect('manage:events')
     else:
+        if duplicate_id and discussion:
+            initial['enable_discussion'] = True
         form = form_class(initial=initial)
-    return render(request, 'manage/event_request.html', {'form': form,
-                  'duplicate_event': event_initial})
+
+    context = {
+        'form': form,
+        'duplicate_event': event_initial,
+    }
+    return render(request, 'manage/event_request.html', context)
 
 
 @staff_required

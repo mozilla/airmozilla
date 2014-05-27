@@ -832,6 +832,60 @@ class TestEvents(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('value="Test event"' in response.content)
+        ok_(
+            'value="%s"' % event.location_time.strftime('%Y-%m-%d %H:%M')
+            in response.content
+        )
+
+    def test_event_duplication_without_location(self):
+        event = Event.objects.get(title='Test event')
+        event.location = None
+        event.save()
+        url = reverse('manage:event_duplicate', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('value="Test event"' in response.content)
+        ok_(
+            'value="%s"' % event.start_time.strftime('%Y-%m-%d %H:%M')
+            in response.content
+        )
+
+    def test_event_duplication_with_discussion(self):
+        event = Event.objects.get(title='Test event')
+        discussion = Discussion.objects.create(
+            event=event,
+            enabled=True,
+            closed=False,
+            notify_all=True,
+            moderate_all=True
+        )
+        bob = User.objects.create(username='bob', email='bob@mozilla.com')
+        discussion.moderators.add(bob)
+
+        url = reverse('manage:event_duplicate', args=(event.id,))
+        data = {
+            'title': 'Different',
+            'description': event.description,
+            'short_description': event.short_description,
+            'location': event.location.pk,
+            'privacy': event.privacy,
+            'status': event.status,
+            'start_time': event.start_time.strftime('%Y-%m-%d %H:%M'),
+            'channels': [x.pk for x in event.channels.all()],
+            'enable_discussion': True,
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        new_discussion = Discussion.objects.get(
+            event__title='Different'
+        )
+        eq_(new_discussion.notify_all, True)
+        eq_(new_discussion.moderate_all, True)
+        eq_(
+            list(new_discussion.moderators.all()),
+            list(discussion.moderators.all())
+        )
 
     def test_event_duplication_custom_channels(self):
         ch = Channel.objects.create(
