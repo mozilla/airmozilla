@@ -110,7 +110,7 @@ class TestDashboard(ManageTestCase):
 
     # XXX Using `override_settings` doesn't work because of a bug in `tower`.
     # Once that's fixed start using `override_settings` in the tests instead.
-    #@override_settings(ADMINS=(('Bob', 'bob@example.com'),))
+    # @override_settings(ADMINS=(('Bob', 'bob@example.com'),))
     def test_dashboard(self):
         self.user.is_superuser = False
         self.user.save()
@@ -2678,7 +2678,6 @@ class TestSuggestions(ManageTestCase):
             location=location,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
-            #call_info='CALL INFO',
             additional_links='ADDITIONAL LINKS',
             remote_presenters='RICHARD & ZANDR',
             submitted=now,
@@ -2701,7 +2700,6 @@ class TestSuggestions(ManageTestCase):
         ok_(os.path.basename(self.placeholder) in response.content)
         ok_(location.name in response.content)
         ok_(event.get_privacy_display() in response.content)
-        #ok_('CALL INFO' in response.content
 
         response = self.client.post(url)
         eq_(response.status_code, 302)
@@ -2756,7 +2754,6 @@ class TestSuggestions(ManageTestCase):
             location=location,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
-            #call_info='CALL INFO',
             additional_links='ADDITIONAL LINKS',
             remote_presenters='RICHARD & ZANDR',
             submitted=now,
@@ -2809,7 +2806,6 @@ class TestSuggestions(ManageTestCase):
             location=location,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_COMPANY,
-            #call_info='CALL INFO',
             additional_links='ADDITIONAL LINKS',
             remote_presenters='RICHARD & ZANDR',
             submitted=now,
@@ -2854,7 +2850,6 @@ class TestSuggestions(ManageTestCase):
             location=location,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_PUBLIC,
-            #call_info='CALL INFO',
             additional_links='ADDITIONAL LINKS',
             remote_presenters='RICHARD & ZANDR',
             upcoming=False,
@@ -2908,7 +2903,6 @@ class TestSuggestions(ManageTestCase):
             location=location,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
-            #call_info='CALL INFO',
             additional_links='ADDITIONAL LINKS',
             remote_presenters='RICHARD & ZANDR',
             upcoming=False,
@@ -2974,8 +2968,6 @@ class TestSuggestions(ManageTestCase):
             location=location,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
-            #call_info='CALL INFO',
-            #additional_links='ADDITIONAL LINKS',
             submitted=now,
             first_submitted=now,
         )
@@ -2993,8 +2985,6 @@ class TestSuggestions(ManageTestCase):
         ok_(os.path.basename(self.placeholder) in response.content)
         ok_(location.name in response.content)
         ok_(event.get_privacy_display() in response.content)
-        #ok_('CALL INFO' in response.content
-        #ok_('ADDITIONAL LINKS' in response.content)
 
         data = {'reject': 'true'}
         response = self.client.post(url, data)
@@ -3040,8 +3030,6 @@ class TestSuggestions(ManageTestCase):
             location=location,
             placeholder_img=self.placeholder,
             privacy=Event.PRIVACY_CONTRIBUTORS,
-            #call_info='CALL INFO',
-            #additional_links='ADDITIONAL LINKS',
             submitted=now,
             first_submitted=now,
         )
@@ -4451,7 +4439,7 @@ class TestEventAssignment(ManageTestCase):
 
         # add another, also upcoming, event and make sure it's
         # working for events that have no assignments too
-        event2 = Event.objects.create(
+        Event.objects.create(
             title='Other title',
             start_time=event.start_time
         )

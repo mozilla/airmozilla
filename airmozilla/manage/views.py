@@ -669,7 +669,10 @@ def event_assignment(request, id):
     if request.method == 'POST':
         assignment.event = event
         assignment.save()
-        form = forms.EventAssignmentForm(instance=assignment, data=request.POST)
+        form = forms.EventAssignmentForm(
+            instance=assignment,
+            data=request.POST
+        )
         if form.is_valid():
             form.save()
             messages.success(
@@ -1202,7 +1205,7 @@ def template_env_autofill(request):
     undeclared_variables = [x for x in meta.find_undeclared_variables(ast)
                             if x not in exceptions]
     var_templates = ["%s=" % v for v in undeclared_variables]
-    return {'variables':  '\n'.join(var_templates)}
+    return {'variables': '\n'.join(var_templates)}
 
 
 @staff_required
@@ -2619,8 +2622,10 @@ def event_assignments_ical(request):
         base_qs
         .filter(event__start_time__gte=now)
     )
-    base_url = '%s://%s' % (request.is_secure() and 'https' or 'http',
-                             RequestSite(request).domain)
+    base_url = '%s://%s' % (
+        request.is_secure() and 'https' or 'http',
+        RequestSite(request).domain
+    )
     for assignment in assignments:
         event = assignment.event
         vevent = cal.add('vevent')
