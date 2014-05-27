@@ -152,7 +152,7 @@ FEED_SIZE = 20
 THUMBNAIL_FORMAT = 'PNG'
 
 # Number of upcoming events to display in the sidebar
-UPCOMING_SIDEBAR_COUNT = 3
+UPCOMING_SIDEBAR_COUNT = 5
 
 # Number of featured/trending events to display in the sidebar
 FEATURED_SIDEBAR_COUNT = 5
