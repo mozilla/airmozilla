@@ -24,7 +24,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 <meta name="keywords" content="{{ ','.join(tags) }}">
 <meta property="og:title" content="{{ event.title }}">
 <meta property="og:description" content="{{ short_desc(event) }}">
-{% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
+{% set thumb = thumbnail(event.placeholder_img, '200x200', crop='center') %}
 <meta property="og:image" content="{{ make_absolute(thumb.url, request) }}">
 <meta property="og:image:width" content="{{ thumb.width }}">
 <meta property="og:image:height" content="{{ thumb.height }}">
