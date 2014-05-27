@@ -210,6 +210,7 @@ class DetailsForm(BaseModelForm):
                 self.fields['location'].queryset.filter(location_field_q)
             )
 
+        self.fields['tags'].label = 'Tags (Keywords that describe the event)'
         self.fields['tags'].help_text = (
             "Enter some keywords to help viewers find the recording of your "
             "event. &lt;br&gt;Press return between keywords"
