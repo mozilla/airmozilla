@@ -23,6 +23,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     '%s.search' % PROJECT_MODULE,
     '%s.comments' % PROJECT_MODULE,
     '%s.uploads' % PROJECT_MODULE,
+    '%s.subtitles' % PROJECT_MODULE,
 
     'bootstrapform',
     'sorl.thumbnail',
@@ -189,3 +190,8 @@ BROWSERID_REQUEST_ARGS = {'siteName': 'Air Mozilla'}
 
 # Name of the bucket where you upload all large videos
 S3_UPLOAD_BUCKET = 'air-mozilla-uploads'
+
+# See http://amara.org/en/profiles/account/
+AMARA_BASE_URL = 'https://www.amara.org/api2/partners'
+AMARA_API_USERNAME = ''
+AMARA_API_KEY = ''

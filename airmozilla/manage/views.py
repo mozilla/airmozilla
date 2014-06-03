@@ -60,6 +60,7 @@ from airmozilla.main.models import (
     EventAssignment,
     LocationDefaultEnvironment
 )
+from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
 from airmozilla.manage import forms
 from airmozilla.manage.tweeter import send_tweet
@@ -646,6 +647,9 @@ def event_edit(request, id):
     except EventAssignment.DoesNotExist:
         context['assignment'] = None
 
+    amara_videos = AmaraVideo.objects.filter(event=event)
+    context['amara_videos_count'] = amara_videos.count()
+
     return render(request, 'manage/event_edit.html', context)
 
 
@@ -688,6 +692,35 @@ def event_assignment(request, id):
     context['assignment'] = assignment
     context['form'] = form
     return render(request, 'manage/event_assignment.html', context)
+
+
+@staff_required
+@cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
+@permission_required('main.change_event')
+def event_transcript(request, id):
+    event = get_object_or_404(Event, id=id)
+    context = {}
+    if request.method == 'POST':
+        form = forms.EventTranscriptForm(
+            instance=event,
+            data=request.POST
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                'Event transcript saved.'
+            )
+            return redirect('manage:event_edit', event.pk)
+    else:
+        form = forms.EventTranscriptForm(instance=event)
+
+    amara_videos = AmaraVideo.objects.filter(event=event)
+
+    context['event'] = event
+    context['amara_videos'] = amara_videos
+    context['form'] = form
+    return render(request, 'manage/event_transcript.html', context)
 
 
 @superuser_required

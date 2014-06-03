@@ -243,7 +243,7 @@ Then fill in the generated file with logic, fixtures, etc.
 
 To apply migrations:
 
-``./manage.py migrate airmozilla.main airmozilla.comments airmozilla.uploads``
+``./manage.py migrate airmozilla.main airmozilla.comments airmozilla.uploads airmozilla.subtitles``
 
 In each command, replace airmozilla.main with the appropriate app.
 

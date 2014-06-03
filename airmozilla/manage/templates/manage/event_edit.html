@@ -219,6 +219,18 @@
       <br><small>(default location: {{ event.location }})</small>
       {% endif %}
     </p>
+
+    <p style="margin-top:25px"><strong>Event Transcript</strong></p>
+    <p>
+      <a href="{{ url('manage:event_transcript', event.pk) }}" class="btn btn-primary btn-sm">
+        {% if event.transcript %}
+        {{ event.transcript | wordcount }} words
+        {% else %}
+        0 words
+        {% endif %}
+      </a>
+      <small>{{ amara_videos_count }} Amara video{{ amara_videos_count | pluralize }}</small>
+    </p>
   </div>
 </div>
 {% endblock %}

@@ -1,16 +1,11 @@
 {% extends 'main/main_base.html' %}
 {% set front_page = 0 %}
 
-{% block banner %}
-    {% include 'main/_banner_small.html' %}
-{% endblock %}
-
 {% block extra_head %}
 {{ super() }}
-<style type="text/css">
-.entry-title a b { font-style:italic; }
-.entry-summary p.desc b { font-style:italic; }
-</style>
+{% compress css %}
+<link href="{{ static('search/css/search.css') }}" rel="stylesheet" type="text/css">
+{% endcompress %}
 {% endblock %}
 
 {% block content_main %}
@@ -36,7 +31,7 @@
         <!-- rank title: {{ event.rank_title }} -->
         <!-- rank desc: {{ event.rank_desc }} -->
         <h2 class="entry-title">
-          <a href="{{ href }}">{{ event.title_highlit|safe }}</a>
+          <a href="{{ href }}">{{ event.title_highlit | safe }}</a>
         </h2>
         {% include 'main/_event_privacy.html' %}
         {% if event.is_upcoming() %}
@@ -46,7 +41,7 @@
         {% endif %}
       </header>
       <div class="entry-summary">
-        <p class="event-date">{{ event.start_time|js_date }}</p>
+        <p class="event-date">{{ event.start_time | js_date }}</p>
         {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
         <a href="{{ href }}">
           <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
@@ -54,9 +49,12 @@
         </a>
         <p class="desc">
           {% if event.desc_highlit %}
-          {{ event.desc_highlit|safe }}
+            {{ event.desc_highlit | safe }}
+          {% elif event.transcript_highlit %}
+            <span class="transcript">{{ event.transcript_highlit | safe }}</span>
+            <span class="transcript-note">(found by transcript)</span>
           {% else %}
-          {{ short_desc(event) }}
+            {{ short_desc(event) }}
           {% endif %}
           <a class="go" href="{{ href }}">{{ _('See more') }}</a>
         </p>

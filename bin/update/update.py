@@ -40,6 +40,7 @@ def update_db(ctx):
         ctx.local('python2.6 manage.py migrate --delete-ghost-migrations --noinput airmozilla.main')
         ctx.local('python2.6 manage.py migrate airmozilla.comments')
         ctx.local('python2.6 manage.py migrate airmozilla.uploads')
+        ctx.local('python2.6 manage.py migrate airmozilla.subtitles')
 
 
 @task

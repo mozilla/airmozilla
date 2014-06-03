@@ -366,3 +366,29 @@ class TestSearch(TestCase):
         response = self.client.get(url, {'q': q})
         eq_(response.status_code, 200)
         ok_('Nothing found' in response.content)
+
+    def test_search_by_transcript(self):
+        assert Event.objects.approved()
+        url = reverse('search:home')
+        q = 'fingerfood'
+        response = self.client.get(url, {'q': q})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+
+        event, = Event.objects.approved()
+        event.transcript = 'I love fingerfoods'
+        event.save()
+        response = self.client.get(url, {'q': q})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+        ok_('found by transcript' in response.content)
+
+        # but if the event is found because of the description...
+        event.short_description = "Peter talks about his love for fingerfood"
+        event.save()
+        response = self.client.get(url, {'q': q})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+        ok_('found by transcript' not in response.content)

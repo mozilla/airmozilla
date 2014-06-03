@@ -1,0 +1,35 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Event Transcript for "{{ event.title }}"
+{% endblock %}
+
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+  {% if amara_videos %}
+  <div class="alert alert-danger">
+    <p>
+      <b>Note!</b> This event gets its transcript from Amara for:
+    </p>
+    <ul>
+      {% for amara_video in amara_videos %}
+      <li><a href="{{ amara_video.url() }}">{{ amara_video.url() }}</a></li>
+      {% endfor %}
+    </ul>
+    <p>
+      This means that the event transcript is automatically created and updated
+      from that. So any manual changes here are possibly going to be overwritten.
+    </p>
+  </div>
+  {% endif %}
+
+  {% include 'manage/_default_form.html' %}
+
+  <p style="margin-top:25px">
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

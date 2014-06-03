@@ -241,10 +241,8 @@ class EventEditForm(EventRequestForm):
 
 
 class EventExperiencedRequestForm(EventEditForm):
+
     class Meta(EventEditForm.Meta):
-        #widgets = EventRequestForm.Meta.widgets
-        #widgets['approvals'] = forms.CheckboxSelectMultiple()
-        #widgets['approvals'] = forms.Textarea()
 
         exclude = ('featured', 'archive_time', 'slug')
         # Fields specified to enforce order
@@ -319,7 +317,6 @@ class EventTweetForm(BaseModelForm):
             from airmozilla.main.helpers import thumbnail
             thumb = thumbnail(event.placeholder_img, '100x100')
 
-            #from sorl.thumbnail import get_thumbnail
             self.fields['include_placeholder'].help_text = (
                 '<img src="%(url)s" alt="placeholder" class="thumbnail" '
                 'width="%(width)s" width="%(height)s">' %
@@ -583,7 +580,6 @@ class CommentEditForm(BaseModelForm):
         fields = ('status', 'comment', 'flagged')
 
 
-
 class CommentsFilterForm(BaseForm):
 
     user = forms.CharField(required=False)
@@ -617,6 +613,7 @@ class EventAssignmentForm(BaseModelForm):
             .filter(is_active=True)
             .order_by('email_lower')
         )
+
         def describe_user(user):
             ret = user.email
             if user.first_name or user.last_name:
@@ -641,3 +638,10 @@ class EventAssignmentForm(BaseModelForm):
         ]
         self.fields['locations'].required = False
         self.fields['locations'].help_text = 'Start typing to find locations.'
+
+
+class EventTranscriptForm(BaseModelForm):
+
+    class Meta:
+        model = Event
+        fields = ('transcript', )

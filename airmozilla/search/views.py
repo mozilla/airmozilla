@@ -10,9 +10,10 @@ from airmozilla.main.views import is_contributor
 
 from funfactory.urlresolvers import reverse
 
+from airmozilla.base.utils import paginator
+
 from . import forms
 from . import utils
-from airmozilla.base.utils import paginator
 
 
 def home(request):
@@ -121,6 +122,8 @@ def _search(q, **options):
           OR
           to_tsvector('english', description || ' ' || short_description)
            @@ to_tsquery('english', %s)
+          OR
+          to_tsvector('english', transcript) @@ to_tsquery('english', %s)
         )
         """
         search_escaped = utils.make_or_query(q)
@@ -131,24 +134,39 @@ def _search(q, **options):
           OR
           to_tsvector('english', description || ' ' || short_description)
            @@ plainto_tsquery('english', %s)
+          OR
+          to_tsvector('english', transcript) @@ plainto_tsquery('english', %s)
         )
         """
         search_escaped = q
     qs = qs.extra(
         where=[sql],
-        params=[search_escaped, search_escaped],
+        params=[search_escaped, search_escaped, search_escaped],
         select={
-            'title_highlit': "ts_headline('english', title, "
-                             "plainto_tsquery('english', %s))",
-            'desc_highlit': "ts_headline('english', short_description, "
-                            "plainto_tsquery('english', %s))",
-            'rank_title': "ts_rank_cd(to_tsvector('english', title), "
-                          "plainto_tsquery('english', %s))",
-            'rank_desc': "ts_rank_cd(to_tsvector('english', description "
-                         "|| ' ' || short_description), "
-                         "plainto_tsquery('english', %s))",
+            'title_highlit': (
+                "ts_headline('english', title, "
+                "plainto_tsquery('english', %s))"
+            ),
+            'desc_highlit': (
+                "ts_headline('english', short_description, "
+                "plainto_tsquery('english', %s))"
+            ),
+            'transcript_highlit': (
+                "ts_headline('english', transcript, "
+                "plainto_tsquery('english', %s))"
+            ),
+            'rank_title': (
+                "ts_rank_cd(to_tsvector('english', title), "
+                "plainto_tsquery('english', %s))"
+            ),
+            'rank_desc': (
+                "ts_rank_cd(to_tsvector('english', description "
+                "|| ' ' || short_description), "
+                "plainto_tsquery('english', %s))"
+            )
         },
         select_params=[
+            search_escaped,
             search_escaped,
             search_escaped,
             search_escaped,

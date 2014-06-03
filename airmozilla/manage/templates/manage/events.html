@@ -3,11 +3,11 @@
 
 {% block site_js %}
   {{ super() }}
-  <script src="{{ static('manage/js/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
   {% compress js %}
   <script src="{{ static('manage/js/bootstrap-datepicker.js') }}"></script>
   <script src="{{ static('manage/js/events.js') }}"></script>
-  <script src="{{ static('manage/js/angular-moment.min.js') }}"></script>
   <script src="{{ static('manage/js/eventmanager.js') }}"></script>
   {% endcompress %}
 {% endblock %}

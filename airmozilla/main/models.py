@@ -306,6 +306,7 @@ class Event(models.Model):
                                default=PRIVACY_PUBLIC, db_index=True)
     featured = models.BooleanField(default=False, db_index=True)
     pin = models.CharField(max_length=20, null=True, blank=True)
+    transcript = models.TextField(null=True)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)
