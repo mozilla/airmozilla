@@ -195,3 +195,7 @@ S3_UPLOAD_BUCKET = 'air-mozilla-uploads'
 AMARA_BASE_URL = 'https://www.amara.org/api2/partners'
 AMARA_API_USERNAME = ''
 AMARA_API_KEY = ''
+
+SCRAPE_CREDENTIALS = {
+    # ('username', 'password'): ['intranet.mozilla.org'],
+}

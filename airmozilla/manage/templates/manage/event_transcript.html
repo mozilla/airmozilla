@@ -28,6 +28,24 @@
 
   {% include 'manage/_default_form.html' %}
 
+  {% if scrapeable_urls %}
+  <form>
+    <p>
+      The following URLs are available for scraping:
+    </p>
+    <ul>
+      {% for url in scrapeable_urls %}
+      <li>
+        <input type="checkbox" name="urls" value="{{ url }}" checked>
+        <a href="{{ url }}" target="_blank">{{ url }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+    <button type="submit" class="btn btn-primary submit">Scrape these</button>
+    <b>Note!</b> It only <i>fills in</i> the form, it does <i>not</i> save.
+  </form>
+  {% endif %}
+
   <p style="margin-top:25px">
     <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
   </p>

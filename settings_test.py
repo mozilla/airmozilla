@@ -40,3 +40,5 @@ BROWSERID_AUDIENCES = ['http://testserver']
 
 import tempfile
 MEDIA_ROOT = tempfile.mkdtemp(prefix='testmedia')
+
+SCRAPE_CREDENTIALS = {}

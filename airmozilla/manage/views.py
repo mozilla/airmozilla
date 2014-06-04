@@ -700,10 +700,14 @@ def event_assignment(request, id):
 def event_transcript(request, id):
     event = get_object_or_404(Event, id=id)
     context = {}
+
+    from airmozilla.manage.scraper import get_urls, scrape_urls
+    scrapeable_urls = list(get_urls(event.additional_links))
+
     if request.method == 'POST':
         form = forms.EventTranscriptForm(
             instance=event,
-            data=request.POST
+            data=request.POST,
         )
         if form.is_valid():
             form.save()
@@ -713,13 +717,31 @@ def event_transcript(request, id):
             )
             return redirect('manage:event_edit', event.pk)
     else:
-        form = forms.EventTranscriptForm(instance=event)
+        initial = {}
+        if request.GET.getlist('urls'):
+            response = scrape_urls(request.GET.getlist('urls'))
+            if response['text']:
+                initial['transcript'] = response['text']
+
+            errors = []
+            for result in response['results']:
+                if not result['worked']:
+                    errors.append('%s: %s' % (result['url'], result['status']))
+            if errors:
+                errors.insert(0, 'Some things could not be scraped correctly')
+                messages.error(
+                    request,
+                    '\n'.join(errors)
+                )
+
+        form = forms.EventTranscriptForm(instance=event, initial=initial)
 
     amara_videos = AmaraVideo.objects.filter(event=event)
 
     context['event'] = event
     context['amara_videos'] = amara_videos
     context['form'] = form
+    context['scrapeable_urls'] = scrapeable_urls
     return render(request, 'manage/event_transcript.html', context)
 
 

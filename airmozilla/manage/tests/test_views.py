@@ -58,6 +58,12 @@ from .test_vidly import (
 )
 
 
+class _Response(object):
+    def __init__(self, content, status_code=200):
+        self.content = self.text = content
+        self.status_code = status_code
+
+
 class ManageTestCase(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
@@ -1700,6 +1706,82 @@ class TestEvents(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('file.foo' in response.content)
+
+    def test_event_transcript(self):
+        event = Event.objects.get(title='Test event')
+        event.transcript = "Some content"
+        event.save()
+
+        url = reverse('manage:event_transcript', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Some content' in response.content)
+
+        response = self.client.post(url, {'transcript': 'New content'})
+        eq_(response.status_code, 302)
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.transcript, 'New content')
+
+    @mock.patch('requests.get')
+    def test_event_transcript_scraping(self, rget):
+
+        def mocked_get(url, **options):
+            eq_(
+                url,
+                'https://etherpad.mozilla.org/ep/pad/export/foo-bar/latest?'
+                'format=txt'
+            )
+            return _Response(
+                "Content here",
+                200
+            )
+
+        rget.side_effect = mocked_get
+
+        event = Event.objects.get(title='Test event')
+        event.additional_links = """
+        https://etherpad.mozilla.org/foo-bar
+        """
+        event.save()
+
+        url = reverse('manage:event_transcript', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('https://etherpad.mozilla.org/foo-bar' in response.content)
+
+        response = self.client.get(url, {
+            'urls': ['https://etherpad.mozilla.org/foo-bar']
+        })
+        eq_(response.status_code, 200)
+        ok_('Content here' in response.content)
+
+    @mock.patch('requests.get')
+    def test_event_transcript_scraping_not_working(self, rget):
+
+        def mocked_get(url, **options):
+            eq_(
+                url,
+                'https://etherpad.mozilla.org/ep/pad/export/foo-bar/latest?'
+                'format=txt'
+            )
+            return _Response(
+                None,
+                500
+            )
+
+        rget.side_effect = mocked_get
+
+        event = Event.objects.get(title='Test event')
+        event.additional_links = """
+        https://etherpad.mozilla.org/foo-bar
+        """
+        event.save()
+        url = reverse('manage:event_transcript', args=(event.pk,))
+        response = self.client.get(url, {
+            'urls': ['https://etherpad.mozilla.org/foo-bar']
+        })
+        eq_(response.status_code, 200)
+        ok_('Some things could not be scraped correctly')
 
 
 class TestParticipants(ManageTestCase):
