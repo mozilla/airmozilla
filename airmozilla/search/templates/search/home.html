@@ -48,11 +48,15 @@
                alt="{{ event.title }}" class="attachment-68x68 wp-post-image">
         </a>
         <p class="desc">
-          {% if event.desc_highlit %}
+          <!-- rank title: {{ event.rank_title }}
+               rank desc: {{ event.rank_desc }}
+               rank transcript: {{ event.rank_transcript }} -->
+          {% if event.rank_desc %}
             {{ event.desc_highlit | safe }}
-          {% elif event.transcript_highlit %}
-            <span class="transcript">{{ event.transcript_highlit | safe }}</span>
+          {% elif event.rank_transcript %}
             <span class="transcript-note">(found by transcript)</span>
+            <span class="transcript">{{ event.transcript_highlit | safe }}</span>
+
           {% else %}
             {{ short_desc(event) }}
           {% endif %}

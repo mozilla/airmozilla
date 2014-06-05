@@ -163,9 +163,15 @@ def _search(q, **options):
                 "ts_rank_cd(to_tsvector('english', description "
                 "|| ' ' || short_description), "
                 "plainto_tsquery('english', %s))"
-            )
+            ),
+            'rank_transcript': (
+                "ts_rank_cd(to_tsvector('english', transcript), "
+                "plainto_tsquery('english', %s))"
+            ),
+
         },
         select_params=[
+            search_escaped,
             search_escaped,
             search_escaped,
             search_escaped,
