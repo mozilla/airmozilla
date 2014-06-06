@@ -103,6 +103,17 @@
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload original file</a></p>
     {% endif %}
 
+    {% if event.is_live() %}
+    <form action="{{ url('manage:stop_live_event', event.pk) }}" method="post" style="margin-top:25px">
+      {{ csrf() }}
+      <p>
+        <button class="btn btn-danger"
+           title="This will change the status to pending and redirect you to upload the file"
+           >Stop Live event</button>
+      </p>
+    </form>
+    {% endif %}
+
     <p style="margin-top:25px"><strong>Tweets:</strong></p>
     {% for tweet in tweets %}
       {% if loop.first %}

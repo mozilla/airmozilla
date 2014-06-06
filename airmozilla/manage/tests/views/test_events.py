@@ -1589,3 +1589,31 @@ class TestEvents(ManageTestCase):
         })
         eq_(response.status_code, 200)
         ok_('Some things could not be scraped correctly')
+
+    def test_stop_live_event(self):
+        event = Event.objects.get(title='Test event')
+        assert event in Event.objects.approved()
+        event.archive_time = None
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        nowish = now - datetime.timedelta(minutes=1)
+        event.start_time = nowish
+        event.save()
+        assert event in Event.objects.live()
+
+        edit_url = reverse('manage:event_edit', args=(event.pk,))
+        response = self.client.get(edit_url)
+        eq_(response.status_code, 200)
+        url = reverse('manage:stop_live_event', args=(event.pk,))
+        ok_(url in response.content)
+
+        # let's click it
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('manage:event_upload', args=(event.pk,))
+        )
+
+        # reload the event and it should have changed status
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.status, Event.STATUS_PENDING)

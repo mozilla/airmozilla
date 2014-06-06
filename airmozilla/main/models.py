@@ -341,6 +341,13 @@ class Event(models.Model):
     def is_pending(self):
         return self.status == self.STATUS_PENDING
 
+    def is_live(self):
+        return (
+            not self.archive_time and
+            self.start_time and
+            self.start_time < _get_live_time()
+        )
+
     def needs_approval(self):
         if self.is_scheduled():
             for approval in Approval.objects.filter(event=self):

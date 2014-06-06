@@ -653,6 +653,20 @@ def event_edit(request, id):
     return render(request, 'manage/event_edit.html', context)
 
 
+@require_POST
+@staff_required
+@permission_required('main.change_event')
+@transaction.commit_on_success
+def event_stop_live(request, id):
+    """Convenient thing that changes the status and redirects you to
+    go and upload a file."""
+    event = get_object_or_404(Event, id=id)
+    event.status = Event.STATUS_PENDING
+    event.save()
+
+    return redirect('manage:event_upload', event.pk)
+
+
 @staff_required
 @permission_required('uploads.add_upload')
 def event_upload(request, id):

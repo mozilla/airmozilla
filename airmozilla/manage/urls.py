@@ -37,6 +37,8 @@ urlpatterns = patterns(
     url(r'^events/(?P<id>\d+)/comments/configuration/$',
         views.event_discussion,
         name='event_discussion'),
+    url(r'^events/(?P<id>\d+)/stop-live/$', views.event_stop_live,
+        name='stop_live_event'),
     url(r'^events/(?P<id>\d+)/tweets/$', views.event_tweets,
         name='event_tweets'),
     url(r'^events/(?P<id>\d+)/tweets/new/$', views.new_event_tweet,
