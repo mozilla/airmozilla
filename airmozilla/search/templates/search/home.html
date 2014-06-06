@@ -31,7 +31,13 @@
         <!-- rank title: {{ event.rank_title }} -->
         <!-- rank desc: {{ event.rank_desc }} -->
         <h2 class="entry-title">
-          <a href="{{ href }}">{{ event.title_highlit | safe }}</a>
+          <a href="{{ href }}">
+            {% if rank_title %}
+            {{ event.title_highlit | safe }}
+            {% else %}
+            {{ event.title }}
+            {% endif %}
+          </a>
         </h2>
         {% include 'main/_event_privacy.html' %}
         {% if event.is_upcoming() %}

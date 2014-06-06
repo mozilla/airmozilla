@@ -64,10 +64,10 @@ div.change label {
 
       {% else %}
       <div class="change-from">
-        {{ difference.before | carefulnl2br | safe }}
+        {{ difference.before | carefulnl2br | safe_html }}
       </div>
       <div class="change-to">
-        {{ difference.after | carefulnl2br | safe }}
+        {{ difference.after | carefulnl2br | safe_html }}
       </div>
       {% endif %}
     </div>

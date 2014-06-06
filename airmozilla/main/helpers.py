@@ -4,6 +4,7 @@ import datetime
 import urllib
 import json
 
+import bleach
 import jinja2
 
 from django.utils.text import Truncator
@@ -123,3 +124,10 @@ def pluralize(value, form='s'):
 @register.filter
 def json_print(value):
     return jinja2.Markup(json.dumps(value))
+
+
+@register.filter
+def safe_html(text):
+    """allow some of the text's HTML tags and escape the rest"""
+    text = bleach.clean(text, tags=['a', 'p', 'b', 'i', 'em', 'strong', 'br'])
+    return jinja2.Markup(text)

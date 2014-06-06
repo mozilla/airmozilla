@@ -1,8 +1,11 @@
 import uuid
 import shutil
 import os
+
 import mock
-from nose.tools import eq_
+from nose.tools import eq_, ok_
+import jinja2
+
 from django.test import TestCase
 from django.conf import settings
 from django.db.utils import IntegrityError
@@ -12,7 +15,8 @@ from airmozilla.main.helpers import (
     pluralize,
     short_desc,
     truncate_words,
-    truncate_chars
+    truncate_chars,
+    safe_html
 )
 
 
@@ -134,4 +138,33 @@ class TestTruncation(TestCase):
             AssertionError,
             truncate_chars,
             'peter', 4
+        )
+
+
+class SafeHTML(TestCase):
+
+    def test_basics(self):
+        text = ''
+        result = safe_html(text)
+        ok_(isinstance(result, jinja2.Markup))
+        eq_(result, '')
+
+    def test_allowed_html(self):
+        text = '<p>This <a href="http://peterbe.com">is</a> a<br>link.</p>'
+        result = safe_html(text)
+        eq_(result, text)
+
+    def test_disallowed_html(self):
+        text = '<script>alert("xss")</script>'
+        result = safe_html(text)
+        eq_(result, text.replace('<', '&lt;').replace('>', '&gt;'))
+
+    def test_mixed(self):
+        text = '<p><script>alert("xss")</script></p>'
+        result = safe_html(text)
+        eq_(
+            result,
+            text
+            .replace('<script>', '&lt;script&gt;')
+            .replace('</script>', '&lt;/script&gt;')
         )

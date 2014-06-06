@@ -64,7 +64,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
       <p>
       {% if not pending %}
       <h2 class="event-date">
-        {{ event.start_time|js_date }}
+        {{ event.start_time | js_date }}
 	      {% if event.is_upcoming() %}
           &mdash;
           {{ event.location_time.strftime("%I:%M%p") }} in {{ event.location.name }}
@@ -100,7 +100,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
                height="{{ thumb.height }}" alt="{{ event.title }}">
         {% endif %}
       {% endif %}
-      <p>{{ event.description|carefulnl2br|safe }}</p>
+      <p>{{ event.description | carefulnl2br | safe_html }}</p>
 
       {% if tags %}
       <p>
@@ -116,7 +116,7 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
       {% endif %}
       {% if event.additional_links %}
         <p>{{ _('Additional links') }}:<br>
-	         {{ event.additional_links|urlize|nl2br }}</p>
+	         {{ event.additional_links | urlize|nl2br }}</p>
       {% endif %}
 
       {% if hits %}
