@@ -32,9 +32,11 @@
         <!-- rank desc: {{ event.rank_desc }} -->
         <h2 class="entry-title">
           <a href="{{ href }}">
-            {% if rank_title %}
+            {% if event.rank_title %}
+            <!-- yes, rank_title was -->
             {{ event.title_highlit | safe }}
             {% else %}
+            <!-- no, rank_title was {{ rank_title }} -->
             {{ event.title }}
             {% endif %}
           </a>
