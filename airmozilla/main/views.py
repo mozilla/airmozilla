@@ -543,8 +543,6 @@ class EventEditView(EventView):
             'tags': ', '.join([x.name for x in event.tags.all()]),
             'call_info': event.call_info,
             'additional_links': event.additional_links,
-            #'placeholder_img': event.placeholder_img.url,
-            #'thumbnail_url': thumbnail(event.)
         }
         if event.placeholder_img:
             data['placeholder_img'] = event.placeholder_img.url
@@ -798,8 +796,8 @@ def events_calendar_ical(request, privacy=None):
             vevent.add('location').value = event.location.name
         vevent.add('url').value = base_url + event.slug + '/'
     icalstream = cal.serialize()
-    #response = http.HttpResponse(icalstream,
-    #                          mimetype='text/plain; charset=utf-8')
+    # response = http.HttpResponse(icalstream,
+    #                           mimetype='text/plain; charset=utf-8')
 
     response = http.HttpResponse(icalstream,
                                  mimetype='text/calendar; charset=utf-8')
@@ -984,10 +982,8 @@ def calendar_data(request):
     if not form.is_valid():
         return http.HttpResponseBadRequest(str(form.errors))
 
-    #start = datetime.datetime.fromtimestamp(form.cleaned_data['start'])
     start = form.cleaned_data['start']
     end = form.cleaned_data['end']
-    #end = datetime.datetime.fromtimestamp(form.cleaned_data['end'])
 
     start = start.replace(tzinfo=utc)
     end = end.replace(tzinfo=utc)

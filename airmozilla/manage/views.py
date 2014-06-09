@@ -1509,7 +1509,6 @@ def approval_review(request, id):
         form = forms.ApprovalForm(request.POST, instance=approval)
         approval = form.save(commit=False)
         approval.approved = 'approve' in request.POST
-        print 'approval.approved', approval.approved
         approval.processed = True
         approval.user = request.user
         approval.save()
