@@ -362,6 +362,9 @@ class EventView(View):
             event.participants.filter(cleared=Participant.CLEARED_YES)
         )
 
+        # needed for the open graph stuff
+        event.url = reverse('main:event', args=(event.slug,))
+
         context = self.get_default_context(event, request)
         context.update({
             'event': event,

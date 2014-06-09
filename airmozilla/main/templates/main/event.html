@@ -23,11 +23,14 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
 {{ super() }}
 <meta name="keywords" content="{{ ','.join(tags) }}">
 <meta property="og:title" content="{{ event.title }}">
+<meta property="og:url" content="{{ make_absolute(event.url, request) }}">
 <meta property="og:description" content="{{ short_desc(event) }}">
+{% if event.placeholder_img %}
 {% set thumb = thumbnail(event.placeholder_img, '200x200', crop='center') %}
 <meta property="og:image" content="{{ make_absolute(thumb.url, request) }}">
 <meta property="og:image:width" content="{{ thumb.width }}">
 <meta property="og:image:height" content="{{ thumb.height }}">
+{% endif %}
 {% endblock %}
 
 {% block site_js %}

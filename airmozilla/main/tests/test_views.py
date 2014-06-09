@@ -1861,6 +1861,8 @@ class TestPages(DjangoTestCase):
             in head
         )
         ok_('<meta property="og:image" content="htt' in head)
+        absolute_url = 'http://testserver' + url
+        ok_('<meta property="og:url" content="%s">' % absolute_url in head)
 
     def test_meta_keywords(self):
         event = Event.objects.get(title='Test event')
