@@ -103,7 +103,7 @@
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload original file</a></p>
     {% endif %}
 
-    {% if event.is_live() %}
+    {% if event.is_live() and event.is_scheduled() %}
     <form action="{{ url('manage:stop_live_event', event.pk) }}" method="post" style="margin-top:25px">
       {{ csrf() }}
       <p>
