@@ -17,6 +17,7 @@ from django.conf import settings
 
 import requests
 from funfactory.urlresolvers import reverse
+from slugify import slugify
 
 from airmozilla.base.utils import (
     json_view
@@ -59,13 +60,14 @@ def sign(request):
 
     now = datetime.datetime.utcnow()
     name, ext = os.path.splitext(object_name)
+    name = slugify(name)
     name = hashlib.md5(name).hexdigest()[:5]
     name = '%s-%s-%s' % (request.user.id, name, now.strftime('%H%M%S'))
     ext = ext.lower()
     directory = now.strftime('%Y/%m/%d')
     object_name = os.path.join(directory, '%s%s' % (name, ext))
 
-    expires = int(time.time()+10)
+    expires = int(time.time() + 10)
     amz_headers = "x-amz-acl:public-read"
 
     put_request = (

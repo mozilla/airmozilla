@@ -78,6 +78,16 @@ class TestUploads(TestCase):
         cache_key = 'file_name_%s' % hashlib.md5(s3_url).hexdigest()
         eq_(cache.get(cache_key), 'foo.flv')
 
+    def test_sign_unicode_name(self):
+        url = reverse('uploads:sign')
+        self._login()
+        response = self.client.get(
+            url,
+            {'s3_object_name': u'st\xe9phanie.flv',
+             's3_object_type': 'video/file'}
+        )
+        eq_(response.status_code, 200)
+
     @mock.patch('requests.head')
     def test_save(self, rhead):
         def mocked_head(url, **options):
