@@ -1509,6 +1509,7 @@ def approval_review(request, id):
         form = forms.ApprovalForm(request.POST, instance=approval)
         approval = form.save(commit=False)
         approval.approved = 'approve' in request.POST
+        print 'approval.approved', approval.approved
         approval.processed = True
         approval.user = request.user
         approval.save()
@@ -1524,6 +1525,26 @@ def approval_review(request, id):
         suggested_event = None
     context['suggested_event'] = suggested_event
     return render(request, 'manage/approval_review.html', context)
+
+
+@require_POST
+@staff_required
+@permission_required('main.change_approval')
+@transaction.commit_on_success
+def approval_reconsider(request):
+    id = request.POST.get('id')
+    if not id:
+        return http.HttpResponseBadRequest('no id')
+    try:
+        approval = get_object_or_404(Approval, id=id)
+    except ValueError:
+        return http.HttpResponseBadRequest('invalid id')
+    approval.processed = False
+    approval.approved = False
+    approval.comment = ''
+    approval.save()
+
+    return redirect('manage:approvals')
 
 
 @staff_required

@@ -60,6 +60,45 @@ class TestApprovals(ManageTestCase):
         ok_(app.processed)
         eq_(app.user, User.objects.get(username='fake'))
 
+    def test_approval_reconsider(self):
+        event = Event.objects.get(title='Test event')
+        group = Group.objects.get(name='testapprover')
+        app = Approval.objects.create(event=event, group=group)
+        self.user.groups.add(group)
+
+        url = reverse('manage:approval_review', args=(app.pk,))
+        response_approve = self.client.post(url, {
+            'approve': 'approve',
+            'comment': 'Not good enough'
+        })
+        self.assertRedirects(response_approve, reverse('manage:approvals'))
+        app = Approval.objects.get(id=app.id)
+        ok_(app.processed)
+        ok_(app.approved)
+        eq_(app.comment, 'Not good enough')
+        eq_(app.user, User.objects.get(username='fake'))
+
+        # now, let's reconsider
+        reconsider_url = reverse('manage:approval_reconsider')
+        # missing an id
+        response = self.client.post(reconsider_url)
+        eq_(response.status_code, 400)
+        # junk id
+        response = self.client.post(reconsider_url, {'id': 'junk'})
+        eq_(response.status_code, 400)
+        # not found id
+        response = self.client.post(reconsider_url, {'id': '0'})
+        eq_(response.status_code, 404)
+        # correct id
+        response = self.client.post(reconsider_url, {'id': app.pk})
+        eq_(response.status_code, 302)
+
+        app = Approval.objects.get(id=app.id)
+        ok_(not app.processed)
+        ok_(not app.approved)
+        eq_(app.comment, '')
+        eq_(app.user, User.objects.get(username='fake'))
+
     def test_approval_review_with_suggested_event(self):
         event = Event.objects.get(title='Test event')
         bob = User.objects.create_user('bob', email='bob@mozilla.com')

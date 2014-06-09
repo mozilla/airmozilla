@@ -49,6 +49,7 @@
   {% endif %}
   {% if recent %}
   <h3>Recent reviews from your group</h3>
+  <form action="{{ url('manage:approval_reconsider') }}" method="post">{{ csrf() }}
   <ul>
   {% for review in recent %}
     <li>
@@ -58,9 +59,11 @@
         {% if review.comment %}
           - {{ review.comment }}
         {% endif %}
+        <button class="btn btn-default btn-xs" name="id" value="{{ review.pk }}">Reconsider</button>
     </li>
   {% endfor %}
   </ul>
+</form>
   {% endif %}
   {% if not approvals and not recent %}
     <p>No approvals are waiting!</p>

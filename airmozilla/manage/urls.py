@@ -107,6 +107,8 @@ urlpatterns = patterns(
     url(r'^locations/tz/$', views.location_timezone, name='location_timezone'),
     url(r'^locations/$', views.locations, name='locations'),
     url(r'^approvals/$', views.approvals, name='approvals'),
+    url(r'^approvals/reconsider/$', views.approval_reconsider,
+        name='approval_reconsider'),
     url(r'^approvals/(?P<id>\d+)/$', views.approval_review,
         name='approval_review'),
     url(r'^pages/$', views.flatpages, name='flatpages'),
