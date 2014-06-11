@@ -60,7 +60,7 @@
                rank desc: {{ event.rank_desc }}
                rank transcript: {{ event.rank_transcript }} -->
           {% if event.rank_desc %}
-            {{ event.desc_highlit | safe }}
+            {{ event.desc_highlit | safe_html }}
           {% elif event.rank_transcript %}
             <span class="transcript-note">(found by transcript)</span>
             <span class="transcript">{{ event.transcript_highlit | safe }}</span>
