@@ -47,13 +47,16 @@ class Command(BaseCommand):  # pragma: no cover
                 event.template and 'vid.ly' in event.template.name.lower()
             ):
                 raise NotImplementedError("Not a vid.ly archived event")
-
             video_url = self._get_webm_link(event)
             if verbose:
                 print "\t", video_url
             result = self.find_video_by_url(video_url)
 
             if not result['objects'] and options['post']:
+                if urlparse(video_url).netloc == 'vid.ly':
+                    print "FROM", video_url
+                    video_url = self.get_webm_actual_url(video_url)
+                    print "TO", video_url
                 post_result = self.post_video_by_url(
                     video_url,
                     title=event.title,
@@ -94,6 +97,8 @@ class Command(BaseCommand):  # pragma: no cover
     @property
     def headers(self):
         return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'X-api-username': settings.AMARA_API_USERNAME,
             'X-apikey': settings.AMARA_API_KEY
         }
@@ -112,8 +117,19 @@ class Command(BaseCommand):  # pragma: no cover
             kwargs,
             video_url=video_url
         ))
+        print dict(
+            kwargs,
+            video_url=video_url
+        )
+        print self.headers
+        print res.content
         assert res.status_code == 200, res.status_code
         return res.json()
+
+    def get_webm_actual_url(self, url):
+        headers = {'Accept': 'video/webm'}
+        res = requests.head(url, headers=headers)
+        return res.headers['Location']
 
     def download_subtitles(self, video_id, format='json'):
         url = settings.AMARA_BASE_URL + (
