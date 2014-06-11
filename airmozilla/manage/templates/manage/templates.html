@@ -21,6 +21,9 @@
             {% if template.default_popcorn_template %}
             <span class="label label-info" title="Default Popcorn template">Popcorn</span>
             {% endif %}
+            {% if template.default_archive_template %}
+            <span class="label label-info" title="Default archive template">Default archive</span>
+            {% endif %}
         </td>
 	    <td>{{ count_events_with_template(template) }}</td>
         <td>

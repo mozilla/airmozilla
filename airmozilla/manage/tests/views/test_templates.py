@@ -77,6 +77,36 @@ class TestTemplates(ManageTestCase):
         # only exactly one should have default_popcorn_template on
         eq_(Template.objects.filter(default_popcorn_template=True).count(), 1)
 
+    def test_template_edit_default_archive_template(self):
+        """Editing a template and setting `default_archive_template` should
+        un-set that for any others."""
+        Template.objects.create(
+            name='Template 1',
+            content='Bla bla'
+        )
+        Template.objects.create(
+            name='Template 2',
+            content='Ble ble',
+            default_archive_template=True
+        )
+        template = Template.objects.get(name='test template')
+        url = reverse('manage:template_edit', kwargs={'id': template.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        response_ok = self.client.post(url, {
+            'name': 'new name',
+            'content': 'new content',
+            'default_archive_template': True
+        })
+        # print response.content
+        eq_(response_ok.status_code, 302)
+        # reload
+        template = Template.objects.get(pk=template.id)
+        ok_(template.default_archive_template)
+        self.assertRedirects(response_ok, reverse('manage:templates'))
+        # only exactly one should have default_popcorn_template on
+        eq_(Template.objects.filter(default_archive_template=True).count(), 1)
+
     def test_template_remove(self):
         template = Template.objects.get(name='test template')
         self._delete_test(template, 'manage:template_remove',

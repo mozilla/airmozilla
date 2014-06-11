@@ -173,6 +173,11 @@ class Template(models.Model):
         help_text='If you have more than one templates for Popcorn videos '
                   'this dictates which one is the default one.'
     )
+    default_archive_template = models.BooleanField(
+        default=False,
+        help_text='When you archive an event, it needs to preselect which '
+                  'template it should use. This selects the best default.'
+    )
 
     class Meta:
         ordering = ['name']

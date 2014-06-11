@@ -585,6 +585,28 @@ class TestEvents(ManageTestCase):
             now.strftime('%d %H:%M')
         )
 
+    def test_event_archive_with_default_archive_template(self):
+        """If you have a template that has `default_archive_template` True
+        then it should mention that on the event archive page."""
+        event = Event.objects.get(title='Test event')
+        event.archive_time = None
+        # also, make it non-public
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        url = reverse('manage:event_archive', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        assert not Template.objects.filter(default_archive_template=True)
+        ok_('default_archive_template' not in response.content)
+        template = Template.objects.create(
+            name='Foo',
+            default_archive_template=True
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('default_archive_template' in response.content)
+        ok_('value="%s"' % template.pk in response.content)
+
     def test_event_archive_with_upload(self):
         """event archive an event that came from a suggested event that has
         a file upload."""

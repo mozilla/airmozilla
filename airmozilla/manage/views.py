@@ -1033,7 +1033,6 @@ def event_archive(request, id):
             messages.info(request, 'Event "%s" saved.' % event.title)
             return redirect('manage:events')
     else:
-
         form = forms.EventArchiveForm(instance=event)
     initial = dict(email=request.user.email)
     if event.privacy != Event.PRIVACY_PUBLIC:
@@ -1052,10 +1051,20 @@ def event_archive(request, id):
         initial=initial,
         disable_token_protection=event.privacy != Event.PRIVACY_PUBLIC
     )
-    return render(request, 'manage/event_archive.html',
-                  {'form': form,
-                   'event': event,
-                   'vidly_shortcut_form': vidly_shortcut_form})
+
+    for template in Template.objects.filter(default_archive_template=True):
+        default_archive_template = template
+        break
+    else:
+        default_archive_template = None
+
+    context = {
+        'form': form,
+        'event': event,
+        'vidly_shortcut_form': vidly_shortcut_form,
+        'default_archive_template': default_archive_template,
+    }
+    return render(request, 'manage/event_archive.html', context)
 
 
 @staff_required
@@ -1307,6 +1316,14 @@ def template_edit(request, id):
                 )
                 for other_template in others:
                     other_template.default_popcorn_template = False
+                    other_template.save()
+            if template.default_archive_template:
+                others = (
+                    Template.objects.filter(default_archive_template=True)
+                    .exclude(pk=template.pk)
+                )
+                for other_template in others:
+                    other_template.default_archive_template = False
                     other_template.save()
 
             messages.info(request, 'Template "%s" saved.' % template.name)

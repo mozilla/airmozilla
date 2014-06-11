@@ -40,11 +40,15 @@ var VidlyShortcutter = (function() {
                     $('.loading', container).hide();
                     var shortcode = response.shortcode;
                     var vidly_template;
-                    $('#id_template option').each(function(i, each) {
-                        if ($(each).text().search(/Vid\.ly/) > -1) {
-                            vidly_template = $(each).val();
-                        }
-                    });
+                    if ($('[name="default_archive_template"]').length) {
+                        vidly_template = $('[name="default_archive_template"]').val();
+                    } else {
+                        $('#id_template option').each(function(i, each) {
+                            if ($(each).text().search(/Vid\.ly/) > -1) {
+                                vidly_template = $(each).val();
+                            }
+                        });
+                    }
                     if (!vidly_template) {
                         alert("Could not find a Vid.ly template in the drop-down");
                     } else {
