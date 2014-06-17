@@ -1,3 +1,4 @@
+import json
 from pprint import pprint
 from optparse import make_option
 from urlparse import urlparse
@@ -90,7 +91,6 @@ class Command(BaseCommand):  # pragma: no cover
             amara_video.save()
 
     def _get_webm_link(self, event):
-        # return 'http://www.youtube.com/watch?v=U7stmWKvk64'  # XXX HACK
         tag = event.template_environment['tag']
         return 'https://vid.ly/%s?content=video&format=webm' % tag
 
@@ -113,16 +113,12 @@ class Command(BaseCommand):  # pragma: no cover
 
     def post_video_by_url(self, video_url, **kwargs):
         url = settings.AMARA_BASE_URL + '/videos/'
-        res = requests.post(url, headers=self.headers, params=dict(
+        params = dict(
             kwargs,
-            video_url=video_url
-        ))
-        print dict(
-            kwargs,
-            video_url=video_url
+            video_url=video_url,
+            team='mozilla'
         )
-        print self.headers
-        print res.content
+        res = requests.post(url, headers=self.headers, data=json.dumps(params))
         assert res.status_code == 200, res.status_code
         return res.json()
 
