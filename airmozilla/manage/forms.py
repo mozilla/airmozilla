@@ -96,6 +96,7 @@ class EventRequestForm(BaseModelForm):
             'additional_links': forms.Textarea(attrs={'rows': 3}),
             'template_environment': forms.Textarea(attrs={'rows': 3}),
             'additional_links': forms.Textarea(attrs={'rows': 3}),
+            'remote_presenters': forms.Textarea(attrs={'rows': 3}),
             'start_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
             'archive_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
         }
@@ -105,6 +106,7 @@ class EventRequestForm(BaseModelForm):
             'title', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time',
             'participants', 'channels', 'tags', 'call_info',
+            'remote_presenters',
             'additional_links', 'privacy', 'popcorn_url'
         )
 
@@ -220,7 +222,8 @@ class EventEditForm(EventRequestForm):
             'template_environment', 'placeholder_img', 'location',
             'description', 'short_description', 'start_time', 'archive_time',
             'participants', 'channels', 'tags',
-            'call_info', 'additional_links', 'approvals',
+            'call_info', 'additional_links', 'remote_presenters',
+            'approvals',
             'popcorn_url',
             'pin',
         )
@@ -251,7 +254,8 @@ class EventExperiencedRequestForm(EventEditForm):
             'template_environment', 'placeholder_img', 'description',
             'short_description', 'location', 'start_time',
             'participants', 'channels', 'tags', 'call_info',
-            'additional_links', 'approvals', 'pin', 'popcorn_url',
+            'additional_links', 'remote_presenters',
+            'approvals', 'pin', 'popcorn_url',
         )
 
 
