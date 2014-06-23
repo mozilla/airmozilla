@@ -1445,7 +1445,6 @@ class TestPages(DjangoTestCase):
                 status=Event.STATUS_SCHEDULED,
                 placeholder_img=event1.placeholder_img,
             )
-            #assert event in list(Event.objects.archived().all())
             event.channels.add(channel)
 
         url = reverse('main:home_channels', args=(channel.slug,))
@@ -2140,6 +2139,47 @@ class TestPages(DjangoTestCase):
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
+
+    @mock.patch('logging.error')
+    @mock.patch('requests.get')
+    def test_view_curated_group_event_as_staff(self, rget, rlogging):
+
+        def mocked_get(url, **options):
+            if 'peterbe' in url:
+                return Response(VOUCHED_FOR)
+            if 'offset=0' in url:
+                return Response(GROUPS1)
+            if 'offset=500' in url:
+                return Response(GROUPS2)
+            raise NotImplementedError(url)
+        rget.side_effect = mocked_get
+
+        # sign in as a member of staff
+        User.objects.create_user(
+            'mary', 'mary@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='mary', password='secret')
+
+        event = Event.objects.get(title='Test event')
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+
+        url = reverse('main:event', args=(event.slug,))
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+        # make it so that viewing the event requires that you're a
+        # certain group
+        CuratedGroup.objects.create(
+            event=event,
+            name='vip',
+            url='https://mozillians.org/vip',
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
 
 
 class TestEventEdit(DjangoTestCase):

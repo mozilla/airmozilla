@@ -235,6 +235,9 @@ def can_view_event(event, user):
         if is_contributor(user):
             return False
     else:
+        if not is_contributor(user):
+            # staff can always see it
+            return True
         curated_groups = [
             x[0] for x in
             CuratedGroup.objects.filter(event=event).values_list('name')
