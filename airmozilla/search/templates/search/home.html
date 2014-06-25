@@ -14,6 +14,14 @@
     <p><strong>Search Error</strong> {{ search_error }}</p>
   {% endif %}
 
+  {% if possible_tags %}
+    <p class="possible-tags"><strong>Search by tags:</strong>
+      {% for tag in possible_tags %}
+        <a href="{{ url('search:home') }}?q={{ tag._query_string | urlencode }}" class="tag">{{ tag._query_string }}</a>{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+  {% endif %}
+
   {% if events_found %}
     <p>
     {% if events_found == 1 %}
@@ -73,7 +81,7 @@
       </div>
     </article>
   {% else %}
-    {% if q %}
+    {% if q or tags %}
       <h4>Nothing found</h4>
     {% endif %}
   {% endfor %}

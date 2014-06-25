@@ -3,3 +3,5 @@
 .entry-summary p .transcript { font-style: italic; }
 .entry-summary p .transcript:before { content: '“'; }
 .entry-summary p .transcript:after { content: '”'; }
+
+p.found-tags, p.possible-tags { float: right; }
