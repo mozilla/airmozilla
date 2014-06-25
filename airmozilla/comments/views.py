@@ -1,5 +1,4 @@
 import calendar
-import datetime
 
 from django.contrib.auth.models import User
 from django import http
@@ -8,7 +7,6 @@ from django.template.loader import render_to_string
 from django.db.models import Q, Max
 from django.core.cache import cache
 from django.db import transaction
-from django.utils.timezone import utc
 
 from airmozilla.base.utils import json_view
 from airmozilla.main.models import Event
@@ -18,41 +16,19 @@ from . import forms
 from . import sending
 
 
-def get_latest_comment(event, include_posted=False, since=None):
-    cache_key = 'latest_comment-%s-%s' % (event.pk, bool(include_posted))
-    latest = cache.get(cache_key, -1)
-    if latest != -1:
-        # cache hit
-        if since and since >= latest:
-            return
-    # cache miss, call in the real work horse
-    latest = _get_latest_comment(
-        event,
-        include_posted=include_posted,
-        since=since
-    )
-    cache.set(cache_key, latest, 60)
-    return latest
+def get_latest_comment(event, include_posted=False):
+    latest_comment = Comment.objects
+    if isinstance(event, int):
+        latest_comment = latest_comment.filter(event_id=event)
+    else:
+        latest_comment = latest_comment.filter(event=event)
 
-
-def _get_latest_comment(event, include_posted=False, since=None):
-    latest_comment = (
-        Comment.objects
-        .filter(event=event)
-    )
     if not include_posted:
         latest_comment = (
             latest_comment
             .filter(Q(status=Comment.STATUS_REMOVED) |
                     Q(status=Comment.STATUS_APPROVED))
         )
-
-    if since:
-        since = datetime.datetime.utcfromtimestamp(since)
-        since = since.replace(tzinfo=utc)
-        # add 1 second to counter for lost microseconds
-        since += datetime.timedelta(seconds=1)
-        latest_comment = latest_comment.filter(modified__gt=since)
 
     latest_comment = latest_comment.aggregate(Max('modified'))
     if latest_comment:
@@ -62,12 +38,44 @@ def _get_latest_comment(event, include_posted=False, since=None):
 
 
 def can_manage_comments(user, discussion):
+    """return true if this user can do administrative things to the
+    comments such as moderating them.
+    """
     if user.is_authenticated():
         if user.is_superuser:
             return True
         elif discussion.moderators.filter(id=user.id).exists():
             return True
     return False
+
+
+def can_manage_comments_by_event(user, event):
+    """similar to can_manage_comments() except you can provide this function
+    an event instead or an ID to an event. This makes it appropriate
+    for leveraging caching to quickly return true or false.
+    """
+    cache_key = None
+
+    if not isinstance(event, Event):
+        # that means we can use caching
+        cache_key = 'can_manage_comments_by_event:%s:%s' % (event, user.pk)
+        truth = cache.get(cache_key, -1)
+        if truth != -1:
+            return truth
+        discussion = Discussion.objects.get(event_id=event, enabled=True)
+    else:
+        discussion = Discussion.objects.get(event=event, enabled=True)
+    truth = can_manage_comments(user, discussion)
+    if cache_key:
+        # Note! There is no cache invalidation of this. That's because
+        # the cache key is constructed by two different models.
+        # However, event's change rarely. And users change rarely too.
+        # This is also why the expiration time is so low.
+        # The worst thing that can happen is that a user is added to the
+        # list of moderators and has to wait a couple of seconds for it
+        # to take effect on an already up and running discussion.
+        cache.set(cache_key, truth, 60)
+    return truth
 
 
 @json_view
@@ -222,22 +230,20 @@ def event_data(request, id):
 @json_view
 @transaction.commit_on_success
 def event_data_latest(request, id):
-    event = get_object_or_404(Event, pk=id)
+    cache_key = 'latest_comment:%s' % (id,)
     try:
-        discussion = Discussion.objects.get(event=event, enabled=True)
+        cache_key += ':%s' % can_manage_comments_by_event(request.user, id)
     except Discussion.DoesNotExist:
         return http.HttpResponseBadRequest('Discussion not enabled')
-    try:
-        since = request.GET.get('since')
-        if since:
-            since = float(since)
-    except ValueError:
-        return http.HttpResponseBadRequest("Invalid 'since'")
-    latest_comment = get_latest_comment(
-        event,
-        include_posted=can_manage_comments(request.user, discussion),
-        since=since
-    )
+
+    latest_comment = cache.get(cache_key, -1)
+    if latest_comment == -1:
+        discussion = Discussion.objects.get(event__pk=id, enabled=True)
+        latest_comment = get_latest_comment(
+            discussion.event_id,
+            include_posted=can_manage_comments(request.user, discussion),
+        )
+        cache.set(cache_key, latest_comment, 60)
     return {'latest_comment': latest_comment}
 
 

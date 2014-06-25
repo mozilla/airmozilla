@@ -36,15 +36,15 @@ def invalidate_latest_comment_cache(sender, instance, **kwargs):
     event = instance.event
     cache_keys = []
     # there's one cache key for moderators and one for non-moderators
-    cache_keys.append('latest_comment-%s-False' % event.id)
-    cache_keys.append('latest_comment-%s-True' % event.id)
+    for truth in (True, False):
+        cache_keys.append('latest_comment:%s:%s' % (event.id, truth))
     [cache.delete(x) for x in cache_keys]
 
 
-#class CommentVotes(models.Model):
-#    comment = models.ForeignKey(Comment)
-#    vote = models.IntegerField(default=1)
-#    created = models.DateTimeField(auto_now_add=True)
+# class CommentVotes(models.Model):
+#     comment = models.ForeignKey(Comment)
+#     vote = models.IntegerField(default=1)
+#     created = models.DateTimeField(auto_now_add=True)
 
 
 class Discussion(models.Model):

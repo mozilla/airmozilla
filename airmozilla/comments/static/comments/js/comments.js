@@ -2,7 +2,7 @@ var RELOAD_INTERVAL = 5;  // seconds
 
 var Comments = (function() {
 
-    var since = null;
+    var previous_latest_comment = null;
     var halt_reload_loop = false;
     var pause_reload_loop = false;
 
@@ -124,7 +124,7 @@ var Comments = (function() {
                     console.log('Discussion not enabled on this page');
                     return;
                 }
-                since = response.latest_comment;
+                previous_latest_comment = response.latest_comment;
                 $('.comments-outer', container).html(response.html).show();
                 $('time.timeago', container).timeago();
                 $('a.permalink', container).click(function() {
@@ -177,11 +177,10 @@ var Comments = (function() {
             if (halt_reload_loop || pause_reload_loop) {
                 return;
             }
-            var data = {since: since};
+            var data = {};
             var req = $.getJSON(container.data('reload-url'), data);
             req.then(function(response) {
-                if (response.latest_comment) {
-                    since = response.latest_comment;
+                if (response.latest_comment != previous_latest_comment) {
                     Comments.load(container);
                 }
             });

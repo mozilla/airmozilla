@@ -16,7 +16,8 @@ from nose.tools import eq_, ok_
 from airmozilla.main.models import Event
 from airmozilla.comments.views import (
     can_manage_comments,
-    get_latest_comment
+    get_latest_comment,
+    can_manage_comments_by_event
 )
 from airmozilla.comments.models import (
     Discussion,
@@ -95,9 +96,37 @@ class TestComments(TestCase):
         ok_(can_manage_comments(jay, discussion))
         ok_(can_manage_comments(richard, discussion))
 
+    def test_can_manage_comments_by_event(self):
+        event = Event.objects.get(title='Test event')
+
+        jay = User.objects.create(username='jay', email='jay@mozilla.com')
+        bob = User.objects.create(username='bob', email='bob@mozilla.com')
+        richard = User.objects.create(username='richard',
+                                      email='richard@mozilla.com',
+                                      is_superuser=True)
+        discussion = self._create_discussion(event)
+        discussion.moderators.add(jay)
+
+        ok_(not can_manage_comments_by_event(bob, event))
+        ok_(can_manage_comments_by_event(jay, event))
+        ok_(can_manage_comments_by_event(richard, event))
+
+        # all of these should work by simply passing in the ID of the event
+        ok_(not can_manage_comments_by_event(bob, event.pk))
+        ok_(can_manage_comments_by_event(jay, event.pk))
+        ok_(can_manage_comments_by_event(richard, event.pk))
+
+        # because by using just the ID we get response from a cache
+        # so changing things now won't be reflected
+        discussion.moderators.add(bob)
+        ok_(can_manage_comments_by_event(bob, event))
+        ok_(not can_manage_comments_by_event(bob, event.pk))
+
     def test_get_latest_comment(self):
         event = Event.objects.get(title='Test event')
         eq_(get_latest_comment(event), None)
+        # or by ID
+        eq_(get_latest_comment(event.pk), None)
 
         bob = User.objects.create(username='bob', email='bob@mozilla.com')
         comment = Comment.objects.create(
@@ -111,32 +140,9 @@ class TestComments(TestCase):
         latest = get_latest_comment(event, include_posted=True)
         modified = calendar.timegm(comment.modified.utctimetuple())
         eq_(latest, modified)
-        latest = get_latest_comment(event, include_posted=True, since=modified)
-        eq_(latest, None)
-
-    def test_get_latest_comment_caching(self):
-        event = Event.objects.get(title='Test event')
-        bob = User.objects.create(username='bob', email='bob@mozilla.com')
-        comment = Comment.objects.create(
-            event=event,
-            user=bob,
-            comment="Hi, it's Bob",
-            status=Comment.STATUS_POSTED
-        )
-        latest = get_latest_comment(event, include_posted=True)
-        modified = calendar.timegm(comment.modified.utctimetuple())
-        eq_(latest, modified)
-        latest_again = get_latest_comment(event, include_posted=True)
-        eq_(latest, latest_again)
-
-        latest = get_latest_comment(event, include_posted=True, since=modified)
-        eq_(latest, None)
-
-        comment.status = Comment.STATUS_APPROVED
-        comment.save()
-        latest_third = get_latest_comment(event, include_posted=True, since=modified - 1)
-        modified_second = calendar.timegm(comment.modified.utctimetuple())
-        eq_(latest_third, modified_second)
+        # again, or by event ID
+        latest_second_time = get_latest_comment(event.pk, include_posted=True)
+        eq_(latest, latest_second_time)
 
     def test_basic_event_data(self):
         event = Event.objects.get(title='Test event')
@@ -213,7 +219,7 @@ class TestComments(TestCase):
 
     def test_post_comment_no_moderation(self):
         event = Event.objects.get(title='Test event')
-        discussion = self._create_discussion(event, moderate_all=False)
+        self._create_discussion(event, moderate_all=False)
         User.objects.create_user('richard', password='secret')
         assert self.client.login(username='richard', password='secret')
         comments_url = reverse('comments:event_data', args=(event.pk,))
@@ -222,7 +228,7 @@ class TestComments(TestCase):
             'comment': 'Bla bla'
         })
         eq_(response.status_code, 200)
-        structure = json.loads(response.content)
+        # structure = json.loads(response.content)
         comment = Comment.objects.get(event=event)
         eq_(comment.status, Comment.STATUS_APPROVED)
 
@@ -609,6 +615,7 @@ class TestComments(TestCase):
         ok_(Comment.objects.get(flagged=0))
 
     def test_event_data_latest_400(self):
+        cache.clear()
         event = Event.objects.get(title='Test event')
         url = reverse('comments:event_data_latest', args=(event.pk,))
         response = self.client.get(url)
@@ -652,11 +659,7 @@ class TestComments(TestCase):
         structure = json.loads(response.content)
         modified = calendar.timegm(comment.modified.utctimetuple())
         eq_(structure['latest_comment'], modified)
-
-        response = self.client.get(url, {'since': 'xxx'})
-        eq_(response.status_code, 400)
-
-        response = self.client.get(url, {'since': str(modified)})
-        eq_(response.status_code, 200)
-        structure = json.loads(response.content)
-        eq_(structure['latest_comment'], None)
+        # ask it again and it should be the same
+        response_second = self.client.get(url)
+        eq_(response_second.status_code, 200)
+        eq_(response.content, response_second.content)
