@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import json
 import urllib
+import time
 
 from django import http
 from django.conf import settings
@@ -39,6 +40,7 @@ from airmozilla.base.utils import (
     unhtml,
     json_view
 )
+from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion
 from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
@@ -395,6 +397,19 @@ class EventView(View):
             context['discussion'] = Discussion.objects.get(event=event)
         except Discussion.DoesNotExist:
             context['discussion'] = {'enabled': False}
+
+        if settings.LOG_SEARCHES:
+            if request.session.get('logged_search'):
+                pk, time_ago = request.session.get('logged_search')
+                age = time.time() - time_ago
+                if age <= 5:
+                    # the search was made less than 5 seconds ago
+                    try:
+                        logged_search = LoggedSearch.objects.get(pk=pk)
+                        logged_search.event_clicked = event
+                        logged_search.save()
+                    except LoggedSearch.DoesNotExist:
+                        pass
 
         return render(request, self.template_name, context)
 

@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
+from airmozilla.search.models import LoggedSearch
 from airmozilla.main.models import Event, UserProfile, Tag, Channel
 
 
@@ -537,3 +538,27 @@ class TestSearch(TestCase):
             url + '?q=%s' % urllib.quote_plus('channel: Grow Mozilla')
         )
         ok_(channel_search_url in response.content)
+
+    def test_logged_search(self):
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': 'TesT'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+
+        logged_search = LoggedSearch.objects.get(
+            term='TesT',
+            results=1,
+            page=1,
+        )
+
+        # now after that, click on the found event
+        event = Event.objects.get(title='Test event')
+        event_url = reverse('main:event', args=(event.slug,))
+        ok_(event_url in response.content)
+        response = self.client.get(event_url)
+        eq_(response.status_code, 200)
+
+        # using a session it should now record that that search
+        # lead to clicking this event
+        logged_search = LoggedSearch.objects.get(pk=logged_search.pk)
+        eq_(logged_search.event_clicked, event)

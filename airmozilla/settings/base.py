@@ -199,3 +199,6 @@ AMARA_API_KEY = ''
 SCRAPE_CREDENTIALS = {
     # ('username', 'password'): ['intranet.mozilla.org'],
 }
+
+# If true, every search is logged and recorded
+LOG_SEARCHES = True

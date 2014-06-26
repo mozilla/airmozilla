@@ -1,10 +1,12 @@
 import re
 import urllib
+import time
 
 from django.shortcuts import render
 from django import http
 from django.db.utils import DatabaseError
 from django.db import connection
+from django.conf import settings
 
 from funfactory.urlresolvers import reverse
 
@@ -14,6 +16,7 @@ from airmozilla.base.utils import paginator
 
 from . import forms
 from . import utils
+from .models import LoggedSearch
 from .split_search import split_search
 
 
@@ -152,7 +155,9 @@ def home(request):
         # header of the page where it says "XX events found"
         try:
             pager, events_paged = paginator(events, page, 10)
+            _database_error_happened = False
         except DatabaseError:
+            _database_error_happened = True
             # If the fulltext SQL causes a low-level Postgres error,
             # Django re-wraps the exception as a django.db.utils.DatabaseError
             # exception and then unfortunately you can't simply do
@@ -181,6 +186,18 @@ def home(request):
         context['next_page_url'] = next_page_url
         context['prev_page_url'] = prev_page_url
         context['events_found'] = pager.count
+
+        if settings.LOG_SEARCHES and not _database_error_happened:
+            logged_search = LoggedSearch.objects.create(
+                term=context['q'],
+                results=events.count(),
+                page=page,
+                user=request.user.is_authenticated() and request.user or None
+            )
+            request.session['logged_search'] = (
+                logged_search.pk,
+                time.time()
+            )
     elif request.GET.get('q'):
         context['search_error'] = form.errors['q']
     else:
