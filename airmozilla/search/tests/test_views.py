@@ -1,4 +1,5 @@
 import datetime
+import urllib
 
 from django.test import TestCase
 from django.utils.timezone import utc
@@ -7,7 +8,7 @@ from django.contrib.auth.models import User
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
-from airmozilla.main.models import Event, UserProfile
+from airmozilla.main.models import Event, UserProfile, Tag
 
 
 class TestSearch(TestCase):
@@ -392,3 +393,98 @@ class TestSearch(TestCase):
         ok_('Nothing found' not in response.content)
         ok_(event.title in response.content)
         ok_('found by transcript' not in response.content)
+
+    def test_search_by_tag(self):
+        assert Event.objects.approved()
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': 'tag: mytag'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+        tag = Tag.objects.create(name='mytag')
+        event = Event.objects.get(title='Test event')
+        event.tags.add(tag)
+
+        response = self.client.get(url, {'q': 'tag: mytag'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+
+        # should work case insensitively
+        response = self.client.get(url, {'q': 'TAG: MYTAG'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+
+        # combine with something else to be found
+        response = self.client.get(url, {'q': 'Test tag:mytag'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+
+        # combine with something else to be NOT found
+        response = self.client.get(url, {'q': 'Somethingelse tag:mytag'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+
+    def test_search_and_suggest_tags(self):
+        url = reverse('search:home')
+        event = Event.objects.get(title='Test event')
+        tag = Tag.objects.create(name='mytag')
+        event.tags.add(tag)
+
+        response = self.client.get(url, {'q': 'mytag'})
+        eq_(response.status_code, 200)
+        # because neither title or description contains this
+        ok_('Nothing found' in response.content)
+        tag_search_url = url + '?q=%s' % urllib.quote_plus('tag: mytag')
+        ok_(tag_search_url in response.content)
+
+    def test_search_and_suggest_multiple_tags(self):
+        url = reverse('search:home')
+        event = Event.objects.get(title='Test event')
+
+        tag = Tag.objects.create(name='mytag')
+        event.tags.add(tag)
+        othertag = Tag.objects.create(name='other tag')
+        event.tags.add(othertag)
+
+        response = self.client.get(url, {'q': 'mytag other tag'})
+        eq_(response.status_code, 200)
+        # because neither title or description contains this
+        ok_('Nothing found' in response.content)
+        tag_search_url = (
+            url + '?q=%s' % urllib.quote_plus('other tag tag: mytag')
+        )
+        ok_(tag_search_url in response.content)
+        othertag_search_url = (
+            url + '?q=%s' % urllib.quote_plus('mytag tag: other tag')
+        )
+        ok_(othertag_search_url in response.content)
+
+    def test_paginated_search(self):
+        event = Event.objects.get(title='Test event')
+        for i in range(14):
+            Event.objects.create(
+                title='Test event %d' % (i + 1),
+                short_description=event.short_description,
+                description=event.description,
+                start_time=event.start_time,
+                archive_time=event.archive_time,
+                location=event.location,
+                privacy=event.privacy,
+                status=event.status,
+                placeholder_img=event.placeholder_img,
+            )
+
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': 'TEST EVENT'})
+        eq_(response.status_code, 200)
+        eq_(response.content.count('Test event'), 10)
+
+        response = self.client.get(url, {'q': 'TEST EVENT', 'page': 2})
+        eq_(response.status_code, 200)
+        eq_(response.content.count('Test event'), 5)
+
+        # but don't try to mess with it
+        response = self.client.get(url, {'q': 'TEST EVENT', 'page': 0})
+        eq_(response.status_code, 400)

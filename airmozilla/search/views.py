@@ -5,7 +5,6 @@ from django.shortcuts import render
 from django import http
 from django.db.utils import DatabaseError
 from django.db import connection
-from django.db.models import Q
 
 from funfactory.urlresolvers import reverse
 
@@ -51,15 +50,15 @@ def home(request):
                 context['tags'] = extra['tags'] = tags
         else:
             # is the search term possibly a tag?
-            name_q = Q()
-            for word in context['q'].split():
-                name_q |= Q(name__iexact=word)
-
-            # possible_tags = Tag.objects.filter(name__iexact=context['q'])
-            possible_tags = Tag.objects.filter(name_q)
+            all_tag_names = Tag.objects.all().values_list('name', flat=True)
+            tags_regex = re.compile(
+                '|'.join(re.escape(x) for x in all_tag_names),
+                re.I
+            )
+            possible_tags = Tag.objects.filter(
+                name__in=tags_regex.findall(context['q'])
+            )
             for tag in possible_tags:
-                print "TAG", repr(tag.name)
-                print "Q", repr(context['q'])
                 tag._query_string = re.sub(
                     re.escape(tag.name),
                     '',
@@ -73,8 +72,7 @@ def home(request):
                     ' ',
                     tag._query_string
                 )
-                print repr(tag._query_string)
-                print
+                tag._query_string = tag._query_string.strip()
             context['possible_tags'] = possible_tags
 
         events = _search(
