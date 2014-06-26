@@ -1,3 +1,4 @@
+import re
 import urllib
 
 from django.shortcuts import render
@@ -5,15 +6,15 @@ from django import http
 from django.db.utils import DatabaseError
 from django.db import connection
 
-from airmozilla.main.models import Event
-from airmozilla.main.views import is_contributor
-
 from funfactory.urlresolvers import reverse
 
+from airmozilla.main.models import Event, Tag, Channel
+from airmozilla.main.views import is_contributor
 from airmozilla.base.utils import paginator
 
 from . import forms
 from . import utils
+from .split_search import split_search
 
 
 def home(request):
@@ -21,6 +22,10 @@ def home(request):
         'q': None,
         'events_found': None,
         'search_error': None,
+        'tags': None,
+        'possible_tags': None,
+        'channels': None,
+        'possible_channels': None
     }
 
     if request.GET.get('q'):
@@ -38,11 +43,93 @@ def home(request):
         else:
             privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
 
+        extra = {}
+        rest, params = split_search(context['q'], ('tag', 'channel'))
+        if params.get('tag'):
+            tags = Tag.objects.filter(name__iexact=params['tag'])
+            if tags:
+                context['q'] = rest
+                context['tags'] = extra['tags'] = tags
+        else:
+            # is the search term possibly a tag?
+            all_tag_names = Tag.objects.all().values_list('name', flat=True)
+            tags_regex = re.compile(
+                '|'.join(re.escape(x) for x in all_tag_names),
+                re.I
+            )
+            # next we need to turn all of these into a Tag QuerySet
+            # because we can't do `filter(name__in=tags_regex.findall(...))`
+            # because that case sensitive.
+            tag_ids = []
+            for match in tags_regex.findall(rest):
+                tag_ids.extend(
+                    Tag.objects.filter(name__iexact=match)
+                    .values_list('id', flat=True)
+                )
+            possible_tags = Tag.objects.filter(
+                id__in=tag_ids
+            )
+            for tag in possible_tags:
+                regex = re.compile(re.escape(tag.name), re.I)
+                tag._query_string = regex.sub(
+                    '',
+                    context['q'],
+                )
+                tag._query_string += ' tag: %s' % tag.name
+                # reduce all excess whitespace into 1
+                tag._query_string = re.sub(
+                    '\s\s+',
+                    ' ',
+                    tag._query_string
+                )
+                tag._query_string = tag._query_string.strip()
+            context['possible_tags'] = possible_tags
+
+        if params.get('channel'):
+            channels = Channel.objects.filter(name__iexact=params['channel'])
+            if channels:
+                context['q'] = rest
+                context['channels'] = extra['channels'] = channels
+        else:
+            # is the search term possibly a channel?
+            all_channel_names = (
+                Channel.objects.all().values_list('name', flat=True)
+            )
+            channels_regex = re.compile(
+                '|'.join(re.escape(x) for x in all_channel_names),
+                re.I
+            )
+            channel_ids = []
+            for match in channels_regex.findall(rest):
+                channel_ids.extend(
+                    Channel.objects
+                    .filter(name__iexact=match).values_list('id', flat=True)
+                )
+            possible_channels = Channel.objects.filter(
+                id__in=channel_ids
+            )
+            for channel in possible_channels:
+                regex = re.compile(re.escape(channel.name), re.I)
+                channel._query_string = regex.sub(
+                    '',
+                    context['q'],
+                )
+                channel._query_string += ' channel: %s' % channel.name
+                # reduce all excess whitespace into 1
+                channel._query_string = re.sub(
+                    '\s\s+',
+                    ' ',
+                    channel._query_string
+                )
+                channel._query_string = channel._query_string.strip()
+            context['possible_channels'] = possible_channels
+
         events = _search(
             context['q'],
             privacy_filter=privacy_filter,
             privacy_exclude=privacy_exclude,
             sort=request.GET.get('sort'),
+            **extra
         )
         if not events.count() and utils.possible_to_or_query(context['q']):
             events = _search(
@@ -104,18 +191,21 @@ def home(request):
 
 
 def _search(q, **options):
-    qs = Event.objects.approved()
     # we only want to find upcoming or archived events
+    qs = Event.objects.approved()
+
+    # some optional filtering
+    if 'tags' in options:
+        qs = qs.filter(tags__in=options['tags'])
+    if 'channels' in options:
+        qs = qs.filter(channels__in=options['channels'])
 
     if options.get('privacy_filter'):
         qs = qs.filter(**options['privacy_filter'])
     elif options.get('privacy_exclude'):
         qs = qs.exclude(**options['privacy_exclude'])
 
-    if options.get('sort') == 'date':
-        raise NotImplementedError
-
-    if options.get('fuzzy'):
+    if q and options.get('fuzzy'):
         sql = """
         (
           to_tsvector('english', title) @@ to_tsquery('english', %s)
@@ -127,7 +217,7 @@ def _search(q, **options):
         )
         """
         search_escaped = utils.make_or_query(q)
-    else:
+    elif q:
         sql = """
         (
           to_tsvector('english', title) @@ plainto_tsquery('english', %s)
@@ -139,45 +229,49 @@ def _search(q, **options):
         )
         """
         search_escaped = q
-    qs = qs.extra(
-        where=[sql],
-        params=[search_escaped, search_escaped, search_escaped],
-        select={
-            'title_highlit': (
-                "ts_headline('english', title, "
-                "plainto_tsquery('english', %s))"
-            ),
-            'desc_highlit': (
-                "ts_headline('english', short_description, "
-                "plainto_tsquery('english', %s))"
-            ),
-            'transcript_highlit': (
-                "ts_headline('english', transcript, "
-                "plainto_tsquery('english', %s))"
-            ),
-            'rank_title': (
-                "ts_rank_cd(to_tsvector('english', title), "
-                "plainto_tsquery('english', %s))"
-            ),
-            'rank_desc': (
-                "ts_rank_cd(to_tsvector('english', description "
-                "|| ' ' || short_description), "
-                "plainto_tsquery('english', %s))"
-            ),
-            'rank_transcript': (
-                "ts_rank_cd(to_tsvector('english', transcript), "
-                "plainto_tsquery('english', %s))"
-            ),
 
-        },
-        select_params=[
-            search_escaped,
-            search_escaped,
-            search_escaped,
-            search_escaped,
-            search_escaped,
-            search_escaped
-        ],
-    )
-    qs = qs.order_by('-rank_title', '-start_time', '-rank_desc')
+    if q:
+        qs = qs.extra(
+            where=[sql],
+            params=[search_escaped, search_escaped, search_escaped],
+            select={
+                'title_highlit': (
+                    "ts_headline('english', title, "
+                    "plainto_tsquery('english', %s))"
+                ),
+                'desc_highlit': (
+                    "ts_headline('english', short_description, "
+                    "plainto_tsquery('english', %s))"
+                ),
+                'transcript_highlit': (
+                    "ts_headline('english', transcript, "
+                    "plainto_tsquery('english', %s))"
+                ),
+                'rank_title': (
+                    "ts_rank_cd(to_tsvector('english', title), "
+                    "plainto_tsquery('english', %s))"
+                ),
+                'rank_desc': (
+                    "ts_rank_cd(to_tsvector('english', description "
+                    "|| ' ' || short_description), "
+                    "plainto_tsquery('english', %s))"
+                ),
+                'rank_transcript': (
+                    "ts_rank_cd(to_tsvector('english', transcript), "
+                    "plainto_tsquery('english', %s))"
+                ),
+
+            },
+            select_params=[
+                search_escaped,
+                search_escaped,
+                search_escaped,
+                search_escaped,
+                search_escaped,
+                search_escaped
+            ],
+        )
+        qs = qs.order_by('-rank_title', '-start_time', '-rank_desc')
+    else:
+        qs = qs.order_by('-start_time')
     return qs
