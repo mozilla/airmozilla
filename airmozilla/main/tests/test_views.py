@@ -1529,6 +1529,38 @@ class TestPages(DjangoTestCase):
         ok_('<p>Sidebar Top Testing</p>' in response.content)
         ok_('<p>Sidebar Bottom Testing</p>' in response.content)
 
+    def test_sidebar_static_content_all_channels(self):
+        # create some flat pages
+        FlatPage.objects.create(
+            url='sidebar_top_*',
+            content='<p>Sidebar Top All</p>'
+        )
+        response = self.client.get('/')
+        ok_('<p>Sidebar Top All</p>' in response.content)
+
+        url = reverse('main:home_channels', args=('testing',))
+        response = self.client.get(url)
+        ok_('<p>Sidebar Top All</p>' in response.content)
+
+    def test_sidebar_static_content_almost_all_channels(self):
+        # create some flat pages
+        FlatPage.objects.create(
+            url='sidebar_top_*',
+            content='<p>Sidebar Top All</p>'
+        )
+        FlatPage.objects.create(
+            url='sidebar_top_testing',
+            content='<p>Sidebar Top Testing</p>'
+        )
+        response = self.client.get('/')
+        ok_('<p>Sidebar Top All</p>' in response.content)
+        ok_('<p>Sidebar Top Testing</p>' not in response.content)
+
+        url = reverse('main:home_channels', args=('testing',))
+        response = self.client.get(url)
+        ok_('<p>Sidebar Top All</p>' not in response.content)
+        ok_('<p>Sidebar Top Testing</p>' in response.content)
+
     def test_view_event_belonging_to_multiple_channels(self):
         event = Event.objects.get(title='Test event')
         fosdem = Channel.objects.create(

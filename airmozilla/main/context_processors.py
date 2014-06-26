@@ -60,7 +60,9 @@ def sidebar(request):
     data['sidebar_bottom'] = None
     sidebar_urls_q = (
         Q(url='sidebar_top_%s' % sidebar_channel) |
-        Q(url='sidebar_bottom_%s' % sidebar_channel)
+        Q(url='sidebar_bottom_%s' % sidebar_channel) |
+        Q(url='sidebar_top_*') |
+        Q(url='sidebar_bottom_*')
     )
     # to avoid having to do 2 queries, make a combined one
     # set it up with an iterator
