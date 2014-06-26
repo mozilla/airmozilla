@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
-from airmozilla.main.models import Event, UserProfile, Tag
+from airmozilla.main.models import Event, UserProfile, Tag, Channel
 
 
 class TestSearch(TestCase):
@@ -394,6 +394,34 @@ class TestSearch(TestCase):
         ok_(event.title in response.content)
         ok_('found by transcript' not in response.content)
 
+    def test_paginated_search(self):
+        event = Event.objects.get(title='Test event')
+        for i in range(14):
+            Event.objects.create(
+                title='Test event %d' % (i + 1),
+                short_description=event.short_description,
+                description=event.description,
+                start_time=event.start_time,
+                archive_time=event.archive_time,
+                location=event.location,
+                privacy=event.privacy,
+                status=event.status,
+                placeholder_img=event.placeholder_img,
+            )
+
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': 'TEST EVENT'})
+        eq_(response.status_code, 200)
+        eq_(response.content.count('Test event'), 10)
+
+        response = self.client.get(url, {'q': 'TEST EVENT', 'page': 2})
+        eq_(response.status_code, 200)
+        eq_(response.content.count('Test event'), 5)
+
+        # but don't try to mess with it
+        response = self.client.get(url, {'q': 'TEST EVENT', 'page': 0})
+        eq_(response.status_code, 400)
+
     def test_search_by_tag(self):
         assert Event.objects.approved()
         url = reverse('search:home')
@@ -432,7 +460,7 @@ class TestSearch(TestCase):
         tag = Tag.objects.create(name='mytag')
         event.tags.add(tag)
 
-        response = self.client.get(url, {'q': 'mytag'})
+        response = self.client.get(url, {'q': 'MYtag'})
         eq_(response.status_code, 200)
         # because neither title or description contains this
         ok_('Nothing found' in response.content)
@@ -461,30 +489,51 @@ class TestSearch(TestCase):
         )
         ok_(othertag_search_url in response.content)
 
-    def test_paginated_search(self):
-        event = Event.objects.get(title='Test event')
-        for i in range(14):
-            Event.objects.create(
-                title='Test event %d' % (i + 1),
-                short_description=event.short_description,
-                description=event.description,
-                start_time=event.start_time,
-                archive_time=event.archive_time,
-                location=event.location,
-                privacy=event.privacy,
-                status=event.status,
-                placeholder_img=event.placeholder_img,
-            )
-
+    def test_search_by_channel(self):
+        assert Event.objects.approved()
         url = reverse('search:home')
-        response = self.client.get(url, {'q': 'TEST EVENT'})
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(url, {'q': 'channel: Grow Mozilla'})
         eq_(response.status_code, 200)
-        eq_(response.content.count('Test event'), 10)
+        ok_('Nothing found' in response.content)
+        channel = Channel.objects.create(name='Grow Mozilla')
+        event.channels.add(channel)
 
-        response = self.client.get(url, {'q': 'TEST EVENT', 'page': 2})
+        response = self.client.get(url, {'q': 'channel: Grow Mozilla'})
         eq_(response.status_code, 200)
-        eq_(response.content.count('Test event'), 5)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
 
-        # but don't try to mess with it
-        response = self.client.get(url, {'q': 'TEST EVENT', 'page': 0})
-        eq_(response.status_code, 400)
+        # should work case insensitively
+        response = self.client.get(url, {'q': 'CHANNEL: GROW mozilla'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+
+        # combine with something else to be found
+        response = self.client.get(url, {'q': 'Test channel:grow mozilla'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+
+        # combine with something else to be NOT found
+        response = self.client.get(
+            url, {'q': 'Somethingelse channel:grow mozilla'}
+        )
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+
+    def test_search_and_suggest_channels(self):
+        url = reverse('search:home')
+        event = Event.objects.get(title='Test event')
+        channel = Channel.objects.create(name='Grow Mozilla')
+        event.channels.add(channel)
+
+        response = self.client.get(url, {'q': 'grow mozilla'})
+        eq_(response.status_code, 200)
+        # because neither title or description contains this
+        ok_('Nothing found' in response.content)
+        channel_search_url = (
+            url + '?q=%s' % urllib.quote_plus('channel: Grow Mozilla')
+        )
+        ok_(channel_search_url in response.content)

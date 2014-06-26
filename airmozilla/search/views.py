@@ -8,7 +8,7 @@ from django.db import connection
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Event, Tag
+from airmozilla.main.models import Event, Tag, Channel
 from airmozilla.main.views import is_contributor
 from airmozilla.base.utils import paginator
 
@@ -23,7 +23,9 @@ def home(request):
         'events_found': None,
         'search_error': None,
         'tags': None,
-        'possible_tags': None
+        'possible_tags': None,
+        'channels': None,
+        'possible_channels': None
     }
 
     if request.GET.get('q'):
@@ -55,15 +57,23 @@ def home(request):
                 '|'.join(re.escape(x) for x in all_tag_names),
                 re.I
             )
+            # next we need to turn all of these into a Tag QuerySet
+            # because we can't do `filter(name__in=tags_regex.findall(...))`
+            # because that case sensitive.
+            tag_ids = []
+            for match in tags_regex.findall(rest):
+                tag_ids.extend(
+                    Tag.objects.filter(name__iexact=match)
+                    .values_list('id', flat=True)
+                )
             possible_tags = Tag.objects.filter(
-                name__in=tags_regex.findall(context['q'])
+                id__in=tag_ids
             )
             for tag in possible_tags:
-                tag._query_string = re.sub(
-                    re.escape(tag.name),
+                regex = re.compile(re.escape(tag.name), re.I)
+                tag._query_string = regex.sub(
                     '',
                     context['q'],
-                    re.I
                 )
                 tag._query_string += ' tag: %s' % tag.name
                 # reduce all excess whitespace into 1
@@ -74,6 +84,45 @@ def home(request):
                 )
                 tag._query_string = tag._query_string.strip()
             context['possible_tags'] = possible_tags
+
+        if params.get('channel'):
+            channels = Channel.objects.filter(name__iexact=params['channel'])
+            if channels:
+                context['q'] = rest
+                context['channels'] = extra['channels'] = channels
+        else:
+            # is the search term possibly a channel?
+            all_channel_names = (
+                Channel.objects.all().values_list('name', flat=True)
+            )
+            channels_regex = re.compile(
+                '|'.join(re.escape(x) for x in all_channel_names),
+                re.I
+            )
+            channel_ids = []
+            for match in channels_regex.findall(rest):
+                channel_ids.extend(
+                    Channel.objects
+                    .filter(name__iexact=match).values_list('id', flat=True)
+                )
+            possible_channels = Channel.objects.filter(
+                id__in=channel_ids
+            )
+            for channel in possible_channels:
+                regex = re.compile(re.escape(channel.name), re.I)
+                channel._query_string = regex.sub(
+                    '',
+                    context['q'],
+                )
+                channel._query_string += ' channel: %s' % channel.name
+                # reduce all excess whitespace into 1
+                channel._query_string = re.sub(
+                    '\s\s+',
+                    ' ',
+                    channel._query_string
+                )
+                channel._query_string = channel._query_string.strip()
+            context['possible_channels'] = possible_channels
 
         events = _search(
             context['q'],
@@ -142,18 +191,19 @@ def home(request):
 
 
 def _search(q, **options):
+    # we only want to find upcoming or archived events
     qs = Event.objects.approved()
+
+    # some optional filtering
     if 'tags' in options:
         qs = qs.filter(tags__in=options['tags'])
-    # we only want to find upcoming or archived events
+    if 'channels' in options:
+        qs = qs.filter(channels__in=options['channels'])
 
     if options.get('privacy_filter'):
         qs = qs.filter(**options['privacy_filter'])
     elif options.get('privacy_exclude'):
         qs = qs.exclude(**options['privacy_exclude'])
-
-    if options.get('sort') == 'date':
-        raise NotImplementedError
 
     if q and options.get('fuzzy'):
         sql = """

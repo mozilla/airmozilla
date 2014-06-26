@@ -21,6 +21,13 @@
       {% endfor %}
     </p>
   {% endif %}
+  {% if possible_channels %}
+    <p class="possible-channels"><strong>Search by channels:</strong>
+      {% for channel in possible_channels %}
+        <a href="{{ url('search:home') }}?q={{ channel._query_string | urlencode }}" class="channel">{{ channel._query_string }}</a>{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+  {% endif %}
 
   {% if events_found %}
     <p>
