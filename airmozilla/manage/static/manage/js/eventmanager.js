@@ -241,7 +241,7 @@ function EventManagerController($scope, $http) {
         }
     });
     function in_search_start_time_range(date) {
-        return date > search_start_times[0] && date < search_start_times[1];
+        return date > search_start_times[0];
     }
 
     $scope.selectSearchStatus = function(status) {
