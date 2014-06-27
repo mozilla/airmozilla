@@ -81,6 +81,7 @@
             <td><a href="{{ suggested_event.upload.url }}">Open</td>
           </tr>
         </table>
+        <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
     {% elif event.upload %}
         <p style="margin-top:25px"><strong>File Upload:</strong></p>
         <table class="event-upload">
