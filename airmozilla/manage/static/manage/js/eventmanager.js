@@ -50,6 +50,17 @@ function EventManagerController($scope, $http) {
         }
     });
 
+    $scope.toggleSortingReverse = function() {
+        $scope.sorting_reverse = !$scope.sorting_reverse;
+    };
+
+    $scope.setSorting = function(key) {
+        if ($scope.sorting == key) {
+            $scope.toggleSortingReverse();
+        }
+        $scope.sorting = key;
+    };
+
     var pageSize = 10;  // default
     // attempt to load a different number from localStorage
     if (window.localStorage) {

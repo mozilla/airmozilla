@@ -424,7 +424,6 @@ def events_data(request):
     events = []
     qs = (
         Event.objects.all()
-        .select_related('category', 'location')
         .order_by('-modified')
     )
     _can_change_event_others = (
@@ -466,7 +465,11 @@ def events_data(request):
         except (ValueError, AssertionError):
             pass
 
+    locations = dict(
+        (x.pk, x) for x in Location.objects.all()
+    )
     for event in qs:
+        event.location = locations.get(event.location_id)
         if event.location:
             start_time = event.location_time.strftime('%d %b %Y %I:%M%p')
             start_time_iso = event.location_time.isoformat()

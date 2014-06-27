@@ -31,3 +31,12 @@ span[ng-click] {
 span.badge.active {
     background-color: black;
 }
+
+th a {
+    color: black;
+    cursor: pointer;
+}
+a.reverse-toggle,
+a.reverse-toggle:hover {
+    text-decoration: none;
+}

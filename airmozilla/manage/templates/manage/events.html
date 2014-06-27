@@ -35,7 +35,7 @@
     <img src="{{ static('img/spinner.gif') }}">
     <span class="blinking">Loading some events...</span>
   </p>
-  <p ng-if="second_loading" class="second-loading">
+  <p ng-if="second_loading && !first_loading" class="second-loading">
     <img src="{{ static('img/spinner.gif') }}">
     <span class="blinking">Loading all remaining events...</span>
   </p>
@@ -45,7 +45,14 @@
     <thead>
       <tr>
         <th style="width: 50px" title="Number of events found">{{ filtered_items.length }}</th>
-        <th>Title
+        <th>
+          <a ng-click="setSorting('title')">Title</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='title' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='title' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
 
           <span class="badge" title="Only events that are currently live"
            ng-class="{active: search_only==='live'}" ng-click="selectSearchOnly('live')">L</span>
@@ -55,7 +62,15 @@
            ng-class="{active: search_only==='upcoming'}" ng-click="selectSearchOnly('upcoming')">U</span>
         </th>
         <th style="width: 14%">Location</th>
-        <th style="width: 190px">Start time</th>
+        <th style="width: 190px">
+          <a ng-click="setSorting('start_time_iso')">Start time</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='start_time_iso' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='start_time_iso' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
         <th style="width: 190px">Archive time</th>
         <th style="width: 8%">Status/Visibility</th>
         <th style="width: 10%">
