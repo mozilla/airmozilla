@@ -44,3 +44,5 @@ MEDIA_ROOT = tempfile.mkdtemp(prefix='testmedia')
 SCRAPE_CREDENTIALS = {}
 
 LOG_SEARCHES = True
+
+TWITTER_USERNAME = 'airmozilla'
