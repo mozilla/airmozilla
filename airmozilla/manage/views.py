@@ -468,6 +468,10 @@ def events_data(request):
     locations = dict(
         (x.pk, x) for x in Location.objects.all()
     )
+    template_names = dict(
+        (x['id'], x['name'])
+        for x in Template.objects.all().values('id', 'name')
+    )
     for event in qs:
         event.location = locations.get(event.location_id)
         if event.location:
@@ -499,8 +503,6 @@ def events_data(request):
         row = {
             'thumbnail': thumbnail_,
             'modified': event.modified,
-            'url': reverse('main:event', args=(event.slug,)),
-            # 'state': state,
             'status': event.status,
             'status_display': event.get_status_display(),
             'privacy': event.privacy,
@@ -508,19 +510,29 @@ def events_data(request):
             'title': event.title,
             'slug': event.slug,
             'location': event.location and event.location.name or '',
-            'edit_url': reverse('manage:event_edit', args=(event.pk,)),
+            'id': event.pk,
             'start_time': start_time,
             'start_time_iso': start_time_iso,
             'channels': event_channel_names.get(event.pk, []),
-            'is_pending': event.status == Event.STATUS_PENDING,
             'archive_time': event.archive_time,
-            'needs_approval': needs_approval,
-            'is_live': is_live,
-            'is_upcoming': is_upcoming,
         }
-        if row['is_pending']:
+
+        # to make the size of the JSON file as small as possible,
+        # only include certain fields if they're true
+        if event.status == Event.STATUS_PENDING:
+            row['is_pending'] = True
+        if is_live:
+            row['is_live'] = True
+        if is_upcoming:
+            row['is_upcoming'] = is_upcoming
+        if needs_approval:
+            row['needs_approval'] = True
+
+        if row.get('is_pending'):
             # this one is only relevant if it's pending
-            row['has_vidly_template'] = event.has_vidly_template()
+            template_name = template_names.get(event.template_id)
+            if template_name:
+                row['has_vidly_template'] = 'Vid.ly' in template_name
         if event.popcorn_url and not is_upcoming:
             row['popcorn_url'] = event.popcorn_url
 

@@ -121,7 +121,10 @@
         <td><img ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}"
                alt="Placeholder image">
         </td>
-        <td><a href="{{ event.url }}">{{ event.title }}</a>
+        <td>
+          <!-- <a href="{{ event.url }}">{{ event.title }}</a> -->
+          <a href="/{{ event.slug }}/">{{ event.title }}</a>
+
         <span class="badge" title="Event is currently Live!" ng-if="event.is_live">L</span>
         <span class="badge" title="Needs approval" ng-if="event.needs_approval">A</span>
         <span class="badge" title="Event is upcoming" ng-if="event.is_upcoming">U</span>
@@ -162,7 +165,7 @@
           >{{ event.privacy_display }}</span>
         </td>
         <td>
-          <a href="{{ event.edit_url }}" class="btn btn-default btn-xs">
+          <a href="/manage/events/{{ event.id }}/" class="btn btn-default btn-xs">
             <i class="glyphicon glyphicon-edit"></i> Edit
           </a>
           <a ng-if="event.duplicate_url" href="{{ event.duplicate_url }}" class="btn btn-default btn-xs">

@@ -318,16 +318,16 @@ class TestEvents(ManageTestCase):
         eq_(titles, ['Event 3', 'Event 2', 'Test event'])
 
         event = result['events'][0]
-        ok_(not event['is_live'])
+        ok_(not event.get('is_live'))
         ok_(event['is_upcoming'])
 
         event = result['events'][1]
         ok_(event['is_live'])
-        ok_(not event['is_upcoming'])
+        ok_(not event.get('is_upcoming'))
 
         event = result['events'][2]
-        ok_(not event['is_live'])
-        ok_(not event['is_upcoming'])
+        ok_(not event.get('is_live'))
+        ok_(not event.get('is_upcoming'))
 
     def test_events_data_with_thumbnail(self):
         event = Event.objects.get(title='Test event')
@@ -361,7 +361,7 @@ class TestEvents(ManageTestCase):
         row = result['events'][0]
         assert row['title'] == event.title
         ok_(row['is_pending'])
-        ok_(not row['has_vidly_template'])
+        ok_(not row.get('has_vidly_template'))
 
         template = event.template
         template.name = 'Vid.ly Fun'
@@ -372,7 +372,7 @@ class TestEvents(ManageTestCase):
         result = json.loads(response.content)
         row = result['events'][0]
         ok_(row['is_pending'])
-        ok_(row['has_vidly_template'])
+        ok_(row.get('has_vidly_template'))
 
     def test_events_seen_by_contributors(self):
         # there should be one event of each level of privacy
