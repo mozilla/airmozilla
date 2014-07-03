@@ -11,7 +11,8 @@ from airmozilla.main.models import (
     Event,
     EventOldSlug,
     Location,
-    most_recent_event
+    most_recent_event,
+    RecruitmentMessage
 )
 
 
@@ -294,3 +295,51 @@ class ForeignKeyTests(TestCase):
         eq_(oldslug.event, event)
         self._successful_delete(event)
         self._refresh_ok(oldslug, exists=False)
+
+
+class RecruitmentMessageTests(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+
+    def test_create(self):
+        msg = RecruitmentMessage.objects.create(
+            text='Check this out',
+            url='http://www.com'
+        )
+        eq_(msg.notes, '')
+        ok_(msg.modified)
+        ok_(msg.created)
+
+    def test_delete_modified_user(self):
+        msg = RecruitmentMessage.objects.create(
+            text='Check this out',
+            url='http://www.com'
+        )
+        bob = User.objects.create(username='bob')
+        msg.modified_user = bob
+        msg.save()
+        bob.delete()
+        ok_(RecruitmentMessage.objects.all())
+
+    def test_delete_unbreaks_user(self):
+        msg = RecruitmentMessage.objects.create(
+            text='Check this out',
+            url='http://www.com'
+        )
+        bob = User.objects.create(username='bob')
+        eq_(User.objects.all().count(), 2)
+        msg.modified_user = bob
+        msg.save()
+        msg.delete()
+        eq_(User.objects.all().count(), 2)
+
+    def test_delete_unbreaks_event(self):
+        event = Event.objects.get(title='Test event')
+        msg = RecruitmentMessage.objects.create(
+            text='Check this out',
+            url='http://www.com'
+        )
+        event.recruitmentmessage = msg
+        event.save()
+        msg.delete()
+
+        eq_(Event.objects.all().count(), 1)

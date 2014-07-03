@@ -9,7 +9,7 @@ import re
 import time
 
 from django.contrib.flatpages.models import FlatPage
-from django.contrib.auth.models import Group, User, AnonymousUser
+from django.contrib.auth.models import Group, User, AnonymousUser, Permission
 from django.contrib.sites.models import Site
 from django.utils.timezone import utc
 from django.conf import settings
@@ -32,7 +32,8 @@ from airmozilla.main.models import (
     Template,
     EventHitStats,
     CuratedGroup,
-    EventRevision
+    EventRevision,
+    RecruitmentMessage
 )
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -2464,6 +2465,121 @@ class TestEventEdit(DjangoTestCase):
             ['New Stuff', 'New Stuff II']
         )
 
+    def test_edit_recruitmentmessage(self):
+        """Change the revision message from nothing, to something
+        to another one.
+        """
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        assert event.tags.all()
+        assert event.channels.all()
+        url = reverse('main:event_edit', args=(event.slug,))
+        user = self._login()
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        msg1 = RecruitmentMessage.objects.create(
+            text='Web Developer',
+            url='http://careers.mozilla.com/123',
+            active=True
+        )
+        msg2 = RecruitmentMessage.objects.create(
+            text='C++ Developer',
+            url='http://careers.mozilla.com/456',
+            active=True
+        )
+        msg3 = RecruitmentMessage.objects.create(
+            text='Fortran Developer',
+            url='http://careers.mozilla.com/000',
+            active=False  # Note!
+        )
+
+        # if you don't have the right permission, you can't see this choice
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Recruitment message' not in response.content)
+
+        # give the user the necessary permission
+        recruiters = Group.objects.create(name='Recruiters')
+        permission = Permission.objects.get(
+            codename='change_recruitmentmessage'
+        )
+        recruiters.permissions.add(permission)
+        user.groups.add(recruiters)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Recruitment message' in response.content)
+        ok_(msg1.text in response.content)
+        ok_(msg2.text in response.content)
+        ok_(msg3.text not in response.content)  # not active
+
+        data = {
+            'previous': previous,
+            'recruitmentmessage': msg1.pk,
+            'title': event.title,
+            'description': event.description,
+            'short_description': event.short_description,
+            'channels': [x.id for x in event.channels.all()],
+            'tags': [x.name for x in event.tags.all()],
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+
+        # this should have created 2 EventRevision objects.
+        initial, current = EventRevision.objects.all().order_by('created')
+        eq_(initial.event, event)
+        ok_(not initial.recruitmentmessage)
+        eq_(current.recruitmentmessage, msg1)
+
+        # reload the event
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.recruitmentmessage, msg1)
+
+        # now change it to another message
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+        data['recruitmentmessage'] = msg2.pk
+        data['previous'] = previous
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        # reload the event
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.recruitmentmessage, msg2)
+
+        initial, __, current = (
+            EventRevision.objects.all().order_by('created')
+        )
+        eq_(current.recruitmentmessage, msg2)
+
+        # lastly, change it to blank
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+        data['recruitmentmessage'] = ''
+        data['previous'] = previous
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        # reload the event
+        event = Event.objects.get(pk=event.pk)
+        eq_(event.recruitmentmessage, None)
+
+        initial, __, __, current = (
+            EventRevision.objects.all().order_by('created')
+        )
+        eq_(current.recruitmentmessage, None)
+
     def test_edit_placeholder_img(self):
         event = Event.objects.get(title='Test event')
         self._attach_file(event, self.main_image)
@@ -2743,3 +2859,30 @@ class TestEventEdit(DjangoTestCase):
         ok_('New additional links' in response.content)
         ok_('Web dev' in response.content)
         ok_('newtag, testing' in response.content)
+
+    def test_view_revision_change_on_recruitmentmessage(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+
+        # base revision
+        user = User.objects.create_user(
+            'bob', 'bob@mozilla.com', 'secret'
+        )
+        user_revision = EventRevision.objects.create_from_event(
+            event,
+            user=user
+        )
+        msg1 = RecruitmentMessage.objects.create(
+            text='Web Developer',
+            url='http://careers.mozilla.com/123',
+            active=True
+        )
+        user_revision.recruitmentmessage = msg1
+        user_revision.save()
+
+        # view the change
+        url = reverse('main:event_change', args=(event.slug, user_revision.pk))
+        self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(msg1.text in response.content)

@@ -61,6 +61,21 @@ div.change label {
           <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
                alt="New image">
         </div>
+      {% elif difference.key == 'recruitmentmessage' %}
+        <div class="change-from">
+          {% if difference.before %}
+            {{ difference.before }}
+          {% else %}
+            none
+          {% endif %}
+        </div>
+        <div class="change-to">
+          {% if difference.after %}
+            {{ difference.after }}
+          {% else %}
+            none
+          {% endif %}
+        </div>
 
       {% else %}
       <div class="change-from">

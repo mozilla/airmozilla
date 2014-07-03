@@ -2,7 +2,7 @@ import datetime
 
 from django import forms
 from airmozilla.base.forms import BaseModelForm, BaseForm
-from airmozilla.main.models import EventRevision
+from airmozilla.main.models import EventRevision, RecruitmentMessage
 
 
 class CalendarDataForm(BaseForm):
@@ -64,3 +64,14 @@ class EventEditForm(BaseModelForm):
         super(EventEditForm, self).__init__(*args, **kwargs)
         self.fields['placeholder_img'].required = False
         self.fields['channels'].help_text = ""
+        self.fields['recruitmentmessage'].label = 'Recruitment message'
+        self.fields['recruitmentmessage'].required = False
+        self.fields['recruitmentmessage'].queryset = (
+            RecruitmentMessage.objects.filter(active=True)
+        )
+
+    # def clean_recruimentmessage(self):
+    #     value = self.cleaned_data['recruitmentmessage']
+    #     if value:
+    #         value = RecruitmentMessage.objects.get(pk=value)
+    #     return value

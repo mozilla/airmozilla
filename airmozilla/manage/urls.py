@@ -152,5 +152,17 @@ urlpatterns = patterns(
     url(r'^insufficient-permissions/',
         views.insufficient_permissions,
         name='insufficient_permissions'),
+    url(r'^recruitmentmessages/$',
+        views.recruitmentmessages,
+        name='recruitmentmessages'),
+    url(r'^recruitmentmessages/new/$',
+        views.recruitmentmessage_new,
+        name='recruitmentmessage_new'),
+    url(r'^recruitmentmessages/(?P<id>\d+)/$',
+        views.recruitmentmessage_edit,
+        name='recruitmentmessage_edit'),
+    url(r'^recruitmentmessages/(?P<id>\d+)/delete/$',
+        views.recruitmentmessage_delete,
+        name='recruitmentmessage_delete'),
 
 )

@@ -4,6 +4,7 @@ $(function() {
 
     $('#id_tags').css('width', '100%');
     $('#id_channels').css('width', '100%');
+    $('#id_recruitmentmessage').css('width', '100%');
 
     var process_tags = function process_tags(element, callback) {
         var data = [];
@@ -28,6 +29,7 @@ $(function() {
     });
 
     $('#id_channels').select2();
+    $('#id_recruitmentmessage').select2();
 
     $('div.select2-container').each(function() {
         var $controls = $(this).parents('.control-group');

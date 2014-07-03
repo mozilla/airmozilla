@@ -1,0 +1,25 @@
+p.pending {
+    background-color: #FF9EC5;
+    color: #8A0037;
+    border: 1px solid #8A0037;
+    padding: 30px;
+}
+.hidden {
+    display: none;
+}
+.embed {  }
+.embed .code {
+    display: none;
+}
+.embed .code p {
+    margin-bottom: 0;
+}
+.recruitmentmessage {
+    margin-top: 40px;
+    margin-bottom: 40px;
+    padding-top: 10px;
+    border-top: 1px solid #48585E;
+}
+.recruitmentmessage p {
+    padding: 10px;
+}

@@ -58,7 +58,8 @@ from airmozilla.main.models import (
     EventHitStats,
     CuratedGroup,
     EventAssignment,
-    LocationDefaultEnvironment
+    LocationDefaultEnvironment,
+    RecruitmentMessage
 )
 from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
@@ -1304,14 +1305,14 @@ def template_env_autofill(request):
 @staff_required
 @permission_required('main.change_template')
 def templates(request):
-    data = {}
-    data['templates'] = Template.objects.all()
+    context = {}
+    context['templates'] = Template.objects.all()
 
     def count_events_with_template(template):
         return Event.objects.filter(template=template).count()
 
-    data['count_events_with_template'] = count_events_with_template
-    return render(request, 'manage/templates.html', data)
+    context['count_events_with_template'] = count_events_with_template
+    return render(request, 'manage/templates.html', context)
 
 
 @staff_required
@@ -2773,3 +2774,68 @@ def event_assignments_ical(request):
     response['Access-Control-Allow-Origin'] = '*'
 
     return response
+
+
+@staff_required
+@permission_required('main.change_recruitmentmessage')
+def recruitmentmessages(request):
+    context = {}
+    context['recruitmentmessages'] = RecruitmentMessage.objects.all()
+
+    def count_events(this):
+        return Event.objects.filter(recruitmentmessage=this).count()
+
+    context['count_events'] = count_events
+    return render(request, 'manage/recruitmentmessages.html', context)
+
+
+@staff_required
+@permission_required('main.add_recruitmentmessage')
+@cancel_redirect('manage:recruitmentmessages')
+@transaction.commit_on_success
+def recruitmentmessage_new(request):
+    if request.method == 'POST':
+        form = forms.RecruitmentMessageEditForm(
+            request.POST,
+            instance=RecruitmentMessage()
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Recruitment messages created.')
+            return redirect('manage:recruitmentmessages')
+    else:
+        form = forms.RecruitmentMessageEditForm()
+    context = {'form': form}
+    return render(request, 'manage/recruitmentmessage_new.html', context)
+
+
+@staff_required
+@permission_required('main.change_recruitmentmessage')
+@cancel_redirect('manage:recruitmentmessages')
+@transaction.commit_on_success
+def recruitmentmessage_edit(request, id):
+    msg = RecruitmentMessage.objects.get(id=id)
+    if request.method == 'POST':
+        form = forms.RecruitmentMessageEditForm(request.POST, instance=msg)
+        if form.is_valid():
+            msg = form.save()
+            messages.info(request, 'Recruitment message saved.')
+            return redirect('manage:recruitmentmessages')
+    else:
+        form = forms.RecruitmentMessageEditForm(instance=msg)
+    context = {
+        'form': form,
+        'recruitmentmessage': msg,
+    }
+    return render(request, 'manage/recruitmentmessage_edit.html', context)
+
+
+@staff_required
+@permission_required('main.delete_recruitmentmessage')
+@transaction.commit_on_success
+def recruitmentmessage_delete(request, id):
+    if request.method == 'POST':
+        msg = RecruitmentMessage.objects.get(id=id)
+        msg.delete()
+        messages.info(request, 'Recruitment message deleted.')
+    return redirect('manage:recruitmentmessages')

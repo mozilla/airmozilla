@@ -199,6 +199,24 @@ class Location(models.Model):
         return self.name
 
 
+class RecruitmentMessage(models.Model):
+    text = models.CharField(max_length=250)
+    url = models.URLField()
+    active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+
+    modified_user = models.ForeignKey(User, null=True,
+                                      on_delete=models.SET_NULL)
+    created = models.DateTimeField(default=_get_now)
+    modified = models.DateTimeField(auto_now=True, default=_get_now)
+
+    class Meta:
+        ordering = ['text']
+
+    def __unicode__(self):
+        return self.text
+
+
 class EventManager(models.Manager):
     def initiated(self):
         return (self.get_query_set().filter(Q(status=Event.STATUS_INITIATED) |
@@ -312,6 +330,8 @@ class Event(models.Model):
     featured = models.BooleanField(default=False, db_index=True)
     pin = models.CharField(max_length=20, null=True, blank=True)
     transcript = models.TextField(null=True)
+    recruitmentmessage = models.ForeignKey(RecruitmentMessage, null=True,
+                                           on_delete=models.SET_NULL)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)
@@ -399,6 +419,7 @@ class EventRevisionManager(models.Manager):
             short_description=event.short_description,
             call_info=event.call_info,
             additional_links=event.additional_links,
+            recruitmentmessage=event.recruitmentmessage,
         )
         for channel in event.channels.all():
             revision.channels.add(channel)
@@ -422,7 +443,8 @@ class EventRevision(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     call_info = models.TextField(blank=True)
     additional_links = models.TextField(blank=True)
-
+    recruitmentmessage = models.ForeignKey(RecruitmentMessage, null=True,
+                                           on_delete=models.SET_NULL)
     created = models.DateTimeField(default=_get_now)
 
     objects = EventRevisionManager()

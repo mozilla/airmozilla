@@ -9,13 +9,7 @@
 {{ super() }}
 {% compress css %}
 <link href="{{ static('comments/css/comments.css') }}" rel="stylesheet" type="text/css">
-<style type="text/css">
-p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037; padding: 30px; }
-.hidden { display: none; }
-.embed {  }
-.embed .code { display:none; }
-.embed .code p { margin-bottom: 0; }
-</style>
+<link href="{{ static('main/css/event.css') }}" rel="stylesheet" type="text/css">
 {% endcompress %}
 {% endblock %}
 
@@ -140,6 +134,16 @@ p.pending { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A0037
         {% if discussion.enabled %}
         {% include "comments/container.html" %}
         {% endif %}
+      {% endif %}
+
+      {% if recruitmentmessage %}
+      <div class="recruitmentmessage">
+        <h5>A message from <a href="https://careers.mozilla.org/">Mozilla Careers</a></h5>
+        <p>If you found this interesting, check out this great career opportunity:<br>
+          <a href="{{ recruitmentmessage.url }}" title="Takes you to the Mozilla Careers site"
+          >{{ recruitmentmessage.text }}</a>
+        </p>
+      </div>
       {% endif %}
 
     </div>

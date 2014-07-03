@@ -25,7 +25,8 @@ from airmozilla.main.models import (
     SuggestedEventComment,
     URLMatch,
     EventAssignment,
-    LocationDefaultEnvironment
+    LocationDefaultEnvironment,
+    RecruitmentMessage
 )
 from airmozilla.comments.models import Discussion, Comment
 
@@ -379,6 +380,15 @@ class TemplateEditForm(BaseModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'rows': 20})
         }
+
+
+class RecruitmentMessageEditForm(BaseModelForm):
+    class Meta:
+        model = RecruitmentMessage
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 3})
+        }
+        exclude = ('modified_user', 'created')
 
 
 class LocationEditForm(BaseModelForm):
