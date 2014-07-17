@@ -34,8 +34,8 @@ $(function() {
         console.log('process_curated_groups');console.dir(data);
         callback(data);
     }
-    // due to our integration with bootstrap 3 we have to do this to all select2 widgets
-    $('#id_curated_groups').css('width', '100%');
+
+    $('#id_recruitmentmessage').select2();
     $('#id_curated_groups').select2({
         placeholder: "Search for a Mozillians group",
         tags: [],
@@ -66,5 +66,10 @@ $(function() {
         },
         initSelection: process_curated_groups
     });
+
+    // due to our integration with bootstrap 3 we have to do this to all select2 widgets
+    $('#id_curated_groups').css('width', '100%');
+    $('#id_recruitmentmessage').css('width', '100%');
+
 
 });

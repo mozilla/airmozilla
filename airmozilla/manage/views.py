@@ -596,6 +596,7 @@ def event_edit(request, id):
             x[0] for x in curated_groups.values_list('name')
         )
         form = form_class(instance=event, initial=initial)
+
     context = {
         'form': form,
         'event': event,
@@ -2826,6 +2827,9 @@ def recruitmentmessage_edit(request, id):
     context = {
         'form': form,
         'recruitmentmessage': msg,
+        'events_using': (
+            Event.objects.filter(recruitmentmessage=msg).order_by('title')
+        )
     }
     return render(request, 'manage/recruitmentmessage_edit.html', context)
 

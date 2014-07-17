@@ -227,6 +227,7 @@ class EventEditForm(EventRequestForm):
             'approvals',
             'popcorn_url',
             'pin',
+            'recruitmentmessage',
         )
 
     def __init__(self, *args, **kwargs):
@@ -236,6 +237,9 @@ class EventEditForm(EventRequestForm):
                 "Use of pins is deprecated. Use Curated groups instead."
             )
         self.fields['popcorn_url'].label = 'Popcorn URL'
+        if 'recruitmentmessage' in self.fields:
+            self.fields['recruitmentmessage'].required = False
+            self.fields['recruitmentmessage'].label = 'Recruitment message'
 
     def clean_pin(self):
         value = self.cleaned_data['pin']
@@ -256,7 +260,7 @@ class EventExperiencedRequestForm(EventEditForm):
             'short_description', 'location', 'start_time',
             'participants', 'channels', 'tags', 'call_info',
             'additional_links', 'remote_presenters',
-            'approvals', 'pin', 'popcorn_url',
+            'approvals', 'pin', 'popcorn_url', 'recruitmentmessage'
         )
 
 

@@ -8,4 +8,19 @@
 
 {% block manage_content %}
     {% include 'manage/_default_form.html' %}
+
+
+    <h4>Events that use this recruitment message</h4>
+    <ul>
+      {% for event in events_using %}
+      <li>
+        <a href="{{ url('manage:event_edit', event.pk) }}">{{ event.title }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% if not events_using %}
+      <p><em>None</em></p>
+    {% endif %}
+
 {% endblock %}
