@@ -2865,6 +2865,8 @@ class TestEventEdit(DjangoTestCase):
         self._attach_file(event, self.main_image)
 
         # base revision
+        EventRevision.objects.create_from_event(event)
+
         user = User.objects.create_user(
             'bob', 'bob@mozilla.com', 'secret'
         )
