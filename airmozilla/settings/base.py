@@ -51,6 +51,10 @@ JINGO_EXCLUDE_APPS = [
 # BrowserID configuration
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    # this is the first one that matters
+    '%s.auth.backend.AirmozillaBrowserIDBackend' % PROJECT_MODULE,
+    # but we're keeping this in case people still have sessions
+    # whose backend cookie points to this class path
     'django_browserid.auth.BrowserIDBackend',
 ]
 
