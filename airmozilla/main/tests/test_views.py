@@ -2214,19 +2214,48 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_(event.title in response.content)
 
+    def test_view_removed_event(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('main:event', args=(event.slug,))
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        event.status = Event.STATUS_REMOVED
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_('Event not scheduled', response.content)
+        ok_(event.title not in response.content)
+
+        # let's view it as a signed in user
+        # shouldn't make a difference
+        user = self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_('Event not scheduled', response.content)
+        ok_(event.title not in response.content)
+
+        # but if signed in as a superuser, you can view it
+        user.is_superuser = True
+        user.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Event not scheduled' not in response.content)
+        ok_(event.title in response.content)
+        # but there is a flash message warning on the page that says...
+        ok_(
+            'Event is not publicly visible - not scheduled.'
+            in response.content
+        )
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
     main_image = 'airmozilla/manage/tests/firefox.png'
     other_image = 'airmozilla/manage/tests/other_logo.png'
     third_image = 'airmozilla/manage/tests/other_logo_reversed.png'
-
-    def _login(self):
-        user = User.objects.create_user(
-            'mary', 'mary@mozilla.com', 'secret'
-        )
-        assert self.client.login(username='mary', password='secret')
-        return user
 
     def _event_to_dict(self, event):
         from airmozilla.main.views import EventEditView

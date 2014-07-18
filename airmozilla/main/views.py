@@ -313,7 +313,7 @@ class EventView(View):
 
         warning = None
         if event.status not in (Event.STATUS_SCHEDULED, Event.STATUS_PENDING):
-            if not request.user.is_active:
+            if not request.user.is_superuser:
                 return http.HttpResponse('Event not scheduled')
             else:
                 warning = "Event is not publicly visible - not scheduled."
