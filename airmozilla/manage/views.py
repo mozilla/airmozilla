@@ -2584,7 +2584,7 @@ def comment_edit(request, id):
 def all_comments(request):
     context = {}
 
-    comments = Comment.objects.all()
+    comments = Comment.objects.all().select_related('user', 'event')
     form = forms.CommentsFilterForm(request.GET)
     filtered = False
     if form.is_valid():
