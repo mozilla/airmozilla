@@ -29,6 +29,7 @@ from airmozilla.main.models import (
     RecruitmentMessage
 )
 from airmozilla.comments.models import Discussion, Comment
+from airmozilla.surveys.models import Question
 
 
 TIMEZONE_CHOICES = [(tz, tz.replace('_', ' ')) for tz in pytz.common_timezones]
@@ -663,3 +664,10 @@ class EventTranscriptForm(BaseModelForm):
     class Meta:
         model = Event
         fields = ('transcript', )
+
+
+class QuestionForm(BaseModelForm):
+
+    class Meta:
+        model = Question
+        fields = ('question',)

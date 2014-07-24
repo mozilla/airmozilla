@@ -7,6 +7,7 @@ import re
 import uuid
 import urlparse
 import warnings
+import json
 
 from django.conf import settings
 from django import http
@@ -70,6 +71,7 @@ from airmozilla.manage import url_transformer
 from airmozilla.manage import archiver
 from airmozilla.manage import sending
 from airmozilla.comments.models import Discussion, Comment, SuggestedDiscussion
+from airmozilla.surveys.models import Survey, Question
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -666,6 +668,11 @@ def event_edit(request, id):
 
     amara_videos = AmaraVideo.objects.filter(event=event)
     context['amara_videos_count'] = amara_videos.count()
+
+    try:
+        context['survey'] = Survey.objects.get(event=event)
+    except Survey.DoesNotExist:
+        context['survey'] = None
 
     return render(request, 'manage/event_edit.html', context)
 
@@ -2843,3 +2850,87 @@ def recruitmentmessage_delete(request, id):
         msg.delete()
         messages.info(request, 'Recruitment message deleted.')
     return redirect('manage:recruitmentmessages')
+
+
+@staff_required
+@permission_required('surveys.change_survey')
+@cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
+@transaction.commit_on_success
+def event_survey(request, id):
+    event = get_object_or_404(Event, id=id)
+    survey, __ = Survey.objects.get_or_create(event=event)
+    questions = Question.objects.filter(survey=survey)
+
+    if request.method == 'POST':
+        if 'toggle' in request.POST:
+            survey.active = not survey.active
+            survey.save()
+            return redirect('manage:event_survey', event.id)
+
+    context = {
+        'event': event,
+        'survey': survey,
+        'questions': questions,
+    }
+    return render(request, 'manage/event_survey.html', context)
+
+
+@require_POST
+@staff_required
+@permission_required('surveys.add_question')
+@transaction.commit_on_success
+def event_survey_question_new(request, id):
+    survey = Survey.objects.get(event__id=id)
+    Question.objects.create(survey=survey)
+    return redirect('manage:event_survey', survey.event.id)
+
+
+@json_view
+@require_POST
+@staff_required
+@permission_required('surveys.change_question')
+@transaction.commit_on_success
+def event_survey_question_edit(request, id, question_id):
+    survey = get_object_or_404(Survey, event__id=id)
+    question = get_object_or_404(Question, survey=survey, id=question_id)
+
+    if 'question' in request.POST:
+        # it must be valid JSON
+        form = forms.QuestionForm(request.POST)
+        if form.is_valid():
+            question.question = form.cleaned_data['question']
+            question.save()
+        else:
+            return {'error': form.errors['question']}
+    elif request.POST.get('ordering') in ('up', 'down'):
+        direction = request.POST.get('ordering')
+        questions = list(Question.objects.filter(survey=survey))
+        current = questions.index(question)
+        this = questions.pop(current)
+        if direction == 'up':
+            questions.insert(current - 1, this)
+        else:
+            questions.insert(current + 1, this)
+
+        for i, question in enumerate(questions):
+            if i != question.order:
+                question.order = i
+                question.save()
+
+        return redirect('manage:event_survey', survey.event.id)
+    else:
+        raise NotImplementedError
+
+    return {
+        'question': json.dumps(question.question, indent=2)
+    }
+
+
+@require_POST
+@staff_required
+@permission_required('surveys.delete_question')
+@transaction.commit_on_success
+def event_survey_question_delete(request, id, question_id):
+    survey = get_object_or_404(Survey, event__id=id)
+    get_object_or_404(Question, survey=survey, id=question_id).delete()
+    return redirect('manage:event_survey', survey.event.id)

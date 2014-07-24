@@ -46,7 +46,7 @@ Editing {{ event.title }} | Air Mozilla
 
     <form method="post" class="form-horizontal event-edit" enctype="multipart/form-data"
       {% if thumbnail_url %}data-thumbnail-url="{{ thumbnail_url }}"{% endif %}
-      {% if conflict_errors %}data-conflict-errors='{{ conflict_errors | json_print }}'{% endif %}
+      {% if conflict_errors %}data-conflict-errors='{{ json_print(conflict_errors) }}'{% endif %}
       >
         {{ csrf() }}
         <div style="display:none"><input type="hidden" name="previous" value="{{ previous }}"></div>

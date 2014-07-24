@@ -24,6 +24,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     '%s.comments' % PROJECT_MODULE,
     '%s.uploads' % PROJECT_MODULE,
     '%s.subtitles' % PROJECT_MODULE,
+    '%s.surveys' % PROJECT_MODULE,
 
     'bootstrapform',
     'sorl.thumbnail',

@@ -42,6 +42,7 @@ from airmozilla.base.utils import (
 )
 from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion
+from airmozilla.surveys.models import Survey
 from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
 from airmozilla.base import mozillians
@@ -400,6 +401,12 @@ class EventView(View):
 
         if event.recruitmentmessage and event.recruitmentmessage.active:
             context['recruitmentmessage'] = event.recruitmentmessage
+
+        context['survey'] = None
+        try:
+            context['survey'] = Survey.objects.get(event=event, active=True)
+        except Survey.DoesNotExist:
+            pass
 
         if settings.LOG_SEARCHES:
             if request.session.get('logged_search'):

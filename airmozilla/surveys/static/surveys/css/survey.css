@@ -1,0 +1,46 @@
+#survey {
+    display: none;
+}
+#survey .loading,
+#survey .error {
+    display: none;
+}
+#survey .loading img {
+    margin: 3px;
+    border: none;
+    background-color: transparent;
+}
+#survey span.note {
+    font-size: 80%;
+}
+#survey p.label {
+    margin-bottom: 3px;
+}
+#survey table {
+    width: 100%;
+}
+#survey table tr {
+    background-color: transparent;
+}
+#survey table td {
+    border-bottom: none;
+    font-size: 80%;
+}
+#survey tr.your-answer .choice {
+    font-style: italic;
+}
+#survey .bar {
+    width: 80%;
+}
+
+#survey .bar div {
+    display: inline-block;
+    background-color: #B4B4B4;
+    color: #B4B4B4;
+    height: 17px;
+    margin: 0px;
+}
+
+#survey .radio label {
+    font-size: 80%;
+}

@@ -376,6 +376,16 @@ input[type=submit], button {
   -o-transition: all linear .25s;
   transition: all linear .25s;
 }
+input[type=submit].small, button.small {
+  border-radius: .15em;
+  box-shadow: 0 2px 0 0 rgba(0,0,0,0.1),inset 0 -2px 0 0 rgba(0,0,0,0.2);
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+  padding: 6px 18px;
+  font-size: 80%;
+}
+
 input[type=submit]:hover, input[type=submit]:focus, button:hover, button:focus { box-shadow:0 2px 0 0 rgba(0,0,0,0.1),inset 0 -2px 0 0 rgba(0,0,0,0.2),inset 0 12px 24px 2px #3089d8; }
 
 form li { margin-bottom: 1em; }
