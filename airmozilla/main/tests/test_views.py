@@ -338,7 +338,7 @@ class TestPages(DjangoTestCase):
         event.save()
         response_fail = self.client.get(event_page)
         eq_(response_fail.status_code, 200)
-        ok_('not scheduled' in response_fail.content)
+        ok_('This event is no longer available.' in response_fail.content)
 
         self.client.logout()
         event.privacy = Event.PRIVACY_COMPANY
@@ -2226,23 +2226,23 @@ class TestPages(DjangoTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        eq_('Event not scheduled', response.content)
-        ok_(event.title not in response.content)
+        ok_('This event is no longer available.' in response.content)
+        ok_(event.title in response.content)
 
         # let's view it as a signed in user
         # shouldn't make a difference
         user = self._login()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        eq_('Event not scheduled', response.content)
-        ok_(event.title not in response.content)
+        ok_('This event is no longer available.' in response.content)
+        ok_(event.title in response.content)
 
         # but if signed in as a superuser, you can view it
         user.is_superuser = True
         user.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Event not scheduled' not in response.content)
+        ok_('This event is no longer available.' not in response.content)
         ok_(event.title in response.content)
         # but there is a flash message warning on the page that says...
         ok_(
