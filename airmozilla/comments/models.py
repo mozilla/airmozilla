@@ -49,7 +49,7 @@ def invalidate_latest_comment_cache(sender, instance, **kwargs):
 
 class Discussion(models.Model):
     event = models.ForeignKey(Event, unique=True)
-    enabled = models.BooleanField(default=False)
+    enabled = models.BooleanField(default=False, db_index=True)
     closed = models.BooleanField(default=False)
     moderate_all = models.BooleanField(default=False)
     notify_all = models.BooleanField(default=False)
