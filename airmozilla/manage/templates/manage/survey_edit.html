@@ -1,0 +1,109 @@
+{% extends 'manage/surveys.html' %}
+
+{% block manage_title %}
+    Edit Survey "{{ survey.name }}"
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('select2/select2.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('select2/select2-bootstrap.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+  <style type="text/css">
+  td.ordering {
+    vertical-align: middle;
+  }
+  td.question {
+    width: 80%;
+  }
+  textarea {
+    width: 100%;
+    height: 140px;
+  }
+  </style>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('select2/select2.min.js') }}"></script>
+  {% compress js %}
+    <script src="{{ static('manage/js/survey-edit.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+
+    <h3>Survey data</h3>
+    {% include 'manage/_default_form.html' %}
+
+    <h3>Questions</h3>
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>JSON</th>
+          <th>Order</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for question in questions %}
+      <tr>
+          <td class="question">
+            <textarea name="question">{{ json_print(question.question, indent=2) }}</textarea>
+          </td>
+          <td class="ordering">
+            <form method="post" action="{{ url('manage:survey_question_edit', survey.id, question.id) }}">
+              {{ csrf() }}
+              <button class="btn btn-sm ordering-up" name="ordering" value="up"><i class="glyphicon glyphicon-arrow-up"></i></button><br>
+              <button class="btn btn-sm ordering-down" name="ordering" value="down"><i class="glyphicon glyphicon-arrow-down"></i></button>
+            </form>
+          </td>
+          <td>
+            <form method="post" style="display:inline" class="edit"
+                  action="{{ url('manage:survey_question_edit', survey.id, question.id) }}">
+              {{ csrf() }}
+              <button class="btn btn-primary btn-sm">
+                <i class="glyphicon glyphicon-floppy-disk"></i>
+                Save
+              </button>
+            </form>
+            <form method="post" class="confirm"
+                  action="{{ url('manage:survey_question_delete', survey.id, question.id) }}">
+              {{ csrf() }}
+              <button class="btn btn-danger btn-sm" type="submit">
+                <i class="glyphicon glyphicon-trash"></i>
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <form method="post" action="{{ url('manage:survey_question_new', survey.id) }}">
+      {{ csrf() }}
+      <button class="btn btn-primary">
+        <i class="glyphicon glyphicon-plus-sign"></i>
+        New question
+      </button>
+    </form>
+
+    <h3>Events that use this survey</h3>
+    <ul>
+      {% for event in events_using %}
+      <li>
+        <a href="{{ url('manage:event_edit', event.pk) }}">{{ event.title }}</a>
+        (<a href="{{ url('main:event', event.slug) }}">view</a>)
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% if not events_using %}
+      <p><em>None</em></p>
+    {% endif %}
+
+{% endblock %}

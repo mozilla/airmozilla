@@ -2,7 +2,6 @@ from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
 from airmozilla.base.tests.testbase import DjangoTestCase
-from airmozilla.main.models import Event
 from airmozilla.surveys.models import (
     Survey,
     Question,
@@ -13,13 +12,13 @@ from airmozilla.surveys.models import (
 class TestSurvey(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
-    def _create_survey(self, event, active=True):
-        return Survey.objects.create(event=event, active=active)
+    def _create_survey(self, name='Test survey', active=True):
+        survey = Survey.objects.create(name=name, active=active)
+        return survey
 
     def test_render_questions(self):
-        event = Event.objects.get(title='Test event')
-        survey = self._create_survey(event)
-        url = reverse('surveys:load', args=(event.id,))
+        survey = self._create_survey()
+        url = reverse('surveys:load', args=(survey.id,))
         # add a question
         question = Question.objects.create(
             survey=survey,
@@ -53,9 +52,8 @@ class TestSurvey(DjangoTestCase):
         ok_('Blue' in response.content)
 
     def test_submit_response_to_questions(self):
-        event = Event.objects.get(title='Test event')
-        survey = self._create_survey(event)
-        url = reverse('surveys:load', args=(event.id,))
+        survey = self._create_survey()
+        url = reverse('surveys:load', args=(survey.id,))
         user = self._login()
 
         # add a question
@@ -86,9 +84,8 @@ class TestSurvey(DjangoTestCase):
         eq_(answers.count(), 1)
 
     def test_submit_multiple_times(self):
-        event = Event.objects.get(title='Test event')
-        survey = self._create_survey(event)
-        url = reverse('surveys:load', args=(event.id,))
+        survey = self._create_survey()
+        url = reverse('surveys:load', args=(survey.id,))
         user = self._login()
 
         # add a question
@@ -130,9 +127,8 @@ class TestSurvey(DjangoTestCase):
         eq_(answer.answer['answer'], 'Red')
 
     def test_reset_submitted_response_to_questions(self):
-        event = Event.objects.get(title='Test event')
-        survey = self._create_survey(event)
-        url = reverse('surveys:load', args=(event.id,))
+        survey = self._create_survey()
+        url = reverse('surveys:load', args=(survey.id,))
         user = self._login()
         # add a question
         question = Question.objects.create(

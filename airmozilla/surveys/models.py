@@ -8,7 +8,8 @@ from airmozilla.main.models import Event
 
 
 class Survey(models.Model):
-    event = models.ForeignKey(Event)
+    name = models.CharField(max_length=250, null=True)
+    events = models.ManyToManyField(Event)
     active = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

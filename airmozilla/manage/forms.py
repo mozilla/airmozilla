@@ -29,7 +29,7 @@ from airmozilla.main.models import (
     RecruitmentMessage
 )
 from airmozilla.comments.models import Discussion, Comment
-from airmozilla.surveys.models import Question
+from airmozilla.surveys.models import Question, Survey
 
 
 TIMEZONE_CHOICES = [(tz, tz.replace('_', ' ')) for tz in pytz.common_timezones]
@@ -394,6 +394,25 @@ class RecruitmentMessageEditForm(BaseModelForm):
             'notes': forms.Textarea(attrs={'rows': 3})
         }
         exclude = ('modified_user', 'created')
+
+
+class SurveyEditForm(BaseModelForm):
+    class Meta:
+        model = Survey
+        exclude = ('created', 'modified')
+
+    def __init__(self, *args, **kwargs):
+        super(SurveyEditForm, self).__init__(*args, **kwargs)
+        self.fields['events'].required = False
+        self.fields['events'].queryset = (
+            self.fields['events'].queryset.order_by('title')
+        )
+
+
+class SurveyNewForm(BaseModelForm):
+    class Meta:
+        model = Survey
+        fields = ('name', 'active')
 
 
 class LocationEditForm(BaseModelForm):

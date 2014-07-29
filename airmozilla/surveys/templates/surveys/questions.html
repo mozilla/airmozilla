@@ -1,4 +1,4 @@
-<form action="{{ url('surveys:load', survey.event.id) }}" method="post">
+<form action="{{ url('surveys:load', survey.id) }}" method="post">
 {{ csrf() }}
 {{ bootstrapform(form) }}
 

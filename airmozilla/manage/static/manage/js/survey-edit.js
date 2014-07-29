@@ -1,4 +1,11 @@
 $(function() {
+    'use strict';
+    // all the things we're going to do select2 on,
+    // explicitely make sure they're 100%
+    $('#id_events').css('width', '100%');
+
+    $('#id_events').select2();
+
 
     var disableTopAndBottomOrderButton = function() {
         var orderings = $('.ordering form');

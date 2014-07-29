@@ -11,43 +11,108 @@ from .base import ManageTestCase
 
 class TestCase(ManageTestCase):
 
-    def test_create_survey(self):
+    def test_list_surveys(self):
+        survey = Survey.objects.create(
+            name='My Survey',
+            active=True
+        )
+        for i in range(3):
+            Question.objects.create(
+                survey=survey,
+                question={},
+            )
+        event = Event.objects.get(title='Test event')
+        survey.events.add(event)
+
+        url = reverse('manage:surveys')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('My Survey' in response.content)
+        ok_('>3</td>' in response.content)
+        ok_('>1</td>' in response.content)
+        ok_("Yes, it's active" in response.content)
+
+    def test_event_edit_link_to_surveys(self):
         event = Event.objects.get(title='Test event')
         url = reverse('manage:event_edit', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        url = reverse('manage:event_survey', args=(event.pk,))
+        url = reverse('manage:surveys')
         ok_(url in response.content)
 
         # click that button
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
+    def test_create_survey(self):
+        url = reverse('manage:survey_new')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('name="name"' in response.content)
+
+        response = self.client.post(url, {
+            'name': 'Name',
+            'active': True
+        })
+        eq_(response.status_code, 302)
+        survey = Survey.objects.get(name='Name')
+        self.assertRedirects(
+            response,
+            reverse('manage:survey_edit', args=(survey.id,))
+        )
+
+    def test_edit_survey(self):
+        survey = Survey.objects.create(name='Name')
+        url = reverse('manage:survey_edit', args=(survey.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('value="Name"' in response.content)
+        response = self.client.post(url, {
+            'name': 'New Name',
+            'active': True
+        })
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('manage:surveys')
+        )
+        survey = Survey.objects.get(id=survey.id)
+        eq_(survey.name, 'New Name')
+        ok_(survey.active)
+
+    def test_delete_survey(self):
+        survey = Survey.objects.create(name='Name')
+        url = reverse('manage:survey_delete', args=(survey.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 405)
+
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+        ok_(not Survey.objects.all())
+
     def test_create_and_delete_question(self):
-        event = Event.objects.get(title='Test event')
-        survey = Survey.objects.create(event=event)
+        survey = Survey.objects.create(name='Name')
         url = reverse(
-            'manage:event_survey_question_new', args=(event.id,)
+            'manage:survey_question_new', args=(survey.id,)
         )
 
         response = self.client.post(url, {})
         eq_(response.status_code, 302)
         question = Question.objects.get(survey=survey)
         url = reverse(
-            'manage:event_survey_question_delete',
-            args=(event.id, question.id)
+            'manage:survey_question_delete',
+            args=(survey.id, question.id)
         )
         response = self.client.post(url)
         eq_(response.status_code, 302)
         ok_(not Question.objects.filter(survey=survey))
 
     def test_edit_question(self):
-        event = Event.objects.get(title='Test event')
-        survey = Survey.objects.create(event=event)
+        survey = Survey.objects.create(name='Name')
         question = Question.objects.create(survey=survey)
         url = reverse(
-            'manage:event_survey_question_edit',
-            args=(event.id, question.id)
+            'manage:survey_question_edit',
+            args=(survey.id, question.id)
         )
         q = {
             'question': '?',
@@ -72,8 +137,7 @@ class TestCase(ManageTestCase):
         ok_('No JSON object could be decoded' in error[0])
 
     def test_ordering_questions(self):
-        event = Event.objects.get(title='Test event')
-        survey = Survey.objects.create(event=event)
+        survey = Survey.objects.create(name='Name')
         question_1 = Question.objects.create(
             survey=survey,
             question={'one': 1}
@@ -90,19 +154,19 @@ class TestCase(ManageTestCase):
         eq_(questions, [question_1, question_2, question_3])
         # let's move question_2 up one
         url = reverse(
-            'manage:event_survey_question_edit',
-            args=(event.id, question_2.id)
+            'manage:survey_question_edit',
+            args=(survey.id, question_2.id)
         )
         response = self.client.post(url, {'ordering': 'up'})
-        survey_url = reverse('manage:event_survey', args=(event.id,))
+        survey_url = reverse('manage:survey_edit', args=(survey.id,))
         self.assertRedirects(response, survey_url)
         questions = list(Question.objects.filter(survey=survey))
         eq_(questions, [question_2, question_1, question_3])
 
         # let's move question_1 down one
         url = reverse(
-            'manage:event_survey_question_edit',
-            args=(event.id, question_1.id)
+            'manage:survey_question_edit',
+            args=(survey.id, question_1.id)
         )
         response = self.client.post(url, {'ordering': 'down'})
         self.assertRedirects(response, survey_url)

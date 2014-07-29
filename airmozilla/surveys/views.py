@@ -9,7 +9,7 @@ from .models import Survey, Question, Answer
 
 @transaction.commit_on_success
 def load(request, id):
-    survey = get_object_or_404(Survey, event__id=id)
+    survey = get_object_or_404(Survey, id=id, active=True)
     context = {'survey': survey}
 
     questions = Question.objects.filter(survey=survey)
@@ -17,7 +17,7 @@ def load(request, id):
 
     if request.method == 'POST' and request.POST.get('resetmine'):
         answers.filter(user=request.user).delete()
-        return redirect('surveys:load', survey.event.id)
+        return redirect('surveys:load', survey.id)
 
     show_answers = True  # default
     if request.user.is_authenticated():
@@ -111,7 +111,7 @@ def load(request, id):
                         'answer': answer
                     }
                 )
-            return redirect('surveys:load', survey.event.id)
+            return redirect('surveys:load', survey.id)
 
     context['form'] = form
     return render(request, 'surveys/questions.html', context)

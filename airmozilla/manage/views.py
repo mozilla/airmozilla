@@ -670,7 +670,7 @@ def event_edit(request, id):
     context['amara_videos_count'] = amara_videos.count()
 
     try:
-        context['survey'] = Survey.objects.get(event=event)
+        context['survey'] = Survey.objects.get(events=event)
     except Survey.DoesNotExist:
         context['survey'] = None
 
@@ -2809,7 +2809,7 @@ def recruitmentmessage_new(request):
         )
         if form.is_valid():
             form.save()
-            messages.success(request, 'Recruitment messages created.')
+            messages.success(request, 'Recruitment message created.')
             return redirect('manage:recruitmentmessages')
     else:
         form = forms.RecruitmentMessageEditForm()
@@ -2854,35 +2854,84 @@ def recruitmentmessage_delete(request, id):
 
 @staff_required
 @permission_required('surveys.change_survey')
-@cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
 @transaction.commit_on_success
-def event_survey(request, id):
-    event = get_object_or_404(Event, id=id)
-    survey, __ = Survey.objects.get_or_create(event=event)
-    questions = Question.objects.filter(survey=survey)
-
-    if request.method == 'POST':
-        if 'toggle' in request.POST:
-            survey.active = not survey.active
-            survey.save()
-            return redirect('manage:event_survey', event.id)
-
+def surveys_(request):  # funny name to avoid clash with surveys module
     context = {
-        'event': event,
-        'survey': survey,
-        'questions': questions,
+        'surveys': Survey.objects.all().order_by('-created'),
     }
-    return render(request, 'manage/event_survey.html', context)
+
+    def count_events(this):
+        return Survey.events.through.objects.filter(survey=this).count()
+
+    def count_survey_questions(this):
+        return Question.objects.filter(survey=this).count()
+
+    context['count_events'] = count_events
+    context['count_survey_questions'] = count_survey_questions
+    return render(request, 'manage/surveys.html', context)
+
+
+@staff_required
+@permission_required('surveys.change_survey')
+@transaction.commit_on_success
+def survey_new(request):
+    if request.method == 'POST':
+        form = forms.SurveyNewForm(
+            request.POST,
+            instance=Survey()
+        )
+        if form.is_valid():
+            survey = form.save()
+            messages.success(request, 'Survey created.')
+            return redirect('manage:survey_edit', survey.id)
+    else:
+        form = forms.SurveyNewForm()
+    context = {'form': form}
+    return render(request, 'manage/survey_new.html', context)
+
+
+@staff_required
+@permission_required('surveys.change_survey')
+@cancel_redirect('manage:surveys')
+@transaction.commit_on_success
+def survey_edit(request, id):
+    survey = get_object_or_404(Survey, id=id)
+    if request.method == 'POST':
+        form = forms.SurveyEditForm(request.POST, instance=survey)
+        if form.is_valid():
+            form.save()
+            messages.info(request, 'Survey saved.')
+            return redirect('manage:surveys')
+    else:
+        form = forms.SurveyEditForm(instance=survey)
+    context = {
+        'form': form,
+        'survey': survey,
+        'events_using': Event.objects.filter(survey=survey),
+        'questions': Question.objects.filter(survey=survey),
+    }
+    return render(request, 'manage/survey_edit.html', context)
+
+
+@require_POST
+@staff_required
+@permission_required('surveys.delete_survey')
+@cancel_redirect('manage:surveys')
+@transaction.commit_on_success
+def survey_delete(request, id):
+    survey = get_object_or_404(Survey, id=id)
+    survey.delete()
+    return redirect('manage:surveys')
 
 
 @require_POST
 @staff_required
 @permission_required('surveys.add_question')
 @transaction.commit_on_success
-def event_survey_question_new(request, id):
-    survey = Survey.objects.get(event__id=id)
+def survey_question_new(request, id):
+    survey = get_object_or_404(Survey, id=id)
     Question.objects.create(survey=survey)
-    return redirect('manage:event_survey', survey.event.id)
+    return redirect('manage:survey_edit', survey.id)
 
 
 @json_view
@@ -2890,8 +2939,8 @@ def event_survey_question_new(request, id):
 @staff_required
 @permission_required('surveys.change_question')
 @transaction.commit_on_success
-def event_survey_question_edit(request, id, question_id):
-    survey = get_object_or_404(Survey, event__id=id)
+def survey_question_edit(request, id, question_id):
+    survey = get_object_or_404(Survey, id=id)
     question = get_object_or_404(Question, survey=survey, id=question_id)
 
     if 'question' in request.POST:
@@ -2917,8 +2966,8 @@ def event_survey_question_edit(request, id, question_id):
                 question.order = i
                 question.save()
 
-        return redirect('manage:event_survey', survey.event.id)
-    else:
+        return redirect('manage:survey_edit', survey.id)
+    else:  # pragma: no cover
         raise NotImplementedError
 
     return {
@@ -2930,7 +2979,7 @@ def event_survey_question_edit(request, id, question_id):
 @staff_required
 @permission_required('surveys.delete_question')
 @transaction.commit_on_success
-def event_survey_question_delete(request, id, question_id):
-    survey = get_object_or_404(Survey, event__id=id)
+def survey_question_delete(request, id, question_id):
+    survey = get_object_or_404(Survey, id=id)
     get_object_or_404(Question, survey=survey, id=question_id).delete()
-    return redirect('manage:event_survey', survey.event.id)
+    return redirect('manage:survey_edit', survey.id)

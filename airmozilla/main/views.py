@@ -404,7 +404,7 @@ class EventView(View):
 
         context['survey'] = None
         try:
-            context['survey'] = Survey.objects.get(event=event, active=True)
+            context['survey'] = Survey.objects.get(events=event, active=True)
         except Survey.DoesNotExist:
             pass
 

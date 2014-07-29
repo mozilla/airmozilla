@@ -11,8 +11,9 @@ class SurveyTestCase(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_basic_save(self):
+        survey = Survey.objects.create(name='Basic survey')
         event = Event.objects.get(title='Test event')
-        survey = Survey.objects.create(event=event)
+        survey.events.add(event)
 
         question = Question.objects.create(
             survey=survey,
