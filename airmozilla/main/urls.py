@@ -65,7 +65,7 @@ urlpatterns = patterns(
     url(r'^(?P<slug>[-\w]+)/(?P<id>\d+)/difference/$',
         views.EventRevisionView.as_view(difference=True),
         name='event_difference'),
-    url(r'^edgecast_smil.xml$',
+    url(r'^edgecast.smil$',
         views.edgecast_smil,
         name='edgecast_smil'),
 
