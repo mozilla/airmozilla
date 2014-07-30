@@ -1084,3 +1084,17 @@ def edgecast_smil(request):
     response['Content-Type'] = 'application/smil'
     response['Access-Control-Allow-Origin'] = '*'
     return response
+
+
+def crossdomain_xml(request):
+    response = http.HttpResponse(mimetype='text/xml')
+    response.write(
+        '<?xml version="1.0"?>\n'
+        '<!DOCTYPE cross-domain-policy SYSTEM '
+        '"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">\n'
+        '<cross-domain-policy>'
+        '<allow-access-from domain="*" />'
+        '</cross-domain-policy>'
+    )
+    response['Access-Control-Allow-Origin'] = '*'
+    return response

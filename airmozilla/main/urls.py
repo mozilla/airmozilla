@@ -68,6 +68,9 @@ urlpatterns = patterns(
     url(r'^edgecast.smil$',
         views.edgecast_smil,
         name='edgecast_smil'),
+    url(r'^crossdomain.xml$',
+        views.crossdomain_xml,
+        name='crossdomain_xml'),
 
 
 

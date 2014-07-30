@@ -2262,6 +2262,14 @@ class TestPages(DjangoTestCase):
         ok_('token=XXXX' in response.content)
         ok_('Something' in response.content)
 
+    def test_crossdomain_xml(self):
+        url = reverse('main:crossdomain_xml')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(response['Content-Type'], 'text/xml')
+        eq_(response['Access-Control-Allow-Origin'], '*')
+        ok_('<allow-access-from domain="*" />' in response.content)
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
