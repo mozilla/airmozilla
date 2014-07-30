@@ -2257,7 +2257,8 @@ class TestPages(DjangoTestCase):
             'token': 'XXXX'
         })
         eq_(response.status_code, 200)
-        eq_(response['Content-Type'], 'text/xml')
+        eq_(response['Content-Type'], 'application/smil')
+        eq_(response['Access-Control-Allow-Origin'], '*')
         ok_('token=XXXX' in response.content)
         ok_('Something' in response.content)
 

@@ -1081,5 +1081,6 @@ def edgecast_smil(request):
     for key, value in request.GET.items():
         context[key] = value
     response = render(request, 'main/edgecast_smil.xml', context)
-    response['Content-Type'] = 'text/xml'
+    response['Content-Type'] = 'application/smil'
+    response['Access-Control-Allow-Origin'] = '*'
     return response
