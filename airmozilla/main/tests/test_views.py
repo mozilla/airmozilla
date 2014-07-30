@@ -2259,7 +2259,16 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         eq_(response['Content-Type'], 'application/smil')
         eq_(response['Access-Control-Allow-Origin'], '*')
-        ok_('token=XXXX' in response.content)
+        ok_('XXXX' in response.content)
+        ok_('/Restricted/' in response.content)
+        ok_('Something' in response.content)
+
+        # do it once without `token`
+        response = self.client.get(url, {
+            'venue': 'Something',
+        })
+        eq_(response.status_code, 200)
+        ok_('/Restricted/' not in response.content)
         ok_('Something' in response.content)
 
     def test_crossdomain_xml(self):

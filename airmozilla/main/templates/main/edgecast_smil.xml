@@ -1,6 +1,6 @@
 <smil>
   <head>
-    <meta base="rtmp://fml.1237.edgecastcdn.net/201237/{% if token %}?token={{ token }}{% endif %}" />
+    <meta base="rtmp://fml.1237.edgecastcdn.net/201237/{% if token %}Restricted/?{{ token }}{% endif %}" />
   </head>
   <body>
     <switch>
