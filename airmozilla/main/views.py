@@ -1074,3 +1074,12 @@ def permission_denied(request, slug):
         })
 
     return render(request, 'main/permission_denied.html', context)
+
+
+def edgecast_smil(request):
+    context = {}
+    for key, value in request.GET.items():
+        context[key] = value
+    response = render(request, 'main/edgecast_smil.xml', context)
+    response['Content-Type'] = 'text/xml'
+    return response

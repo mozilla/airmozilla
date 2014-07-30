@@ -2250,6 +2250,17 @@ class TestPages(DjangoTestCase):
             in response.content
         )
 
+    def test_edgecast_smil(self):
+        url = reverse('main:edgecast_smil')
+        response = self.client.get(url, {
+            'venue': 'Something',
+            'token': 'XXXX'
+        })
+        eq_(response.status_code, 200)
+        eq_(response['Content-Type'], 'text/xml')
+        ok_('token=XXXX' in response.content)
+        ok_('Something' in response.content)
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']

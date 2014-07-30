@@ -29,7 +29,8 @@ urlpatterns = patterns(
     url(r'^calendars/$', views.calendars, name='calendars'),
     url(r'^calendar/(company|contributors|public).ics$',
         views.events_calendar_ical, name='calendar_ical'),
-    url(r'^feed/(?P<private_or_public>company|public|private|contributors)?/?$',
+    url(r'^feed/(?P<private_or_public>'
+        'company|public|private|contributors)?/?$',
         cache_page(60 * 60)(views.EventsFeed()),
         name='feed'),
     url(r'^feed/(?P<private_or_public>company|public|private|contributors)'
@@ -64,6 +65,10 @@ urlpatterns = patterns(
     url(r'^(?P<slug>[-\w]+)/(?P<id>\d+)/difference/$',
         views.EventRevisionView.as_view(difference=True),
         name='event_difference'),
+    url(r'^edgecast_smil.xml$',
+        views.edgecast_smil,
+        name='edgecast_smil'),
+
 
 
 
