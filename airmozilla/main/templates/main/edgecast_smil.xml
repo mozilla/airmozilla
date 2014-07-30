@@ -1,12 +1,12 @@
 <smil>
   <head>
-    <meta base="rtmp://fml.1237.edgecastcdn.net/201237/{% if token %}Restricted/?{{ token }}{% endif %}" />
+    <meta base="rtmp://fml.1237.edgecastcdn.net/201237/{% if token %}Restricted/{% endif %}" />
   </head>
   <body>
     <switch>
-      <video src="{{ venue }}-HD" height="720" system-bitrate="2073600" width="1280" />
-      <video src="{{ venue }}-SD" height="360" system-bitrate="803840" width="640" />
-      <video src="{{ venue }}-LD" height="240" system-bitrate="424960" width="426" />
+      <video src="{{ venue }}-HD{% if token %}?{{ token }}{% endif %}" height="720" system-bitrate="2073600" width="1280" />
+      <video src="{{ venue }}-SD{% if token %}?{{ token }}{% endif %}" height="360" system-bitrate="803840" width="640" />
+      <video src="{{ venue }}-LD{% if token %}?{{ token }}{% endif %}" height="240" system-bitrate="424960" width="426" />
     </switch>
   </body>
 </smil>
