@@ -11,6 +11,59 @@ from .base import ManageTestCase
 
 class TestCase(ManageTestCase):
 
+    def test_event_survey(self):
+        survey = Survey.objects.create(
+            name='My Survey',
+            active=True
+        )
+        Question.objects.create(
+            survey=survey,
+            question={}
+        )
+        other_survey = Survey.objects.create(
+            name='Other Survey',
+            active=False
+        )
+        Question.objects.create(
+            survey=other_survey,
+            question={"question": "Something?"}
+        )
+        Question.objects.create(
+            survey=other_survey,
+            question={"question": "Something else?"}
+        )
+
+        event = Event.objects.get(title='Test event')
+        event_edit_url = reverse('manage:event_edit', args=(event.id,))
+        response = self.client.get(event_edit_url)
+        eq_(response.status_code, 200)
+        url = reverse('manage:event_survey', args=(event.id,))
+        ok_(url in response.content)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('My Survey' in response.content)
+        ok_('1 question' in response.content)
+        ok_('Other Survey' in response.content)
+        ok_('2 questions' in response.content)
+        ok_('none' in response.content)
+
+        eq_(Survey.events.through.objects.filter(event=event).count(), 0)
+
+        response = self.client.post(url, {'survey': survey.id})
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, event_edit_url)
+
+        eq_(Survey.events.through.objects.filter(event=event).count(), 1)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # change it back to none
+        response = self.client.post(url, {'survey': 0})
+        eq_(response.status_code, 302)
+        self.assertRedirects(response, event_edit_url)
+        eq_(Survey.events.through.objects.filter(event=event).count(), 0)
+
     def test_list_surveys(self):
         survey = Survey.objects.create(
             name='My Survey',

@@ -39,6 +39,8 @@ urlpatterns = patterns(
         name='event_discussion'),
     url(r'^events/(?P<id>\d+)/stop-live/$', views.event_stop_live,
         name='stop_live_event'),
+    url(r'^events/(?P<id>\d+)/survey/$', views.event_survey,
+        name='event_survey'),
     url(r'^events/(?P<id>\d+)/tweets/$', views.event_tweets,
         name='event_tweets'),
     url(r'^events/(?P<id>\d+)/tweets/new/$', views.new_event_tweet,
@@ -64,7 +66,6 @@ urlpatterns = patterns(
         name='event_assignments_ical'),
     url(r'^events/$', views.events, name='events'),
     url(r'^events/data/$', views.events_data, name='events_data'),
-
     url(r'^surveys/$', views.surveys_, name='surveys'),
     url(r'^surveys/new/$', views.survey_new, name='survey_new'),
     url(r'^surveys/(?P<id>\d+)/$', views.survey_edit, name='survey_edit'),

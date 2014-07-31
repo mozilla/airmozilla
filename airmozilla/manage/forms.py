@@ -690,3 +690,30 @@ class QuestionForm(BaseModelForm):
     class Meta:
         model = Question
         fields = ('question',)
+
+
+class EventSurveyForm(BaseForm):
+
+    survey = forms.ChoiceField(
+        widget=forms.widgets.RadioSelect()
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(EventSurveyForm, self).__init__(*args, **kwargs)
+
+        def describe_survey(survey):
+            output = survey.name
+            if not survey.active:
+                output += ' (not active)'
+            count_questions = Question.objects.filter(survey=survey).count()
+            if count_questions == 1:
+                output += ' (1 question)'
+            else:
+                output += ' (%d questions)' % count_questions
+            return output
+
+        self.fields['survey'].choices = [
+            ('0', 'none')
+        ] + [
+            (x.id, describe_survey(x)) for x in Survey.objects.all()
+        ]

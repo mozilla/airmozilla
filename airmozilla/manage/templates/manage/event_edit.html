@@ -2,7 +2,7 @@
 {% set page = "events" %}
 
 {% block manage_title %}
-  Editing event "{{ event.title }}"
+  Editing event "<a href="{{ url('main:event', event.slug) }}">{{ event.title }}</a>"
 {% endblock %}
 
 {% block site_css %}
@@ -247,10 +247,11 @@
     <p style="margin-top:25px"><strong>Survey</strong></p>
     <p>
       {% if survey %}
-      <a href="{{ url('manage:survey_edit', survey.pk) }}" class="btn btn-primary btn-sm"
+      <a href="{{ url('manage:event_survey', event.id) }}" class="btn btn-primary btn-sm"
+        title="{{ survey.name }}"
         >{% if survey.active %}Survey active{% else %}Survey <b>not</b> active{% endif %}</a>
       {% else %}
-        <a href="{{ url('manage:surveys') }}" class="btn btn-primary btn-sm">Create survey</a>
+        <a href="{{ url('manage:event_survey', event.id) }}" class="btn btn-primary btn-sm">Associate with survey</a>
       {% endif %}
     </p>
 

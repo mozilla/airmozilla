@@ -2853,6 +2853,53 @@ def recruitmentmessage_delete(request, id):
 
 
 @staff_required
+@permission_required('main.change_event')
+@cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
+@transaction.commit_on_success
+def event_survey(request, id):
+    event = get_object_or_404(Event, id=id)
+    survey = None
+
+    if request.method == 'POST':
+        form = forms.EventSurveyForm(request.POST)
+        if form.is_valid():
+            survey_id = int(form.cleaned_data['survey'])
+            Survey.events.through.objects.filter(event=event).delete()
+            if survey_id:
+                survey = Survey.objects.get(id=survey_id)
+                survey.events.add(event)
+                messages.info(
+                    request,
+                    'Event associated with survey'
+                )
+            else:
+                messages.info(
+                    request,
+                    'Event disassociated with survey'
+                )
+
+            return redirect('manage:event_edit', event.id)
+    else:
+        initial = {}
+        try:
+            survey_events, = Survey.events.through.objects.filter(event=event)
+            survey = survey_events.survey
+            initial['survey'] = survey.id
+        except ValueError:
+            # not associated with any survey
+            initial['survey'] = 0
+
+        form = forms.EventSurveyForm(initial=initial)
+    context = {
+        'event': event,
+        'surveys': Survey.objects.all(),
+        'form': form,
+        'survey': survey,
+    }
+    return render(request, 'manage/event_survey.html', context)
+
+
+@staff_required
 @permission_required('surveys.change_survey')
 @transaction.commit_on_success
 def surveys_(request):  # funny name to avoid clash with surveys module
