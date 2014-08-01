@@ -189,7 +189,7 @@ def home(request):
 
         if settings.LOG_SEARCHES and not _database_error_happened:
             logged_search = LoggedSearch.objects.create(
-                term=context['q'],
+                term=context['q'][:200],
                 results=events.count(),
                 page=page,
                 user=request.user.is_authenticated() and request.user or None
