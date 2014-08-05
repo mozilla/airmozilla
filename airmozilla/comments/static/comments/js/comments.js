@@ -5,6 +5,7 @@ var Comments = (function() {
     var previous_latest_comment = null;
     var halt_reload_loop = false;
     var pause_reload_loop = false;
+    var can_manage_comments = null;
 
     function approve_comment(clicked, container) {
         var parent = $(clicked).closest('.comment');
@@ -124,6 +125,7 @@ var Comments = (function() {
                     console.log('Discussion not enabled on this page');
                     return;
                 }
+                can_manage_comments = response.can_manage_comments;
                 previous_latest_comment = response.latest_comment;
                 $('.comments-outer', container).html(response.html).show();
                 $('time.timeago', container).timeago();
@@ -178,14 +180,18 @@ var Comments = (function() {
                 return;
             }
             var data = {};
+            if (can_manage_comments) {
+                data.include_posted = true;
+            }
             var req = $.getJSON(container.data('reload-url'), data);
             req.then(function(response) {
                 if (response.latest_comment != previous_latest_comment) {
                     Comments.load(container);
                 }
             });
-            req.fail(function() {
+            req.fail(function(response) {
                 console.warn('Error checking latest, so halt');
+                console.warn('Status', response.status);
                 halt_reload_loop = true;
             });
         },

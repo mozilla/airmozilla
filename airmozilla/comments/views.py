@@ -49,35 +49,6 @@ def can_manage_comments(user, discussion):
     return False
 
 
-def can_manage_comments_by_event(user, event):
-    """similar to can_manage_comments() except you can provide this function
-    an event instead or an ID to an event. This makes it appropriate
-    for leveraging caching to quickly return true or false.
-    """
-    cache_key = None
-
-    if not isinstance(event, Event):
-        # that means we can use caching
-        cache_key = 'can_manage_comments_by_event:%s:%s' % (event, user.pk)
-        truth = cache.get(cache_key, -1)
-        if truth != -1:
-            return truth
-        discussion = Discussion.objects.get(event_id=event, enabled=True)
-    else:
-        discussion = Discussion.objects.get(event=event, enabled=True)
-    truth = can_manage_comments(user, discussion)
-    if cache_key:
-        # Note! There is no cache invalidation of this. That's because
-        # the cache key is constructed by two different models.
-        # However, event's change rarely. And users change rarely too.
-        # This is also why the expiration time is so low.
-        # The worst thing that can happen is that a user is added to the
-        # list of moderators and has to wait a couple of seconds for it
-        # to take effect on an already up and running discussion.
-        cache.set(cache_key, truth, 60)
-    return truth
-
-
 @json_view
 @transaction.commit_on_success
 def event_data(request, id):
@@ -220,6 +191,7 @@ def event_data(request, id):
         'comments/comments.html',
         sub_context
     )
+    context['can_manage_comments'] = _can_manage_comments
     context['latest_comment'] = get_latest_comment(
         event,
         include_posted=_can_manage_comments
@@ -231,19 +203,22 @@ def event_data(request, id):
 @transaction.commit_on_success
 def event_data_latest(request, id):
     cache_key = 'latest_comment:%s' % (id,)
-    try:
-        cache_key += ':%s' % can_manage_comments_by_event(request.user, id)
-    except Discussion.DoesNotExist:
-        return http.HttpResponseBadRequest('Discussion not enabled')
+    include_posted = bool(request.GET.get(
+        'include_posted'
+    ))
+    cache_key += ':%s' % include_posted
 
     latest_comment = cache.get(cache_key, -1)
     if latest_comment == -1:
-        discussion = Discussion.objects.get(event__pk=id, enabled=True)
+        try:
+            discussion = Discussion.objects.get(event__pk=id, enabled=True)
+        except Discussion.DoesNotExist:
+            return http.HttpResponseBadRequest('Discussion not enabled')
         latest_comment = get_latest_comment(
             discussion.event_id,
-            include_posted=can_manage_comments(request.user, discussion),
+            include_posted=include_posted,
         )
-        cache.set(cache_key, latest_comment, 60)
+        cache.set(cache_key, latest_comment, 60 * 60)
     return {'latest_comment': latest_comment}
 
 
