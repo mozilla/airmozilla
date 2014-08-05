@@ -2,7 +2,11 @@
 {% set page = "events" %}
 
 {% block manage_title %}
-  Editing event "<a href="{{ url('main:event', event.slug) }}">{{ event.title }}</a>"
+  {% if event.slug %}
+    Editing event "<a href="{{ url('main:event', event.slug) }}">{{ event.title }}</a>"
+  {% else %}
+    Editing event "{{ event.title }}"
+  {% endif %}
 {% endblock %}
 
 {% block site_css %}

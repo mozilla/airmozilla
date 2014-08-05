@@ -484,8 +484,11 @@ class TestEvents(ManageTestCase):
 
         response = self.client.post(
             reverse('manage:event_edit', kwargs={'id': event.id}),
-            dict(self.event_base_data, title='Tested event',
-                 pin='1')
+            dict(
+                self.event_base_data,
+                title='Tested event',
+                pin='1'
+            )
         )
         eq_(response.status_code, 200)
         ok_('Pin too short' in response.content)
