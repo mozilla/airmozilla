@@ -587,7 +587,11 @@ def event_edit(request, id):
             edit_url = reverse('manage:event_edit', args=(event.pk,))
             messages.info(
                 request,
-                'Event "%s" saved. [Edit again](%s)' % (event.title, edit_url)
+                'Event "<a href=\"%s\">%s</a>" saved. [Edit again](%s)' % (
+                    reverse('main:event', args=(event.slug,)),
+                    event.title,
+                    edit_url
+                )
             )
             return redirect('manage:events')
     else:
