@@ -274,7 +274,7 @@ class EventView(View):
 
     def can_view_event(self, event, request):
         """wrapper on the utility function can_view_event()"""
-        return can_view_event(event, request)
+        return can_view_event(event, request.user)
 
     def get_default_context(self, event, request):
         context = {}
@@ -309,7 +309,7 @@ class EventView(View):
         if isinstance(event, http.HttpResponse):
             return event
 
-        if not self.can_view_event(event, request.user):
+        if not self.can_view_event(event, request):
             return self.cant_view_event(event, request)
 
         warning = None
@@ -337,6 +337,7 @@ class EventView(View):
                 'vidly_tokenize': vidly.tokenize,
                 'edgecast_tokenize': edgecast_tokenize,
                 'popcorn_url': event.popcorn_url,
+                'autoplay': request.GET.get('autoplay', 'false'),
             }
             if isinstance(event.template_environment, dict):
                 context.update(event.template_environment)
@@ -446,10 +447,10 @@ class EventRevisionView(EventView):
     template_name = 'main/revision_change.html'
     difference = False
 
-    def can_view_event(self, event, user):
+    def can_view_event(self, event, request):
         return (
-            user.is_active and
-            super(EventRevisionView, self).can_view_event(event, user)
+            request.user.is_active and
+            super(EventRevisionView, self).can_view_event(event, request)
         )
 
     def get(self, request, slug, id):
@@ -457,7 +458,7 @@ class EventRevisionView(EventView):
         if isinstance(event, http.HttpResponse):
             return event
 
-        if not self.can_view_event(event, request.user):
+        if not self.can_view_event(event, request):
             return self.cant_view_event(event, request)
 
         revision = get_object_or_404(
@@ -520,7 +521,10 @@ class EventVideoView(EventView):
     template_name = 'main/event_video.html'
 
     def can_view_event(self, event, request):
-        return event.privacy == Event.PRIVACY_PUBLIC
+        if self.embedded:
+            return event.privacy == Event.PRIVACY_PUBLIC
+        else:
+            return super(EventVideoView, self).can_view_event(event, request)
 
     def cant_view_event(self, event, request):
         """return a response appropriate when you can't view the event"""
@@ -542,22 +546,25 @@ class EventVideoView(EventView):
         root_url = '%s://%s' % (prefix, RequestSite(request).domain)
         url = reverse('main:event', kwargs={'slug': event.slug})
         context['absolute_url'] = root_url + url
+        context['embedded'] = self.embedded
         return context
 
     def get(self, request, slug):
+        self.embedded = request.GET.get('embedded', 'true') == 'true'
         response = super(EventVideoView, self).get(request, slug)
         # ALLOWALL is what YouTube uses for sharing
-        response['X-Frame-Options'] = 'ALLOWALL'
+        if self.embedded:
+            response['X-Frame-Options'] = 'ALLOWALL'
         return response
 
 
 class EventEditView(EventView):
     template_name = 'main/event_edit.html'
 
-    def can_edit_event(self, event, user):
+    def can_edit_event(self, event, request):
         # this might change in the future to only be
         # employees and vouched mozillians
-        return user.is_active
+        return request.user.is_active
 
     def cant_edit_event(self, event, user):
         return redirect('main:event', event.slug)
@@ -592,9 +599,9 @@ class EventEditView(EventView):
         if isinstance(event, http.HttpResponse):
             return event
 
-        if not self.can_view_event(event, request.user):
+        if not self.can_view_event(event, request):
             return self.cant_view_event(event, request)
-        if not self.can_edit_event(event, request.user):
+        if not self.can_edit_event(event, request):
             return self.cant_edit_event(event, request)
 
         initial = self.event_to_dict(event)
@@ -628,9 +635,9 @@ class EventEditView(EventView):
         if isinstance(event, http.HttpResponse):
             return event
 
-        if not self.can_view_event(event, request.user):
+        if not self.can_view_event(event, request):
             return self.cant_view_event(event, request)
-        if not self.can_edit_event(event, request.user):
+        if not self.can_edit_event(event, request):
             return self.cant_edit_event(event, request)
 
         previous = request.POST['previous']

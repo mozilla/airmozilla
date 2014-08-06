@@ -32,6 +32,7 @@
 {{ super() }}
 {% compress js %}
 <script src="{{ static('main/js/embed.js') }}"></script>
+<script src="{{ static('main/js/tearout.js') }}"></script>
 <script src="{{ static('comments/js/comments.js') }}"></script>
 <script src="{{ static('surveys/js/survey.js') }}"></script>
 {% endcompress %}
@@ -93,6 +94,14 @@
       {% else %}
         {% if video %}
            {{ video|safe }}
+           <p class="tearout">
+             <span class="warning-about-time">
+               <b>Note!</b> When you tear out the video window it will start from the beginning.
+             </span>
+             <a class="open"
+                title="Click to open up just the video in a pop-up"></a>
+             <span class="problem"></span>
+           </p>
         {% else %}
           {% set thumb = thumbnail(event.placeholder_img, '120x120') %}
           <img src="{{ thumb.url }}" width="{{ thumb.width }}"

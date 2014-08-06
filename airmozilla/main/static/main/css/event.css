@@ -23,3 +23,48 @@ p.pending {
 .recruitmentmessage p {
     padding: 10px;
 }
+
+.tearout-placeholder {
+    border: 1px solid #979797;
+    text-align: center;
+    position: relative;
+    border-radius: 4px;
+}
+.tearout-placeholder a.restore {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -135px;
+}
+.tearout-placeholder a,
+.tearout a {
+    cursor: pointer;
+}
+.tearout {
+    position: relative;
+}
+.tearout .problem {
+    color: #FF9EC5;
+    font-size: 80%;
+}
+.tearout .warning-about-time {
+    display: none;
+    position: absolute;
+    right: 30px;
+    font-size:80%;
+}
+.tearout a.open {
+    float: right;
+    display: block;
+    background: url('../img/new_window.png') no-repeat;
+    width: 20px;
+    height: 20px;
+}
+/*.tearout a.restore {
+    display: none;
+}*/
+/*.tearout a.open img {
+    float: none;
+    border: none;
+    margin: 0;
+}*/

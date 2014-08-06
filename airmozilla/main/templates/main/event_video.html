@@ -43,9 +43,13 @@
       Event is currently in a pending state meaning it will soon be made available.
       </p>
     {% else %}
-      {{ video|safe }}
-      <p class="footer"><a href="{{ absolute_url }}" target="_blank">View on Air Mozilla</a></p>
+      {{ video | safe }}
+      {% if embedded %}
+        <p class="footer"><a href="{{ absolute_url }}" target="_blank">View on Air Mozilla</a></p>
+      {% endif %}
     {% endif %}
   {% endif %}
 {% endif %}
+
+  </body>
 </html>

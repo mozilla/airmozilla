@@ -1709,6 +1709,12 @@ class TestPages(DjangoTestCase):
         eq_(response['X-Frame-Options'], 'ALLOWALL')
         ok_("Not a public event" in response.content)
 
+        # but that's ignored if you set the ?embedded=false
+        response = self.client.get(url, {'embedded': False})
+        eq_(response.status_code, 200)
+        ok_("Not a public event" not in response.content)
+        eq_(response['X-Frame-Options'], 'DENY')  # back to the default
+
     def test_view_event_video_not_found(self):
         url = reverse('main:event_video', kwargs={'slug': 'xxxxxx'})
         response = self.client.get(url)
