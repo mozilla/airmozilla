@@ -11,6 +11,8 @@ handler500 = 'airmozilla.base.views.handler500'
 
 urlpatterns = patterns(
     '',
+    (r'^(?P<path>contribute\.json)$', 'django.views.static.serve',
+     {'document_root': settings.ROOT}),
     (r'^manage/', include('airmozilla.manage.urls', namespace='manage')),
     (r'^requests/', include('airmozilla.suggest.urls', namespace='suggest')),
     (r'^search/', include('airmozilla.search.urls', namespace='search')),

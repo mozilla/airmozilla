@@ -70,6 +70,13 @@ class TestPages(DjangoTestCase):
                 url += '?location=%s' % urllib.quote_plus(location)
         return url
 
+    def test_contribute_json(self):
+        response = self.client.get('/contribute.json')
+        eq_(response.status_code, 200)
+        # should be valid JSON
+        ok_(json.loads(response.content))
+        eq_(response['Content-Type'], 'application/json')
+
     def test_is_contributor(self):
         from airmozilla.main.views import is_contributor
         anonymous = AnonymousUser()

@@ -1,0 +1,31 @@
+{
+    "name": "Air Mozilla",
+    "description": "AirMozilla is a the video broadcasting site for the Mozilla project",
+    "repository": {
+        "url": "https://github.com/mozilla/airmozilla",
+        "license": "MPL2",
+	"tests": "https://ci.mozilla.org/job/airmozilla/"
+    },
+    "participate": {
+        "home": "https://wiki.mozilla.org/Air_Mozilla",
+	"docs": "https://github.com/mozilla/airmozilla#how-to-get-it-running-locally-from-scratch",
+	"irc": "irc://irc.mozilla.org/#airmozilla-dev",
+	"irc-contacts": ["Richard", "peterbe"]
+    },
+    "bugs": {
+        "list": "https://bugzilla.mozilla.org/buglist.cgi?product=Webtools&component=Air%20Mozilla&resolution=---&list_id=10939442",
+	"report": "https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes%7CAir+Mozilla%7COther"
+    },
+    "urls": {
+        "prod": "https://air.mozilla.org/",
+	"stage": "https://air.allizom.org/",
+	"dev": "https://air-dev.allizom.org/"
+    },
+    "keywords": [
+        "django",
+        "jquery",
+	"postgresql",
+	"video",
+	"angularjs"
+    ]
+}
