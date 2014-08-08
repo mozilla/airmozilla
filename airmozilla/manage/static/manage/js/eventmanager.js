@@ -43,10 +43,10 @@ function EventManagerController($scope, $http) {
     $scope.sorting_reverse = true;
 
     $scope.$watch('sorting', function(value) {
-        if (value === 'title') {
-            $scope.sorting_reverse = false;
-        } else {
+        if (value === 'modified') {
             $scope.sorting_reverse = true;
+        } else {
+            $scope.sorting_reverse = false;
         }
     });
 
@@ -238,6 +238,8 @@ function EventManagerController($scope, $http) {
         if (value) {
             value = moment.utc(value);
             search_start_times = [value, value.clone().add('days', 1)];
+            $scope.sorting = 'start_time_iso';
+            $scope.sorting_reverse = true;
         }
     });
     function in_search_start_time_range(date) {
