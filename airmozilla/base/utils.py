@@ -2,7 +2,6 @@ import time
 import datetime
 import re
 import urllib
-import functools
 import json
 import subprocess
 import os
@@ -11,7 +10,6 @@ import html2text
 import pytz
 from slugify import slugify
 
-from django import http
 from django.core.handlers.wsgi import WSGIRequest
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -86,28 +84,6 @@ def tz_apply(dt, tz):
        Strips the Django-inserted timezone from settings.TIME_ZONE."""
     dt = dt.replace(tzinfo=None)
     return tz.normalize(tz.localize(dt))
-
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
-        return json.JSONEncoder.default(self, obj)
-
-
-# From socorro-crashstats
-def json_view(f):
-    @functools.wraps(f)
-    def wrapper(*args, **kw):
-        response = f(*args, **kw)
-        if isinstance(response, http.HttpResponse):
-            return response
-        else:
-            return http.HttpResponse(
-                _json_clean(json.dumps(response, cls=DateTimeEncoder)),
-                content_type='application/json; charset=UTF-8'
-            )
-    return wrapper
 
 
 def _json_clean(value):

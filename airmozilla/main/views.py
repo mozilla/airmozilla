@@ -21,6 +21,7 @@ from funfactory.urlresolvers import reverse
 from jingo import Template
 import vobject
 from sorl.thumbnail import get_thumbnail
+from jsonview.decorators import json_view
 
 from airmozilla.main.models import (
     Event,
@@ -37,8 +38,7 @@ from airmozilla.main.models import (
 from airmozilla.base.utils import (
     paginate,
     edgecast_tokenize,
-    unhtml,
-    json_view
+    unhtml
 )
 from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion

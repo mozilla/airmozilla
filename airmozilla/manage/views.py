@@ -31,12 +31,12 @@ import pytz
 from funfactory.urlresolvers import reverse
 from jinja2 import Environment, meta
 import vobject
+from jsonview.decorators import json_view
 
 from airmozilla.main.helpers import thumbnail, short_desc
 from airmozilla.manage.helpers import scrub_transform_passwords
 from airmozilla.base import mozillians
 from airmozilla.base.utils import (
-    json_view,
     paginate,
     tz_apply,
     unhtml,
@@ -505,7 +505,7 @@ def events_data(request):
 
         row = {
             'thumbnail': thumbnail_,
-            'modified': event.modified,
+            'modified': event.modified.isoformat(),
             'status': event.status,
             'status_display': event.get_status_display(),
             'privacy': event.privacy,
@@ -517,7 +517,11 @@ def events_data(request):
             'start_time': start_time,
             'start_time_iso': start_time_iso,
             'channels': event_channel_names.get(event.pk, []),
-            'archive_time': event.archive_time,
+            'archive_time': (
+                event.archive_time.isoformat()
+                if event.archive_time
+                else None
+            ),
         }
 
         # to make the size of the JSON file as small as possible,
@@ -827,7 +831,7 @@ def event_vidly_submission(request, id, submission_id):
         'hd': submission.hd,
         'token_protection': submission.token_protection,
         'submission_error': submission.submission_error,
-        'submission_time': submission.submission_time,
+        'submission_time': submission.submission_time.isoformat(),
     }
     if request.GET.get('as_fields'):
         return {'fields': as_fields(data)}

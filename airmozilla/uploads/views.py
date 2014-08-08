@@ -18,10 +18,8 @@ from django.conf import settings
 import requests
 from funfactory.urlresolvers import reverse
 from slugify import slugify
+from jsonview.decorators import json_view
 
-from airmozilla.base.utils import (
-    json_view
-)
 from airmozilla.main.models import Event, SuggestedEvent
 from .models import Upload
 

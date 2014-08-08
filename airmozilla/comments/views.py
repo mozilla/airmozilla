@@ -8,7 +8,8 @@ from django.db.models import Q, Max
 from django.core.cache import cache
 from django.db import transaction
 
-from airmozilla.base.utils import json_view
+from jsonview.decorators import json_view
+
 from airmozilla.main.models import Event
 from .models import Comment, Discussion, Unsubscription
 from airmozilla.base.mozillians import fetch_user_name

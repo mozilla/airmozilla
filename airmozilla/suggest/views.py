@@ -15,6 +15,7 @@ import requests
 import pytz
 from funfactory.urlresolvers import reverse
 from slugify import slugify
+from jsonview.decorators import json_view
 
 from airmozilla.main.models import (
     SuggestedEvent,
@@ -25,7 +26,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.uploads.models import Upload
 from airmozilla.comments.models import SuggestedDiscussion
-from airmozilla.base.utils import tz_apply, json_view
+from airmozilla.base.utils import tz_apply
 
 from . import utils
 from . import forms
