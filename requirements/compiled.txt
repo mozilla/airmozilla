@@ -7,3 +7,4 @@ py-bcrypt==0.3
 simplejson
 Pillow==2.3.0
 lxml>=2.1
+ujson==1.33

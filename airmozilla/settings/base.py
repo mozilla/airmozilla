@@ -207,3 +207,13 @@ SCRAPE_CREDENTIALS = {
 
 # If true, every search is logged and recorded
 LOG_SEARCHES = True
+
+try:
+    # ujson is a much faster json serializer
+    # We tell the django-jsonview decorator to use it only if the ujson
+    # package is installed and can be imported
+    import ujson
+    JSON_MODULE = 'ujson'
+    JSON_USE_DJANGO_SERIALIZER = False
+except ImportError:
+    pass
