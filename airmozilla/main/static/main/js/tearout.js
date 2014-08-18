@@ -24,7 +24,7 @@ $(function() {
             features += ',width=' + iframe.attr('width');
             features += ',height=' + iframe.attr('height');
         } else if (player_wrapper.length) {
-            // probably a live even using jwplayer
+            // probably a live event using jwplayer
             features += ',height=' + player_wrapper.css('height');
             features += ',width=' + player_wrapper.css('width');
         } else {
