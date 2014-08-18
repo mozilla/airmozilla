@@ -1,4 +1,4 @@
-var RELOAD_INTERVAL = 5;  // seconds
+var RELOAD_INTERVAL = 10;  // seconds
 
 var Comments = (function() {
 
