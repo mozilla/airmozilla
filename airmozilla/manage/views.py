@@ -149,35 +149,70 @@ def dashboard(request):
 @permission_required('auth.change_user')
 def users(request):
     """User editor:  view users and update a user's group."""
-    users = User.objects.all()
-    if request.GET.get('email'):
-        form = forms.UserFindForm(request.GET)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            users_ = User.objects.filter(email__icontains=email)
-            if users_.count() == 1:
-                user, = users_
-                return redirect('manage:user_edit', user.id)
-            users = users.filter(email__icontains=email)
-
-    else:
-        form = forms.UserFindForm()
-    users_paged = paginate(users, request.GET.get('page'), 10)
-
     _mozilla_email_filter = (
-        Q(email__endswith='@mozillafoundation.org') |
-        Q(email__endswith='@mozilla.com')
+        Q(email__endswith='@%s' % settings.ALLOWED_BID[0])
     )
+    for other in settings.ALLOWED_BID[1:]:
+        _mozilla_email_filter |= (
+            Q(email__endswith='@%s' % other)
+        )
     users_stats = {
         'total': User.objects.all().count(),
         'total_mozilla_email': (
             User.objects.filter(_mozilla_email_filter).count()
         ),
     }
-    return render(request, 'manage/users.html',
-                  {'paginate': users_paged,
-                   'form': form,
-                   'users_stats': users_stats})
+    form = forms.UserFindForm()
+    context = {
+        'form': form,
+        'users_stats': users_stats,
+    }
+    return render(request, 'manage/users.html', context)
+
+
+@staff_required
+@permission_required('auth.change_user')
+@json_view
+def users_data(request):
+    context = {}
+    users = cache.get('_get_all_users')
+    if users is None:
+        users = _get_all_users()
+        # this is invalidated in models.py
+        cache.set('_get_all_users', users, 60 * 60)
+
+    context['users'] = users
+    context['urls'] = {
+        'manage:user_edit': reverse('manage:user_edit', args=('0',))
+    }
+
+    return context
+
+
+def _get_all_users():
+    groups = {}
+    for group in Group.objects.all().values('id', 'name'):
+        groups[group['id']] = group['name']
+
+    groups_map = collections.defaultdict(list)
+    for x in User.groups.through.objects.all():
+        groups_map[x.user_id].append(groups[x.group_id])
+
+    users = []
+    qs = User.objects.all()
+    for user in qs:
+        domain = user.email.split('@')[1]
+        item = {
+            'id': user.id,
+            'email': user.email,
+            'is_staff': user.is_staff,
+            'is_superuser': user.is_superuser,
+            'is_contributor': domain not in settings.ALLOWED_BID,
+            'last_login': user.last_login.isoformat(),
+            'groups': groups_map[user.id],
+        }
+        users.append(item)
+    return users
 
 
 @staff_required

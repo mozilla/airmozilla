@@ -2,7 +2,7 @@
 {% set page = "users" %}
 
 {% block manage_title %}
-    Edit users
+    Users
 {% endblock %}
 
 {% block site_css %}
@@ -12,51 +12,115 @@
       float: right;
       font-size: 80%;
   }
+  .loading {
+      margin: 200px auto;
+      width: 50%;
+  }
+  input[name="group"],
+  input[name="email"] {
+      /*width: 250px;*/
+      width: 100%;
+  }
+  th a {
+      cursor: pointer;
+  }
   </style>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
+  {% compress js %}
+  <script src="{{ static('manage/js/usermanager.js') }}"></script>
+  {% endcompress %}
 {% endblock %}
 
 
 {% block manage_content %}
-    <table id="current_users" class="table table-striped table-bordered">
+<div ng-app="usermanagerApp" ng-controller="UserManagerController">
+
+    {% raw %}
+    <div ng-show="loading" class="loading pulsating">
+        <h3>Loading all users...</h3>
+    </div>
+    <table class="table table-striped table-bordered" ng-show="!loading">
     <thead>
     <tr>
-        <th>Email</th>
-        <th>Group(s)</th>
-        <th>Permission grants</th>
-        <th>Last login</th>
-        <th>Staff?</th>
-        <th></th>
+        <th>
+          <a ng-click="setSorting('email')">Email</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='email' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='email' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th style="width: 160px">Status</th>
+        <th style="width: 200px">Group(s)</th>
+        <th style="width: 160px">
+          <a ng-click="setSorting('last_login')">Last login</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='last_login' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='last_login' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th style="width: 100px">Staff?</th>
+        <th style="width: 100px" title="Users fetched">{{ users.length }}</th>
+    </tr>
+    <tr>
+        <th><input type="text" name="email" ng-model="search_email" placeholder="Search by email"></th>
+        <th>
+          <select name="status" ng-model="search_status">
+            <option value="">All</option>
+            <option value="contributor">Contributor</option>
+            <option value="superuser">Superuser</option>
+          </select>
+        </th>
+        <th><input type="text" name="group" ng-model="search_group" placeholder="Search by group" title="Type * to find those in ANY group"></th>
+        <th>&nbsp;</th>
+        <th>
+          <select name="staff" ng-model="search_staff">
+            <option value="">Both</option>
+            <option value="staff">Yes</option>
+            <option value="not-staff">No</option>
+          </select>
+        </th>
+        <th>
+          <a href="#" class="btn btn-default btn-xs btn-primary"
+            ng-if="hasFilter()"
+            ng-click="clearFilter()">Clear filter</a>
+        </th>
     </tr>
     </thead>
     <tbody>
-    {% for u in paginate %}
-        <tr>
-            <td>{{ u.email }}
-                {% if is_contributor(u) %}
-                <span class="label ng-binding label-info" title="Vouched Mozillians">Contributor</span>
-                {% endif %}
-            </td>
-            <td>{% for g in u.groups.all() %}
-                    <p>{{ g }}</p>
-                {% endfor %}
+        <tr ng-repeat="u in filtered_items = (users | filter:filterBySearch) | orderBy:sorting:sorting_reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
+            <td>{{ u.email }}</td>
+            <td>
+                <span ng-show="u.is_contributor" class="label ng-binding label-info" title="Vouched Mozillians">Contributor</span>
+                <span ng-show="u.is_superuser" class="label ng-binding label-success" title="Superuser">Superuser</span>
             </td>
             <td>
-                {{ '<strong>Superuser.</strong>'|safe if u.is_superuser }}
-                {% for p in u.user_permissions.all() %}
-                    {{ p.name }}.
-                {% endfor %}
+                <span ng-repeat="g in u.groups" style="display:block">{{ g }}</span>
             </td>
-            <td>{{ u.last_login|js_date }}</td>
-            <td>{{ 'Yes' if u.is_staff else 'No' }}</td>
-            <td><a href="{{ url('manage:user_edit', u.id) }} " class="btn btn-default btn-sm">
+            <td>
+              <time title="{{ formatDate(u.last_login) }}" am-time-ago="u.last_login"></time>
+            </td>
+            <td>
+                <span ng-show="u.is_staff">Yes</span>
+                <span ng-show="!u.is_staff">No</span>
+            </td>
+            <td><a href="{{ url('manage:user_edit', u.id) }}" class="btn btn-default btn-sm">
                 <i class="glyphicon glyphicon-edit"></i>
                 Edit
                 </a>
             </td>
         </tr>
-    {% endfor %}
     </tbody>
     </table>
+    {% endraw %}
 
     <div id="users-stats">
       <p>
@@ -65,13 +129,8 @@
       </p>
     </div>
 
-    {% include 'manage/_paginate.html' %}
-    <form class="well form-search">
-        Find user:
-        {{ bootstrapform(form) }}
-        <button type="submit" class="btn btn-primary">
-            <i class="glyphicon glyphicon-search"></i>
-            Search
-        </button>
-    </form>
+    {% include "manage/_angular_pagesize.html" %}
+    {% include "manage/_angular_paginate.html" %}
+
+</div>
 {% endblock %}

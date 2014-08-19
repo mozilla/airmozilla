@@ -1,7 +1,6 @@
 import re
 import cgi
 import urllib
-import textwrap
 import jinja2
 from jingo import register
 
@@ -14,12 +13,6 @@ from bootstrapform.templatetags.bootstrap import bootstrap_horizontal
 
 from airmozilla.main.models import Event, EventOldSlug
 from airmozilla.comments.models import Comment
-from airmozilla.main.views import is_contributor as _is_contributor
-
-
-@register.function
-def is_contributor(user):
-    return _is_contributor(user)
 
 
 @register.function
@@ -38,13 +31,6 @@ def bootstrapform_horizontal(form):
 def invalid_form(form):
     """return true if the form is bound and invalid"""
     return form.is_bound and not form.is_valid()
-
-
-@register.function
-def line_indent(text, indent=' ' * 4):
-    return '\n'.join(textwrap.wrap(text,
-                                   initial_indent=indent,
-                                   subsequent_indent=indent))
 
 
 @register.function

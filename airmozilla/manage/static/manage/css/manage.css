@@ -169,3 +169,33 @@ p.logged-in {
 .label-purple {
     background-color: #6F5499;
 }
+
+@-webkit-keyframes color_change_bw {
+  from { color: #000; }
+  to { color: #ccc; }
+}
+@-moz-keyframes color_change_bw {
+  from { color: #000; }
+  to { color: #ccc; }
+}
+@-ms-keyframes color_change_bw {
+  from { color: #000; }
+  to { color: #ccc; }
+}
+@-o-keyframes color_change_bw {
+  from { color: #000; }
+  to { color: #ccc; }
+}
+@keyframes color_change_bw {
+  from { color: #000; }
+  to { color: #ccc; }
+}
+
+.pulsating {
+    color: #000;
+    -webkit-animation: color_change_bw 1s infinite alternate;
+    -moz-animation: color_change_bw 1s infinite alternate;
+    -ms-animation: color_change_bw 1s infinite alternate;
+    -o-animation: color_change_bw 1s infinite alternate;
+    animation: color_change_bw 1s infinite alternate;
+}
