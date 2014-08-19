@@ -119,7 +119,7 @@ class TestTruncation(DjangoTestCase):
         eq_(result, 'Hacking with <script>alert(xss)</script>')
 
         result = short_desc(event, strip_html=True)
-        eq_(result, 'Hacking with')
+        eq_(result, 'Hacking with alert(xss)')
 
     def test_truncated_short_description(self):
         event = FauxEvent(

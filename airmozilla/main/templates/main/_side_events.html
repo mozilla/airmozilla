@@ -38,7 +38,7 @@
         {% endif %}
         #}
         <p class="event-date">{{ event.start_time|js_date }}</p>
-        <p class="entry-summary">{{ short_desc(event, strip_html=True) | safe_html }}</p>
+        <p class="entry-summary">{{ short_desc(event) | safe_html }}</p>
       </li>
     {% endfor %}
   </ul>

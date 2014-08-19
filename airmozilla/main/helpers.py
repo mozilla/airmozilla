@@ -15,7 +15,7 @@ from django.contrib.sites.models import RequestSite
 from jingo import register
 from sorl.thumbnail import get_thumbnail
 
-from airmozilla.base.utils import html_to_text
+from airmozilla.base.utils import unhtml
 
 
 @register.filter
@@ -46,10 +46,11 @@ def date_now():
 def short_desc(event, words=25, strip_html=False):
     """Takes an event object and returns a shortened description."""
     if event.short_description:
-        return event.short_description
-    description = event.description
+        description = event.short_description
+    else:
+        description = event.description
     if strip_html:
-        description = html_to_text(description)
+        description = unhtml(description)
     return Truncator(description).words(words)
 
 

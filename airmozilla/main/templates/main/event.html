@@ -19,7 +19,7 @@
 <meta name="keywords" content="{{ ','.join(tags) }}">
 <meta property="og:title" content="{{ event.title }}">
 <meta property="og:url" content="{{ make_absolute(url('main:event', event.slug)) }}">
-<meta property="og:description" content="{{ short_desc(event) }}">
+<meta property="og:description" content="{{ short_desc(event, strip_html=True) }}">
 {% if event.placeholder_img %}
 {% set thumb = thumbnail(event.placeholder_img, '200x200', crop='center') %}
 {% if thumb.url %}

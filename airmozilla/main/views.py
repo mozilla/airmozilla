@@ -38,8 +38,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.base.utils import (
     paginate,
-    edgecast_tokenize,
-    unhtml
+    edgecast_tokenize
 )
 from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion
@@ -872,7 +871,7 @@ def events_calendar_ical(request, privacy=None):
         vevent.add('dtstart').value = event.start_time
         vevent.add('dtend').value = (event.start_time +
                                      datetime.timedelta(hours=1))
-        vevent.add('description').value = unhtml(short_desc(event))
+        vevent.add('description').value = short_desc(event, strip_html=True)
         if event.location:
             vevent.add('location').value = event.location.name
         vevent.add('url').value = base_url + event.slug + '/'

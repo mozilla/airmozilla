@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<feed>
+	<!-- resultLength indicates the total number of results for this feed -->
+	<!-- currently not used -->
+	<resultLength>0</resultLength>
+	<!-- endIndix  indicates the number of results for this *paged* section of the feed -->
+	<!-- currently not used -->
+	<endIndex>0</endIndex>
+
+	{% for event in events %}
+	{% set media_info = get_media_info(event) %}
+	{% if media_info %}
+	{% set thumb = thumbnail(event.placeholder_img, '300x300') %}
+	<item sdImg="{{ make_absolute(thumb.url) }}" hdImg="{{ make_absolute(thumb.url) }}">
+		<title>{{ event.title }}</title>
+		<contentId>{{ event.id }}</contentId>
+		<contentType>Talk</contentType>
+		<!-- <contentQuality>HD</contentQuality> -->
+		<streamFormat>{{ media_info.format }}</streamFormat>
+		<!-- <streamFormat>hls</streamFormat> -->
+		<media>
+			<!-- <streamQuality>HD</streamQuality> -->
+			<!-- <streamBitrate>1500</streamBitrate> -->
+			<streamUrl>{{ make_absolute(media_info.url) }}</streamUrl>
+			<!-- <streamUrl>http://d3fenhwk93s16g.cloudfront.net/7c3j0i/mp4.mp4?t=140848821253f3d314d80b6</streamUrl> -->
+			<!-- <streamUrl>http://video.ted.com/talks/podcast/JimFallon_2009_480.mp4</streamUrl> -->
+			<!-- <streamUrl>http://hls.cdn.mozilla.net/MTV2/HLS/HD.m3u8</streamUrl> -->
+		</media>
+		<synopsis>{{ event.description | safe_html }}</synopsis>
+		<description>{{ short_desc(event, strip_html=True) }}</description>
+		<!-- <genres>Clip</genres> -->
+		<runtime>3600</runtime>
+	</item>
+	{% endif %}
+	{% endfor %}
+</feed>

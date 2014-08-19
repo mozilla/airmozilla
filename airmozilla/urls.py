@@ -19,6 +19,7 @@ urlpatterns = patterns(
     (r'^comments/', include('airmozilla.comments.urls', namespace='comments')),
     (r'^surveys/', include('airmozilla.surveys.urls', namespace='surveys')),
     (r'^uploads/', include('airmozilla.uploads.urls', namespace='uploads')),
+    (r'^roku/', include('airmozilla.roku.urls', namespace='roku')),
     ('^(?P<path>favicon\.ico)$', 'django.views.static.serve',
      {'document_root': settings.ROOT + '/airmozilla/base/static/img'}),
     (r'', include('django_browserid.urls')),
@@ -27,7 +28,7 @@ urlpatterns = patterns(
 )
 
 # In DEBUG mode, serve media files through Django.
-if settings.DEBUG:
+if settings.DEBUG:  # pragma: no cover
     # Remove leading and trailing slashes so the regex matches.
     media_url = settings.MEDIA_URL.lstrip('/').rstrip('/')
     urlpatterns += patterns(
