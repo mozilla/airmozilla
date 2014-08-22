@@ -1883,6 +1883,70 @@ class TestPages(DjangoTestCase):
         eq_(item['title'], test_event.title)
         eq_(item['url'], reverse('main:event', args=(test_event.slug,)))
 
+    def test_calendar_data_privacy(self):
+        url = reverse('main:calendar_data')
+        response = self.client.get(url)
+
+        first = datetime.datetime.now()
+        while first.day != 1:
+            first -= datetime.timedelta(days=1)
+        first = first.date()
+        last = first
+        while last.month == first.month:
+            last += datetime.timedelta(days=1)
+
+        first_ts = int(time.mktime(first.timetuple()))
+        last_ts = int(time.mktime(last.timetuple()))
+
+        params = {
+            'start': first_ts,
+            'end': last_ts
+        }
+        response = self.client.get(url, params)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        event = Event.objects.get(title='Test event')
+        assert first <= event.start_time.date() <= last
+        item, = structure
+        eq_(item['title'], event.title)
+
+        # make it only available to contributors (and staff of course)
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+        response = self.client.get(url, params)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        ok_(not structure)
+
+        contributor = User.objects.create_user(
+            'nigel', 'nigel@live.com', 'secret'
+        )
+        UserProfile.objects.create(
+            user=contributor,
+            contributor=True
+        )
+        assert self.client.login(username='nigel', password='secret')
+        response = self.client.get(url, params)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        ok_(structure)
+
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        response = self.client.get(url, params)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        ok_(not structure)
+
+        User.objects.create_user(
+            'worker', 'worker@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='worker', password='secret')
+        response = self.client.get(url, params)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        ok_(structure)
+
     def test_calendar_data_bogus_dates(self):
         url = reverse('main:calendar_data')
 

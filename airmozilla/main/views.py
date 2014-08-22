@@ -1045,6 +1045,19 @@ def calendar_data(request):
 
     events = Event.objects.approved()
 
+    privacy_filter = {}
+    privacy_exclude = {}
+    if request.user.is_active:
+        if is_contributor(request.user):
+            privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
+    else:
+        privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+
+    if privacy_filter:
+        events = events.filter(**privacy_filter)
+    elif privacy_exclude:
+        events = events.exclude(**privacy_exclude)
+
     events = events.filter(
         start_time__gte=start,
         start_time__lt=end
