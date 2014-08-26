@@ -11,6 +11,11 @@ features about the Mozilla community.
 
 Wiki page: https://wiki.mozilla.org/Air_Mozilla
 
+Most of this information is also available on
+
+[https://air.mozilla.org/contribute.json](https://air.mozilla.org/contribute.json)
+
+
 How to get it running locally from scratch
 ------------------------------------------
 

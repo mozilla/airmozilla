@@ -1,6 +1,6 @@
 {
     "name": "Air Mozilla",
-    "description": "AirMozilla is a the video broadcasting site for the Mozilla project",
+    "description": "Air Mozilla is the Internet multimedia presence of Mozilla, with live and pre-recorded shows, interviews, news snippets, tutorial videos, and features about the Mozilla community.",
     "repository": {
         "url": "https://github.com/mozilla/airmozilla",
         "license": "MPL2",
