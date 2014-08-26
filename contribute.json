@@ -26,6 +26,7 @@
         "jquery",
 	"postgresql",
 	"video",
-	"angularjs"
+	"angularjs",
+	"python"
     ]
 }
