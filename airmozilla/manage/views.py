@@ -72,6 +72,7 @@ from airmozilla.manage import archiver
 from airmozilla.manage import sending
 from airmozilla.comments.models import Discussion, Comment, SuggestedDiscussion
 from airmozilla.surveys.models import Survey, Question
+from airmozilla.search.models import LoggedSearch
 
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -3073,3 +3074,18 @@ def survey_question_delete(request, id, question_id):
     survey = get_object_or_404(Survey, id=id)
     get_object_or_404(Question, survey=survey, id=question_id).delete()
     return redirect('manage:survey_edit', survey.id)
+
+
+@superuser_required
+def loggedsearches(request):
+    searches = (
+        LoggedSearch.objects
+        .select_related('event_clicked')
+        .order_by('-date')
+    )
+    paged = paginate(searches, request.GET.get('page'), 20)
+    context = {
+        'paginate': paged,
+        'hash_user_id': lambda x: str(hash(str(x)))[-4:]
+    }
+    return render(request, 'manage/loggedsearches.html', context)

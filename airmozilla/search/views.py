@@ -187,7 +187,8 @@ def home(request):
         context['prev_page_url'] = prev_page_url
         context['events_found'] = pager.count
 
-        if settings.LOG_SEARCHES and not _database_error_happened:
+        log_searches = settings.LOG_SEARCHES and '_nolog' not in request.GET
+        if log_searches and not _database_error_happened:
             logged_search = LoggedSearch.objects.create(
                 term=context['q'][:200],
                 results=events.count(),

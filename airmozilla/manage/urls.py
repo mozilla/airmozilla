@@ -182,5 +182,9 @@ urlpatterns = patterns(
     url(r'^recruitmentmessages/(?P<id>\d+)/delete/$',
         views.recruitmentmessage_delete,
         name='recruitmentmessage_delete'),
+    url(r'^loggedsearches/$',
+        views.loggedsearches,
+        name='loggedsearches'),
+
 
 )

@@ -24,6 +24,8 @@
      perms.main.change_eventassignment, ''),
     ('manage:all_comments', 'All comments', 'comments', 'glyphicon-comment',
      perms.comments.change_discussion, ''),
+    ('manage:loggedsearches', 'Logged searches', 'loggedsearches', 'glyphicon-search',
+     is_superuser, ''),
 
     ('', 'Users and groups', '', '', perms.auth.change_user, ''),
     ('manage:users', 'Users', 'users', 'glyphicon-user', perms.auth.change_user,
