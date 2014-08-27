@@ -2249,6 +2249,11 @@ class TestPages(DjangoTestCase):
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_(re.findall(
+            'This event is available only to staff and Mozilla volunteers '
+            'who are members of the\s+ugly tuna\s+or\s+vip\s+group.',
+            response.content
+        ))
 
     @mock.patch('logging.error')
     @mock.patch('requests.get')

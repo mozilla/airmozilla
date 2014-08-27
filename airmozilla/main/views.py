@@ -3,6 +3,7 @@ import hashlib
 import json
 import urllib
 import time
+import collections
 
 from django import http
 from django.conf import settings
@@ -182,7 +183,16 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
             events_qs.filter(channels=child).count()
         ))
 
-    return render(request, 'main/home.html', {
+    curated_groups_map = collections.defaultdict(list)
+    curated_groups = (
+        CuratedGroup.objects.all()
+        .values_list('event_id', 'name')
+        .order_by('name')
+    )
+    for event_id, name in curated_groups:
+        curated_groups_map[event_id].append(name)
+
+    context = {
         'events': archived_paged,
         'live': live,
         'also_live': also_live,
@@ -193,7 +203,10 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         'feed_privacy': feed_privacy,
         'next_page_url': next_page_url,
         'prev_page_url': prev_page_url,
-    })
+        'get_curated_groups': lambda e: curated_groups_map.get(e.id),
+    }
+
+    return render(request, 'main/home.html', context)
 
 
 def is_contributor(user):
@@ -372,6 +385,12 @@ class EventView(View):
         # needed for the open graph stuff
         event.url = reverse('main:event', args=(event.slug,))
 
+        # needed for the _event_privacy.html template
+        curated_groups = [
+            x[0] for x in
+            CuratedGroup.objects.filter(event=event).values_list('name')
+        ]
+
         context = self.get_default_context(event, request)
         context.update({
             'event': event,
@@ -384,6 +403,7 @@ class EventView(View):
             'Event': Event,
             'hits': hits,
             'tags': [t.name for t in event.tags.all()],
+            'curated_groups': curated_groups,
         })
 
         if event.pin:

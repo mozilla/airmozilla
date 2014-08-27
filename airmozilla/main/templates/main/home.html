@@ -32,6 +32,7 @@ p.feed { float: right; }
             <a href="{{ href }}" rel="bookmark">{{ live.title }}</a>
           </h3>
           {% set event = live %}
+          {% set curated_groups = get_curated_groups(event) %}
           {% include 'main/_event_privacy.html' %}
         </hgroup>
         <p class="event-date">{{ _('Start time:') }} {{ live.start_time|js_date }}</p>
@@ -104,6 +105,7 @@ p.feed { float: right; }
         <h2 class="entry-title">
           <a href="{{ href }}">{{ event.title }}</a>
         </h2>
+        {% set curated_groups = get_curated_groups(event) %}
         {% include 'main/_event_privacy.html' %}
       </header>
       <div class="entry-summary">
