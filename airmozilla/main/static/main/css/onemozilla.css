@@ -30,8 +30,9 @@ Hover         #872727
 
 /* @Fonts *********/
 /* Regular */
+/* Commented out because this are already in tabzilla.css
 @font-face {
-  font-family: "Open Sans Regular";
+  font-family: "Open Sans";
   src: url("/static/main/fonts/OpenSans-Regular-webfont.eot");
   src: url("/static/main/fonts/OpenSans-Regular-webfont.eot?#iefix") format("embedded-opentype"),
        url("/static/main/fonts/OpenSans-Regular-webfont.ttf") format("truetype"),
@@ -39,8 +40,10 @@ Hover         #872727
   font-weight: normal;
   font-style: normal;
 }
+*/
 
 /* Light */
+/* Commented out because this are already in tabzilla.css
 @font-face {
   font-family: "Open Sans Light";
   src: url("/static/main/fonts/OpenSans-Light-webfont.eot");
@@ -50,6 +53,7 @@ Hover         #872727
   font-weight: normal;
   font-style: normal;
 }
+*/
 
 /* @Reset defaults *********/
 header, hgroup, nav, section, article, aside, footer { display: block; }
@@ -154,7 +158,7 @@ px      68    160    252    344    436    528    620    712    804    896    */
 .author-bio .more:after { content: "\00A0\00BB"; font-size: 1.2em; } /* nbsp raquo */
 
 /* @Primary @navigation *********/
-#nav-primary { background-color: #fff; text-align: center; margin: 0 0 48px; padding: 0 20px; font-family: 'Open Sans Light', "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
+#nav-primary { background-color: #fff; text-align: center; margin: 0 0 48px; padding: 0 20px; font-family: "Open Sans Light", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
   -ms-box-shadow: 0 1px 1px rgba(0,0,0,0.1);
   -o-box-shadow: 0 1px 1px rgba(0,0,0,0.1);
   box-shadow: 0 1px 1px rgba(0,0,0,0.1);
@@ -195,7 +199,7 @@ px      68    160    252    344    436    528    620    712    804    896    */
 .single-post .show-comments.no-author .entry-title { float: none; width: auto; }
 
 /*** Entry @Meta */
-.entry-meta { clear: both; border-bottom: 1px solid rgba(255,255,255,.5); margin: 24px 0 0; padding: 12px 24px 8px; background: rgba(0,0,0,.02); box-shadow: inset 0 0 3px rgba(0,0,0,.1); font: .785em/1.1 "Open Sans Regular", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif; }
+.entry-meta { clear: both; border-bottom: 1px solid rgba(255,255,255,.5); margin: 24px 0 0; padding: 12px 24px 8px; background: rgba(0,0,0,.02); box-shadow: inset 0 0 3px rgba(0,0,0,.1); font: .785em/1.1 "Open Sans", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif; }
 .entry-meta p { margin: 0 0 .5em; }
 .entry-meta b { margin-right: 10px; font-weight: normal; text-transform: uppercase; }
 
@@ -402,7 +406,7 @@ input:-moz-placeholder { text-transform: uppercase; }
 .main .fm-search { margin: 0 0 2em; }
 .fm-search p { position: relative; margin: 0; }
 .fm-search #s { padding: 6px 5px; width: 94%; border: 1px solid #ccc; border-radius: 6px;
-  font-family: "Open Sans Regular", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
+  font-family: "Open Sans", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif;
   background: #fafafa;
   background: rgba(255,255,255,.8);
   -webkit-appearance: textfield;
@@ -507,7 +511,7 @@ input:-moz-placeholder { text-transform: uppercase; }
 #foot-logo .logo:hover, #foot-logo .logo:focus, #foot-logo .logo:active { opacity: 1; }
 
 #nav-meta ul { list-style: none; }
-#nav-meta a { font-family: "Open Sans Regular", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif; }
+#nav-meta a { font-family: "Open Sans", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif; }
 
 
 /*  @Tablet @Layout: 768px.
