@@ -26,9 +26,9 @@ app.filter('startFrom', function() {
 });
 
 
-TagManagerController.$inject = ['$scope', '$http'];
+TagManagerController.$inject = ['$scope', '$http', '$timeout'];
 
-function TagManagerController($scope, $http) {
+function TagManagerController($scope, $http, $timeout) {
     'use strict';
 
     $scope.sort_by = 'name';
@@ -69,7 +69,22 @@ function TagManagerController($scope, $http) {
         if (window.localStorage) {
             window.localStorage.setItem('pageSize', value);
         }
+        $scope.currentPage = 0;
     });
+
+    $scope.$watch('currentPage', function(value) {
+        if (value) {
+            window.location.hash = '#' + (++value);
+        }
+    });
+
+    $timeout(function() {
+        var hash_page_regex = new RegExp(/#(\d+)/);
+        if (hash_page_regex.test(window.location.hash)) {
+            var page = +window.location.hash.match(hash_page_regex)[1];
+            $scope.currentPage = --page;
+        }
+    }, 100);
 
     $scope.numberOfPages = function(items){
         if (typeof items === 'undefined') return 0;
