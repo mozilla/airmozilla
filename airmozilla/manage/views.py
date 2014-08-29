@@ -1991,14 +1991,21 @@ def tag_edit(request, id):
     if request.method == 'POST':
         form = forms.TagEditForm(request.POST, instance=tag)
         if form.is_valid():
-            form.save()
-
-            edit_url = reverse('manage:tag_edit', args=(tag.pk,))
-            messages.info(
-                request,
-                'Tag "%s" saved. [Edit again](%s)' % (tag, edit_url)
-            )
-            return redirect('manage:tags')
+            tag = form.save()
+            if Tag.objects.filter(name__iexact=tag.name).exclude(pk=tag.pk):
+                messages.warning(
+                    request,
+                    "The tag you edited already exists with that same case "
+                    "insensitive spelling."
+                )
+                return redirect('manage:tag_edit', tag.pk)
+            else:
+                edit_url = reverse('manage:tag_edit', args=(tag.pk,))
+                messages.info(
+                    request,
+                    'Tag "%s" saved. [Edit again](%s)' % (tag, edit_url)
+                )
+                return redirect('manage:tags')
     else:
         form = forms.TagEditForm(instance=tag)
     repeated = Tag.objects.filter(name__iexact=tag.name).count()
@@ -2040,14 +2047,23 @@ def tag_merge(request, id):
             tag_to_keep = t
             break
 
+    merge_count = 0
     for t in Tag.objects.filter(name__iexact=tag.name):
         if t.name != name_to_keep:
             for event in Event.objects.filter(tags=t):
                 event.tags.remove(t)
                 event.tags.add(tag_to_keep)
             t.delete()
+            merge_count += 1
 
-    return redirect('manage:tag_edit', tag_to_keep.id)
+    messages.info(
+        request,
+        'Merged ' +
+        ('1 tag' if merge_count == 1 else '%d tag' % merge_count) +
+        ' into "%s".' % tag_to_keep.name
+    )
+
+    return redirect('manage:tags')
 
 
 @superuser_required

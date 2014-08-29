@@ -39,30 +39,21 @@ class TestTags(ManageTestCase):
         url = reverse('manage:tag_edit', kwargs={'id': 1})
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        response_ok = self.client.post(url, {
+        response = self.client.post(url, {
             'name': 'different',
         })
-        self.assertRedirects(response_ok, reverse('manage:tags'))
+        self.assertRedirects(response, reverse('manage:tags'))
         tag = Tag.objects.get(id=1)
         eq_(tag.name, 'different')
 
         Tag.objects.create(name='alreadyinuse')
-        response_fail = self.client.post(url, {
+        response = self.client.post(url, {
             'name': 'ALREADYINUSE',
         })
-        eq_(response_fail.status_code, 200)
-
-        # repeat
-        response_ok = self.client.post(url, {
-            'name': 'different',
-        })
-        self.assertRedirects(response_ok, reverse('manage:tags'))
-
-        # change it back
-        response_ok = self.client.post(url, {
-            'name': 'testing',
-        })
-        self.assertRedirects(response_ok, reverse('manage:tags'))
+        eq_(response.status_code, 302)
+        # because this is causeing a duplicate it redirects back
+        self.assertRedirects(response, url)
+        eq_(Tag.objects.filter(name__iexact='Alreadyinuse').count(), 2)
 
     def test_tag_merge(self):
         t1 = Tag.objects.create(name='Tagg')
@@ -96,7 +87,7 @@ class TestTags(ManageTestCase):
         eq_(response.status_code, 302)
         self.assertRedirects(
             response,
-            reverse('manage:tag_edit', args=(t2.id,))
+            reverse('manage:tags')
         )
 
         eq_(Tag.objects.filter(name__iexact='TAGG').count(), 1)

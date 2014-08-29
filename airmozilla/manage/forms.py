@@ -537,12 +537,6 @@ class TagEditForm(BaseModelForm):
     class Meta:
         model = Tag
 
-    def clean_name(self):
-        name = self.cleaned_data['name']
-        if Tag.objects.filter(name__iexact=name).exclude(pk=self.instance.pk):
-            raise forms.ValidationError("Tag already in use")
-        return name
-
 
 class TagMergeForm(BaseForm):
 
