@@ -4,6 +4,7 @@ import shutil
 from django.test import TestCase
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.files import File
 
 
 class DjangoTestCase(TestCase):
@@ -24,3 +25,9 @@ class DjangoTestCase(TestCase):
         )
         assert self.client.login(username=username, password=pwd)
         return user
+
+    def _attach_file(self, event, image):
+        with open(image, 'rb') as f:
+            img = File(f)
+            event.placeholder_img.save(os.path.basename(image), img)
+            assert os.path.isfile(event.placeholder_img.path)

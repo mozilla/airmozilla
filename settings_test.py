@@ -46,3 +46,6 @@ SCRAPE_CREDENTIALS = {}
 LOG_SEARCHES = True
 
 TWITTER_USERNAME = 'airmozilla'
+
+MEDIA_URL = '/media/'
+STATIC_URL = '/static/'

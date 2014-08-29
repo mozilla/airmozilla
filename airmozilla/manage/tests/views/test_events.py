@@ -580,12 +580,10 @@ class TestEvents(ManageTestCase):
             datetime.datetime.utcnow()
             .replace(tzinfo=utc, microsecond=0)
         )
-        # because this `now` can potentially be different in the tests
-        # compared (if the tests run slow) to the views,
-        # it's safer to not look at the seconds
-        eq_(
-            event_modified.archive_time.strftime('%d %H:%M'),
-            now.strftime('%d %H:%M')
+        ok_(
+            abs(event_modified.archive_time - now)
+            <=
+            datetime.timedelta(1)
         )
 
     def test_event_archive_with_default_archive_template(self):

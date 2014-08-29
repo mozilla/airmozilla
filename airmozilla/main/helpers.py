@@ -107,10 +107,16 @@ def thousands(number):
 
 
 @register.function
-def make_absolute(uri, request):
+@jinja2.contextfunction
+def make_absolute(context, uri):
     if '://' not in uri:
+        request = context['request']
         prefix = request.is_secure() and 'https' or 'http'
-        uri = '%s://%s%s' % (prefix, RequestSite(request).domain, uri)
+        if uri.startswith('//'):
+            # we only need the prefix
+            uri = '%s:%s' % (prefix, uri)
+        else:
+            uri = '%s://%s%s' % (prefix, RequestSite(request).domain, uri)
     return uri
 
 

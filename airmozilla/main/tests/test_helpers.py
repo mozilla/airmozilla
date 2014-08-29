@@ -6,9 +6,13 @@ import mock
 from nose.tools import eq_, ok_
 import jinja2
 
-from django.test import TestCase
 from django.conf import settings
 from django.db.utils import IntegrityError
+from django.test.client import RequestFactory
+
+from funfactory.urlresolvers import reverse
+
+from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.main.helpers import (
     thumbnail,
     get_thumbnail,
@@ -16,18 +20,22 @@ from airmozilla.main.helpers import (
     short_desc,
     truncate_words,
     truncate_chars,
-    safe_html
+    safe_html,
+    make_absolute
 )
 
 
-class TestThumbnailHelper(TestCase):
+class TestThumbnailHelper(DjangoTestCase):
 
     def setUp(self):
+
         sample_file = os.path.join(
             os.path.dirname(__file__),
             'animage.png'
         )
         assert os.path.isfile(sample_file)
+        if not os.path.isdir(settings.MEDIA_ROOT):
+            os.mkdir(settings.MEDIA_ROOT)
 
         self.destination = os.path.join(
             settings.MEDIA_ROOT,
@@ -66,7 +74,7 @@ class TestThumbnailHelper(TestCase):
         nailed.delete()
 
 
-class TestPluralizer(TestCase):
+class TestPluralizer(DjangoTestCase):
 
     def test_pluralize(self):
         eq_(pluralize(1), '')
@@ -84,7 +92,7 @@ class FauxEvent(object):
         self.short_description = short_description
 
 
-class TestTruncation(TestCase):
+class TestTruncation(DjangoTestCase):
 
     def test_short_desc(self):
         event = FauxEvent(
@@ -141,7 +149,7 @@ class TestTruncation(TestCase):
         )
 
 
-class SafeHTML(TestCase):
+class SafeHTML(DjangoTestCase):
 
     def test_basics(self):
         text = ''
@@ -168,3 +176,23 @@ class SafeHTML(TestCase):
             .replace('<script>', '&lt;script&gt;')
             .replace('</script>', '&lt;/script&gt;')
         )
+
+
+class TestMakeAbsolute(DjangoTestCase):
+
+    def test_make_absolute(self):
+        context = {}
+        context['request'] = RequestFactory().get('/')
+
+        result = make_absolute(context, reverse('main:home'))
+        eq_(result, 'http://testserver/')
+
+        result = make_absolute(context, result)
+        eq_(result, 'http://testserver/')
+
+        result = make_absolute(context, '//some.cdn.com/foo.js')
+        eq_(result, 'http://some.cdn.com/foo.js')
+
+        context['request']._is_secure = lambda: True
+        result = make_absolute(context, '//some.cdn.com/foo.js')
+        eq_(result, 'https://some.cdn.com/foo.js')

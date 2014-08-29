@@ -46,6 +46,7 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 class TestPages(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    main_image = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):
         super(TestPages, self).setUp()
@@ -1958,7 +1959,9 @@ class TestPages(DjangoTestCase):
 
     def test_open_graph_details(self):
         event = Event.objects.get(title='Test event')
-        assert event.placeholder_img
+        self._attach_file(event, self.main_image)
+        assert os.path.isfile(event.placeholder_img.path)
+
         url = reverse('main:event', args=(event.slug,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -2252,7 +2255,8 @@ class TestPages(DjangoTestCase):
         ok_(re.findall(
             'This event is available only to staff and Mozilla volunteers '
             'who are members of the\s+ugly tuna\s+or\s+vip\s+group.',
-            response.content
+            response.content,
+            re.M
         ))
 
     @mock.patch('logging.error')
@@ -2371,12 +2375,6 @@ class TestEventEdit(DjangoTestCase):
     def _event_to_dict(self, event):
         from airmozilla.main.views import EventEditView
         return EventEditView.event_to_dict(event)
-
-    def _attach_file(self, event, image):
-        with open(image, 'rb') as f:
-            img = File(f)
-            event.placeholder_img.save(os.path.basename(image), img)
-            assert os.path.isfile(event.placeholder_img.path)
 
     def test_link_to_edit(self):
         event = Event.objects.get(title='Test event')

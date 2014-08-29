@@ -192,6 +192,9 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
     for event_id, name in curated_groups:
         curated_groups_map[event_id].append(name)
 
+    def get_curated_groups(event):
+        return curated_groups_map.get(event.id)
+
     context = {
         'events': archived_paged,
         'live': live,
@@ -203,7 +206,7 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         'feed_privacy': feed_privacy,
         'next_page_url': next_page_url,
         'prev_page_url': prev_page_url,
-        'get_curated_groups': lambda e: curated_groups_map.get(e.id),
+        'get_curated_groups': get_curated_groups,
     }
 
     return render(request, 'main/home.html', context)
@@ -388,7 +391,10 @@ class EventView(View):
         # needed for the _event_privacy.html template
         curated_groups = [
             x[0] for x in
-            CuratedGroup.objects.filter(event=event).values_list('name')
+            CuratedGroup.objects
+            .filter(event=event)
+            .values_list('name')
+            .order_by('name')
         ]
 
         context = self.get_default_context(event, request)
