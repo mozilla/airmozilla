@@ -13,7 +13,7 @@
 	"irc-contacts": ["Richard", "peterbe"]
     },
     "bugs": {
-        "list": "https://bugzilla.mozilla.org/buglist.cgi?product=Webtools&component=Air%20Mozilla&resolution=---&list_id=10939442",
+        "list": "https://bugzilla.mozilla.org/buglist.cgi?product=Webtools&component=Air%20Mozilla&resolution=---",
 	"report": "https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes%7CAir+Mozilla%7COther"
     },
     "urls": {
