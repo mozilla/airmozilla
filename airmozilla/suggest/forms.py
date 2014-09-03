@@ -25,7 +25,7 @@ from . import utils
 class StartForm(BaseModelForm):
 
     event_type = forms.ChoiceField(
-        label='',
+        label='What kind of event is this?',
         choices=[
             ('upcoming', 'Upcoming'),
             ('pre-recorded', 'Pre-recorded'),
@@ -299,7 +299,7 @@ class PlaceholderForm(BaseModelForm):
             "Placeholder images should be 200 x 200 px or larger."
         )
 
-#class ParticipantsForm(BaseModelForm):
+# class ParticipantsForm(BaseModelForm):
 #
 #    participants = forms.CharField(required=False)
 #

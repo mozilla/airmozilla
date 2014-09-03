@@ -27,6 +27,9 @@ form .control-group {
     margin-top: 10px;
 }
 
+form .form-group {
+    margin-bottom: 15px;
+}
 textarea#id_short_description {
     height: 100px;
 }
