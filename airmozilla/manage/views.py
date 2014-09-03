@@ -362,6 +362,8 @@ def event_request(request, duplicate_id=None):
 
     initial = {}
     event_initial = None
+    curated_groups = []
+
     if duplicate_id:
         # Use a blank event, but fill in the initial data from duplication_id
         event_initial = Event.objects.get(id=duplicate_id)
@@ -370,6 +372,8 @@ def event_request(request, duplicate_id=None):
             discussion = Discussion.objects.get(event=event_initial)
         except Discussion.DoesNotExist:
             discussion = None
+
+        curated_groups = CuratedGroup.objects.filter(event=event_initial)
 
         if discussion:
             # We need to extend the current form class with one more
@@ -440,6 +444,10 @@ def event_request(request, duplicate_id=None):
     else:
         if duplicate_id and discussion:
             initial['enable_discussion'] = True
+        if duplicate_id and curated_groups:
+            initial['curated_groups'] = ', '.join(
+                x.name for x in curated_groups
+            )
         form = form_class(initial=initial)
 
     context = {

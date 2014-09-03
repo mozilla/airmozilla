@@ -723,6 +723,30 @@ class TestEvents(ManageTestCase):
             list(discussion.moderators.all())
         )
 
+    def test_event_duplication_with_curated_groups(self):
+        event = Event.objects.get(title='Test event')
+        CuratedGroup.objects.create(
+            event=event,
+            name='badasses'
+        )
+        url = reverse('manage:event_duplicate', args=(event.id,))
+        data = {
+            'title': 'Different',
+            'description': event.description,
+            'short_description': event.short_description,
+            'location': event.location.pk,
+            'privacy': event.privacy,
+            'status': event.status,
+            'start_time': event.start_time.strftime('%Y-%m-%d %H:%M'),
+            'channels': [x.pk for x in event.channels.all()],
+            'enable_discussion': True,
+            'curated_groups': 'badasses'
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        # this is expected to exist
+        ok_(CuratedGroup.objects.get(event__title='Different'))
+
     def test_event_duplication_custom_channels(self):
         ch = Channel.objects.create(
             name='Custom Culture',
