@@ -219,8 +219,18 @@ class MainHandler(web.RequestHandler):
 
     def _add_media(self, source_file):
         shortcode = None
+        result = None
+
+        if source_file not in self.DATABASE:
+            for key in self.DATABASE:
+                if source_file.startswith(key):
+                    result = self.DATABASE[key]
+                    break
+
         if source_file in self.DATABASE:
             result = self.DATABASE[source_file]
+
+        if result:
             if result.get('shortcode'):
                 if result.get('shortcode') == '*random_shortcode*':
                     shortcode = random_shortcode()
@@ -251,4 +261,7 @@ if __name__ == "__main__":
 
     print "Starting tornado on port", options.port
     application.listen(options.port)
-    ioloop.IOLoop.instance().start()
+    try:
+        ioloop.IOLoop.instance().start()
+    except KeyboardInterrupt:
+        pass

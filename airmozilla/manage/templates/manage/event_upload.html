@@ -8,7 +8,10 @@
 {% block site_css %}
   {{ super() }}
   {% compress css %}
-    <link href="{{ static('uploads/css/upload.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('uploads/css/upload.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+  {% compress css %}
+  <link href="{{ static('manage/css/event-upload.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 {% endblock %}
 
@@ -18,6 +21,9 @@
   {% compress js %}
   <script src="{{ static('uploads/js/s3upload.js') }}"></script>
   <script src="{{ static('uploads/js/upload.js') }}"></script>
+  {% endcompress %}
+  {% compress js %}
+  <script src="{{ static('manage/js/event-upload.js') }}"></script>
   {% endcompress %}
 {% endblock %}
 
@@ -29,14 +35,22 @@
         action="{{ url('uploads:save') }}"
         data-sign_upload_url="{{ url('uploads:sign') }}"
         data-verify_size_url="{{ url('uploads:verify_size') }}"
-        data-save_url="{{ url('uploads:save') }}">
+        data-save_url="{{ url('uploads:save') }}"
+        data-vidly-shortcut-url="{{ url('manage:vidly_url_to_shortcode', event.pk) }}"
+        data-vidly-submit-details='{{ json_print(vidly_submit_details) }}'
+        data-event-archive-url="{{ url('manage:event_archive', event.pk) }}"
+        data-event-archive-details='{{ json_print(event_archive_details) }}'>
     {{ csrf() }}
 
     <div class="pre-progress">
       <p>Select the large file you want to upload. Click the "Browse..." button to start.</p>
       <div>
-        <input type="file" id="file">
-        <button class="start">Start upload</button>
+        <input type="file" id="file"><br>
+        <input checked="checked" id="id_automate_vidly_submission" name="automate_vidly_submission" type="checkbox" />
+        <span>Automate Vid.ly submission after success</span>
+      </div>
+      <div>
+        <button class="start btn btn-primary">Start upload</button>
       </div>
     </div>
 
@@ -58,6 +72,24 @@
 
     <div class="post-progress">
       <p><b class="file-size"></b> Uploaded.</p>
+    </div>
+
+    <div class="automation-progress" style="float:none; clear:right">
+      <p class="pre-automation">
+        <b>Automating Vid.ly submission</b><br>
+        Submitting the uploaded file to Vid.ly and changing the event's template.
+      </p>
+      <div class="progress-bar" id="automation-progressbar" style="float:none">
+          <div class="progress-bar-wrapper">
+              <progress value="0" max="100"></progress>
+              <span class="progress-value">0%</span>
+          </div>
+      </div>
+      <p class="post-automation">
+        <b>Automation has fully completed.</b><br>
+        The event should now have a Vid.ly submission.<br>
+        <a href="{{ url('manage:event_vidly_submissions', event.pk) }}">View event's Vid.ly submission</a>
+      </p>
     </div>
 
     <div class="post-save">

@@ -1,0 +1,8 @@
+.automation-progress,
+.automation-progress .post-automation {
+    display: none;
+}
+.automation-progress {
+    clear: right;
+    margin-bottom: 30px;
+}

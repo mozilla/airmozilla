@@ -136,7 +136,7 @@ def save(request):
         request,
         'Upload saved.'
     )
-    context = {'id': new_upload.pk}
+    context = {'id': new_upload.pk, 'url': new_upload.url}
     if request.session.get('active_event'):
         event_id = request.session['active_event']
         event = Event.objects.get(pk=event_id)

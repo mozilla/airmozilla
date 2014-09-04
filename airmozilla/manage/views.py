@@ -749,6 +749,18 @@ def event_upload(request, id):
     event = get_object_or_404(Event, id=id)
     context = {}
     context['event'] = event
+    # this is used by the vidly automation
+    context['vidly_submit_details'] = {
+        'hd': True,
+        'email': request.user.email,
+        'token_protection': event.privacy != Event.PRIVACY_PUBLIC
+    }
+    context['event_archive_details'] = {}
+    if Template.objects.filter(default_archive_template=True):
+        context['event_archive_details'].update({
+            'template': Template.objects.get(default_archive_template=True).id
+        })
+
     request.session['active_event'] = event.pk
     return render(request, 'manage/event_upload.html', context)
 

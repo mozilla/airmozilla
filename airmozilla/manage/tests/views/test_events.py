@@ -6,6 +6,7 @@ from cStringIO import StringIO
 
 from nose.tools import eq_, ok_
 import mock
+import pyquery
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
@@ -1543,6 +1544,12 @@ class TestEvents(ManageTestCase):
 
     def test_event_upload(self):
         event = Event.objects.get(title='Test event')
+        # there needs to exist a template which is the
+        # `default_archive_template` one
+        template, = Template.objects.all()
+        template.default_archive_template = True
+        template.save()
+
         url = reverse('manage:event_upload', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -1560,6 +1567,50 @@ class TestEvents(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('file.foo' in response.content)
+
+    def test_event_upload_automation_details(self):
+        """When you go to the event upload there are details embedded in
+        the page that is used by the javascript automation steps (which
+        are quite complex).
+        Here we just want to test that all those details are there as
+        expected.
+        """
+        event = Event.objects.get(title='Test event')
+        # there needs to exist a template which is the
+        # `default_archive_template` one
+        template, = Template.objects.all()
+        template.default_archive_template = True
+        template.save()
+
+        url = reverse('manage:event_upload', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        doc = pyquery.PyQuery(response.content)
+        element, = doc('form#upload')
+        eq_(
+            element.attrib['data-vidly-shortcut-url'],
+            reverse('manage:vidly_url_to_shortcode', args=(event.id,))
+        )
+        eq_(
+            element.attrib['data-event-archive-url'],
+            reverse('manage:event_archive', args=(event.id,))
+        )
+        eq_(
+            json.loads(element.attrib['data-vidly-submit-details']),
+            {
+                'email': self.user.email,
+                'hd': True,
+                'token_protection': False
+            }
+        )
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        eq_(
+            json.loads(element.attrib['data-event-archive-details']),
+            {
+                'template': template.id
+            }
+        )
 
     def test_event_transcript(self):
         event = Event.objects.get(title='Test event')
@@ -1646,6 +1697,12 @@ class TestEvents(ManageTestCase):
         event.start_time = nowish
         event.save()
         assert event in Event.objects.live()
+
+        # there needs to exist a template which is the
+        # `default_archive_template` one
+        template, = Template.objects.all()
+        template.default_archive_template = True
+        template.save()
 
         edit_url = reverse('manage:event_edit', args=(event.pk,))
         response = self.client.get(edit_url)

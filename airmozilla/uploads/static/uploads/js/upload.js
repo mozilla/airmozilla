@@ -41,6 +41,9 @@ $(function() {
                       };
                       $.post(save_url, params)
                         .then(function(response) {
+                            if (typeof postSaveHook !== 'undefined') {
+                                postSaveHook(response);
+                            }
                             $('.post-save', form).show();
                             if (response.suggested_event) {
                                 $('.post-save .suggested-event a')
