@@ -33,7 +33,7 @@ Air Mozilla | Mozilla, in Video
   <div id="page">
   <div class="wrap">
   <header id="masthead">
-    <nav id="nav-main" role="navigation">
+    <nav id="nav-main">
       <ul>
         {% for title, view, id, show, class in nav_main %}
           {% if show %}
@@ -47,11 +47,9 @@ Air Mozilla | Mozilla, in Video
         {% endfor %}
       </ul>
     </nav>
-    <hgroup>
     {% block banner %}
       {% include 'main/_banner_small.html' %}
     {% endblock %}
-    </hgroup>
     <a href="//www.mozilla.org/" id="tabzilla">mozilla</a>
   </header>
 
@@ -123,7 +121,7 @@ Air Mozilla | Mozilla, in Video
     <p id="colophon">
       Except where otherwise <a href="//www.mozilla.org/en-US/about/legal.html#site" rel="external">noted</a>, content on this site is licensed under the <a href="http://creativecommons.org/licenses/by-sa/3.0/" rel="external license">Creative Commons Attribution Share-Alike License v3.0</a> or any later version.</p>
     <nav id="nav-meta">
-      <ul role="navigation">
+      <ul>
         <li><a href="https://github.com/mozilla/airmozilla">Code on GitHub</a></li>
         <li><a href="https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes%7CAir+Mozilla%7COther">
           Report a bug</a></li>

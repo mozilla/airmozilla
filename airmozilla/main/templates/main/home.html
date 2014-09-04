@@ -125,7 +125,7 @@ p.feed { float: right; }
 
   {% if next_page_url or prev_page_url %}
   <nav class="nav-paging">
-    <ul role="navigation">
+    <ul>
       {% if next_page_url %}
         <li class="prev">
           <a href="{{ next_page_url }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
