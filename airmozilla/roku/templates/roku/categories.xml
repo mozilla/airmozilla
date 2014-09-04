@@ -6,7 +6,7 @@
 			 hd_img="{{ abs_static('roku/images/banner_hd.png') }}"/>
 
 
-	<category title="Archived Events" description="Blasts from the pasts"
+	<category title="Archived Events" description="Blasts from the past"
 		sd_img="{{ abs_static('roku/images/reel.png') }}"
 		hd_img="{{ abs_static('roku/images/reel.png') }}">
 		{% for channel in channels %}
