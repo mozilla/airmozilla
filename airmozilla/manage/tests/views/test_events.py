@@ -700,6 +700,9 @@ class TestEvents(ManageTestCase):
         discussion.moderators.add(bob)
 
         url = reverse('manage:event_duplicate', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
         data = {
             'title': 'Different',
             'description': event.description,
@@ -731,6 +734,10 @@ class TestEvents(ManageTestCase):
             name='badasses'
         )
         url = reverse('manage:event_duplicate', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('value="badasses"' in response.content)
+
         data = {
             'title': 'Different',
             'description': event.description,
