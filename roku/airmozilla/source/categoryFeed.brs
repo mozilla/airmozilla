@@ -11,7 +11,8 @@ Function InitCategoryFeedConnection() As Object
     conn = CreateObject("roAssociativeArray")
 
     'conn.UrlPrefix   = "http://10.252.27.62:8000/roku"
-    conn.UrlPrefix   = "https://air-dev.allizom.org/roku"
+    'conn.UrlPrefix   = "https://air-dev.allizom.org/roku"
+    conn.UrlPrefix   = "https://air.mozilla.org/roku"
     conn.UrlCategoryFeed = conn.UrlPrefix + "/categories.xml"
 
     conn.Timer = CreateObject("roTimespan")
@@ -52,17 +53,26 @@ End Function
 '******************************************************************
 Function load_category_feed(conn As Object) As Dynamic
 
-    http = NewHttp(conn.UrlCategoryFeed)
+    'http = NewHttp(conn.UrlCategoryFeed)
+    'Dbg("url: ", http.Http.GetUrl())
 
-    Dbg("url: ", http.Http.GetUrl())
+    '** Make the category feed work with an encrypted resource
+    https = CreateObject("roUrlTransfer")
+    https.SetUrl(conn.UrlCategoryFeed)
+    https.SetCertificatesFile("common:/certs/ca-bundle.crt")
+    https.AddHeader("X-Roku-Reserved-Dev-Id", "")
+    https.InitClientCertificates()
 
     m.Timer.Mark()
-    rsp = http.GetToStringWithRetry()
+    'rsp = http.GetToStringWithRetry()  'the http way
+    rsps = https.GetToString()
+
     Dbg("Took: ", m.Timer)
 
     m.Timer.Mark()
     xml=CreateObject("roXMLElement")
-    if not xml.Parse(rsp) then
+    'if not xml.Parse(rsp) then  'the http way
+    if not xml.Parse(rsps) then  'the https way
          print "Can't parse feed"
         return invalid
     endif

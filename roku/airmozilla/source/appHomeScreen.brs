@@ -14,6 +14,9 @@ Function preShowHomeScreen(breadA=invalid, breadB=invalid) As Object
     port=CreateObject("roMessagePort")
     screen = CreateObject("roPosterScreen")
     screen.SetMessagePort(port)
+    'screen.SetCertificatesFile("pkg:/certificates/cert.pem")
+    screen.SetCertificatesFile("common:/certs/ca-bundle.crt")
+    screen.InitClientCertificates()
     if breadA<>invalid and breadB<>invalid then
         screen.SetBreadcrumbText(breadA, breadB)
     end if
@@ -49,7 +52,7 @@ Function showHomeScreen(screen) As Integer
                 print "list item selected | index = "; msg.GetIndex()
                 kid = m.Categories.Kids[msg.GetIndex()]
                 print "Kid=="; kid
-		print "Kid.type=="; kid.type
+                print "Kid.type=="; kid.type
                 if kid.type = "special_category" then
                     displaySpecialCategoryScreen(kid)
                 else
