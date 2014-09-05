@@ -44,6 +44,13 @@ class TestRoku(DjangoTestCase):
 
     def test_event_feed(self):
         event = Event.objects.get(title='Test event')
+        start_time = event.start_time
+        start_time = start_time.replace(year=2014)
+        start_time = start_time.replace(month=9)
+        start_time = start_time.replace(day=13)
+        event.start_time = start_time
+        event.save()
+
         self._attach_file(event, self.main_image)
         url = reverse('roku:event_feed', args=(event.id,))
         response = self.client.get(url)
@@ -60,4 +67,4 @@ class TestRoku(DjangoTestCase):
         event.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        ok_('%s 13 Sep 2014' % event.title in response.content)
