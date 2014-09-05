@@ -12,7 +12,7 @@
 	{% if media_info %}
 	{% set thumb = thumbnail(event.placeholder_img, '300x300') %}
 	<item sdImg="{{ make_absolute(thumb.url) }}" hdImg="{{ make_absolute(thumb.url) }}">
-		<title>{{ event.title }}</title>
+		<title>{{ event.title }} {{ event.start_time.strftime('%d %b %Y') }}</title>
 		<contentId>{{ event.id }}</contentId>
 		<contentType>Talk</contentType>
 		<!-- <contentQuality>HD</contentQuality> -->
