@@ -53,26 +53,32 @@ End Function
 '******************************************************************
 Function load_category_feed(conn As Object) As Dynamic
 
-    'http = NewHttp(conn.UrlCategoryFeed)
-    'Dbg("url: ", http.Http.GetUrl())
+    if conn.UrlPrefix.Left(5) = "https" then
+        '** Make the category feed work with an encrypted resource
+        https = CreateObject("roUrlTransfer")
+        https.SetUrl(conn.UrlCategoryFeed)
+        https.SetCertificatesFile("common:/certs/ca-bundle.crt")
+        https.AddHeader("X-Roku-Reserved-Dev-Id", "")
+        https.InitClientCertificates()
 
-    '** Make the category feed work with an encrypted resource
-    https = CreateObject("roUrlTransfer")
-    https.SetUrl(conn.UrlCategoryFeed)
-    https.SetCertificatesFile("common:/certs/ca-bundle.crt")
-    https.AddHeader("X-Roku-Reserved-Dev-Id", "")
-    https.InitClientCertificates()
+        m.Timer.Mark()
+        rsp = https.GetToString()
+    else
+        http = NewHttp(conn.UrlCategoryFeed)
+        Dbg("url: ", http.Http.GetUrl())
 
-    m.Timer.Mark()
-    'rsp = http.GetToStringWithRetry()  'the http way
-    rsps = https.GetToString()
+        m.Timer.Mark()
+        rsp = http.GetToStringWithRetry()
+
+    endif
 
     Dbg("Took: ", m.Timer)
 
     m.Timer.Mark()
     xml=CreateObject("roXMLElement")
     'if not xml.Parse(rsp) then  'the http way
-    if not xml.Parse(rsps) then  'the https way
+    'if not xml.Parse(rsps) then  'the https way
+    if not xml.Parse(rsp) then
          print "Can't parse feed"
         return invalid
     endif

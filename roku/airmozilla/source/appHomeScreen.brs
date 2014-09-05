@@ -14,7 +14,7 @@ Function preShowHomeScreen(breadA=invalid, breadB=invalid) As Object
     port=CreateObject("roMessagePort")
     screen = CreateObject("roPosterScreen")
     screen.SetMessagePort(port)
-    'screen.SetCertificatesFile("pkg:/certificates/cert.pem")
+
     screen.SetCertificatesFile("common:/certs/ca-bundle.crt")
     screen.InitClientCertificates()
     if breadA<>invalid and breadB<>invalid then

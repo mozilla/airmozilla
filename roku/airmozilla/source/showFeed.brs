@@ -76,23 +76,32 @@ Function load_show_feed(conn As Object) As Dynamic
     if validateParam(conn, "roAssociativeArray", "load_show_feed") = false return invalid
 
     print "url: " + conn.UrlShowFeed
-    'http = NewHttp(conn.UrlShowFeed)  'the http way
-    https = CreateObject("roUrlTransfer")
-    https.SetUrl(conn.UrlShowFeed)
-    https.SetCertificatesFile("common:/certs/ca-bundle.crt")
-    https.AddHeader("X-Roku-Reserved-Dev-Id", "")
-    https.InitClientCertificates()
 
-    m.Timer.Mark()
-    'rsp = http.GetToStringWithRetry()  'the http way
-    rsps = https.GetToString()
+    if conn.UrlShowFeed.Left(5) = "https" then
+        https = CreateObject("roUrlTransfer")
+        https.SetUrl(conn.UrlShowFeed)
+        https.SetCertificatesFile("common:/certs/ca-bundle.crt")
+        https.AddHeader("X-Roku-Reserved-Dev-Id", "")
+        https.InitClientCertificates()
+
+        m.Timer.Mark()
+        rsp = https.GetToString()
+
+    else
+        http = NewHttp(conn.UrlShowFeed)
+
+        m.Timer.Mark()
+        rsp = http.GetToStringWithRetry()
+
+    endif
 
     print "Request Time: " + itostr(m.Timer.TotalMilliseconds())
 
     feed = newShowFeed()
     xml=CreateObject("roXMLElement")
     'if not xml.Parse(rsp) then  'the http way
-    if not xml.Parse(rsps) then  'the http way
+    'if not xml.Parse(rsps) then  'the http way
+    if not xml.Parse(rsp) then
         print "Can't parse feed"
         return feed
     endif
