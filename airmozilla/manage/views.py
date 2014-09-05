@@ -1527,14 +1527,6 @@ def location_edit(request, id):
     return render(request, 'manage/location_edit.html', context)
 
 
-# @staff_required
-# @permission_required('main.change_location')
-# @cancel_redirect(lambda r, id: reverse('manage:location_edit', args=(id,)))
-# @transaction.commit_on_success
-# def location_default_environment(request, id):
-#     location = get_object_or_404(Location, id=id)
-#     raise NotImplementedError
-#
 @staff_required
 @permission_required('main.add_location')
 @cancel_redirect('manage:home')
@@ -1545,10 +1537,7 @@ def location_new(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Location created.')
-            if request.user.has_perm('main.change_location'):
-                return redirect('manage:locations')
-            else:
-                return redirect('manage:home')
+            return redirect('manage:locations')
     else:
         form = forms.LocationEditForm()
     return render(request, 'manage/location_new.html', {'form': form})
