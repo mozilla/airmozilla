@@ -8,5 +8,5 @@ splash_screen_hd=pkg:/images/Splashscreen_Icon_HD.png
 splash_screen_sd=pkg:/images/Splashscreen_Icon_SD.png
 splash_color=#ffffff
 major_version=1
-minor_version=0
-build_version=00001
+minor_version=1
+build_version=00002
