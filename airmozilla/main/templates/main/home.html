@@ -22,7 +22,7 @@ p.feed { float: right; }
 
 {% block content_main %}
   {% if front_page %}
-    {% if live %}
+    {% for live in live_events %}
     {% set href=url('main:event', live.slug) %}
     <article id="feature-{{ live.id }}" class="tag-live main-feature">
       <header>
@@ -50,7 +50,7 @@ p.feed { float: right; }
         </a></p>
       </div>
     </article>
-    {% endif %}
+    {% endfor %}
     {% if not tags %}
       {% if channel.slug == 'main' %}
         <h2 class="section-title">{{ _('Recent Events') }}</h2>

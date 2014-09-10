@@ -130,10 +130,6 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         archived_events = archived_events.reverse()
 
     archived_paged = paginate(archived_events, page, 10)
-    live = None
-    also_live = []
-    if live_events:
-        live, also_live = live_events[0], live_events[1:]
 
     # to simplify the complexity of the template when it tries to make the
     # pagination URLs, we just figure it all out here
@@ -196,8 +192,7 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
 
     context = {
         'events': archived_paged,
-        'live': live,
-        'also_live': also_live,
+        'live_events': live_events,
         'tags': found_tags,
         'Event': Event,
         'channel': channel,
