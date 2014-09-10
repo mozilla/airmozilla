@@ -67,4 +67,4 @@ class TestRoku(DjangoTestCase):
         event.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('%s 13 Sep 2014' % event.title in response.content)
+        ok_('%s - Sep 13 2014' % event.title in response.content)
