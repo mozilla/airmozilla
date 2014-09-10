@@ -18,9 +18,9 @@ function postSaveHook(response) {
         $('.automation-progress').show();
         var progress = $('#automation-progressbar');
         var progress_bar = $('progress', progress);
-        progress_bar.attr('value', 0);
+        progress_bar.attr('value', 50);
         var progress_value = $('.progress-value', progress);
-        progress_value.text('0 %');
+        progress_value.text('50 %');
         progress.show();
 
         var data = form.data('vidly-submit-details');
@@ -28,16 +28,19 @@ function postSaveHook(response) {
         data.csrfmiddlewaretoken = $('input[name="csrfmiddlewaretoken"]', form).val();
         $.post(form.data('vidly-shortcut-url'), data)
         .success(function(response) {
-            progress_bar.attr('value', 50);
-            progress_value.text('50 %');
+            progress_bar.attr('value', 100);
+            progress_value.text('100 %');
             data = form.data('event-archive-details');
             data.template_environment = 'file=' + response.shortcode;
             data.csrfmiddlewaretoken = $('input[name="csrfmiddlewaretoken"]', form).val();
             $.post(form.data('event-archive-url'), data)
             .success(function(response) {
-                progress.hide();
+                setTimeout(function() {
+                    progress.hide();
+                }, 500);
                 $('.automation-progress .pre-automation').hide();
                 $('.automation-progress .post-automation').show();
+                $('.post-save').hide();
             })
             .fail(function() {
                 console.warn('Unable archive event with shortcode');

@@ -167,6 +167,8 @@ class MainHandler(web.RequestHandler):
             return Database()
 
     def post(self):
+        from time import sleep
+        sleep(1)# hack to slow things down
         xml_incoming = self.get_argument('xml')
         print "INCOMING ".ljust(79, '=')
         print xml_incoming
