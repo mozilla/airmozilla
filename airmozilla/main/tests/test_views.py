@@ -373,6 +373,29 @@ class TestPages(DjangoTestCase):
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
 
+    def test_event_with_vidly_download_links(self):
+        event = Event.objects.get(title='Test event')
+        vidly = Template.objects.create(
+            name="Vid.ly HD",
+            content='<iframe src="{{ tag }}"></iframe>'
+        )
+        event.template = vidly
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+        url = reverse('main:event', kwargs={'slug': event.slug})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        assert event.privacy == Event.PRIVACY_PUBLIC
+
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=webm'
+            in response.content
+        )
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=mp4'
+            in response.content
+        )
+
     def test_private_event_redirect(self):
         event = Event.objects.get(title='Test event')
         event.privacy = Event.PRIVACY_COMPANY

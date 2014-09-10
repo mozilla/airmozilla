@@ -411,6 +411,13 @@ class EventView(View):
             'curated_groups': curated_groups,
         })
 
+        if (
+            not context['pending'] and event.is_public() and
+            event.has_vidly_template() and event.template_environment
+        ):
+            if event.template_environment.get('tag'):
+                context['vidly_tag'] = event.template_environment['tag']
+
         if event.pin:
             if (
                 not request.user.is_authenticated() or

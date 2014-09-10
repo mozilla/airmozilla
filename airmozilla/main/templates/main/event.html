@@ -34,6 +34,7 @@
 {{ super() }}
 {% compress js %}
 <script src="{{ static('main/js/embed.js') }}"></script>
+<script src="{{ static('main/js/download.js') }}"></script>
 <script src="{{ static('main/js/tearout.js') }}"></script>
 <script src="{{ static('comments/js/comments.js') }}"></script>
 <script src="{{ static('surveys/js/survey.js') }}"></script>
@@ -134,13 +135,29 @@
       {% endif %}
 
       {% if not pending and video and event.is_public() %}
-        <div class="embed">
-          <p><a href="#" class="open">Want to embed this video?</a></p>
-          <div class="code hidden">
-            <p><a href="#" class="close">Close</a></p>
-            <textarea rows="1" cols="80">{{ embed_code }}</textarea>
-          </div>
+        <p>
+          <button class="open-embed">Embed</button>
+          <button class="close-embed hidden">Close</button>
+          {% if vidly_tag %}
+          <button class="open-download">Download</button>
+          <button class="close-download hidden">Close</button>
+          {% endif %}
+        </p>
+        <div class="embed hidden">
+          <textarea rows="1" cols="80">{{ embed_code }}</textarea>
         </div>
+        {% if vidly_tag %}
+        <div class="download hidden">
+          <p>
+            <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=webm"
+               download="{{ event.slug }}.webm">WebM</a>,
+            <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=mp4"
+               download="{{ event.slug }}.mp4">Mpeg4</a>
+            <br>
+            To download, right-click and select &quot;Save Link As...&quot;
+          </p>
+        </div>
+        {% endif %}
       {% endif %}
 
       {% if not pending %}

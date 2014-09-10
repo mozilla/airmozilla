@@ -1,14 +1,14 @@
 $(function() {
-    $('.embed a.open').click(function(event) {
+    $('.open-embed').click(function(event) {
         event.preventDefault();
-        $('.embed .code').show();
-        $(this).parents('p').addClass('hidden');
+        $('.embed, .close-embed').show();
+        $('.open-embed').hide();
     });
 
-    $('.embed a.close').click(function(event) {
+    $('.close-embed').click(function(event) {
         event.preventDefault();
-        $('.embed .hidden').removeClass('hidden');
-        $('.embed .code').hide();
+        $('.embed, .close-embed').hide();
+        $('.open-embed').show();
     });
 
     $('.embed textarea').on('focus', function() {
