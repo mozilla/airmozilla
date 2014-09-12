@@ -1,0 +1,11 @@
+.stop-recording,
+button.start,
+.uploading,
+.saving,
+.duration,
+.videosize,
+.finished,
+.playback,
+.started {
+    display: none;
+}

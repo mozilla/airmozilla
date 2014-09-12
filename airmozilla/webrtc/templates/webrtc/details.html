@@ -1,0 +1,14 @@
+{% extends "webrtc/webrtc_base.html" %}
+
+{% block page_title %}
+Details | {{ super() }}
+{% endblock %}
+
+
+{% block content_main %}
+  {% include 'webrtc/_breadcrumb.html' %}
+  <h2 class="section-title">Details</h2>
+
+  {% include 'suggest/_default_form.html' %}
+
+{% endblock %}

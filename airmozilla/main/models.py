@@ -348,6 +348,7 @@ class Event(models.Model):
     recruitmentmessage = models.ForeignKey(RecruitmentMessage, null=True,
                                            on_delete=models.SET_NULL)
     duration = models.PositiveIntegerField(null=True)  # seconds
+    mozillian = models.CharField(max_length=200, null=True)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)

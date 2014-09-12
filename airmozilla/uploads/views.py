@@ -49,12 +49,25 @@ def sign(request):
     AWS_SECRET_KEY = settings.AWS_SECRET_ACCESS_KEY
     S3_UPLOAD_BUCKET = settings.S3_UPLOAD_BUCKET
 
-    file_name = object_name = request.GET.get('s3_object_name')
-    if not file_name:
-        return http.HttpResponseBadRequest('Missing s3_object_name')
     mime_type = request.GET.get('s3_object_type')
     if not mime_type:
         return http.HttpResponseBadRequest('Missing s3_object_type')
+
+    object_name = request.GET.get('s3_object_name', '')
+    if object_name in ('', 'undefined'):
+        # Happens when you use s3upload.js on a blob which doesn't have
+        # a name but it has a mimetype
+        if mime_type == 'video/webm':
+            object_name = 'file.webm'
+        elif mime_type == 'video/mpeg4':
+            object_name = 'file.mp4'
+        else:
+            raise NotImplementedError(mime_type)
+
+    file_name = object_name
+
+    if not file_name:
+        return http.HttpResponseBadRequest('Missing s3_object_name')
 
     now = datetime.datetime.utcnow()
     name, ext = os.path.splitext(object_name)

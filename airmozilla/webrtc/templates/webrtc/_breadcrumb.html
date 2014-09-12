@@ -1,5 +1,5 @@
 <p class="breadcrumb" style="text-align: justify">
-{% for link in suggest_breadcrumbs(event) %}
+{% for link in webrtc_breadcrumbs(event) %}
   <span class="node {% if link.url == request.path_info %}currently-on{% endif %}">
   {% if link.available %}
     <a href="{{ link.url }}">{{ link.description }}</a>

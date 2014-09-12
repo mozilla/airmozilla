@@ -79,7 +79,7 @@ def state_description(event):
 
 
 @register.function
-def breadcrumbs(event):
+def suggest_breadcrumbs(event):
     state = _get_state(event)
     links = []
     # start

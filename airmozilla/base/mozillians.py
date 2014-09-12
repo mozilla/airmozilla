@@ -12,7 +12,7 @@ class BadStatusCodeError(Exception):
     pass
 
 
-def _fetch_users(email, groups=None):
+def _fetch_users(email, groups=None, is_username=False):
     if not getattr(settings, 'MOZILLIANS_API_KEY', None):  # pragma no cover
         logging.warning("'MOZILLIANS_API_KEY' not set up.")
         return False
@@ -22,8 +22,11 @@ def _fetch_users(email, groups=None):
     data = {
         'app_name': settings.MOZILLIANS_API_APPNAME,
         'app_key': settings.MOZILLIANS_API_KEY,
-        'email': email
     }
+    if is_username:
+        data['username'] = email
+    else:
+        data['email'] = email
     if groups:
         data['groups'] = ','.join(groups)
     url += '?' + urllib.urlencode(data)
@@ -44,12 +47,17 @@ def is_vouched(email):
     return False
 
 
-def fetch_user_name(email):
-    content = _fetch_users(email)
+def fetch_user(email, is_username=False):
+    content = _fetch_users(email, is_username=True)
     if content:
         for obj in content['objects']:
-            if obj['email'].lower() == email.lower():
-                return obj.get('full_name', '')
+            return obj
+
+
+def fetch_user_name(email, is_username=False):
+    user = fetch_user(email, is_username=is_username)
+    if user:
+        return user.get('full_name', '')
 
 
 def in_groups(email, groups):

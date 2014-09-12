@@ -2,6 +2,7 @@ import jinja2
 from jingo import register
 
 from django.contrib.sites.models import RequestSite
+from django.utils.http import urlquote
 
 from funfactory.helpers import static
 
@@ -50,3 +51,8 @@ def show_duration(duration, include_seconds=False):
         elif seconds:
             out.append('1 second')
     return ' '.join(out)
+
+
+@register.function
+def mozillians_permalink(username):
+    return 'https://mozillians.org/u/%s' % urlquote(username)
