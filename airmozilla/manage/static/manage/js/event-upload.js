@@ -33,7 +33,7 @@ function postSaveHook(response) {
             progress_bar.attr('value', 100);
             progress_value.text('100 %');
             data = form.data('event-archive-details');
-            data.template_environment = 'file=' + response.shortcode;
+            data.template_environment = data.shortcode_key_name + '=' + response.shortcode;
             data.csrfmiddlewaretoken = $('input[name="csrfmiddlewaretoken"]', form).val();
             $.post(form.data('event-archive-url'), data)
             .success(function(response) {
@@ -42,6 +42,7 @@ function postSaveHook(response) {
                 }, 500);
                 $('.automation-progress .pre-automation').hide();
                 $('.automation-progress .post-automation').show();
+                $('.post-save').hide();  // make sure it's really hidden
             })
             .fail(function() {
                 console.warn('Unable archive event with shortcode');

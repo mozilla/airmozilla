@@ -757,8 +757,14 @@ def event_upload(request, id):
     }
     context['event_archive_details'] = {}
     if Template.objects.filter(default_archive_template=True):
+        template = Template.objects.get(default_archive_template=True)
+        template_vars = get_var_templates(template)
+        template_var = template_vars[0]
+        if template_var.endswith('='):
+            template_var = template_var[:-1]
         context['event_archive_details'].update({
-            'template': Template.objects.get(default_archive_template=True).id
+            'template': template.id,
+            'shortcode_key_name': template_var,
         })
 
     request.session['active_event'] = event.pk
@@ -1356,6 +1362,16 @@ def channel_remove(request, id):
     return redirect('manage:channels')
 
 
+def get_var_templates(template):
+    env = Environment()
+    ast = env.parse(template.content)
+
+    exceptions = ('vidly_tokenize', 'edgecast_tokenize', 'popcorn_url')
+    undeclared_variables = [x for x in meta.find_undeclared_variables(ast)
+                            if x not in exceptions]
+    return ["%s=" % v for v in undeclared_variables]
+
+
 @staff_required
 @permission_required('main.change_template')
 @json_view
@@ -1364,13 +1380,8 @@ def template_env_autofill(request):
        Provides template for filling in environment."""
     template_id = request.GET['template']
     template = Template.objects.get(id=template_id)
-    env = Environment()
-    ast = env.parse(template.content)
+    var_templates = get_var_templates(template)
 
-    exceptions = ('vidly_tokenize', 'edgecast_tokenize', 'popcorn_url')
-    undeclared_variables = [x for x in meta.find_undeclared_variables(ast)
-                            if x not in exceptions]
-    var_templates = ["%s=" % v for v in undeclared_variables]
     return {'variables': '\n'.join(var_templates)}
 
 

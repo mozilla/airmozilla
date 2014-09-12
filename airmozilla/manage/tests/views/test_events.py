@@ -1587,6 +1587,9 @@ class TestEvents(ManageTestCase):
         # `default_archive_template` one
         template, = Template.objects.all()
         template.default_archive_template = True
+        template.content = """
+        <iframe src="{{ key }}"></iframe>
+        """
         template.save()
 
         url = reverse('manage:event_upload', args=(event.pk,))
@@ -1615,7 +1618,8 @@ class TestEvents(ManageTestCase):
         eq_(
             json.loads(element.attrib['data-event-archive-details']),
             {
-                'template': template.id
+                'template': template.id,
+                'shortcode_key_name': 'key'
             }
         )
 
