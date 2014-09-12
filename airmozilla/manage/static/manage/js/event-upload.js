@@ -14,6 +14,8 @@ function postSaveHook(response) {
     if ($('#id_automate_vidly_submission:checked').length) {
         // now let's automate all the necessary steps to submit this
         // to Vid.ly
+        $('.post-save').hide();
+
         var form = $('form#upload');
         $('.automation-progress').show();
         var progress = $('#automation-progressbar');
@@ -40,7 +42,6 @@ function postSaveHook(response) {
                 }, 500);
                 $('.automation-progress .pre-automation').hide();
                 $('.automation-progress .post-automation').show();
-                $('.post-save').hide();
             })
             .fail(function() {
                 console.warn('Unable archive event with shortcode');
