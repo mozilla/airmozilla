@@ -19,7 +19,7 @@
 		<media>
 			<streamUrl>{{ make_absolute(media_info.url) }}</streamUrl>
 		</media>
-		<synopsis>{{ event.description | safe_html }}</synopsis>
+		<synopsis>{{ strip_html(event.description) }}</synopsis>
 		<description>{{ short_desc(event, strip_html=True) }}</description>
 		<runtime>3600</runtime>
 	</item>

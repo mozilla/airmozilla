@@ -43,6 +43,11 @@ def date_now():
 
 
 @register.function
+def strip_html(text):
+    return unhtml(text)
+
+
+@register.function
 def short_desc(event, words=25, strip_html=False):
     """Takes an event object and returns a shortened description."""
     if event.short_description:
