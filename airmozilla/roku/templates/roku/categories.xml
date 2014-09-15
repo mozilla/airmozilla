@@ -24,6 +24,9 @@
 	</category>
 
 	{% for event in live_events %}
+	{% set media_info = get_media_info(event) %}
+	{% if media_info %}
+	{% if media_info.format == 'hls' %}
 	{% set thumb = thumbnail(event.placeholder_img, '300x300') %}
 		<specialCategory title="Live right now" description="{{ event.title }}"
 		sd_img="{{ make_absolute(thumb.url) }}" hd_img="{{ make_absolute(thumb.url) }}"
@@ -32,6 +35,8 @@
 			feed="{{ abs_url('roku:event_feed', event.id) }}">
 		</categoryLeaf>
 	</specialCategory>
+	{% endif %}
+	{% endif %}
 	{% endfor %}
 
 

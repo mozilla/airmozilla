@@ -47,6 +47,7 @@ def categories_feed(request):
         return root_url + reverse(viewname, args=args, kwargs=kwargs)
 
     context['abs_url'] = abs_url_maker
+    context['get_media_info'] = get_media_info
 
     response = render(request, 'roku/categories.xml', context)
     response['Content-Type'] = 'text/xml'
@@ -85,13 +86,16 @@ def get_media_info(event):
             'url': 'http://vid.ly/%s?content=video&format=mp4' % tag,
             'format': 'mp4'
         }
-    elif event.template and 'Edgecast HLS' in event.template.name:
-        file = event.template_environment['file']
-        return {
-            # it's important to use HTTP here
-            'url': 'http://hls.cdn.mozilla.net/%s.m3u8' % file,
-            'format': 'hls',
-        }
+    elif event.template and 'edgecast hls' in event.template.name.lower():
+        try:
+            file = event.template_environment['file']
+            return {
+                # it's important to use HTTP here
+                'url': 'http://hls.cdn.mozilla.net/%s.m3u8' % file,
+                'format': 'hls',
+            }
+        except KeyError:
+            pass
 
     return None
 

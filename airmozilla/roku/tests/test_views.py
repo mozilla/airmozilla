@@ -1,4 +1,7 @@
+import datetime
+
 from django.conf import settings
+from django.utils.timezone import utc
 
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
@@ -21,6 +24,37 @@ class TestRoku(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_(main_url in response.content)
+
+    def test_categories_feed_live_events(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('roku:categories_feed')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
+
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = now - datetime.timedelta(seconds=3600)
+        event.save()
+        assert not event.archive_time
+        assert event in Event.objects.live()
+        edgecast_hls = Template.objects.create(
+            content='something {{ file }}',
+            name='EdgeCast hls'
+        )
+        event.template = edgecast_hls
+        event.template_environment = {'file': 'abc123'}
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+        # but it really has to have that 'file' attribute
+        event.template_environment = {'something': 'else'}
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
 
     def test_channel_feed(self):
         main_channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
