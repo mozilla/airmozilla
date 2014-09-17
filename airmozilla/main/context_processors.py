@@ -145,6 +145,7 @@ def _get_featured_events(channels, anonymous, contributor):
         .exclude(event__archive_time__isnull=True)
         .filter(event__archive_time__lt=yesterday)
         .filter(event__channels__in=channels)
+        .exclude(event__channels__exclude_from_trending=True)
         .extra(
             select={
                 # being 'featured' pretends the event has twice as

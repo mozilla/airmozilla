@@ -2118,6 +2118,25 @@ class TestPages(DjangoTestCase):
             response.content.find(event2.title)
         )
 
+        # now, let's make event2 be part of a channel that is supposed to be
+        # excluded from the Trending sidebar
+        poison = Channel.objects.create(
+            name='Poisonous',
+            exclude_from_trending=True
+        )
+        event2.channels.add(poison)
+        all_but_event2 = Event.objects.exclude(
+            channels__exclude_from_trending=True
+        )
+        assert event2 not in all_but_event2
+        cache.clear()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # print response.content
+        # event 1 is top-most because it's the youngest
+        # but now event3 has gone up a bit
+        ok_(event2.title not in response.content)
+
     def test_featured_sidebar_for_contributors(self):
         """if you're a contributor your shouldn't be tempted to see private
         events in the sidebar of featured events"""

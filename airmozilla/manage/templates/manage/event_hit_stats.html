@@ -21,6 +21,11 @@
   The total number of hits across all <strong>{{ thousands(events_total) }}</strong> events is: <strong>{{ thousands(stats_total) }}</strong>
   </p>
   {% endif %}
+  <form action="">
+    <input type="checkbox" name="include_excluded"
+     {% if include_excluded %}checked{% endif %}> Include the "Excluded from Trending" events
+    <button class="btn btn-default btn-xs">Refresh</button>
+  </form>
 
   <table class="table table-striped">
     <thead>

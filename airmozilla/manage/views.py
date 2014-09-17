@@ -2465,6 +2465,7 @@ def event_hit_stats(request):
     if order_by not in possible_order_by:
         order_by = possible_order_by[-1]
 
+    include_excluded = bool(request.GET.get('include_excluded'))
     today = datetime.datetime.utcnow().replace(tzinfo=utc)
     yesterday = today - datetime.timedelta(days=1)
     stats = (
@@ -2480,6 +2481,9 @@ def event_hit_stats(request):
         })
         .select_related('event')
     )
+
+    if not include_excluded:
+        stats = stats.exclude(event__channels__exclude_from_trending=True)
 
     stats_total = (
         EventHitStats.objects
@@ -2501,6 +2505,7 @@ def event_hit_stats(request):
         'paginate': paged,
         'stats_total': stats_total,
         'events_total': events_total,
+        'include_excluded': include_excluded,
     }
     return render(request, 'manage/event_hit_stats.html', data)
 

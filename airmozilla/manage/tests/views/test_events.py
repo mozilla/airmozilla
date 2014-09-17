@@ -1362,6 +1362,34 @@ class TestEvents(ManageTestCase):
         ok_('101' in response.content)
         ok_('0.3' in response.content)
 
+    def test_event_hit_stats_include_excluded(self):
+        event = Event.objects.get(title='Test event')
+        poison = Channel.objects.create(
+            name='Poison',
+            exclude_from_trending=True
+        )
+        event.channels.add(poison)
+
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = now - datetime.timedelta(days=400)
+        event.archive_time = now - datetime.timedelta(days=365)
+        event.save()
+
+        EventHitStats.objects.create(
+            event=event,
+            total_hits=101,
+            shortcode='abc123',
+        )
+
+        url = reverse('manage:event_hit_stats')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
+
+        response = self.client.get(url, {'include_excluded': True})
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
     def test_event_hit_stats_archived_today(self):
         event = Event.objects.get(title='Test event')
         now = datetime.datetime.utcnow().replace(tzinfo=utc)

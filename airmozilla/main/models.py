@@ -134,6 +134,7 @@ class Channel(models.Model):
     description = models.TextField()
     created = models.DateTimeField(default=_get_now)
     reverse_order = models.BooleanField(default=False)
+    exclude_from_trending = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['name']
