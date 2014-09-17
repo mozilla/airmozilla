@@ -242,6 +242,14 @@ class EventEditForm(EventRequestForm):
             self.fields['recruitmentmessage'].required = False
             self.fields['recruitmentmessage'].label = 'Recruitment message'
 
+        self.fields.keyOrder.pop(
+            self.fields.keyOrder.index('curated_groups')
+        )
+        self.fields.keyOrder.insert(
+            self.fields.keyOrder.index('privacy') + 1,
+            'curated_groups'
+        )
+
     def clean_pin(self):
         value = self.cleaned_data['pin']
         if value and len(value) < 4:
