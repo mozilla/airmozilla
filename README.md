@@ -372,5 +372,5 @@ About the database
 ------------------
 
 Even though we use the Django ORM which is database engine agnostic,
-we have to have PostgreSQL because we rely on its ability to do full
-text index searches.
+we have to have PostgreSQL because we rely on its ability to do
+fulltext index searches.
