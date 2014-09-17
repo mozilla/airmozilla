@@ -161,6 +161,7 @@ class DetailsForm(BaseModelForm):
         model = SuggestedEvent
         fields = (
             'location',
+            'call_info',
             'start_time',
             'privacy',
             'tags',
@@ -172,10 +173,12 @@ class DetailsForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         super(DetailsForm, self).__init__(*args, **kwargs)
         self.fields['channels'].required = False
+
         if not self.instance.upcoming:
             del self.fields['location']
             del self.fields['start_time']
             del self.fields['remote_presenters']
+            del self.fields['call_info']
         else:
             self.fields['location'].required = True
             self.fields['start_time'].required = True
@@ -191,6 +194,12 @@ class DetailsForm(BaseModelForm):
                 "presenters."
             )
             self.fields['remote_presenters'].widget.attrs['rows'] = 3
+            self.fields['call_info'].widget = forms.widgets.TextInput()
+            self.fields['call_info'].label = 'Vidyo room (if any)'
+            self.fields['call_info'].help_text = (
+                "If you're using a Vidyo room, which one?&lt;br&gt;"
+                "Required for Cyberspace events."
+            )
 
         # The list of available locations should only be those that are
         # still active. However, if you have a previously chosen location
