@@ -150,9 +150,13 @@
         <div class="download hidden">
           <p>
             <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=webm"
-               download="{{ event.slug }}.webm">WebM</a>,
+               download="{{ event.slug }}.webm">WebM</a>
+            (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_webm"
+               download="{{ event.slug }}-hd.webm">HD</a>),
             <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=mp4"
                download="{{ event.slug }}.mp4">Mpeg4</a>
+            (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_mp4"
+               download="{{ event.slug }}-hd.mp4">HD</a>)
             <br>
             To download, right-click and select &quot;Save Link As...&quot;
           </p>
