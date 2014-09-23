@@ -249,6 +249,9 @@ class EventEditForm(EventRequestForm):
             self.fields.keyOrder.index('privacy') + 1,
             'curated_groups'
         )
+        self.fields['location'].queryset = (
+            Location.objects.filter(is_active=True).order_by('name')
+        )
 
     def clean_pin(self):
         value = self.cleaned_data['pin']
@@ -668,7 +671,7 @@ class EventAssignmentForm(BaseModelForm):
         self.fields['users'].help_text = 'Start typing to find users.'
 
         locations = (
-            Location.objects.all()
+            Location.objects.filter(is_active=True)
             .order_by('name')
         )
         if self.instance.event.location:

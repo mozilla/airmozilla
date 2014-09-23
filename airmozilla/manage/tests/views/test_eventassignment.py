@@ -21,13 +21,18 @@ class TestEventAssignment(ManageTestCase):
         eq_(response.status_code, 200)
         ok_(url in response.content)
 
+        barcelona = Location.objects.create(name='Barcelona')
+        moon = Location.objects.create(name='Moon', is_active=False)
+
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('<option value="%s">' % barcelona.id in response.content)
+        ok_('<option value="%s">' % moon.id not in response.content)
         ok_(event.location.name in response.content)
 
         bob = User.objects.create(username='bob')
         harry = User.objects.create(username='harry')
-        barcelona = Location.objects.create(name='Barcelona')
+
         data = {
             'users': [bob.pk, harry.pk],
             'locations': [barcelona.pk]
