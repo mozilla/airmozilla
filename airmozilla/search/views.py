@@ -57,7 +57,8 @@ def home(request):
             # is the search term possibly a tag?
             all_tag_names = Tag.objects.all().values_list('name', flat=True)
             tags_regex = re.compile(
-                '|'.join(re.escape(x) for x in all_tag_names),
+                r'\b(%s)\b' %
+                ('|'.join(re.escape(x) for x in all_tag_names),),
                 re.I
             )
             # next we need to turn all of these into a Tag QuerySet
@@ -99,7 +100,8 @@ def home(request):
                 Channel.objects.all().values_list('name', flat=True)
             )
             channels_regex = re.compile(
-                '|'.join(re.escape(x) for x in all_channel_names),
+                r'\b(%s)\b' %
+                ('|'.join(re.escape(x) for x in all_channel_names),),
                 re.I
             )
             channel_ids = []

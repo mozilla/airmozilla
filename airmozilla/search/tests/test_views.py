@@ -458,15 +458,22 @@ class TestSearch(TestCase):
     def test_search_and_suggest_tags(self):
         url = reverse('search:home')
         event = Event.objects.get(title='Test event')
-        tag = Tag.objects.create(name='mytag')
+        tag = Tag.objects.create(name='rust')
         event.tags.add(tag)
 
-        response = self.client.get(url, {'q': 'MYtag'})
+        response = self.client.get(url, {'q': 'RUst'})
         eq_(response.status_code, 200)
         # because neither title or description contains this
         ok_('Nothing found' in response.content)
-        tag_search_url = url + '?q=%s' % urllib.quote_plus('tag: mytag')
+        tag_search_url = url + '?q=%s' % urllib.quote_plus('tag: rust')
         ok_(tag_search_url in response.content)
+
+        # But searching for parts of the tag word should not suggest the
+        # tag.
+        # See https://bugzilla.mozilla.org/show_bug.cgi?id=1072985
+        response = self.client.get(url, {'q': 'rusty'})
+        eq_(response.status_code, 200)
+        ok_(tag_search_url not in response.content)
 
     def test_search_and_suggest_multiple_tags(self):
         url = reverse('search:home')
@@ -538,6 +545,15 @@ class TestSearch(TestCase):
             url + '?q=%s' % urllib.quote_plus('channel: Grow Mozilla')
         )
         ok_(channel_search_url in response.content)
+
+        # See https://bugzilla.mozilla.org/show_bug.cgi?id=1072985
+        Channel.objects.create(name='Rust', slug='rust')
+        channel_search_url = (
+            url + '?q=%s' % urllib.quote_plus('y channel: Rust')
+        )
+        response = self.client.get(url, {'q': 'rusty'})
+        eq_(response.status_code, 200)
+        ok_(channel_search_url not in response.content)
 
     def test_logged_search(self):
         url = reverse('search:home')
