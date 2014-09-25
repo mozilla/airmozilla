@@ -33,3 +33,9 @@ class TestLoggedSearches(ManageTestCase):
         ok_('Test event' in response.content)
         url = reverse('search:home') + '?q=some+thing&amp;_nolog'
         ok_(url in response.content)
+
+    def test_loggedsearches_stats(self):
+        # Deliberately kept very simply because it'sa superuser-only feature
+        # and its use is very minimal.
+        response = self.client.get(reverse('manage:loggedsearches_stats'))
+        eq_(response.status_code, 200)

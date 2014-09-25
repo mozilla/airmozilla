@@ -185,6 +185,9 @@ urlpatterns = patterns(
     url(r'^loggedsearches/$',
         views.loggedsearches,
         name='loggedsearches'),
+    url(r'^loggedsearches/stats/$',
+        views.loggedsearches_stats,
+        name='loggedsearches_stats'),
 
 
 )

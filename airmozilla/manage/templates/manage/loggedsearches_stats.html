@@ -1,0 +1,69 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='loggedsearches' -%}
+
+{% block manage_title %}
+  Logged Searches Stats
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  .section {
+      margin-bottom: 50px;
+  }
+  .section h4 {
+      border-top: 1px solid #ccc;
+  }
+  .searches {
+      margin: 0 auto;
+      width: 80%;
+  }
+  .searches th,
+  .searches td {
+      width: 100px;
+  }
+
+  .searches th {
+      text-align: center;
+  }
+  .searches td {
+      font-size: 300%;
+      text-align: center;
+      /*padding: 5px 70px;*/
+  }
+  </style>
+{% endblock %}
+
+{% block manage_content %}
+
+  <p>
+    <a href="{{ url('manage:loggedsearches') }}">All Logged Searches</a>
+  </p>
+
+  {% for group_name, counts in groups %}
+  <div class="section">
+    <h4>{{ group_name }}</h4>
+    <table class="searches">
+      <thead>
+        <tr>
+          <th title="Starting at midnight of UTC">Today</th>
+          <th title="Starting on the Monday">This week</th>
+          <th title="Starting the 1st of this month">This month</th>
+          <th>This year</th>
+          <th>Ever</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td title="Starting at midnight of UTC">{{ counts.today }}</td>
+          <td title="Starting on the Monday">{{ counts.this_week }}</td>
+          <td title="Starting the 1st of this month">{{ counts.this_month }}</td>
+          <td>{{ counts.this_year }}</td>
+          <td>{{ counts.ever }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+
+{% endblock %}
