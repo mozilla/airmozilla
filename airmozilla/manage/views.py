@@ -614,6 +614,21 @@ def event_edit(request, id):
         return redirect('manage:events')
     if event.privacy == Event.PRIVACY_COMPANY and is_contributor(request.user):
         return redirect('manage:events')
+    elif (
+        CuratedGroup.objects.filter(event=event)
+        and is_contributor(request.user)
+    ):
+        # Editing this event requires that you're also part of that curated
+        # group.
+        curated_group_names = [
+            x[0] for x in
+            CuratedGroup.objects.filter(event=event).values_list('name')
+        ]
+        if not mozillians.in_groups(
+            request.user.email,
+            curated_group_names
+        ):
+            return redirect('manage:events')
     if request.user.has_perm('main.change_event_others'):
         form_class = forms.EventEditForm
     elif request.user.has_perm('main.add_event_scheduled'):
