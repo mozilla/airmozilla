@@ -1772,15 +1772,21 @@ def vidly_url_to_shortcode(request, id):
 @staff_required
 @permission_required('main.add_event')
 def suggestions(request):
-    data = {}
+    context = {}
     events = (
         SuggestedEvent.objects
         .filter(accepted=None)
         .exclude(first_submitted=None)
         .order_by('submitted')
     )
-    data['events'] = events
-    return render(request, 'manage/suggestions.html', data)
+    context['include_old'] = request.GET.get('include_old')
+    if not context['include_old']:
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        then = now - datetime.timedelta(days=30)
+        events = events.filter(first_submitted__gte=then)
+
+    context['events'] = events
+    return render(request, 'manage/suggestions.html', context)
 
 
 @staff_required
@@ -1828,6 +1834,7 @@ def suggestion_review(request, id):
             form.save()
             if reject:
                 event.submitted = None
+                event.status = SuggestedEvent.STATUS_REJECTED
                 event.save()
                 sending.email_about_rejected_suggestion(
                     event,

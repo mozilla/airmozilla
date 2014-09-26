@@ -24,6 +24,10 @@
 {% block manage_content %}
   <table class="table">
       <tr>
+        <td>State</td>
+        <td>{{ event.get_status_display() }}</td>
+      </tr>
+      <tr>
         <td>Title</td>
         <td>{{ event.title }}</td>
       </tr>

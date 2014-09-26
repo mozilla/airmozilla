@@ -63,7 +63,7 @@ class TestSuggestions(ManageTestCase):
             submitted=now - datetime.timedelta(days=1),
             first_submitted=now - datetime.timedelta(days=1),
         )
-        SuggestedEvent.objects.create(
+        event3 = SuggestedEvent.objects.create(
             user=bob,
             title='TITLE3',
             slug='SLUG3',
@@ -86,6 +86,20 @@ class TestSuggestions(ManageTestCase):
         ok_('TITLE3' in response.content)
         ok_('popcorn' in response.content)
 
+        event3.first_submitted -= datetime.timedelta(days=300)
+        event3.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('TITLE1' in response.content)
+        ok_('TITLE2' in response.content)
+        ok_('TITLE3' not in response.content)
+
+        response = self.client.get(url, {'include_old': 1})
+        eq_(response.status_code, 200)
+        ok_('TITLE1' in response.content)
+        ok_('TITLE2' in response.content)
+        ok_('TITLE3' in response.content)
+
     def test_suggestions_page_states(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -107,29 +121,30 @@ class TestSuggestions(ManageTestCase):
         url = reverse('manage:suggestions')
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('First submission' in response.content)
+        ok_('Submitted' in response.content)
 
         event.submitted += datetime.timedelta(days=1)
+        event.status = SuggestedEvent.STATUS_RESUBMITTED
         event.save()
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('TITLE' in response.content)
-        ok_('First submission' not in response.content)
         ok_('Resubmitted' in response.content)
 
         event.review_comments = "Not good"
         event.submitted = None
+        event.status = SuggestedEvent.STATUS_REJECTED
         event.save()
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('TITLE' in response.content)
-        ok_('First submission' not in response.content)
         ok_('Resubmitted' not in response.content)
         ok_('Bounced' in response.content)
 
         event.submitted = now + datetime.timedelta(seconds=10)
+        event.status = SuggestedEvent.STATUS_RESUBMITTED
         event.save()
 
         response = self.client.get(url)
@@ -481,6 +496,7 @@ class TestSuggestions(ManageTestCase):
         ok_(not event.submitted)
         # still though
         ok_(event.first_submitted)
+        eq_(event.status, SuggestedEvent.STATUS_REJECTED)
 
         # it should have sent an email back
         email_sent = mail.outbox[-1]

@@ -139,6 +139,7 @@ class TestPages(TestCase):
         eq_(event.popcorn_url, None)
         eq_(event.slug, 'a-new-world')
         ok_(not event.start_time)
+        eq_(event.status, SuggestedEvent.STATUS_CREATED)
         self.assertRedirects(response, url)
 
     def test_start_pre_recorded(self):
@@ -1264,6 +1265,7 @@ class TestPages(TestCase):
 
         event = self._make_suggested_event()
         ok_(not event.submitted)
+        eq_(event.status, SuggestedEvent.STATUS_CREATED)
         url = reverse('suggest:summary', args=(event.pk,))
         assert self.client.get(url).status_code == 200
 
@@ -1286,6 +1288,7 @@ class TestPages(TestCase):
         ok_('Submitted' in response.content)
         event = SuggestedEvent.objects.get(pk=event.pk)
         ok_(event.submitted)
+        eq_(event.status, SuggestedEvent.STATUS_SUBMITTED)
 
         # that should have sent out some emails
         email_sent = mail.outbox[-1]
@@ -1310,6 +1313,7 @@ class TestPages(TestCase):
         eq_(response.status_code, 302)
         event = SuggestedEvent.objects.get(pk=event.pk)
         ok_(not event.submitted)
+        eq_(event.status, SuggestedEvent.STATUS_RETRACTED)
 
     def test_title_edit(self):
         event = SuggestedEvent.objects.create(

@@ -513,6 +513,26 @@ class SuggestedEvent(models.Model):
     accepted = models.ForeignKey(Event, blank=True, null=True)
     review_comments = models.TextField(blank=True, null=True)
 
+    STATUS_CREATED = 'created'
+    STATUS_SUBMITTED = 'submitted'
+    STATUS_RESUBMITTED = 'resubmitted'
+    STATUS_RETRACTED = 'retracted'
+    STATUS_REJECTED = 'rejected'
+    STATUS_ACCEPTED = 'accepted'
+    STATUS_CHOICES = (
+        (STATUS_CREATED, 'Created'),
+        (STATUS_SUBMITTED, 'Submitted'),
+        (STATUS_RESUBMITTED, 'Resubmitted'),
+        (STATUS_REJECTED, 'Bounced back'),
+        (STATUS_RETRACTED, 'Retracted'),
+        (STATUS_ACCEPTED, 'Accepted'),
+    )
+    status = models.CharField(
+        max_length=40,
+        choices=STATUS_CHOICES,
+        default=STATUS_CREATED,
+    )
+
     objects = EventManager()
 
     def __unicode__(self):

@@ -499,13 +499,21 @@ def summary(request, id):
                 return redirect('suggest:summary', event.pk)
         else:
             if event.submitted:
+                event.status = SuggestedEvent.STATUS_RETRACTED
                 event.submitted = None
                 event.save()
             else:
                 now = datetime.datetime.utcnow().replace(tzinfo=utc)
                 event.submitted = now
                 if not event.first_submitted:
+                    event.status = SuggestedEvent.STATUS_SUBMITTED
                     event.first_submitted = now
+                else:
+                    # it was only resubmitted if it was previously rejected
+                    if event.status == SuggestedEvent.STATUS_REJECTED:
+                        event.status = SuggestedEvent.STATUS_RESUBMITTED
+                    else:
+                        event.status = SuggestedEvent.STATUS_SUBMITTED
                 event.save()
                 sending.email_about_suggested_event(event, request)
             url = reverse('suggest:summary', args=(event.pk,))

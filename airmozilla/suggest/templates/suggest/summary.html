@@ -26,7 +26,7 @@ Event summary | {{ super() }}
           This event has been accepted but is pending approval.
           {% else %}
           This event is
-	  <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.<br>
+          <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.<br>
           {% if event.upcoming %}
             {% if event.start_time != event.accepted.start_time %}
               <b>Note!</b><br>
@@ -65,10 +65,14 @@ Event summary | {{ super() }}
   <div class="not-submitted">
     <h3>Almost there...</h3>
     {% if event.first_submitted %}
-    <p>Your event is no longer submitted. It was either retracted or bounced back. See below for
-    possible <b>review comments</b>. Submit again when it's ready.</p>
+      <p>
+        Your event is no longer submitted. It was either retracted or bounced back. See below for
+        possible <b>review comments</b>. Submit again when it's ready.
+      </p>
     {% else %}
-    <p>Your event is not yet submitted. Check through the details and submit when you think you're ready.</p>
+      <p>
+        Your event is not yet submitted. Check through the details and submit when you think you're ready.
+      </p>
     {% endif %}
   </div>
   {% endif %}
