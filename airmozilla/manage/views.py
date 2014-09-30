@@ -40,7 +40,8 @@ from airmozilla.base.utils import (
     paginate,
     tz_apply,
     unhtml,
-    shorten_url
+    shorten_url,
+    dot_dict
 )
 from airmozilla.main.models import (
     Approval,
@@ -197,12 +198,21 @@ def _get_all_users():
         groups[group['id']] = group['name']
 
     groups_map = collections.defaultdict(list)
-    for x in User.groups.through.objects.all():
-        groups_map[x.user_id].append(groups[x.group_id])
+    for x in User.groups.through.objects.all().values('user_id', 'group_id'):
+        groups_map[x['user_id']].append(groups[x['group_id']])
 
     users = []
     qs = User.objects.all()
-    for user in qs:
+    values = (
+        'email',
+        'id',
+        'last_login',
+        'is_staff',
+        'is_active',
+        'is_superuser'
+    )
+    for user_dict in qs.values(*values):
+        user = dot_dict(user_dict)
         domain = user.email.split('@')[1]
         item = {
             'id': user.id,

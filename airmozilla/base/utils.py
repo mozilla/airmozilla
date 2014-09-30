@@ -181,3 +181,24 @@ def fix_base_url(base_url):
         protocol = 'https' if request.is_secure() else 'http'
         base_url = '%s://%s' % (protocol, RequestSite(request).domain)
     return base_url
+
+
+class _DotDict(dict):
+
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self._recurse(self)
+
+    def _recurse(self, item):
+        for key, value in item.iteritems():
+            if isinstance(value, dict):
+                item[key] = _DotDict(value)
+
+    def __getattr__(self, key):
+        if key.startswith('__'):
+            raise AttributeError(key)
+        return self[key]
+
+
+def dot_dict(d):
+    return _DotDict(d)

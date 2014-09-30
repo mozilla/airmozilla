@@ -92,3 +92,17 @@ class TestBitlyURLShortener(TestCase):
         p_urlopen().read.side_effect = mocked_read
         url = 'https://air.mozilla.org/something/'
         self.assertRaises(ValueError, utils.shorten_url, url)
+
+
+class TestDotDict(TestCase):
+
+    def test_basic_use(self):
+        data = {
+            'type': 'Info',
+            'meta': {
+                'name': 'Peter'
+            }
+        }
+        dotted = utils.dot_dict(data)
+        eq_(dotted.type, 'Info')
+        eq_(dotted.meta.name, 'Peter')
