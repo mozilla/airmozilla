@@ -159,6 +159,10 @@ function UserManagerController($scope, $http) {
                 if (!item.is_superuser) {
                     return false;
                 }
+            } else if ($scope.search_status === 'inactive') {
+                if (!item.is_inactive) {
+                    return false;
+                }
             }
         }
         return true;

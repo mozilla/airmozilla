@@ -199,3 +199,8 @@ p.logged-in {
     -o-animation: color_change_bw 1s infinite alternate;
     animation: color_change_bw 1s infinite alternate;
 }
+
+
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+    display: none !important;
+}

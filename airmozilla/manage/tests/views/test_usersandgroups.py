@@ -84,20 +84,23 @@ class TestUsersAndGroups(ManageTestCase):
         user, = User.objects.filter(is_staff=False)
         same_user, = [x for x in struct['users'] if x['id'] == user.id]
         ok_(same_user['is_contributor'])
-        ok_(not same_user['is_superuser'])
-        ok_(not same_user['is_staff'])
+        ok_(not same_user.get('is_superuser'))
+        ok_(not same_user.get('is_staff'))
+        ok_(not same_user.get('is_inactive'))
 
         user.is_superuser = True
         user.is_staff = True
+        user.is_active = False
         user.save()
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
         struct = json.loads(response.content)
         same_user, = [x for x in struct['users'] if x['id'] == user.id]
-        ok_(same_user['is_superuser'])
-        ok_(same_user['is_staff'])
-        ok_(not same_user['groups'])
+        ok_(same_user.get('is_superuser'))
+        ok_(same_user.get('is_staff'))
+        ok_(same_user.get('is_inactive'))
+        ok_(not same_user.get('groups'))
 
         testgroup, = Group.objects.all()
         user.groups.add(testgroup)

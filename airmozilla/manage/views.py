@@ -177,6 +177,7 @@ def users(request):
 def users_data(request):
     context = {}
     users = cache.get('_get_all_users')
+
     if users is None:
         users = _get_all_users()
         # this is invalidated in models.py
@@ -206,12 +207,23 @@ def _get_all_users():
         item = {
             'id': user.id,
             'email': user.email,
-            'is_staff': user.is_staff,
-            'is_superuser': user.is_superuser,
-            'is_contributor': domain not in settings.ALLOWED_BID,
             'last_login': user.last_login.isoformat(),
-            'groups': groups_map[user.id],
         }
+        # The reason we only add these if they're true is because we want
+        # to minimize the amount of JSON we return. It works because in
+        # javascript, doing `if (thing.something)` works equally if it
+        # exists and is false or if it does not exist.
+        if user.is_staff:
+            item['is_staff'] = True
+        if user.is_superuser:
+            item['is_superuser'] = True
+        if domain not in settings.ALLOWED_BID:
+            item['is_contributor'] = True
+        if not user.is_active:
+            item['is_inactive'] = True
+        if groups_map[user.id]:
+            item['groups'] = groups_map[user.id]
+
         users.append(item)
     return users
 
