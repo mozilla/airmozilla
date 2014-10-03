@@ -16,7 +16,7 @@
   }
   .searches {
       margin: 0 auto;
-      width: 80%;
+      width: 90%;
   }
   .searches th,
   .searches td {
@@ -26,10 +26,13 @@
   .searches th {
       text-align: center;
   }
-  .searches td {
+  tr.counts td {
       font-size: 300%;
       text-align: center;
       /*padding: 5px 70px;*/
+  }
+  tr.terms td {
+      vertical-align: top;
   }
   </style>
 {% endblock %}
@@ -40,7 +43,15 @@
     <a href="{{ url('manage:loggedsearches') }}">All Logged Searches</a>
   </p>
 
-  {% for group_name, counts in groups %}
+  {% macro terms_count(terms) %}
+    {% for each in terms %}
+      {{ each.count }} <a href="{{ url('search:home') }}?q={{ each.term_lower | urlencode }}&amp;_nolog"
+       title="{{ each.term_lower }}"
+       >{{ each.term_lower | truncate(33) }}</a><br>
+    {% endfor %}
+  {% endmacro %}
+
+  {% for group_name, counts, is_terms in groups %}
   <div class="section">
     <h4>{{ group_name }}</h4>
     <table class="searches">
@@ -54,13 +65,23 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
+        {% if is_terms %}
+        <tr class="terms">
+          <td title="Starting at midnight of UTC">{{ terms_count(counts.today) }}</td>
+          <td title="Starting on the Monday">{{ terms_count(counts.this_week) }}</td>
+          <td title="Starting the 1st of this month">{{ terms_count(counts.this_month) }}</td>
+          <td>{{ terms_count(counts.this_year) }}</td>
+          <td>{{ terms_count(counts.ever) }}</td>
+        </tr>
+        {% else %}
+        <tr class="counts">
           <td title="Starting at midnight of UTC">{{ counts.today }}</td>
           <td title="Starting on the Monday">{{ counts.this_week }}</td>
           <td title="Starting the 1st of this month">{{ counts.this_month }}</td>
           <td>{{ counts.this_year }}</td>
           <td>{{ counts.ever }}</td>
         </tr>
+        {% endif %}
       </tbody>
     </table>
   </div>

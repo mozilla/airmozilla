@@ -3203,6 +3203,28 @@ def loggedsearches_stats(request):
         counts['this_month'] = qs.filter(date__gte=this_month).count()
         counts['this_year'] = qs.filter(date__gte=this_year).count()
         counts['ever'] = qs.count()
-        context['groups'].append((group_name, counts))
+        context['groups'].append((group_name, counts, False))
+
+    qs = (
+        qs_base.extra(
+            select={'term_lower': 'LOWER(term)'}
+        )
+        .values('term_lower')
+        .annotate(count=Count('term'))
+        .order_by('-count')
+    )
+    terms = {}
+    terms['today'] = qs.filter(date__gte=today)[:5]
+    terms['this_week'] = qs.filter(date__gte=this_week)[:5]
+    terms['this_month'] = qs.filter(date__gte=this_month)[:5]
+    terms['this_year'] = qs.filter(date__gte=this_year)[:5]
+    terms['ever'] = qs[:5]
+    context['groups'].append(
+        (
+            'Most common terms (case insensitive, top 5)',
+            terms,
+            True
+        )
+    )
 
     return render(request, 'manage/loggedsearches_stats.html', context)
