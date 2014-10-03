@@ -21,3 +21,5 @@ class TestPictureGallery(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         eq_(response['Content-Type'], 'application/json')
+
+        # it's no fun until you add some pictures
