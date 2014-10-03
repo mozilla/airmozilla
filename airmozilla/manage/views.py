@@ -2020,6 +2020,7 @@ def tags(request):
 @permission_required('main.change_event')
 @json_view
 def tags_data(request):
+    context = {}
     tags = []
 
     counts = {}
@@ -2037,13 +2038,16 @@ def tags_data(request):
     for tag in Tag.objects.all():
         tags.append({
             'name': tag.name,
-            '_edit_url': reverse('manage:tag_edit', args=(tag.pk,)),
-            '_remove_url': reverse('manage:tag_remove', args=(tag.pk,)),
+            'id': tag.id,
             '_usage_count': counts.get(tag.id, 0),
             '_repeated': _repeats[tag.name.lower()] > 1,
         })
-
-    return {'tags': tags}
+    context['tags'] = tags
+    context['urls'] = {
+        'manage:tag_edit': reverse('manage:tag_edit', args=(0,)),
+        'manage:tag_remove': reverse('manage:tag_remove', args=(tag.pk,)),
+    }
+    return context
 
 
 @staff_required

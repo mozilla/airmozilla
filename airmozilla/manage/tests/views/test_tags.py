@@ -20,6 +20,7 @@ class TestTags(ManageTestCase):
         eq_(response.status_code, 200)
         content = json.loads(response.content)
         ok_(content['tags'])
+        ok_(content['urls'])
 
     def test_tag_remove(self):
         """Removing a tag works correctly and leaves associated events

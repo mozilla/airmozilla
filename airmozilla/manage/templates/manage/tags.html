@@ -50,12 +50,12 @@
               <span ng-if="tag._repeated" class="label label-warning">repeated</span>
             </td>
             <td>{{ tag._usage_count }}</td>
-            <td><a href="{{ tag._edit_url }} " class="btn btn-default btn-xs">
+            <td><a href="{{ url('manage:tag_edit', tag.id) }} " class="btn btn-default btn-xs">
                 <i class="glyphicon glyphicon-edit"></i>
                 Edit
                 </a>
                 <form method="post" class="confirm"
-                      action="{{ tag._remove_url }}">
+                      action="{{ url('manage:tag_remove', tag.id) }}">
                   {% endraw %}{{ csrf() }}{% raw %}
                   <button class="btn btn-danger btn-xs" type="submit">
                     <i class="glyphicon glyphicon-trash"></i>

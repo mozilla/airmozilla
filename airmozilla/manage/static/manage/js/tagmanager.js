@@ -144,10 +144,15 @@ function TagManagerController($scope, $http, $timeout) {
     };
     /* End filtering */
 
+    $scope.url = function(viewname, item) {
+        return $scope.urls[viewname].replace('0', item);
+    };
+
     function loadAll() {
         fetchTags({})
           .success(function(data) {
               $scope.tags = data.tags;
+              $scope.urls = data.urls;
           }).error(function(data, status) {
               console.warn('Failed to fetch ALL tags', status);
           }).finally(function() {
