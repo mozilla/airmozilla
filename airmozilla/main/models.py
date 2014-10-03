@@ -699,3 +699,29 @@ class LocationDefaultEnvironment(models.Model):
 
     class Meta:
         unique_together = ('location', 'privacy', 'template')
+
+
+class Picture(models.Model):
+    size = models.PositiveIntegerField()
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    file = models.ImageField(
+        upload_to=_upload_path('pictures'),
+        width_field='width',
+        height_field='height'
+    )
+    event = models.ForeignKey(Event, null=True)
+
+    # suggested_event = models.ForeignKey(SuggestedEvent, null=True)
+    notes = models.CharField(max_length=100, blank=True)
+    modified_user = models.ForeignKey(User, null=True,
+                                      on_delete=models.SET_NULL)
+    created = models.DateTimeField(default=_get_now)
+    modified = models.DateTimeField(auto_now=True, default=_get_now)
+
+
+@receiver(models.signals.pre_save, sender=Picture)
+def update_size(sender, instance, *args, **kwargs):
+    instance.size = instance.file.size
+    if not instance.notes:
+        instance.notes, _ = os.path.splitext(instance.file.name)

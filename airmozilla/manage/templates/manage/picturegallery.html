@@ -1,0 +1,84 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "picturegallery" %}
+
+{% block manage_title %}
+    Picture Gallery
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
+  {% compress js %}
+  <script src="{{ static('manage/js/picturegallery.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+{% block extra_columns %}
+<div class="col-md-4">
+  <div class="sidebar span4 well">
+    <p>
+      <a class="btn btn-primary" href="{{ url('manage:picture_add') }}">
+        <i class="glyphicon glyphicon-plus-sign"></i>
+        Upload pictures
+      </a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block manage_content %}
+<div ng-app="picturegalleryApp" ng-controller="PictureGalleryController">
+  <p ng-if="loading" class="loading">
+    <img src="{{ static('img/spinner.gif') }}">
+    <span class="blinking">Loading pictures...</span>
+  </p>
+
+  <!-- using this form for AJAX saving the notes -->
+  {{ csrf() }}
+  {% raw %}
+
+  <div class="row" ng-class="{hidden: loading}">
+    <div class="col-sm-6 col-md-4"
+        ng-repeat="picture in filtered_items = (pictures) | startFrom:currentPage*pageSize | limitTo:pageSize"
+         >
+      <div class="thumbnail">
+        <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
+          <img ng-src="{{ url('manage:picture_view', picture.id) }}?geometry=220x220">
+        </a>
+
+        <div class="caption">
+
+          <input name="notes" value="{{ picture.notes }}"
+           ng-model="picture.notes"
+           placeholder="no notes">
+          <button
+            ng-click="saveNotes(picture)"
+            class="btn btn-xs"
+            ng-class="{'btn-primary': !picture._saving}">
+            <span ng-if="picture._saving">Saving</span>
+            <span ng-if="!picture._saving">Save</span>
+          </button>
+          <br>
+          {{ picture.width }}x{{ picture.height }}
+          {{ picture.size | filesize }}
+          <br>
+          <time title="{{ formatDate(picture.created) }}" am-time-ago="picture.created"></time>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pagesize-option" ng-cloak>
+    <label for="id_pagesize">Rows per page
+    <select id="id_pagesize" name="pagesize" ng-model="pageSize">
+      <option ng-repeat="size in [6, 12, 24]"
+        >{{ size }}</option>
+    </select>
+    </label>
+  </div>
+  {% endraw %}
+  {% include "manage/_angular_paginate.html" %}
+
+</div>
+{% endblock %}

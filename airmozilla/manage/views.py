@@ -8,6 +8,7 @@ import uuid
 import urlparse
 import warnings
 import json
+import os
 
 from django.conf import settings
 from django import http
@@ -61,7 +62,8 @@ from airmozilla.main.models import (
     CuratedGroup,
     EventAssignment,
     LocationDefaultEnvironment,
-    RecruitmentMessage
+    RecruitmentMessage,
+    Picture
 )
 from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
@@ -3232,3 +3234,111 @@ def loggedsearches_stats(request):
     )
 
     return render(request, 'manage/loggedsearches_stats.html', context)
+
+
+@staff_required
+def picturegallery(request):
+    context = {}
+    return render(request, 'manage/picturegallery.html', context)
+
+
+@staff_required
+@json_view
+def picturegallery_data(request):
+    context = {}
+    items = cache.get('_get_all_pictures')
+
+    if items is None:
+        items = _get_all_pictures()
+        # this is invalidated in models.py
+        cache.set('_get_all_pictures', items, 60 * 60)
+
+    context['pictures'] = items
+    context['urls'] = {
+        'manage:picture_edit': reverse('manage:picture_edit', args=('0',)),
+        'manage:picture_view': reverse('manage:picture_view', args=('0',)),
+    }
+
+    return context
+
+
+def _get_all_pictures():
+    pictures = []
+    values = (
+        'id',
+        'size',
+        'width',
+        'height',
+        'notes',
+        'created',
+        'modified',
+        'modified_user'
+    )
+    qs = Picture.objects.all().order_by('-created')
+    for picture_dict in qs.values(*values):
+        picture = dot_dict(picture_dict)
+        item = {
+            'id': picture.id,
+            'width': picture.width,
+            'height': picture.height,
+            'size': picture.size,
+            'created': picture.created.isoformat(),
+        }
+        if picture.notes:
+            item['notes'] = picture.notes
+        pictures.append(item)
+    return pictures
+
+
+@staff_required
+@permission_required('main.change_picture')
+@transaction.commit_on_success
+def picture_edit(request, id):
+    picture = get_object_or_404(Picture, id=id)
+    context = {'picture': picture}
+
+    if request.method == 'POST':
+        form = forms.PictureForm(request.POST, request.FILES, instance=picture)
+        if form.is_valid():
+            picture = form.save()
+            return redirect('manage:picturegallery')
+    else:
+        form = forms.PictureForm(instance=picture)
+    context['form'] = form
+    return render(request, 'manage/picture_edit.html', context)
+
+
+@staff_required
+@permission_required('main.add_picture')
+@transaction.commit_on_success
+def picture_add(request):
+    context = {}
+
+    if request.method == 'POST':
+        form = forms.PictureForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('manage:picturegallery')
+    else:
+        form = forms.PictureForm()
+    context['form'] = form
+    return render(request, 'manage/picture_add.html', context)
+
+
+@staff_required
+@json_view
+def picture_view(request, id):
+    picture = get_object_or_404(Picture, id=id)
+    geometry = request.GET.get('geometry', '')
+    response = http.HttpResponse()
+    if geometry:
+        thumb = thumbnail(picture.file, geometry, crop='center')
+        response.write(thumb.read())
+    else:
+        response.write(picture.file.read())
+    _, ext = os.path.splitext(picture.file.name.lower())
+    if ext in ('.jpg', '.jpeg'):
+        response['Content-Type'] = 'image/jpeg'
+    elif ext == '.png':
+        response['Content-Type'] = 'image/png'
+    return response

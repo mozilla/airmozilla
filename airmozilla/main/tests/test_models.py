@@ -3,6 +3,7 @@ import datetime
 from django.contrib.auth.models import Group, User
 from django.test import TestCase
 from django.utils.timezone import utc
+from django.core.files import File
 
 from nose.tools import ok_, eq_
 
@@ -12,7 +13,8 @@ from airmozilla.main.models import (
     EventOldSlug,
     Location,
     most_recent_event,
-    RecruitmentMessage
+    RecruitmentMessage,
+    Picture
 )
 
 
@@ -343,3 +345,15 @@ class RecruitmentMessageTests(TestCase):
         msg.delete()
 
         eq_(Event.objects.all().count(), 1)
+
+
+class PictureTests(TestCase):
+    main_image = 'airmozilla/manage/tests/firefox.png'
+
+    def test_create_picture(self):
+        # the only thing you should need is the picture itself
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(file=File(fp))
+            ok_(picture.size > 0)
+            ok_(picture.width > 0)
+            ok_(picture.height > 0)
