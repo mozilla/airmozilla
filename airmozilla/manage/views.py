@@ -1500,8 +1500,25 @@ def template_remove(request, id):
 @staff_required
 @permission_required('main.change_location')
 def locations(request):
+    context = {}
     locations = Location.objects.all()
-    return render(request, 'manage/locations.html', {'locations': locations})
+    context['locations'] = locations
+
+    associated_events = collections.defaultdict(int)
+    associated_suggested_events = collections.defaultdict(int)
+
+    events = Event.objects.exclude(location__isnull=True)
+    for each in events.values('location_id'):
+        associated_events[each['location_id']] += 1
+
+    suggested_events = SuggestedEvent.objects.exclude(location__isnull=True)
+    for each in suggested_events.values('location_id'):
+        associated_suggested_events[each['location_id']] += 1
+
+    context['associated_events'] = associated_events
+    context['associated_suggested_events'] = associated_suggested_events
+
+    return render(request, 'manage/locations.html', context)
 
 
 @staff_required
@@ -1595,8 +1612,16 @@ def location_new(request):
 @permission_required('main.delete_location')
 @transaction.commit_on_success
 def location_remove(request, id):
+    location = get_object_or_404(Location, id=id)
     if request.method == 'POST':
-        location = Location.objects.get(id=id)
+        # This is only allowed if there are no events or suggested events
+        # associated with this location
+        if (
+            Event.objects.filter(location=location) or
+            SuggestedEvent.objects.filter(location=location)
+        ):
+            return http.HttpResponseBadRequest("Still being used")
+
         location.delete()
         messages.info(request, 'Location "%s" removed.' % location.name)
     return redirect('manage:locations')

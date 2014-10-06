@@ -12,6 +12,7 @@
       <tr>
         <th>Name</th>
         <th>Time zone</th>
+        <th style="width:200px">Events/Suggested events</th>
         <th></th>
       </tr>
     </thead>
@@ -26,18 +27,30 @@
         </td>
         <td>{{ location.timezone }}</td>
         <td>
+          <span title="Events associated with this location">
+            {{ associated_events[location.id] }}
+          </span>
+          /
+          <span title="Suggested events associated with this location">
+            {{ associated_suggested_events[location.id] }}
+          </span>
+        </td>
+        <td>
           <a class="btn btn-default btn-sm" href="{{ url('manage:location_edit', location.id) }}">
             <i class="glyphicon glyphicon-edit"></i>
             Edit
           </a>
-          <form method="post" class="confirm"
-                action="{{ url('manage:location_remove', location.id) }}">
-            {{ csrf() }}
-            <button class="btn btn-danger btn-sm" type="submit">
-              <i class="glyphicon glyphicon-trash"></i>
-              Delete
-            </button>
-          </form>
+          {% if associated_events[location.id] or associated_suggested_events[location.id] %}
+          {% else %}
+            <form method="post" class="confirm"
+                  action="{{ url('manage:location_remove', location.id) }}">
+              {{ csrf() }}
+              <button class="btn btn-danger btn-sm" type="submit">
+                <i class="glyphicon glyphicon-trash"></i>
+                Delete
+              </button>
+            </form>
+          {% endif %}
         </td>
       </tr>
     {% endfor %}

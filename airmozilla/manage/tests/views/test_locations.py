@@ -36,12 +36,21 @@ class TestLocations(ManageTestCase):
 
     def test_location_remove(self):
         """Removing a location works correctly and leaves associated events
-           with null locations."""
+         with null locations."""
+        location = Location.objects.create(
+            name="Something"
+        )
+        self._delete_test(
+            location,
+            'manage:location_remove',
+            'manage:locations'
+        )
+
+        # but for the location in the fixture this is not allowed
         location = Location.objects.get(id=1)
-        self._delete_test(location, 'manage:location_remove',
-                          'manage:locations')
-        event = Event.objects.get(id=22)
-        eq_(event.location, None)
+        url = reverse('manage:location_remove', args=(location.id,))
+        response = self.client.post(url)
+        eq_(response.status_code, 400)
 
     def test_location_edit(self):
         """Test location editor; timezone switch works correctly."""
