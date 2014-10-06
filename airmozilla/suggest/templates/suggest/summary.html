@@ -124,12 +124,24 @@ Event summary | {{ super() }}
     {% if event.upcoming %}
     <tr>
       <th>Location</th>
-      <td>{{ event.location }} ({{ event.location.timezone }})</td>
+      <td>
+        {% if event.location %}
+          {{ event.location }} ({{ event.location.timezone }})
+        {% else %}
+          <i>No location</i>
+        {% endif %}
+      </td>
     </tr>
     <tr>
       <th>Start time</th>
-      <td>{{ event.location_time.strftime('%d %B %Y - %H:%M') }}
-          ({{ event.start_time|js_date }})</td>
+      <td>
+        {% if event.location %}
+          {{ event.location_time.strftime('%d %B %Y - %H:%M') }}
+          ({{ event.start_time|js_date }})
+        {% else %}
+          {{ event.start_time|js_date }}
+        {% endif %}
+      </td>
     </tr>
     {% endif %}
     <tr>
