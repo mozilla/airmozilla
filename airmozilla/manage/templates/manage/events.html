@@ -144,14 +144,13 @@
             <span ng-if="!event.is_pending">
               <span ng-if="!event.archive_url">Not archived</span>
             </span>
-            <a ng-if="event.archive_url && (event.is_pending || event.is_scheduled)"
+            <a ng-if="event.can.indexOf('archive') > -1 && (event.is_pending || event.is_scheduled)"
                href="{{ url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
               <i class="glyphicon glyphicon-time"></i> Archive
             </a>
           </span>
         </td>
         <td>
-
           <span class="label"
            ng-class="{'label-default': event.status=='initiated',
                       'label-primary': event.status=='pending',
@@ -171,7 +170,8 @@
           <a href="{{ url('manage:event_edit', event.id) }}" class="btn btn-default btn-xs">
             <i class="glyphicon glyphicon-edit"></i> Edit
           </a>
-          <a ng-if="event.duplicate_url" href="{{ url('manage:event_duplicate', event.id) }}" class="btn btn-default btn-xs">
+          <a ng-if="event.can.indexOf('duplicate') > -1"
+             href="{{ url('manage:event_duplicate', event.id) }}" class="btn btn-default btn-xs">
               <i class="glyphicon glyphicon-repeat"></i> Duplicate
           </a>
         </td>

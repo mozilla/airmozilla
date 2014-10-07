@@ -579,6 +579,7 @@ def events_data(request):
                 if event.archive_time
                 else None
             ),
+            'can': [],  # actions you can take on the event
         }
 
         # Commented out in case we decide to go back and use it
@@ -611,14 +612,12 @@ def events_data(request):
             row['popcorn_url'] = event.popcorn_url
 
         if _can_change_event_others:
-            row['duplicate_url'] = reverse(
-                'manage:event_duplicate',
-                args=(event.pk,)
-            )
-            row['archive_url'] = reverse(
-                'manage:event_archive',
-                args=(event.pk,)
-            )
+            row['can'].append('duplicate')
+            row['can'].append('archive')
+            # row['archive_url'] = reverse(
+            #     'manage:event_archive',
+            #     args=(event.pk,)
+            # )
 
         events.append(row)
 
@@ -632,7 +631,10 @@ def events_data(request):
         ),
         'manage:event_archive': reverse(
             'manage:event_archive', args=('0',)
-        )
+        ),
+        'manage:event_duplicate': reverse(
+            'manage:event_duplicate', args=('0',)
+        ),
     }
 
     return {'events': events, 'urls': urls}
