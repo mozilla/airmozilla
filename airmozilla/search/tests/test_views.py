@@ -578,3 +578,23 @@ class TestSearch(TestCase):
         # lead to clicking this event
         logged_search = LoggedSearch.objects.get(pk=logged_search.pk)
         eq_(logged_search.event_clicked, event)
+
+    def test_unicode_next_page_links(self):
+        """https://bugzilla.mozilla.org/show_bug.cgi?id=1079370"""
+        event = Event.objects.get(title='Test event')
+        for i in range(20):
+            Event.objects.create(
+                title=u'T\xe4st event %d' % (i + 1),
+                short_description=event.short_description,
+                description=event.description,
+                start_time=event.start_time,
+                archive_time=event.archive_time,
+                location=event.location,
+                privacy=event.privacy,
+                status=event.status,
+                placeholder_img=event.placeholder_img,
+            )
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': u'T\xe4sT'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)

@@ -175,7 +175,7 @@ def home(request):
         next_page_url = prev_page_url = None
 
         def url_maker(page):
-            querystring = {'q': context['q'], 'page': page}
+            querystring = {'q': context['q'].encode('utf-8'), 'page': page}
             querystring = urllib.urlencode(querystring)
             return '%s?%s' % (reverse('search:home'), querystring)
 
