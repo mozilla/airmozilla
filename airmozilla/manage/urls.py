@@ -203,7 +203,7 @@ urlpatterns = patterns(
     url(r'^picturegallery/(?P<id>\d+)/$',
         views.picture_edit,
         name='picture_edit'),
-    url(r'^picturegallery/(?P<id>\d+)/view$',
-        views.picture_view,
-        name='picture_view'),
+    url(r'^picturegallery/(?P<id>\d+)/redirect_thumbnail/$',
+        views.redirect_picture_thumbnail,
+        name='redirect_picture_thumbnail'),
 )

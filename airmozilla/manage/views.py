@@ -8,7 +8,6 @@ import uuid
 import urlparse
 import warnings
 import json
-import os
 
 from django.conf import settings
 from django import http
@@ -3307,7 +3306,9 @@ def picturegallery_data(request):
     context['pictures'] = items
     context['urls'] = {
         'manage:picture_edit': reverse('manage:picture_edit', args=('0',)),
-        'manage:picture_view': reverse('manage:picture_view', args=('0',)),
+        'manage:redirect_picture_thumbnail': reverse(
+            'manage:redirect_picture_thumbnail', args=('0',)
+        ),
     }
 
     return context
@@ -3376,23 +3377,10 @@ def picture_add(request):
     return render(request, 'manage/picture_add.html', context)
 
 
-@staff_required
-@json_view
-def picture_view(request, id):
+@cache_page(60)
+def redirect_picture_thumbnail(request, id):
     picture = get_object_or_404(Picture, id=id)
-    geometry = request.GET.get('geometry', '')
-    response = http.HttpResponse()
-    if geometry:
-        thumb = thumbnail(picture.file, geometry, crop='center')
-        data = thumb.read()
-    else:
-        data = picture.file.read()
-    response.write(data)
-    response['Content-Length'] = len(data)
-    _, ext = os.path.splitext(picture.file.name.lower())
-    if ext in ('.jpg', '.jpeg'):
-        response['Content-Type'] = 'image/jpeg'
-    elif ext == '.png':
-        response['Content-Type'] = 'image/png'
-    response['Cache-Control'] = 'max-age=60, public'
-    return response
+    geometry = request.GET.get('geometry', '100x100')
+    crop = request.GET.get('crop', 'center')
+    thumb = thumbnail(picture.file, geometry, crop=crop)
+    return redirect(thumb.url)

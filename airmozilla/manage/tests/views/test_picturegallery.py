@@ -3,6 +3,7 @@ import json
 from nose.tools import eq_, ok_
 
 from django.core.files import File
+from django.conf import settings
 
 from funfactory.urlresolvers import reverse
 
@@ -95,22 +96,14 @@ class TestPictureGallery(ManageTestCase):
         assert picture.height
         assert picture.size
 
-    def test_picture_view(self):
+    def test_redirect_picture_thumbnail(self):
         with open(self.main_image) as fp:
             picture = Picture.objects.create(
                 file=File(fp),
                 notes="Some notes"
             )
 
-        url = reverse('manage:picture_view', args=(picture.id,))
+        url = reverse('manage:redirect_picture_thumbnail', args=(picture.id,))
         response = self.client.get(url)
-        eq_(response.status_code, 200)
-
-        ok_(int(response['Content-Length']) > 0)
-        eq_(response['Content-Type'], 'image/png')
-        ok_(response['Cache-Control'])
-        previous_content_length = int(response['Content-Length'])
-        # now view it as a thumbnail
-        response = self.client.get(url, {'geometry': '50x50'})
-        eq_(response.status_code, 200)
-        ok_(int(response['Content-Length']) < previous_content_length)
+        eq_(response.status_code, 302)
+        ok_(settings.MEDIA_URL in response['Location'])

@@ -70,7 +70,7 @@
          >
       <div class="thumbnail">
         <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
-          <img ng-src="{{ url('manage:picture_view', picture.id) }}?geometry=220x220">
+          <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=220x220">
         </a>
 
         <div class="caption">

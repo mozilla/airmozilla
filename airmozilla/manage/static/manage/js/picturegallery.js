@@ -125,8 +125,8 @@ app.controller('PictureGalleryController', ['$scope', '$http',
             } else if (value === 'older_than_this_week') {
                 search_created_a = null;
                 search_created_b = moment().startOf('week');
-            } else {
-                console.warning("Unrecognized value for search_created", value);
+            } else if (value) {
+                console.warn("Unrecognized value for search_created", value);
             }
             $scope.currentPage = 0;
         });
@@ -160,6 +160,9 @@ app.controller('PictureGalleryController', ['$scope', '$http',
         /* End filtering */
 
         $scope.url = function(viewname, item) {
+            if (!$scope.urls[viewname]) {
+                console.warn('Invalid viewname', viewname);
+            }
             return $scope.urls[viewname].replace('0', item);
         };
 
