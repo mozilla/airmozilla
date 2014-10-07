@@ -1581,28 +1581,26 @@ def location_edit(request, id):
         )
         if default_environment_form.is_valid():
             fc = default_environment_form.cleaned_data
-            try:
-                LocationDefaultEnvironment.objects.get(
+
+            if LocationDefaultEnvironment.objects.filter(
+                location=location,
+                privacy=fc['privacy']
+            ):
+                # there can only be one of them
+                lde = LocationDefaultEnvironment.objects.get(
+                    location=location,
+                    privacy=fc['privacy']
+                )
+                lde.template = fc['template']
+            else:
+                lde = LocationDefaultEnvironment.objects.create(
                     location=location,
                     privacy=fc['privacy'],
                     template=fc['template']
                 )
-                # a problem!
-                messages.error(
-                    request,
-                    'A combination of %s and %s for this location already '
-                    'exists.' % (fc['privacy'], fc['template'])
-                )
-            except LocationDefaultEnvironment.DoesNotExist:
-                # good!
-                LocationDefaultEnvironment.objects.create(
-                    location=location,
-                    privacy=fc['privacy'],
-                    template=fc['template'],
-                    template_environment=fc['template_environment']
-                )
-
-                messages.info(request, 'Default location environment saved.')
+            lde.template_environment = fc['template_environment']
+            lde.save()
+            messages.info(request, 'Default location environment saved.')
             return redirect('manage:location_edit', location.id)
     else:
         default_environment_form = forms.LocationDefaultEnvironmentForm()
