@@ -26,7 +26,8 @@ from airmozilla.main.models import (
     URLMatch,
     EventAssignment,
     LocationDefaultEnvironment,
-    RecruitmentMessage
+    RecruitmentMessage,
+    Picture
 )
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
@@ -722,3 +723,10 @@ class EventSurveyForm(BaseForm):
         ] + [
             (x.id, describe_survey(x)) for x in Survey.objects.all()
         ]
+
+
+class PictureForm(BaseModelForm):
+
+    class Meta:
+        model = Picture
+        fields = ('file', 'notes')

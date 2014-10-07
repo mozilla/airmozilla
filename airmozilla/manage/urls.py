@@ -188,6 +188,19 @@ urlpatterns = patterns(
     url(r'^loggedsearches/stats/$',
         views.loggedsearches_stats,
         name='loggedsearches_stats'),
-
-
+    url(r'^picturegallery/$',
+        views.picturegallery,
+        name='picturegallery'),
+    url(r'^picturegallery/data/$',
+        views.picturegallery_data,
+        name='picturegallery_data'),
+    url(r'^picturegallery/add/$',
+        views.picture_add,
+        name='picture_add'),
+    url(r'^picturegallery/(?P<id>\d+)/$',
+        views.picture_edit,
+        name='picture_edit'),
+    url(r'^picturegallery/(?P<id>\d+)/view$',
+        views.picture_view,
+        name='picture_view'),
 )
