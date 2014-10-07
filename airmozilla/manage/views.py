@@ -3333,12 +3333,15 @@ def picture_view(request, id):
     response = http.HttpResponse()
     if geometry:
         thumb = thumbnail(picture.file, geometry, crop='center')
-        response.write(thumb.read())
+        data = thumb.read()
     else:
-        response.write(picture.file.read())
+        data = picture.file.read()
+    response.write(data)
+    response['Content-Length'] = len(data)
     _, ext = os.path.splitext(picture.file.name.lower())
     if ext in ('.jpg', '.jpeg'):
         response['Content-Type'] = 'image/jpeg'
     elif ext == '.png':
         response['Content-Type'] = 'image/png'
+    response['Cache-Control'] = 'max-age=60, public'
     return response

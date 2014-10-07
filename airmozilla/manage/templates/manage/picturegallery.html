@@ -14,6 +14,18 @@
   {% endcompress %}
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  <style>
+  div.filter-bar {
+      margin: 20px;
+  }
+  div.filter-bar input[type="text"] {
+      width: 400px;
+  }
+  </style>
+{% endblock %}
+
 {% block content_class %}col-md-6{% endblock %}
 {% block extra_columns %}
 <div class="col-md-4">
@@ -39,9 +51,22 @@
   {{ csrf() }}
   {% raw %}
 
+  <div class="row filter-bar" ng-class="{hidden: loading}">
+    <input type="text" ng-model="search_notes" placeholder="Find by notes">
+    <select name="created" ng-model="search_created">
+      <option value="">Uploaded</option>
+      <option value="today">Today</option>
+      <option value="yesterday">Yesterday</option>
+      <option value="this_week">This week</option>
+      <option value="older_than_this_week">Older than this week</option>
+    </select>
+
+    <button type="button" class="btn btn-default btn-xs btn-primary" ng-if="hasFilter()" ng-click="clearFilter()">Clear filter</button>
+  </div>
+
   <div class="row" ng-class="{hidden: loading}">
     <div class="col-sm-6 col-md-4"
-        ng-repeat="picture in filtered_items = (pictures) | startFrom:currentPage*pageSize | limitTo:pageSize"
+        ng-repeat="picture in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize"
          >
       <div class="thumbnail">
         <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
@@ -68,8 +93,19 @@
         </div>
       </div>
     </div>
+
+    <div ng-if="!filtered_items.length">
+        <p><b>Filtered too much?</b></p>
+        <p ng-if="search_notes">
+          <a href="#" ng-click="resetFilter('search_notes')">Drop notes search on <code>{{ search_notes }}</code></a>
+        </p>
+        <p ng-if="search_created">
+          <a href="#" ng-click="resetFilter('search_created')">Drop the filter on uploaded</a>
+        </p>
+    </div>
+
   </div>
-  <div class="pagesize-option" ng-cloak>
+  <div class="pagesize-option" ng-cloak ng-class="{hidden: !filtered_items.length}">
     <label for="id_pagesize">Rows per page
     <select id="id_pagesize" name="pagesize" ng-model="pageSize">
       <option ng-repeat="size in [6, 12, 24]"

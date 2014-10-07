@@ -13,7 +13,7 @@
     ('manage:suggestions', 'Event requests', 'suggestions', 'glyphicon-question-sign',
      perms.main.add_event, '%s new suggested event(s)'),
     ('manage:picturegallery', 'Picture Gallery', 'picturegallery', 'glyphicon-picture',
-     is_staff, ''),
+     perms.main.change_picture, ''),
     ('manage:all_event_tweets', 'Event tweets', 'tweets', 'glyphicon-bullhorn',
      perms.main.change_event, '%s unsent tweet(s)'),
     ('manage:vidly_media', 'Vid.ly media', 'vidly_media', 'glyphicon-warning-sign',
