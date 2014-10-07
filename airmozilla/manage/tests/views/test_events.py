@@ -13,7 +13,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.contrib.flatpages.models import FlatPage
 from django.core import mail
 from django.utils.timezone import utc
-
+from django.core.files import File
 
 from funfactory.urlresolvers import reverse
 
@@ -344,11 +344,6 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 200)
         result = json.loads(response.content)
         assert result['events'][0]['title'] == event.title
-
-        thumbnail = result['events'][0]['thumbnail']
-        ok_(thumbnail['url'])
-        ok_(thumbnail['width'])
-        ok_(thumbnail['height'])
 
     def test_events_data_pending_with_has_vidly_template(self):
         event = Event.objects.get(title='Test event')
@@ -1760,3 +1755,17 @@ class TestEvents(ManageTestCase):
         # reload the event and it should have changed status
         event = Event.objects.get(pk=event.pk)
         eq_(event.status, Event.STATUS_PENDING)
+
+    def test_event_redirect_thumbnail(self):
+        event = Event.objects.get(title='Test event')
+        with open(self.placeholder) as fp:
+            event.placeholder_img = File(fp)
+            event.save()
+
+        assert event.placeholder_img
+
+        url = reverse('manage:redirect_event_thumbnail', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        thumbnail_url = response['Location']
+        ok_(settings.MEDIA_URL in thumbnail_url)

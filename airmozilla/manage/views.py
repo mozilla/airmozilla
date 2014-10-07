@@ -27,6 +27,7 @@ from django.contrib.flatpages.models import FlatPage
 from django.utils.timezone import utc
 from django.contrib.sites.models import RequestSite
 from django.core.exceptions import ImproperlyConfigured
+from django.views.decorators.cache import cache_page
 
 import pytz
 from funfactory.urlresolvers import reverse
@@ -561,18 +562,7 @@ def events_data(request):
             elif not event.archive_time and event.start_time > live_time:
                 is_upcoming = True
 
-        thumbnail_ = {}
-        if event.placeholder_img:
-            thumb = thumbnail(event.placeholder_img, '32x32')
-            if thumb:
-                thumbnail_ = {
-                    'url': thumb.url,
-                    'width': thumb.width,
-                    'height': thumb.height,
-                }
-
         row = {
-            'thumbnail': thumbnail_,
             'modified': event.modified.isoformat(),
             'status': event.status,
             'status_display': event.get_status_display(),
@@ -591,6 +581,16 @@ def events_data(request):
                 else None
             ),
         }
+
+        # Commented out in case we decide to go back and use it
+        # if event.placeholder_img:
+        #     thumb = thumbnail(event.placeholder_img, '32x32', crop='center')
+        #     thumbnail_ = {
+        #         'url': thumb.url,
+        #         'width': thumb.width,
+        #         'height': thumb.height,
+        #     }
+        #     row['thumbnail'] = thumbnail_
 
         # to make the size of the JSON file as small as possible,
         # only include certain fields if they're true
@@ -623,7 +623,20 @@ def events_data(request):
 
         events.append(row)
 
-    return {'events': events}
+    urls = {
+        'manage:event_edit': reverse('manage:event_edit', args=('0',)),
+        'manage:event_duplicate': reverse(
+            'manage:event_duplicate', args=('0',)
+        ),
+        'manage:redirect_event_thumbnail': reverse(
+            'manage:redirect_event_thumbnail', args=('0',)
+        ),
+        'manage:event_archive': reverse(
+            'manage:event_archive', args=('0',)
+        )
+    }
+
+    return {'events': events, 'urls': urls}
 
 
 @staff_required
@@ -766,6 +779,19 @@ def event_edit(request, id):
         context['survey'] = None
 
     return render(request, 'manage/event_edit.html', context)
+
+
+@cache_page(60)
+def redirect_event_thumbnail(request, id):
+    """The purpose of this is to be able to NOT have to generate the
+    thumbnail for each event in the events_data() view. It makes the JSON
+    smaller and makes it possible to only need the thumbnail for few
+    (at a time) thumbnails that we need. """
+    event = get_object_or_404(Event, id=id)
+    geometry = request.GET.get('geometry', '32x32')
+    crop = request.GET.get('crop', 'center')
+    thumb = thumbnail(event.placeholder_img, geometry, crop=crop)
+    return redirect(thumb.url)
 
 
 @require_POST

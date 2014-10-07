@@ -39,6 +39,7 @@
     <img src="{{ static('img/spinner.gif') }}">
     <span class="blinking">Loading all remaining events...</span>
   </p>
+
   {% raw %}
 
   <table class="table table-striped table-bordered" ng-class="{hidden: loading}">
@@ -117,12 +118,14 @@
       </tr>
     </thead>
     <tbody>
-          <tr ng-repeat="event in filtered_items = (events | filter:filterBySearch) | orderBy:sorting:sorting_reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
-        <td><img ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}"
-               alt="Placeholder image">
+      <tr ng-repeat="event in filtered_items = (events | filter:filterBySearch) | orderBy:sorting:sorting_reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
+        <td>
+          <img ng-if="event.thumbnail"
+               ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}">
+          <img ng-if="!event.thumbnail"
+               ng-src="{{ url('manage:redirect_event_thumbnail', event.id) }}?geometry=32x32">
         </td>
         <td>
-          <!-- <a href="{{ event.url }}">{{ event.title }}</a> -->
           <a href="/{{ event.slug }}/">{{ event.title }}</a>
 
         <span class="badge" title="Event is currently Live!" ng-if="event.is_live">L</span>
@@ -142,7 +145,7 @@
               <span ng-if="!event.archive_url">Not archived</span>
             </span>
             <a ng-if="event.archive_url && (event.is_pending || event.is_scheduled)"
-               href="{{ event.archive_url }}" class="btn btn-default btn-xs">
+               href="{{ url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
               <i class="glyphicon glyphicon-time"></i> Archive
             </a>
           </span>
@@ -165,10 +168,10 @@
           >{{ event.privacy_display }}</span>
         </td>
         <td>
-          <a href="/manage/events/{{ event.id }}/" class="btn btn-default btn-xs">
+          <a href="{{ url('manage:event_edit', event.id) }}" class="btn btn-default btn-xs">
             <i class="glyphicon glyphicon-edit"></i> Edit
           </a>
-          <a ng-if="event.duplicate_url" href="{{ event.duplicate_url }}" class="btn btn-default btn-xs">
+          <a ng-if="event.duplicate_url" href="{{ url('manage:event_duplicate', event.id) }}" class="btn btn-default btn-xs">
               <i class="glyphicon glyphicon-repeat"></i> Duplicate
           </a>
         </td>

@@ -261,6 +261,14 @@ function EventManagerController($scope, $http) {
     };
     /* End filtering */
 
+    $scope.urls = {};
+    $scope.url = function(viewname, item) {
+        if (!$scope.urls[viewname]) {
+            console.warn('No known URL view by that name', viewname);
+        }
+        return $scope.urls[viewname].replace('0', item);
+    };
+
     function loadAll() {
         fetchEvents({})
           .success(function(data) {
@@ -275,6 +283,7 @@ function EventManagerController($scope, $http) {
     function loadSome() {
         fetchEvents({limit: $scope.pageSize})
           .success(function(data) {
+              $scope.urls = data.urls;
               $scope.events = data.events;
               loadAll();
           }).error(function(data, status) {
