@@ -61,7 +61,7 @@ app.controller('PictureGalleryController', ['$scope', '$http',
 
         $scope.currentPage = 0;
 
-        $scope.pageSize = 6;  // default
+        $scope.pageSize = 8;  // default
         $scope.numberOfPages = function(items){
             if (typeof items === 'undefined') return 0;
             return Math.ceil(items.length / $scope.pageSize);

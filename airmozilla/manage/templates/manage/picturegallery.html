@@ -26,25 +26,18 @@
   </style>
 {% endblock %}
 
-{% block content_class %}col-md-6{% endblock %}
-{% block extra_columns %}
-<div class="col-md-4">
-  <div class="sidebar span4 well">
-    <p>
-      <a class="btn btn-primary" href="{{ url('manage:picture_add') }}">
-        <i class="glyphicon glyphicon-plus-sign"></i>
-        Upload pictures
-      </a>
-    </p>
-  </div>
-</div>
-{% endblock %}
-
 {% block manage_content %}
 <div ng-app="picturegalleryApp" ng-controller="PictureGalleryController">
   <p ng-if="loading" class="loading">
     <img src="{{ static('img/spinner.gif') }}">
     <span class="blinking">Loading pictures...</span>
+  </p>
+
+  <p style="float: right">
+    <a class="btn btn-primary" href="{{ url('manage:picture_add') }}">
+      <i class="glyphicon glyphicon-plus-sign"></i>
+      Upload more pictures
+    </a>
   </p>
 
   <!-- using this form for AJAX saving the notes -->
@@ -65,12 +58,12 @@
   </div>
 
   <div class="row" ng-class="{hidden: loading}">
-    <div class="col-sm-6 col-md-4"
+    <div class="col-md-3"
         ng-repeat="picture in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize"
          >
       <div class="thumbnail">
         <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
-          <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=220x220">
+          <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=200x200">
         </a>
 
         <div class="caption">
@@ -108,7 +101,7 @@
   <div class="pagesize-option" ng-cloak ng-class="{hidden: !filtered_items.length}">
     <label for="id_pagesize">Rows per page
     <select id="id_pagesize" name="pagesize" ng-model="pageSize">
-      <option ng-repeat="size in [6, 12, 24]"
+      <option ng-repeat="size in [8, 16, 32]"
         >{{ size }}</option>
     </select>
     </label>
