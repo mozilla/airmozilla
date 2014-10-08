@@ -98,16 +98,13 @@
     </div>
 
   </div>
-  <div class="pagesize-option" ng-cloak ng-class="{hidden: !filtered_items.length}">
-    <label for="id_pagesize">Rows per page
-    <select id="id_pagesize" name="pagesize" ng-model="pageSize">
-      <option ng-repeat="size in [8, 16, 32]"
-        >{{ size }}</option>
-    </select>
-    </label>
-  </div>
   {% endraw %}
-  {% include "manage/_angular_paginate.html" %}
+
+  <div ng-show="filtered_items.length">
+    {% include "manage/_angular_pagesize.html" %}
+    {% include "manage/_angular_paginate.html" %}
+  </div>
+
 
 </div>
 {% endblock %}

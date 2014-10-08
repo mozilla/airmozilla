@@ -61,11 +61,30 @@ app.controller('PictureGalleryController', ['$scope', '$http',
 
         $scope.currentPage = 0;
 
-        $scope.pageSize = 8;  // default
         $scope.numberOfPages = function(items){
             if (typeof items === 'undefined') return 0;
             return Math.ceil(items.length / $scope.pageSize);
         };
+
+        /* Page size */
+        var pageSize = 8;  // default
+        $scope.pageSizeOptions = [8, 16, 32];
+        // attempt to load a different number from localStorage
+        var pageSizeStorageKey = 'pageSize' + window.location.pathname;
+        if (window.localStorage) {
+            var localpageSize = window.localStorage.getItem(pageSizeStorageKey);
+            if (localpageSize) {
+                pageSize = +localpageSize;
+            }
+        }
+        $scope.pageSize = pageSize;
+        $scope.$watch('pageSize', function(value) {
+            if (window.localStorage) {
+                window.localStorage.setItem(pageSizeStorageKey, value);
+            }
+            $scope.currentPage = 0;
+        });
+        /* End page size */
 
         $scope.saveNotes = function(picture) {
 

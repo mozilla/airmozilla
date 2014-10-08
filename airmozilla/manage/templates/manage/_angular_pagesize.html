@@ -2,8 +2,7 @@
 <div class="pagesize-option" ng-cloak>
   <label for="id_pagesize">Rows per page
   <select id="id_pagesize" name="pagesize" ng-model="pageSize">
-    <option ng-repeat="size in [10, 25, 50]"
-      >{{ size }}</option>
+    <option ng-repeat="size in pageSizeOptions">{{ size }}</option>
   </select>
   </label>
 </div>

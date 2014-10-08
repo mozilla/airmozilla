@@ -62,9 +62,11 @@ function EventManagerController($scope, $http) {
     };
 
     var pageSize = 10;  // default
+    $scope.pageSizeOptions = [10, 25, 50];
     // attempt to load a different number from localStorage
+    var pageSizeStorageKey = 'pageSize' + window.location.pathname;
     if (window.localStorage) {
-        var localpageSize = window.localStorage.getItem('pageSize');
+        var localpageSize = window.localStorage.getItem(pageSizeStorageKey);
         if (localpageSize) {
             pageSize = +localpageSize;
         }
@@ -72,7 +74,7 @@ function EventManagerController($scope, $http) {
     $scope.pageSize = pageSize;
     $scope.$watch('pageSize', function(value) {
         if (window.localStorage) {
-            window.localStorage.setItem('pageSize', value);
+            window.localStorage.setItem(pageSizeStorageKey, value);
         }
     });
 
