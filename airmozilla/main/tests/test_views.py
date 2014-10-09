@@ -19,6 +19,7 @@ from django.core.files import File
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 import mock
+import pyquery
 
 from airmozilla.main.models import (
     Approval,
@@ -33,7 +34,8 @@ from airmozilla.main.models import (
     EventHitStats,
     CuratedGroup,
     EventRevision,
-    RecruitmentMessage
+    RecruitmentMessage,
+    Picture
 )
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -2406,6 +2408,85 @@ class TestPages(DjangoTestCase):
         eq_(response['Content-Type'], 'text/xml')
         eq_(response['Access-Control-Allow-Origin'], '*')
         ok_('<allow-access-from domain="*" />' in response.content)
+
+    def test_picture_over_placeholder(self):
+        event = Event.objects.get(title='Test event')
+        assert event in Event.objects.live()
+        self._attach_file(event, self.main_image)
+        assert os.path.isfile(event.placeholder_img.path)
+
+        response = self.client.get('/')
+        assert event.title in response.content
+        doc = pyquery.PyQuery(response.content)
+        img, = doc('.tag-live img')
+        eq_(img.attrib['width'], '160')
+        live_src = img.attrib['src']
+
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(file=File(fp))
+            event.picture = picture
+            event.save()
+
+        response = self.client.get('/')
+        assert event.title in response.content
+        doc = pyquery.PyQuery(response.content)
+        img, = doc('.tag-live img')
+        live_src_after = img.attrib['src']
+        ok_(live_src != live_src_after)
+
+        # make it not a live event
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        yesterday = now - datetime.timedelta(days=1)
+        event.archive_time = yesterday
+        event.start_time = yesterday
+        event.picture = None
+        event.save()
+
+        assert event not in Event.objects.live()
+        assert event in Event.objects.archived()
+
+        response = self.client.get('/')
+        assert event.title in response.content
+        doc = pyquery.PyQuery(response.content)
+        img, = doc('article img')
+        eq_(img.attrib['width'], '68')
+        archived_src = img.attrib['src']
+
+        # put the picture back on
+        event.picture = picture
+        event.save()
+        response = self.client.get('/')
+        doc = pyquery.PyQuery(response.content)
+        img, = doc('article img')
+        archived_src_after = img.attrib['src']
+        ok_(archived_src_after != archived_src)
+
+        # now make it appear in the upcoming
+        event.archive_time = None
+        tomorrow = now + datetime.timedelta(days=1)
+        event.start_time = tomorrow
+        event.picture = None
+        event.save()
+
+        assert event not in Event.objects.live()
+        assert event not in Event.objects.archived()
+        assert event in Event.objects.upcoming()
+
+        response = self.client.get('/')
+        assert event.title in response.content
+        doc = pyquery.PyQuery(response.content)
+        img, = doc('aside img')  # side event
+        eq_(img.attrib['width'], '68')
+        upcoming_src = img.attrib['src']
+
+        # put the picture back on
+        event.picture = picture
+        event.save()
+        response = self.client.get('/')
+        doc = pyquery.PyQuery(response.content)
+        img, = doc('aside img')
+        upcoming_src_after = img.attrib['src']
+        ok_(upcoming_src_after != upcoming_src)
 
 
 class TestEventEdit(DjangoTestCase):

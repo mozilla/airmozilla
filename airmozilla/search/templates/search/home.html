@@ -65,7 +65,11 @@
       </header>
       <div class="entry-summary">
         <p class="event-date">{{ event.start_time | js_date }}</p>
-        {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
+        {% if event.picture %}
+          {% set thumb = thumbnail(event.picture.file, '68x68', crop='center') %}
+        {% else %}
+          {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
+        {% endif %}
         <a href="{{ href }}">
           <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
                alt="{{ event.title }}" class="attachment-68x68 wp-post-image">

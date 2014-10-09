@@ -57,6 +57,12 @@ app.controller('PictureGalleryController', ['$scope', '$http',
     function($scope, $http) {
         'use strict';
 
+        // When you load the picture gallery for a specific event, it will set
+        // two global variables which we can use here. If they're not defined,
+        // it means you're probably just browsing the picture gallery.
+        $scope.current_event = typeof CURRENT_EVENT !== 'undefined' && CURRENT_EVENT || null;
+        $scope.current_event_picture = typeof CURRENT_EVENT_PICTURE !== 'undefined' && CURRENT_EVENT_PICTURE || null;
+
         $scope.loading = true;
 
         $scope.currentPage = 0;
@@ -177,6 +183,30 @@ app.controller('PictureGalleryController', ['$scope', '$http',
             return true;
         };
         /* End filtering */
+
+        $scope.associatePicture = function(picture) {
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();
+            var url = $scope.url('manage:picture_event_associate', picture.id);
+            var data = {
+                'csrfmiddlewaretoken': csrf,
+                'event': $scope.current_event
+            };
+            $http({
+                method: 'POST',
+                url: url,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                data: serializeObject(data)
+            }).success(function(data) {
+                if (data) {
+                    $scope.current_event_picture = picture.id;
+                } else {
+                    console.warn('Unable to associate picture with event');
+                }
+            }).error(function(data, status) {
+                console.warn('Failed to associate picture with event', status);
+            });
+
+        };
 
         $scope.url = function(viewname, item) {
             if (!$scope.urls[viewname]) {

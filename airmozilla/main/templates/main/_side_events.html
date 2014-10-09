@@ -15,7 +15,11 @@
       {% endif %}
              >
             <span class="video-thumb">
-              {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
+              {% if event.picture %}
+                {% set thumb = thumbnail(event.picture.file, '68x68', crop='center') %}
+              {% else %}
+                {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
+              {% endif %}
               <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
                    alt="{{ event.title }}" class="wp-post-image">
             </span>

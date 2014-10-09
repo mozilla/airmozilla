@@ -357,3 +357,7 @@ class PictureTests(TestCase):
             ok_(picture.size > 0)
             ok_(picture.width > 0)
             ok_(picture.height > 0)
+
+            ok_(Picture.__name__ in repr(picture))
+            picture.notes = "Something"
+            ok_("Something" in repr(picture))

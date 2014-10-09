@@ -32,6 +32,7 @@ from airmozilla.main.models import (
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
 
+from .widgets import PictureWidget
 
 TIMEZONE_CHOICES = [(tz, tz.replace('_', ' ')) for tz in pytz.common_timezones]
 
@@ -106,7 +107,8 @@ class EventRequestForm(BaseModelForm):
         exclude = ('featured', 'status', 'archive_time', 'slug')
         # Fields specified to enforce order
         fields = (
-            'title', 'placeholder_img', 'description',
+            'title', 'placeholder_img', 'picture',
+            'description',
             'short_description', 'location', 'start_time',
             'participants', 'channels', 'tags', 'call_info',
             'remote_presenters',
@@ -222,7 +224,8 @@ class EventEditForm(EventRequestForm):
         # Fields specified to enforce order
         fields = (
             'title', 'slug', 'status', 'privacy', 'featured', 'template',
-            'template_environment', 'placeholder_img', 'location',
+            'template_environment', 'placeholder_img', 'picture',
+            'location',
             'description', 'short_description', 'start_time', 'archive_time',
             'participants', 'channels', 'tags',
             'call_info', 'additional_links', 'remote_presenters',
@@ -253,6 +256,13 @@ class EventEditForm(EventRequestForm):
         self.fields['location'].queryset = (
             Location.objects.filter(is_active=True).order_by('name')
         )
+        if self.instance and self.instance.id:
+            # Checking for id because it might be an instance but never
+            # been saved before.
+            self.fields['picture'].widget = PictureWidget(self.instance)
+        else:
+            # too early to associate with a picture
+            del self.fields['picture']
 
     def clean_pin(self):
         value = self.cleaned_data['pin']
@@ -269,7 +279,8 @@ class EventExperiencedRequestForm(EventEditForm):
         # Fields specified to enforce order
         fields = (
             'title', 'status', 'privacy', 'template',
-            'template_environment', 'placeholder_img', 'description',
+            'template_environment', 'placeholder_img', 'picture',
+            'description',
             'short_description', 'location', 'start_time',
             'participants', 'channels', 'tags', 'call_info',
             'additional_links', 'remote_presenters',

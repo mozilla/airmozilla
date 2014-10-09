@@ -7,7 +7,7 @@ from django.conf import settings
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Picture
+from airmozilla.main.models import Event, Picture
 from .base import ManageTestCase
 
 
@@ -20,6 +20,16 @@ class TestPictureGallery(ManageTestCase):
         url = reverse('manage:picturegallery')
         response = self.client.get(url)
         eq_(response.status_code, 200)
+
+    def test_load_gallery_with_event(self):
+        url = reverse('manage:picturegallery')
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(url, {'event': event.id})
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+        # the link to the upload should carry the event ID
+        url = reverse('manage:picture_add') + '?event=%d' % event.id
+        ok_(url in response.content)
 
     def test_picturegallery_data(self):
         url = reverse('manage:picturegallery_data')
@@ -107,3 +117,19 @@ class TestPictureGallery(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 302)
         ok_(settings.MEDIA_URL in response['Location'])
+
+    def test_picture_event_associate(self):
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(file=File(fp))
+
+        url = reverse('manage:picture_event_associate', args=(picture.id,))
+        response = self.client.post(url)
+        eq_(response.status_code, 400)
+        response = self.client.post(url, {'event': 9999})
+        eq_(response.status_code, 404)
+
+        event = Event.objects.get(title='Test event')
+        response = self.client.post(url, {'event': event.id})
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        eq_(struct, True)

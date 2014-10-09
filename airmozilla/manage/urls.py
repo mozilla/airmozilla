@@ -206,4 +206,7 @@ urlpatterns = patterns(
     url(r'^picturegallery/(?P<id>\d+)/redirect_thumbnail/$',
         views.redirect_picture_thumbnail,
         name='redirect_picture_thumbnail'),
+    url(r'^picturegallery/(?P<id>\d+)/event_associate/$',
+        views.picture_event_associate,
+        name='picture_event_associate'),
 )

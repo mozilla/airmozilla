@@ -25,7 +25,9 @@
 
 <p>
   When you're done
-  <a href="{{ url('manage:picturegallery') }}">go back to the Picture Gallery</a>
+  <a href="{{ url('manage:picturegallery') }}{% if event %}?event={{ event.id }}{% endif %}"
+    >go back to the Picture Gallery</a>
 </p>
+
 
 {% endblock %}

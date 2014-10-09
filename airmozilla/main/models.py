@@ -290,11 +290,23 @@ class Event(models.Model):
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
                               default=STATUS_INITIATED, db_index=True)
-    placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
+    placeholder_img = ImageField(
+        upload_to=_upload_path('event-placeholder'),
+        null=True,
+        blank=True
+    )
+    picture = models.ForeignKey(
+        'Picture',
+        null=True,
+        blank=True,
+        related_name='event_picture',
+        on_delete=models.SET_NULL
+    )
     upload = models.ForeignKey(
         'uploads.Upload',
         null=True,
-        related_name='event_upload'
+        related_name='event_upload',
+        on_delete=models.SET_NULL
     )
     description = models.TextField()
     short_description = models.TextField(
@@ -710,7 +722,7 @@ class Picture(models.Model):
         width_field='width',
         height_field='height'
     )
-    event = models.ForeignKey(Event, null=True)
+    event = models.ForeignKey(Event, null=True, related_name='picture_event')
 
     # suggested_event = models.ForeignKey(SuggestedEvent, null=True)
     notes = models.CharField(max_length=100, blank=True)
@@ -719,9 +731,13 @@ class Picture(models.Model):
     created = models.DateTimeField(default=_get_now)
     modified = models.DateTimeField(auto_now=True, default=_get_now)
 
+    def __repr__(self):
+        return "<%s: %r>" % (self.__class__.__name__, self.notes)
+
 
 @receiver(models.signals.pre_save, sender=Picture)
 def update_size(sender, instance, *args, **kwargs):
     instance.size = instance.file.size
     if not instance.notes:
-        instance.notes, _ = os.path.splitext(instance.file.name)
+        filename, _ = os.path.splitext(instance.file.name)
+        instance.notes = filename.replace('_', ' ')

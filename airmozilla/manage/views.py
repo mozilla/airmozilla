@@ -640,21 +640,15 @@ def events_data(request):
     return {'events': events, 'urls': urls}
 
 
-@staff_required
-@permission_required('main.change_event')
-@cancel_redirect('manage:events')
-@transaction.commit_on_success
-def event_edit(request, id):
-    """Edit form for a particular event."""
-    event = get_object_or_404(Event, id=id)
-    if (not request.user.has_perm('main.change_event_others') and
-            request.user != event.creator):
-        return redirect('manage:events')
-    if event.privacy == Event.PRIVACY_COMPANY and is_contributor(request.user):
-        return redirect('manage:events')
+def can_edit_event(event, user, default='manage:events'):
+    if (not user.has_perm('main.change_event_others') and
+            user != event.creator):
+        return redirect(default)
+    if event.privacy == Event.PRIVACY_COMPANY and is_contributor(user):
+        return redirect(default)
     elif (
         CuratedGroup.objects.filter(event=event)
-        and is_contributor(request.user)
+        and is_contributor(user)
     ):
         # Editing this event requires that you're also part of that curated
         # group.
@@ -663,10 +657,22 @@ def event_edit(request, id):
             CuratedGroup.objects.filter(event=event).values_list('name')
         ]
         if not mozillians.in_groups(
-            request.user.email,
+            user.email,
             curated_group_names
         ):
-            return redirect('manage:events')
+            return redirect(default)
+
+
+@staff_required
+@permission_required('main.change_event')
+@cancel_redirect('manage:events')
+@transaction.commit_on_success
+def event_edit(request, id):
+    """Edit form for a particular event."""
+    event = get_object_or_404(Event, id=id)
+    result = can_edit_event(event, request.user)
+    if isinstance(result, http.HttpResponse):
+        return result
     if request.user.has_perm('main.change_event_others'):
         form_class = forms.EventEditForm
     elif request.user.has_perm('main.add_event_scheduled'):
@@ -791,7 +797,10 @@ def redirect_event_thumbnail(request, id):
     event = get_object_or_404(Event, id=id)
     geometry = request.GET.get('geometry', '32x32')
     crop = request.GET.get('crop', 'center')
-    thumb = thumbnail(event.placeholder_img, geometry, crop=crop)
+    if event.picture:
+        thumb = thumbnail(event.picture.file, geometry, crop=crop)
+    else:
+        thumb = thumbnail(event.placeholder_img, geometry, crop=crop)
     return redirect(thumb.url)
 
 
@@ -3289,6 +3298,18 @@ def loggedsearches_stats(request):
 @staff_required
 def picturegallery(request):
     context = {}
+    if request.GET.get('event'):
+        event = get_object_or_404(Event, id=request.GET.get('event'))
+        result = can_edit_event(
+            event,
+            request.user,
+            default='manage:picturegallery'
+        )
+        if isinstance(result, http.HttpResponse):
+            return result
+
+        context['event'] = event
+
     return render(request, 'manage/picturegallery.html', context)
 
 
@@ -3309,6 +3330,10 @@ def picturegallery_data(request):
         'manage:redirect_picture_thumbnail': reverse(
             'manage:redirect_picture_thumbnail', args=('0',)
         ),
+        'manage:picture_event_associate': reverse(
+            'manage:picture_event_associate', args=('0',)
+        ),
+
     }
 
     return context
@@ -3365,7 +3390,17 @@ def picture_edit(request, id):
 @transaction.commit_on_success
 def picture_add(request):
     context = {}
+    if request.GET.get('event'):
+        event = get_object_or_404(Event, id=request.GET.get('event'))
+        result = can_edit_event(
+            event,
+            request.user,
+            default='manage:picturegallery'
+        )
+        if isinstance(result, http.HttpResponse):
+            return result
 
+        context['event'] = event
     if request.method == 'POST':
         form = forms.PictureForm(request.POST, request.FILES)
         if form.is_valid():
@@ -3384,3 +3419,18 @@ def redirect_picture_thumbnail(request, id):
     crop = request.GET.get('crop', 'center')
     thumb = thumbnail(picture.file, geometry, crop=crop)
     return redirect(thumb.url)
+
+
+@staff_required
+@require_POST
+@transaction.commit_on_success
+@permission_required('main.change_event')
+@json_view
+def picture_event_associate(request, id):
+    picture = get_object_or_404(Picture, id=id)
+    if not request.POST.get('event'):
+        return http.HttpResponseBadRequest("Missing 'event'")
+    event = get_object_or_404(Event, id=request.POST['event'])
+    event.picture = picture
+    event.save()
+    return True
