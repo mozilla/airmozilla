@@ -1,0 +1,6 @@
+[run]
+source = airmozilla
+
+[report]
+omit = airmozilla/*/tests/*
+       airmozilla/.versions/*
