@@ -6,6 +6,7 @@ PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',
 )
 
+MOZILLIANS_API_APPNAME = 'something'
 MOZILLIANS_API_BASE = 'https://shouldneveractuallybeused.net'
 MOZILLIANS_API_KEY = 'supersecret'
 
@@ -49,3 +50,7 @@ TWITTER_USERNAME = 'airmozilla'
 
 MEDIA_URL = '/media/'
 STATIC_URL = '/static/'
+
+VIDLY_USER_ID = 'any...'
+VIDLY_USER_KEY = '...thing not empty'
+EDGECAST_SECURE_KEY = 'anythingheretoo'

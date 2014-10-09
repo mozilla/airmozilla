@@ -1,0 +1,24 @@
+# http://travis-ci.org/#!/mozilla/airmozilla
+
+language: python
+
+python:
+    - 2.6
+    #- 2.7
+
+before_install:
+    - git submodule update --init --recursive
+install: bin/travis/install.sh
+before_script: bin/travis/setup.sh
+script:
+    - bin/travis/test.sh
+
+notifications:
+    irc:
+        channels:
+            - "irc.mozilla.org#airmozilla-dev"
+        on_success: always
+        on_failure: always
+
+    webbooks:
+        http://leeroybot.lonnen.com/hubot/travis?room=%23airmozilla-dev

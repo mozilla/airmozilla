@@ -1,0 +1,27 @@
+#!/bin/bash
+# pwd is the git repo.
+set -e
+
+echo "Making settings/local.py"
+cat > airmozilla/settings/local.py <<SETTINGS
+from . import base
+INSTALLED_APPS = base.INSTALLED_APPS + ['django_nose']
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'airmozilla',
+        'USER': 'travis',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '',
+    },
+}
+HMAC_KEYS = {'some': 'thing'}
+SECRET_KEY = 'something'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake'
+    }
+}
+SETTINGS
