@@ -2,5 +2,3 @@
 
 nose
 mock
--e git://github.com/jbalogh/django-nose.git#egg=django_nose
--e git://github.com/jbalogh/test-utils.git#egg=test-utils
