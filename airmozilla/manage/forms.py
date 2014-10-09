@@ -270,6 +270,14 @@ class EventEditForm(EventRequestForm):
             raise forms.ValidationError("Pin too short to be safe")
         return value
 
+    def clean(self):
+        cleaned_data = super(EventEditForm, self).clean()
+        if not (
+            cleaned_data.get('placeholder_img') or cleaned_data.get('picture')
+        ):
+            raise forms.ValidationError("Must have a placeholder or a Picture")
+        return cleaned_data
+
 
 class EventExperiencedRequestForm(EventEditForm):
 
