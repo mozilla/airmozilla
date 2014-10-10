@@ -105,6 +105,7 @@ class TestPictureGallery(ManageTestCase):
         assert picture.width
         assert picture.height
         assert picture.size
+        eq_(picture.modified_user, self.user)
 
     def test_redirect_picture_thumbnail(self):
         with open(self.main_image) as fp:

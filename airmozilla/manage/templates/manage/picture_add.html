@@ -7,19 +7,21 @@
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
   <link href="{{ static('dropzone/css/dropzone.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
   <script src="{{ static('dropzone/dropzone.min.js') }}"></script>
+  {% compress js %}
+  <script src="{{ static('manage/js/picture-add.js') }}"></script>
+  {% endcompress %}
 {% endblock %}
 
 {% block manage_content %}
 
-<form action="." method="post" enctype="multipart/form-data" class="dropzone">
+<form action="." method="post" enctype="multipart/form-data"
+      id="picture-dropzone" class="dropzone">
     {{ csrf() }}
 </form>
 

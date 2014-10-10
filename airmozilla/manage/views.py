@@ -36,6 +36,7 @@ from jsonview.decorators import json_view
 
 from airmozilla.main.helpers import thumbnail, short_desc
 from airmozilla.manage.helpers import scrub_transform_passwords
+from airmozilla.manage.utils import filename_to_notes
 from airmozilla.base import mozillians
 from airmozilla.base.utils import (
     paginate,
@@ -3388,6 +3389,7 @@ def picture_edit(request, id):
 @staff_required
 @permission_required('main.add_picture')
 @transaction.commit_on_success
+@json_view
 def picture_add(request):
     context = {}
     if request.GET.get('event'):
@@ -3402,9 +3404,26 @@ def picture_add(request):
 
         context['event'] = event
     if request.method == 'POST':
+        if request.POST.get('remove'):
+            # this is for when you change your mind
+            size = request.POST['size']
+            filename = request.POST['name']
+            notes = filename_to_notes(filename)
+            matches = Picture.objects.filter(
+                notes=notes,
+                size=int(size),
+                modified_user=request.user
+            )
+            for picture in matches.order_by('-created')[:1]:
+                picture.delete()
+                return True
+            return False
+
         form = forms.PictureForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            picture = form.save(commit=False)
+            picture.modified_user = request.user
+            picture.save()
             return redirect('manage:picturegallery')
     else:
         form = forms.PictureForm()

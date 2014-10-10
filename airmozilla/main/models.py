@@ -13,6 +13,7 @@ from django.utils.timezone import utc
 
 from airmozilla.base.utils import unique_slugify
 from airmozilla.main.fields import EnvironmentField
+from airmozilla.manage.utils import filename_to_notes
 
 import pytz
 from sorl.thumbnail import ImageField
@@ -739,5 +740,4 @@ class Picture(models.Model):
 def update_size(sender, instance, *args, **kwargs):
     instance.size = instance.file.size
     if not instance.notes:
-        filename, _ = os.path.splitext(instance.file.name)
-        instance.notes = filename.replace('_', ' ')
+        instance.notes = filename_to_notes(instance.file.name)
