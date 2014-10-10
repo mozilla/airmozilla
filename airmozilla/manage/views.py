@@ -3328,19 +3328,38 @@ def picturegallery_data(request):
     context['pictures'] = items
     context['urls'] = {
         'manage:picture_edit': reverse('manage:picture_edit', args=('0',)),
+        'manage:picture_delete': reverse('manage:picture_delete', args=('0',)),
         'manage:redirect_picture_thumbnail': reverse(
             'manage:redirect_picture_thumbnail', args=('0',)
         ),
         'manage:picture_event_associate': reverse(
             'manage:picture_event_associate', args=('0',)
         ),
-
+        'manage:event_edit': reverse('manage:event_edit', args=('0',)),
     }
 
     return context
 
 
 def _get_all_pictures():
+
+    values = (
+        'id',
+        'title',
+        'placeholder_img',
+        'picture_id'
+    )
+    event_map = collections.defaultdict(list)
+    cant_delete = collections.defaultdict(bool)
+    for each in Event.objects.filter(picture__isnull=False).values(*values):
+        event_map[each['picture_id']].append({
+            'id': each['id'],
+            'title': each['title']
+        })
+        if not each['placeholder_img']:
+            # then you can definitely not delete this picture
+            cant_delete[each['picture_id']] = True
+
     pictures = []
     values = (
         'id',
@@ -3350,7 +3369,7 @@ def _get_all_pictures():
         'notes',
         'created',
         'modified',
-        'modified_user'
+        'modified_user',
     )
     qs = Picture.objects.all().order_by('-created')
     for picture_dict in qs.values(*values):
@@ -3361,9 +3380,14 @@ def _get_all_pictures():
             'height': picture.height,
             'size': picture.size,
             'created': picture.created.isoformat(),
+            'events': event_map[picture.id]
         }
+        if cant_delete.get(picture.id):
+            item['cant_delete'] = True
         if picture.notes:
             item['notes'] = picture.notes
+        # if picture.id in event_map:
+        #     item['events'] = event_map[picture.id]
         pictures.append(item)
     return pictures
 
@@ -3384,6 +3408,19 @@ def picture_edit(request, id):
         form = forms.PictureForm(instance=picture)
     context['form'] = form
     return render(request, 'manage/picture_edit.html', context)
+
+
+@staff_required
+@permission_required('main.delete_picture')
+@transaction.commit_on_success
+@json_view
+def picture_delete(request, id):
+    picture = get_object_or_404(Picture, id=id)
+    for event in Event.objects.filter(picture=picture):
+        if not event.placeholder_img:
+            return http.HttpResponseBadRequest("Can't delete this")
+    picture.delete()
+    return True
 
 
 @staff_required

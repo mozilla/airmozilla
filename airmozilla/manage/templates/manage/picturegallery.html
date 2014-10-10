@@ -102,11 +102,19 @@
             <span ng-if="!picture._saving">Save</span>
           </button>
           <br>
-          {{ picture.width }}x{{ picture.height }}
-          {{ picture.size | filesize }}
+          {{ picture.width }}x{{ picture.height }},
+          {{ picture.size | filesize }}<br>
+          <!-- <time title="{{ formatDate(picture.created) }}" am-time-ago="picture.created"></time>, -->
+          <a href="" ng-show="picture.events.length"
+             ng-click="toggleShowEvents(picture)">
+             <ng-pluralize count="picture.events.length"
+              when="{'one': '1 event', 'other': '{} events'}">
+            </ng-pluralize>
+          </a>
+          <button class="btn btn-danger btn-xs"
+            ng-show="!picture._delete_confirmation && !picture.cant_delete && !current_event"
+            ng-click="toggleDeleteConfirmation(picture)">Delete</button>
           <br>
-          <time title="{{ formatDate(picture.created) }}" am-time-ago="picture.created"></time><br>
-
           <button ng-click="associatePicture(picture)" ng-show="current_event && current_event_picture != picture.id"
                   class="btn btn-primary">
             Pick this for the event
@@ -114,6 +122,28 @@
           <p ng-show="current_event && current_event_picture == picture.id">
             <b>Current event picture</b>
           </p>
+          <span ng-show="picture._show_events">
+            <span ng-repeat="event in picture.events">
+              <a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a><br>
+            </span>
+          </span>
+
+          <p ng-show="picture._delete_confirmation">
+            Are you sure?
+            <button class="btn btn-danger btn-xs"
+              ng-click="deletePicture(picture)">
+              Yes
+            </button>
+            <button class="btn btn-default btn-xs"
+              ng-click="toggleDeleteConfirmation(picture)">Cancel</button>
+            <br>
+            <small ng-show="picture.events.length">
+              Careful. This picture is used by <b>{{ picture.events.length }}</b>
+              events.
+            </small>
+          </p>
+
+
         </div>
       </div>
     </div>

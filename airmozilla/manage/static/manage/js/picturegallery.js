@@ -208,6 +208,38 @@ app.controller('PictureGalleryController', ['$scope', '$http',
 
         };
 
+        $scope.toggleShowEvents = function(picture) {
+            picture._show_events = !picture._show_events;
+            return false;
+        };
+
+        $scope.toggleDeleteConfirmation = function(picture) {
+            picture._delete_confirmation = !picture._delete_confirmation;
+            return false;
+        };
+
+        $scope.deletePicture = function(picture) {
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();
+            var url = $scope.url('manage:picture_delete', picture.id);
+            var data = {
+                'csrfmiddlewaretoken': csrf,
+                'event': $scope.current_event
+            };
+            $http({
+                method: 'POST',
+                url: url,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                data: serializeObject(data)
+            }).success(function(data) {
+                $scope.pictures.splice(
+                    $scope.pictures.indexOf(picture),
+                    1
+                );
+            }).error(function(data, status) {
+                console.warn('Failed to delete picture with event', status);
+            });
+        };
+
         $scope.url = function(viewname, item) {
             if (!$scope.urls[viewname]) {
                 console.warn('Invalid viewname', viewname);

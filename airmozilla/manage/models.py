@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db import models
 
-from airmozilla.main.models import Picture
+from airmozilla.main.models import Picture, Event
 
 
 @receiver(models.signals.post_save, sender=User)
@@ -13,7 +13,9 @@ def invalidate_user_cache(sender, instance, **kwargs):
     cache.delete(cache_key)
 
 
+@receiver(models.signals.post_save, sender=Event)
 @receiver(models.signals.post_save, sender=Picture)
+@receiver(models.signals.post_delete, sender=Picture)
 def invalidate_picture_cache(sender, instance, **kwargs):
     cache_key = '_get_all_pictures'
     cache.delete(cache_key)

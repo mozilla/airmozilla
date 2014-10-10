@@ -56,6 +56,8 @@ class TestPictureGallery(ManageTestCase):
         ok_(p1['width'])
         ok_(p1['height'])
         ok_(p1['size'])
+        eq_(p1['events'], [])
+        eq_(p2['events'], [])
         assert p1['id'] == picture2.id
         assert p2['id'] == picture.id
         eq_(p2['notes'], 'Some notes')
@@ -90,6 +92,53 @@ class TestPictureGallery(ManageTestCase):
 
         picture = Picture.objects.get(id=picture.id)
         eq_(picture.notes, 'Other notes')
+
+    def test_picture_delete(self):
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(
+                file=File(fp),
+                notes="Some notes"
+            )
+
+        url = reverse('manage:picture_delete', args=(picture.id,))
+        response = self.client.post(url)
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        eq_(struct, True)
+
+    def test_picture_delete_blocked(self):
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(
+                file=File(fp),
+                notes="Some notes"
+            )
+        event = Event.objects.get(title='Test event')
+        event.placeholder_img = None
+        event.picture = picture
+        event.save()
+
+        url = reverse('manage:picture_delete', args=(picture.id,))
+        response = self.client.post(url)
+        eq_(response.status_code, 400)
+
+    def test_picture_delete_updates_cache(self):
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(
+                file=File(fp),
+                notes="Some notes"
+            )
+
+        response = self.client.get(reverse('manage:picturegallery'))
+        assert response.status_code == 200
+
+        url = reverse('manage:picture_delete', args=(picture.id,))
+        response = self.client.post(url)
+        assert response.status_code == 200
+
+        response2 = self.client.get(reverse('manage:picturegallery'))
+        assert response2.status_code == 200
+
+        ok_(response.content != response2.content)
 
     def test_picture_add(self):
         url = reverse('manage:picture_add')
