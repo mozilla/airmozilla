@@ -2,7 +2,7 @@ from django.db.models import Q
 from airmozilla.main.models import (
     Approval,
     Event,
-    Participant,
+    # Participant,
     SuggestedEvent,
     EventTweet
 )
@@ -27,13 +27,15 @@ def badges(request):
         )
         if approvals > 0:
             context['badges']['approvals'] = approvals
-    # Uncleared participants badge
-    if request.user.has_perm('main.change_participant_others'):
-        participants = (
-            Participant.objects.filter(cleared=Participant.CLEARED_NO).count()
-        )
-        if participants > 0:
-            context['badges']['part_edit'] = participants
+
+    # Commented out because we're not using it
+    # # Uncleared participants badge
+    # if request.user.has_perm('main.change_participant_others'):
+    #     participants = (
+    #         Participant.objects.filter(cleared=Participant.CLEARED_NO).count()
+    #     )
+    #     if participants > 0:
+    #         context['badges']['part_edit'] = participants
 
     # Unsent tweets
     if request.user.has_perm('main.change'):
