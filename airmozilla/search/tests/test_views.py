@@ -579,6 +579,30 @@ class TestSearch(TestCase):
         logged_search = LoggedSearch.objects.get(pk=logged_search.pk)
         eq_(logged_search.event_clicked, event)
 
+    def test_logged_search_not_empty_searches(self):
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': ''})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(not LoggedSearch.objects.all())
+
+        # or something too short
+        response = self.client.get(url, {'q': '1'})
+        eq_(response.status_code, 200)
+        ok_('Too short' in response.content)
+        ok_(not LoggedSearch.objects.all())
+
+        response = self.client.get(url, {'q': ' ' * 10})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_(not LoggedSearch.objects.all())
+
+        # but search by channel or tag without a wildcard should log
+        response = self.client.get(url, {'q': 'channel: Foo'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' in response.content)
+        ok_(LoggedSearch.objects.all())
+
     def test_unicode_next_page_links(self):
         """https://bugzilla.mozilla.org/show_bug.cgi?id=1079370"""
         event = Event.objects.get(title='Test event')

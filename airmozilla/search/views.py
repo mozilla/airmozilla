@@ -190,9 +190,13 @@ def home(request):
         context['events_found'] = pager.count
 
         log_searches = settings.LOG_SEARCHES and '_nolog' not in request.GET
-        if log_searches and not _database_error_happened:
+        if (
+            log_searches and
+            not _database_error_happened and
+            request.GET['q'].strip()
+        ):
             logged_search = LoggedSearch.objects.create(
-                term=context['q'][:200],
+                term=request.GET['q'][:200],
                 results=events.count(),
                 page=page,
                 user=request.user.is_authenticated() and request.user or None
