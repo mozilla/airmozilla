@@ -24,7 +24,13 @@ Air Mozilla | Mozilla, in Video
     <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/main.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
-  {{ browserid_css() }}
+
+  {% compress css %}
+  {% if not request.user.is_authenticated() %}
+  <link href="{{ static('browserid/persona-buttons.css') }}" rel="stylesheet" type="text/css">
+  {% endif %}
+  {% endcompress %}
+
   <link href="https://mozorg.cdn.mozilla.net/media/css/tabzilla-min.css" rel="stylesheet">
 {% endblock %}
 
@@ -139,5 +145,12 @@ Air Mozilla | Mozilla, in Video
   {{ super() }}
   {# the day Air Mozilla uses L10n we can remove this /en-US/ here. For now it reduces redirects. #}
   {% if not DEV %}<script src="//mozorg.cdn.mozilla.net/en-US/tabzilla/tabzilla.js"></script>{% endif %}
-  {{ browserid_js() }}
+
+  {# Instead of using browser_js() we here include them manually. It'll make the page faster #}
+  {% compress js %}
+  <script src="{{ static('js/libs/include.js') }}"></script>
+  <script src="{{ static('browserid/api.js') }}"></script>
+  <script src="{{ static('browserid/browserid.js') }}"></script>
+  {% endcompress %}
+
 {% endblock %}
