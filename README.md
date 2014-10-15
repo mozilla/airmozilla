@@ -1,6 +1,9 @@
 Air Mozilla
 ===========
 
+[![Coverage Status](https://coveralls.io/repos/mozilla/airmozilla/badge.png?branch=master)](https://coveralls.io/r/mozilla/airmozilla?branch=master)
+
+
 Live: [https://air.mozilla.org](https://air.mozilla.org)
 Stage: [https://air.allizom.org](https://air.allizom.org)
 Dev: [https://air-dev.allizom.org](https://air-dev.allizom.org)
