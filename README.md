@@ -250,14 +250,14 @@ when sent back to the server later.
 To check that caching works run these blocks:
 
 ```
-./manage.shell
+./manage.py shell
 >>> from django.core.cache import cache
 >>> cache.set('some', 'thing', 60)
 >>> ^D
 ```
 (`^D` means `Ctrl-D` which means to exit the shell) then
 ```
-./manage.shell
+./manage.py shell
 >>> from django.core.cache import cache
 >>> cache.get('some')
 'thing'
