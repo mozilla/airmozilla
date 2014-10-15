@@ -2,11 +2,12 @@ import datetime
 
 from django.conf import settings
 from django.utils.timezone import utc
+from django.core.files import File
 
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
-from airmozilla.main.models import Event, Channel, Template
+from airmozilla.main.models import Event, Channel, Template, Picture
 from airmozilla.base.tests.testbase import DjangoTestCase
 
 
@@ -69,6 +70,27 @@ class TestRoku(DjangoTestCase):
             name="Vid.ly Test",
             content="test"
         )
+        event.template = vidly
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+        response = self.client.get(main_url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+    def test_channel_feed_with_no_placeholder(self):
+        main_channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+        main_url = reverse('roku:channel_feed', args=(main_channel.slug,))
+        event = Event.objects.get(title='Test event')
+
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(file=File(fp))
+
+        vidly = Template.objects.create(
+            name="Vid.ly Test",
+            content="test"
+        )
+        event.picture = picture
+        event.placeholder_img = None
         event.template = vidly
         event.template_environment = {'tag': 'xyz123'}
         event.save()

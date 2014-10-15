@@ -40,7 +40,7 @@ p.feed { float: right; }
       <div class="entry-summary">
         <a href="{{ href }}">
           {% if live.picture %}
-          {% set thumb = thumbnail(live.picture.file, '160x160', crop='center') %}
+            {% set thumb = thumbnail(live.picture.file, '160x160', crop='center') %}
           {% else %}
             {% set thumb = thumbnail(live.placeholder_img, '160x160', crop='center') %}
           {% endif %}
