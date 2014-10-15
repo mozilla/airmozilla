@@ -223,11 +223,58 @@ The -s makes it so that any print statements aren't swallowed if tests pass. The
 
 Troubleshooting
 --------------
+
+### ImportErrors
+
 If you get import errors, make sure the directory `./vendor/src/` is not empty
 or contains only directories that are empty. If they are empty, run the
 following command:
 
 ``git submodule update --init --recursive``
+
+### Unable to sign in
+
+There are several reasons why sign in might not work. A common problem is that
+you have problems with CSRF and those are usually because of caching not
+working. Or a security setting.
+
+If you see this in the `runserver` logs:
+
+```
+15/Oct/201X 14:53:37] "POST /browserid/login/ HTTP/1.1" 403 2294
+```
+
+It means that the server gave you a cookie which couldn't be matched and checked
+when sent back to the server later.
+
+To check that caching works run these blocks:
+
+```
+./manage.shell
+>>> from django.core.cache import cache
+>>> cache.set('some', 'thing', 60)
+>>> ^D
+```
+(`^D` means `Ctrl-D` which means to exit the shell) then
+```
+./manage.shell
+>>> from django.core.cache import cache
+>>> cache.get('some')
+'thing'
+```
+
+If it doesn't say `'thing'` it means it wasn't able to cache things.
+This is most likely because you have configured
+`django.core.cache.backends.memcached.MemcachedCache` as your preferred
+cache backend but that server isn't up and running.
+
+Consider then to either figure out how to start your memcache server or switch
+to `django.core.cache.backends.locmem.LocMemCache`.
+
+Another common mistake is to *not* have `SESSION_COOKIE_SECURE = False` in your
+`airmozilla/settings/local.py` but using `http://localhost:8000` to reach
+the site.
+
 
 Migrations
 ----------
