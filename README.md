@@ -342,7 +342,8 @@ ALLOWED_BID = base.ALLOWED_BID + (
     'gmail.com',
 )
 ```
-...assuming your preferred email address is a `gmail.com` one.
+...assuming your preferred email address is a `gmail.com` one. But note, only
+enter the *domain* of your email address. Not the whole email address.
 
 Becoming a Superuser
 --------------------
