@@ -7,7 +7,7 @@
     ('Calendar', 'main:calendar', 'calendar', True, ''),
     ('Tag Cloud', 'main:tag_cloud', 'tag_cloud', True, ''),
     ('Requests', 'suggest:start', 'suggest', request.user.is_active, ''),
-    ('Management', 'manage:home', '', request.user.is_staff, ''),
+    ('Management', 'manage:events', '', request.user.is_staff, ''),
     ('Sign out', '/browserid/logout/', '', request.user.is_active, 'browserid-logout'),
 ] -%}
 
