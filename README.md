@@ -277,8 +277,35 @@ If you'd like to create a default set of example groups with useful permissions
 
 ``./manage.py create_mozilla_groups``
 
-Since we're using BrowserID for log-in, you'll need to manually set up your
-account as a superuser.  Log in to the site, then run the shell command:
+
+Logging in
+----------
+
+We use [Persona](https://login.persona.org) to handle all log in.
+If you haven't used it before, it's fine. It's free and easy and works with
+any email address.
+
+Because the code is built to only allow people with certain email address
+domains, (e.g. `mozilla.com`) you might need to fake this if you don't have
+a `mozilla.com` email address. To do that, open the file
+`airmozilla/settings/local.py` and add to the bottom this:
+
+```
+ALLOWED_BID = base.ALLOWED_BID + (
+    'gmail.com',
+)
+```
+...assuming your preferred email address is a `gmail.com` one.
+
+Becoming a Superuser
+--------------------
+
+Superusers have full unbound permissions to do anything and everything.
+
+On a blank database with no content, the only way to become a Superuser
+is to sign in once, then go to the command line and manually change the
+data so that you're now a superuser.
+
 ```
 ./manage.py shell
 >>> from django.contrib.auth.models import User
