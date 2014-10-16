@@ -15,21 +15,21 @@ class TestPermissions(ManageTestCase):
     def test_unauthorized(self):
         """ Client with no log in - should be rejected. """
         self.client.logout()
-        response = self.client.get(reverse('manage:home'))
+        response = self.client.get(reverse('manage:dashboard'))
         self.assertRedirects(response, settings.LOGIN_URL
-                             + '?next=' + reverse('manage:home'))
+                             + '?next=' + reverse('manage:dashboard'))
 
     def test_not_staff(self):
         """ User is not staff - should be rejected. """
         self.user.is_staff = False
         self.user.save()
-        response = self.client.get(reverse('manage:home'))
+        response = self.client.get(reverse('manage:dashboard'))
         self.assertRedirects(response, settings.LOGIN_URL
-                             + '?next=' + reverse('manage:home'))
+                             + '?next=' + reverse('manage:dashboard'))
 
     def test_staff_home(self):
         """ User is staff - should get an OK homepage. """
-        response = self.client.get(reverse('manage:home'))
+        response = self.client.get(reverse('manage:dashboard'))
         eq_(response.status_code, 200)
 
     @mock.patch('requests.get')
@@ -44,7 +44,7 @@ class TestPermissions(ManageTestCase):
         rget.side_effect = mocked_get
 
         self.client.logout()
-        assert self.client.get(reverse('manage:home')).status_code == 302
+        assert self.client.get(reverse('manage:dashboard')).status_code == 302
 
         # now log in as a contributor
         contributor = User.objects.create_user(

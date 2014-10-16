@@ -1713,7 +1713,7 @@ def location_edit(request, id):
 
 @staff_required
 @permission_required('main.add_location')
-@cancel_redirect('manage:home')
+@cancel_redirect('manage:events')
 @transaction.commit_on_success
 def location_new(request):
     if request.method == 'POST':
