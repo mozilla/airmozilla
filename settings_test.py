@@ -54,3 +54,7 @@ STATIC_URL = '/static/'
 VIDLY_USER_ID = 'any...'
 VIDLY_USER_KEY = '...thing not empty'
 EDGECAST_SECURE_KEY = 'anythingheretoo'
+
+ALLOWED_BID = (
+    'mozilla.com',
+)
