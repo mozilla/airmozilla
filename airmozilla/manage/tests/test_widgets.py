@@ -33,3 +33,8 @@ class TestWidgets(TestCase):
         ok_(reverse('manage:picture_edit', args=(picture.id,)) in html)
         ok_('type="hidden"' in html)
         ok_('value="%d"' % picture.id in html)
+
+        # do it with it not being editable
+        instance = widgets.PictureWidget(event, editable=False)
+        html = instance.render('picture', picture.id)
+        ok_('href="%s"' % reverse('manage:picturegallery') not in html)

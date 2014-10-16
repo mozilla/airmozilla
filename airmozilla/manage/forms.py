@@ -260,6 +260,11 @@ class EventEditForm(EventRequestForm):
             # Checking for id because it might be an instance but never
             # been saved before.
             self.fields['picture'].widget = PictureWidget(self.instance)
+        elif self.initial.get('picture'):
+            self.fields['picture'].widget = PictureWidget(
+                Picture.objects.get(id=self.initial['picture']),
+                editable=False
+            )
         else:
             # too early to associate with a picture
             del self.fields['picture']

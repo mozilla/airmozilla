@@ -31,7 +31,8 @@ from airmozilla.main.models import (
     URLTransform,
     EventHitStats,
     UserProfile,
-    CuratedGroup
+    CuratedGroup,
+    Picture
 )
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -749,6 +750,35 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 302)
         # this is expected to exist
         ok_(CuratedGroup.objects.get(event__title='Different'))
+
+    def test_event_duplication_with_picture(self):
+        event = Event.objects.get(title='Test event')
+        with open(self.placeholder) as fp:
+            picture = Picture.objects.create(file=File(fp))
+            event.picture = picture
+            event.placeholder_img = None
+            event.save()
+
+        url = reverse('manage:event_duplicate', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = {
+            'title': 'Different',
+            'description': event.description,
+            'short_description': event.short_description,
+            'location': event.location.pk,
+            'privacy': event.privacy,
+            'status': event.status,
+            'start_time': event.start_time.strftime('%Y-%m-%d %H:%M'),
+            'channels': [x.pk for x in event.channels.all()],
+            'enable_discussion': True,
+            'picture': picture.id,
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        event = Event.objects.get(title='Different')
+        eq_(event.picture, picture)
 
     def test_event_duplication_custom_channels(self):
         ch = Channel.objects.create(

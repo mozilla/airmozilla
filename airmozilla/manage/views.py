@@ -474,7 +474,6 @@ def event_request(request, duplicate_id=None):
     if duplicate_id:
         # Use a blank event, but fill in the initial data from duplication_id
         event_initial = Event.objects.get(id=duplicate_id)
-
         try:
             discussion = Discussion.objects.get(event=event_initial)
         except Discussion.DoesNotExist:
@@ -524,10 +523,18 @@ def event_request(request, duplicate_id=None):
 
     if request.method == 'POST':
         event = Event()
-        if duplicate_id and 'placeholder_img' not in request.FILES:
+        if request.POST.get('picture'):
+            event.picture = Picture.objects.get(id=request.POST['picture'])
+
+        if (
+            duplicate_id and
+            'placeholder_img' not in request.FILES and
+            not request.POST.get('picture')
+        ):
             # If this is a duplicate event action and a placeholder_img
             # was not provided, copy it from the duplication source.
             event.placeholder_img = event_initial.placeholder_img
+
         form = form_class(request.POST, request.FILES, instance=event)
         if form.is_valid():
             event = form.save(commit=False)
