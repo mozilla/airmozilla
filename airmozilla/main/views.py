@@ -682,7 +682,10 @@ class EventEditView(EventView):
 
                 # figure out what the active current value is in the database
                 if key == 'placeholder_img':
-                    current_value = event.placeholder_img.url
+                    if event.picture:
+                        current_value = event.picture.file.url
+                    else:
+                        current_value = event.placeholder_img.url
                 elif key == 'tags':
                     current_value = ', '.join(x.name for x in event.tags.all())
                 elif key == 'channels':
