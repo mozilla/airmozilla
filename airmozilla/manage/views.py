@@ -64,7 +64,8 @@ from airmozilla.main.models import (
     EventAssignment,
     LocationDefaultEnvironment,
     RecruitmentMessage,
-    Picture
+    Picture,
+    EventRevision
 )
 from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
@@ -140,14 +141,95 @@ def cancel_redirect(redirect_view):
 @staff_required
 def dashboard(request):
     """Management home / explanation page."""
-    admin_email_addresses = []
-    for user in User.objects.filter(is_superuser=True).exclude(email=''):
-        if user.email not in admin_email_addresses:
-            admin_email_addresses.append(user.email)
-    if not admin_email_addresses:
-        admin_email_addresses = [x[1] for x in settings.ADMINS]
-    return render(request, 'manage/dashboard.html',
-                  {'admin_email_addresses': admin_email_addresses})
+    return render(request, 'manage/dashboard.html')
+
+
+@staff_required
+@json_view
+def dashboard_data(request):
+    context = {}
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    yesterday = today - datetime.timedelta(days=1)
+    this_week = today - datetime.timedelta(days=today.weekday())
+    last_week = this_week - datetime.timedelta(days=7)
+    this_month = today.replace(day=1)
+    last_month = (this_month - datetime.timedelta(days=1)).replace(day=1)
+    this_year = this_month.replace(month=1)
+    last_year = this_year.replace(year=this_year.year - 1)
+    context['groups'] = []
+
+    def get_counts(qs, key):
+        counts = {}
+
+        def make_filter(gte=None, lt=None):
+            filter = {}
+            if gte is not None:
+                filter['%s__gte' % key] = gte
+            if lt is not None:
+                filter['%s__lt' % key] = lt
+            return filter
+
+        counts['today'] = qs.filter(**make_filter(gte=today)).count()
+
+        counts['today_delta'] = (
+            counts['today'] -
+            qs.filter(**make_filter(gte=yesterday, lt=today)).count()
+        )
+        counts['this_week'] = qs.filter(**make_filter(gte=this_week)).count()
+        counts['this_week_delta'] = (
+            counts['this_week'] -
+            qs.filter(**make_filter(gte=last_week, lt=this_week)).count()
+        )
+        counts['this_month'] = qs.filter(**make_filter(gte=this_month)).count()
+        counts['this_month_delta'] = (
+            counts['this_month'] -
+            qs.filter(**make_filter(gte=last_month, lt=this_month)).count()
+        )
+        counts['this_year'] = qs.filter(**make_filter(gte=this_year)).count()
+        counts['this_year_delta'] = (
+            counts['this_year'] -
+            qs.filter(**make_filter(gte=last_year, lt=this_year)).count()
+        )
+        counts['ever'] = qs.count()
+        return counts
+
+    # Events
+    counts = get_counts(Event.objects.all(), 'created')
+    context['groups'].append({
+        'name': 'New Events',
+        'counts': counts
+    })
+
+    # Suggested Events
+    counts = get_counts(SuggestedEvent.objects.all(), 'created')
+    context['groups'].append({
+        'name': 'Requested Events',
+        'counts': counts
+    })
+
+    # Users
+    counts = get_counts(User.objects.all(), 'date_joined')
+    context['groups'].append({
+        'name': 'New Users',
+        'counts': counts
+    })
+
+    # Comments
+    counts = get_counts(Comment.objects.all(), 'created')
+    context['groups'].append({
+        'name': 'Comments',
+        'counts': counts
+    })
+
+    # Event revisions
+    counts = get_counts(EventRevision.objects.all(), 'created')
+    context['groups'].append({
+        'name': 'Event Revisions',
+        'counts': counts
+    })
+
+    return context
 
 
 @staff_required

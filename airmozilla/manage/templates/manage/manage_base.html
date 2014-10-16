@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% set page = page|default('home') -%}
 {% set navigation_bar = [
-    ('manage:home', 'Dashboard', 'home', 'glyphicon-home', True, ''),
+    ('manage:dashboard', 'Dashboard', 'home', 'glyphicon-home', True, ''),
     ('main:home', 'Exit Management', '', 'glyphicon-backward', True, ''),
     ('', 'Event Tools', '', '', perms.main.add_event, ''),
     ('manage:event_request', 'Initiate event', 'erequest', 'glyphicon-calendar',
@@ -67,7 +67,7 @@
   <div class="navbar navbar-fixed-top navbar-inverse">
     <div class="navbar-inner">
       <div class="container container-full">
-        <a class="navbar-brand" href="{{ url('manage:home') }}">
+        <a class="navbar-brand" href="{{ url('manage:dashboard') }}">
         <img id="logo-img" src="{{ static('img/logo-airmo-md.png') }}" alt="Air Mozilla"
              width="100">
         </a>

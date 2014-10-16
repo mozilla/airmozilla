@@ -2,15 +2,117 @@
 {% set page = 'home' %}
 
 {% block manage_title %}
-    Welcome!
+  Dashboard
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  {% compress js %}
+  <script src="{{ static('manage/js/dashboard.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  .section {
+      margin-bottom: 50px;
+  }
+  .section h4 {
+      border-top: 1px solid #ccc;
+  }
+  .searches {
+      margin: 0 auto;
+      width: 90%;
+  }
+  .searches th,
+  .searches td {
+      width: 100px;
+  }
+
+  .searches th {
+      text-align: center;
+  }
+  tr.counts td {
+      font-size: 240%;
+      text-align: center;
+      /*padding: 5px 70px;*/
+  }
+  .loading {
+      padding: 200px;
+      text-align: center;
+  }
+  .delta {
+      font-size: 50%;
+  }
+  .delta.negative {
+      color: red;
+  }
+  .delta.positive {
+      color: green;
+  }
+  </style>
 {% endblock %}
 
 {% block manage_content %}
-    <p>Welcome to the Air Mozilla Manager.</p>
-    <p>If you have any questions, please contact
 
-    {% for email in admin_email_addresses -%}
-    <a href="mailto:{{ email }}">{{ email }}</a>{% if not loop.last %}, {% endif %}
-    {%- endfor -%}.
-    </p>
+<div ng-app="app" ng-controller="DashboardController">
+
+  <div class="loading" ng-show="!groups.length">
+    <p>Loading dashboard data...</p>
+  </div>
+
+  {% raw %}
+  <div class="section" ng-repeat="group in groups">
+    <h4>{{ group.name }}</h4>
+    <table class="searches">
+      <thead>
+        <tr>
+          <th title="Starting at midnight of UTC">Today</th>
+          <th title="Starting on the Monday">This week</th>
+          <th title="Starting the 1st of this month">This month</th>
+          <th>This year</th>
+          <th>Ever</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="counts">
+          <td title="Starting at midnight of UTC">
+            {{ group.counts.today }}
+            <span class="delta"
+              ng-class="deltaClass(group.counts.today_delta)">
+              {{ group.counts.today_delta | showDelta }}
+            </span>
+          </td>
+          <td title="Starting on the Monday">
+            {{ group.counts.this_week }}
+            <span class="delta"
+              ng-class="deltaClass(groups.counts.this_week_delta)">
+              {{ group.counts.this_week_delta | showDelta }}
+            </span>
+          </td>
+          <td title="Starting the 1st of this month">
+            {{ group.counts.this_month }}
+            <span class="delta"
+              ng-class="deltaClass(group.counts.this_month_delta)">
+              {{ group.counts.this_month_delta | showDelta }}
+            </span>
+          </td>
+          <td title="Starting the 1st of January">
+            {{ group.counts.this_year }}
+            <span class="delta"
+              ng-class="deltaClass(group.counts.this_year_delta)">
+              {{ group.counts.this_year_delta | showDelta }}
+            </span>
+          </td>
+          <td>{{ group.counts.ever }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% endraw %}
+
+</div>
+
 {% endblock %}
