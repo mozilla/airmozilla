@@ -1,0 +1,17 @@
+db:
+    image: postgres:9.4.1
+memcached:
+    image: memcached:1.4.22
+web:
+    build: .
+    volumes:
+        - .:/airmozilla
+    ports:
+        - "8000:8000"
+    environment:
+        - DISPLAY=:99.0
+        # If you want to reset your test db uncomment this
+        # - FORCE_DB=1
+    links:
+        - db
+        - memcached

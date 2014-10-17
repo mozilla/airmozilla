@@ -208,6 +208,64 @@ And last but not least:
 
 Now you should be able to open `http://localhost:8000`.
 
+How to get it running with Fig
+---------------------------------
+
+You need to install [Docker](https://docs.docker.com/installation/#installation)
+and [Fig](http://www.fig.sh/install.html) in your machine and then you can
+build the image, but first you have to modify your `airmozilla/settings/local.py`
+file so it can connect to the database and memcached.
+
+```
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'HOST': 'db',
+        'PORT': '',
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'KEY_PREFIX': 'airmoz',
+        'TIMEOUT': 6 * 60 * 60,
+        'LOCATION': 'memcached:11211'
+    }
+}
+```
+
+After this you can run the app by doing:
+
+```
+fig up
+```
+
+With this the Django test server will we running, so if your are on Linux you
+can connect to `localhost:8000` or to `192.168.59.103:8000` if you are on
+Windows or Mac.
+Due the fact that on Windows and Mac docker uses boot2docker this ip can change
+at some point, to know the exact ip address you can execute `boot2docker ip`.
+
+If you want to run regular tests you can execute:
+
+```
+fig run web ./manage.py test
+```
+
+If you want to run all included selenium tests, don't forget to add
+`RUN_SELENIUM_TESTS = True` and then execute:
+```
+docker exec -it airmozilla_web_1 ./manage.py test
+```
+
+Also if you want to ssh into the running container for debugging you should
+execute:
+```
+docker exec -it airmozilla_web_1 bash
+```
 
 How to contribute
 -----------------
