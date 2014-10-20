@@ -2195,7 +2195,7 @@ def tags_data(request):
     context['tags'] = tags
     context['urls'] = {
         'manage:tag_edit': reverse('manage:tag_edit', args=(0,)),
-        'manage:tag_remove': reverse('manage:tag_remove', args=(tag.pk,)),
+        'manage:tag_remove': reverse('manage:tag_remove', args=(0,)),
     }
     return context
 
