@@ -453,3 +453,63 @@ About the database
 Even though we use the Django ORM which is database engine agnostic,
 we have to have PostgreSQL because we rely on its ability to do
 fulltext index searches.
+
+
+PEP8 and pyflakes
+-----------------
+
+All (with some few exceptions) code needs to be fully
+[pep8](http://legacy.python.org/dev/peps/pep-0008/) and
+[pyflakes](https://pypi.python.org/pypi/pyflakes) compliant. And line length
+for Python is expected to be under 80 characters wide.
+
+The help yourself enforce this automatically, you need to set up the following
+git hooks. First, in your virtualenv, install this:
+
+    pip install flake8
+
+Next you need to create (or amend) the file:
+
+    .git/hooks/pre-commit
+
+...to contain the folllowing...:
+
+```bash
+#!/bin/sh
+
+exit_code=0
+
+for file in `git diff --cached --name-only --diff-filter=ACM | sort | uniq`
+    do
+        if [ ${file: -3} == ".py" ]; then
+            flake8 $file
+            if [ "$?" -ne "0" ]; then
+                exit_code=1
+            fi
+        fi
+        if [ ${file: -3} == ".js" ]; then
+            jshint $file
+            if [ "$?" -ne "0" ]; then
+                exit_code=1
+            fi
+        fi
+    done
+
+if [ "$exit_code" -ne "0" ]; then
+    echo "Aborting commit.  Fix above errors or do 'git commit --no-verify'."
+    exit 1
+fi
+```
+
+And make sure it's executable by running:
+
+    chmod +x .git/hooks/pre-commit
+
+Next time you type `git commit -a -m "fixes bug"` it might block you and spit
+out a message like this instead:
+
+```
+airmozilla/main/views.py:17:1: F401 'Sum' imported but unused
+airmozilla/main/views.py:378:80: E501 line too long (81 > 79 characters)
+Aborting commit.  Fix above errors or do 'git commit --no-verify'.
+```
