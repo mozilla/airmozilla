@@ -169,7 +169,6 @@ def dashboard_data(request):
             if lt is not None:
                 filter['%s__lt' % key] = lt
             return filter
-
         counts['today'] = qs.filter(**make_filter(gte=today)).count()
 
         counts['today_delta'] = (
