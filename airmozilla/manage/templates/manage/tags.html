@@ -55,7 +55,7 @@
                 Edit
                 </a>
                 <form method="post" class="confirm"
-                      action="{{ url('manage:tag_remove', tag.id) }}">
+                      action="{{ url('manage:tag_remove', tag.id) }}" ng-submit="confirmDelete($event)">
                   {% endraw %}{{ csrf() }}{% raw %}
                   <button class="btn btn-danger btn-xs" type="submit">
                     <i class="glyphicon glyphicon-trash"></i>

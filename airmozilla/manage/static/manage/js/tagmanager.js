@@ -46,6 +46,13 @@ function TagManagerController($scope, $http, $timeout) {
         }
         $scope.sort_by = key;
     };
+            //confirm deletion of a tag    
+    $scope.confirmDelete = function(event) {
+        if (!window.confirm("Are you sure you want to delete this tag ?")) {
+            // prevents submission of the form
+            event.preventDefault();
+        }
+    };
 
     $scope.loading = true;
     function fetchTags(params) {
