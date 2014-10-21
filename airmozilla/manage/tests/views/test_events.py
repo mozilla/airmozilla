@@ -1433,6 +1433,45 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 200)
         ok_(event.title not in response.content)
 
+    def test_hit_statistics_with_filter(self):
+        event = Event.objects.get(slug='test-event')
+        event_hit = Event.objects.create(
+            title='Test event hit',
+            slug='test-event-hit',
+            description=event.description,
+            privacy=Event.PRIVACY_PUBLIC,
+            placeholder_img=event.placeholder_img,
+            location=event.location,
+            start_time='2012-06-22T19:30:00Z',
+            archive_time='2012-06-22T20:00:00Z',
+        )
+
+        EventHitStats.objects.create(
+            event=event,
+            total_hits=101,
+            shortcode='abc123',
+        )
+
+        EventHitStats.objects.create(
+            event=event_hit,
+            total_hits=102,
+            shortcode='abc456',
+        )
+
+        response = self.client.get(
+            reverse('manage:event_hit_stats'),
+            {
+                'title': event_hit.title,
+            }
+        )
+        eq_(response.status_code, 200)
+
+        view_url_event = reverse('main:event', args=(event.slug,))
+        view_url_event_hit = reverse('main:event', args=(event_hit.slug,))
+
+        eq_(response.content.count(view_url_event_hit), 1)
+        eq_(response.content.count(view_url_event), 0)
+
     def test_event_edit_without_vidly_template(self):
         """based on https://bugzilla.mozilla.org/show_bug.cgi?id=879725"""
         event = Event.objects.get(title='Test event')

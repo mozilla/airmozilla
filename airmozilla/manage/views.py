@@ -2666,6 +2666,7 @@ def event_hit_stats(request):
     include_excluded = bool(request.GET.get('include_excluded'))
     today = datetime.datetime.utcnow().replace(tzinfo=utc)
     yesterday = today - datetime.timedelta(days=1)
+    title = request.GET.get('title')
     stats = (
         EventHitStats.objects
         .exclude(event__archive_time__isnull=True)
@@ -2679,6 +2680,9 @@ def event_hit_stats(request):
         })
         .select_related('event')
     )
+
+    if title:
+        stats = stats.filter(event__title__icontains=title)
 
     if not include_excluded:
         stats = stats.exclude(event__channels__exclude_from_trending=True)
@@ -2704,6 +2708,7 @@ def event_hit_stats(request):
         'stats_total': stats_total,
         'events_total': events_total,
         'include_excluded': include_excluded,
+        'title': title,
     }
     return render(request, 'manage/event_hit_stats.html', data)
 

@@ -25,6 +25,10 @@
     <input type="checkbox" name="include_excluded"
      {% if include_excluded %}checked{% endif %}> Include the "Excluded from Trending" events
     <button class="btn btn-default btn-xs">Refresh</button>
+    <div class="pull-right">
+      <input type="text" name="title" placeholder="Event" value="{% if title %}{{ title }}{% endif %}">
+      <button class="btn btn-default btn-xs">Search</button>
+    </div>
   </form>
 
   <table class="table table-striped">
