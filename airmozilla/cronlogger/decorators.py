@@ -39,8 +39,8 @@ def capture(f):
                     job=f.func_name,
                     stdout=stdout.getvalue(),
                     stderr=stderr.getvalue(),
-                    exc_type=repr(exc_type),
-                    exc_value=repr(exc_value),
+                    exc_type=str(exc_type),
+                    exc_value=str(exc_value),
                     exc_traceback=''.join(traceback.format_tb(exc_tb))
                 )
                 raise

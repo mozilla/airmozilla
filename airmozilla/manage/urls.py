@@ -213,4 +213,10 @@ urlpatterns = patterns(
     url(r'^picturegallery/(?P<id>\d+)/event_associate/$',
         views.picture_event_associate,
         name='picture_event_associate'),
+    url(r'^cronlogger/$',
+        views.cronlogger_home,
+        name='cronlogger'),
+    url(r'^cronlogger/data/$',
+        views.cronlogger_data,
+        name='cronlogger_data'),
 )

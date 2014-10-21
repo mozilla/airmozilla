@@ -1,0 +1,83 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "cronlogger" %}
+
+{% block manage_title %}
+    Cron Logs
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
+  {% compress js %}
+  <script src="{{ static('manage/js/cronlogger.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  .filter-bar {
+      margin-left: 10px;
+      margin-bottom: 30px;
+  }
+  </style>
+{% endblock %}
+
+{% block manage_content %}
+
+<div ng-app="app" ng-controller="CronLoggerController">
+  <p ng-if="loading" class="loading">
+    <img src="{{ static('img/spinner.gif') }}">
+    <span class="blinking">Loading logs...</span>
+  </p>
+
+  {% raw %}
+
+  <div class="row filter-bar" ng-class="{hidden: loading}">
+    <p>
+      There are: <b>{{ count }}</b> logged jobs.
+      <span ng-if="filtered_items.length < count">
+        (Only show the {{ filtered_items.length }} most recent)
+      </span>
+    </p>
+    <select name="created" ng-model="search_job"
+     ng-options="obj.text for obj in jobs track by obj.value">
+      <option value="">All jobs</option>
+      </option> -->
+    </select>
+
+    <button type="button" class="btn btn-default btn-xs btn-primary"
+      ng-if="hasFilter()" ng-click="clearFilter()">Clear filter</button>
+  </div>
+
+
+  <div class="panel panel-default" ng-repeat="item in filtered_items = (logs)">
+    <div class="panel-heading">
+      <time title="{{ formatDate(item.created) }}" am-time-ago="item.created" style="float:right"></time>
+      <h3 class="panel-title">{{ item.job }}</h3>
+    </div>
+    <div class="panel-body">
+      <div ng-show="item.exc_type">
+        <h4>Error!</h4>
+        <p>Exception type: <b>{{ item.exc_type }}</b></p>
+        <p>Exception value: <b>{{ item.exc_value }}</b></p>
+        <p>Traceback:</p>
+        <pre>{{ item.exc_traceback }}</pre>
+      </div>
+
+      <div ng-show="item.stdout">
+        <p><b>Stdout</b></p>
+        <pre>{{ item.stdout }}</pre>
+      </div>
+      <div ng-show="item.stderr">
+        <p><b>Stderr</b></p>
+        <pre>{{ item.stderr }}</pre>
+      </div>
+    </div>
+  </div>
+
+  {% endraw %}
+
+</div>
+{% endblock %}

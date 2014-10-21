@@ -78,7 +78,7 @@ from airmozilla.manage import sending
 from airmozilla.comments.models import Discussion, Comment, SuggestedDiscussion
 from airmozilla.surveys.models import Survey, Question
 from airmozilla.search.models import LoggedSearch
-
+from airmozilla.cronlogger.models import CronLog
 
 staff_required = user_passes_test(lambda u: u.is_staff)
 superuser_required = user_passes_test(lambda u: u.is_superuser)
@@ -3578,3 +3578,44 @@ def picture_event_associate(request, id):
     event.picture = picture
     event.save()
     return True
+
+
+@superuser_required
+def cronlogger_home(request):
+    return render(request, 'manage/cronlogger.html')
+
+
+@superuser_required
+@json_view
+def cronlogger_data(request):
+    context = {}
+    values = (
+        'job',
+        'created',
+        'stdout',
+        'stderr',
+        'exc_type',
+        'exc_value',
+        'exc_traceback',
+    )
+    qs = CronLog.objects.all()
+    jobs = []
+    for each in qs.values('job').annotate(Count('job')):
+        jobs.append({
+            'text': '%s (%d)' % (each['job'], each['job__count']),
+            'value': each['job']
+        })
+    jobs.sort(key=lambda x: x['value'])
+    context['jobs'] = jobs
+
+    if request.GET.get('job'):
+        qs = qs.filter(job__exact=request.GET['job'])
+    context['count'] = qs.count()
+    logs = []
+    for log_dict in qs.order_by('-created').values(*values)[:100]:
+        log = dot_dict(log_dict)
+        log['created'] = log['created'].isoformat()
+        logs.append(log)
+    context['logs'] = logs
+
+    return context
