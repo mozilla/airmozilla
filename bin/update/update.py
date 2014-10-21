@@ -43,6 +43,7 @@ def update_db(ctx):
         ctx.local('python2.6 manage.py migrate airmozilla.subtitles')
         ctx.local('python2.6 manage.py migrate airmozilla.search')
         ctx.local('python2.6 manage.py migrate airmozilla.surveys')
+        ctx.local('python2.6 manage.py migrate airmozilla.cronlogger')
 
 
 @task

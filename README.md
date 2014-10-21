@@ -305,6 +305,7 @@ To apply migrations:
 ./manage.py migrate airmozilla.uploads
 ./manage.py migrate airmozilla.subtitles
 ./manage.py migrate airmozilla.surveys
+./manage.py migrate airmozilla.cronlogger
 ```
 
 In each command, replace airmozilla.main with the appropriate app.
