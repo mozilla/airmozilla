@@ -27,3 +27,26 @@ def abs_static(context, path):
 
     assert path.startswith('http://') or path.startswith('https://')
     return path
+
+
+@register.function
+def show_duration(duration, include_seconds=False):
+    hours = duration / 3600
+    seconds = duration % 3600
+    minutes = seconds / 60
+    seconds = seconds % 60
+    out = []
+    if hours > 1:
+        out.append('%d hours' % hours)
+    elif hours:
+        out.append('1 hour')
+    if minutes > 1:
+        out.append('%d minutes' % minutes)
+    elif minutes:
+        out.append('1 minute')
+    if include_seconds:
+        if seconds > 1:
+            out.append('%d seconds' % seconds)
+        elif seconds:
+            out.append('1 second')
+    return ' '.join(out)

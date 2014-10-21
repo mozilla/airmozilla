@@ -58,6 +58,15 @@
         <span class="badge badge-info">Created</span>
         {{ event.created|js_date }}<br>{{ event.creator.email }}</li>
     </ul>
+
+    {% if event.duration %}
+    <p>
+      <strong>
+        Video duration: {{ show_duration(event.duration) }}
+      </strong>
+    </p>
+    {% endif %}
+
     {% if suggested_event %}
     <p><a href="{{ url('suggest:summary', suggested_event.pk) }}">This event was originally suggested</a> by
       <strong>{{ suggested_event.user.email }}</strong>

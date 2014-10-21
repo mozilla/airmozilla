@@ -3,7 +3,7 @@ from nose.tools import eq_
 from django.test.client import RequestFactory
 
 from airmozilla.base.tests.testbase import DjangoTestCase
-from airmozilla.base.helpers import abs_static
+from airmozilla.base.helpers import abs_static, show_duration
 
 
 class TestAbsStaticHelpers(DjangoTestCase):
@@ -71,3 +71,31 @@ class TestAbsStaticHelpers(DjangoTestCase):
         with self.settings(STATIC_URL='//my.cdn.com/static/'):
             result = abs_static(context, 'foo.png')
             eq_(result, 'https://my.cdn.com/static/foo.png')
+
+
+class TestDuration(DjangoTestCase):
+
+    def test_show_duration_long_format(self):
+        result = show_duration(60 * 60)
+        eq_(result, "1 hour")
+
+        result = show_duration(60)
+        eq_(result, "1 minute")
+
+        result = show_duration(2 * 60 * 60 + 10 * 60)
+        eq_(result, "2 hours 10 minutes")
+
+        result = show_duration(1 * 60 * 60 + 1 * 60)
+        eq_(result, "1 hour 1 minute")
+
+        result = show_duration(1 * 60 * 60 + 1 * 60 + 1)
+        eq_(result, "1 hour 1 minute")
+
+        result = show_duration(2 * 60 * 60 + 2 * 60)
+        eq_(result, "2 hours 2 minutes")
+
+        result = show_duration(1 * 60 * 60 + 1 * 60 + 1, include_seconds=True)
+        eq_(result, "1 hour 1 minute 1 second")
+
+        result = show_duration(1 * 60 * 60 + 1 * 60 + 2, include_seconds=True)
+        eq_(result, "1 hour 1 minute 2 seconds")

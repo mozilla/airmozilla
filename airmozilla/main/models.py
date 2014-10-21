@@ -346,6 +346,7 @@ class Event(models.Model):
     transcript = models.TextField(null=True)
     recruitmentmessage = models.ForeignKey(RecruitmentMessage, null=True,
                                            on_delete=models.SET_NULL)
+    duration = models.PositiveIntegerField(null=True)  # seconds
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)

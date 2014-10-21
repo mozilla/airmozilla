@@ -9,6 +9,7 @@ from . import tweeter
 from . import pestering
 from . import event_hit_stats
 from . import archiver
+from . import videoinfo
 
 
 @cronjobs.register
@@ -42,4 +43,13 @@ def update_event_hit_stats():
     event_hit_stats.update(
         cap=15,
         swallow_errors=True,
+    )
+
+
+@cronjobs.register
+@capture
+def fetch_durations():
+    videoinfo.fetch_durations(
+        max_=10,
+        verbose=True
     )

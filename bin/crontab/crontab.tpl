@@ -21,4 +21,8 @@ HOME=/tmp
 # Every 10 minutes
 */10 * * * * {{ cron }} update_event_hit_stats 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
+# Every hour
+0 */1 * * * {{ cron }} fetch_durations 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+
+
 MAILTO=root
