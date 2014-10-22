@@ -94,6 +94,8 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         archived_events = archived_events.exclude(**privacy_exclude)
     archived_events = archived_events.order_by('-start_time')
 
+    archived_events = archived_events.select_related('picture')
+
     found_tags = []
     if request.GET.getlist('tag'):
         requested_tags = request.GET.getlist('tag')
@@ -125,6 +127,8 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         # but only do this if it's not filtered by tags
         live_events = live_events.filter(channels=channels)
         archived_events = archived_events.filter(channels=channels)
+
+        live_events = live_events.select_related('picture')
 
     if channels and channels[0].reverse_order:
         archived_events = archived_events.reverse()

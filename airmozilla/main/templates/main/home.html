@@ -1,14 +1,6 @@
 {% extends 'main/main_base.html' %}
 {% set front_page = (events.number == 1) %}
 
-{% block also_live %}
-  {% if also_live %}
-    {% set widget_title = _('Also live') -%}
-    {% set widget_events = also_live -%}
-    {% include 'main/_side_events.html' %}
-  {% endif %}
-{% endblock %}
-
 
 {% block site_css %}
 {{ super() }}

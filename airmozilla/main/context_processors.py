@@ -104,6 +104,8 @@ def _get_upcoming_events(channels, anonymous, contributor):
     """do the heavy lifting of getting the featured events"""
     upcoming = Event.objects.upcoming().order_by('start_time')
     upcoming = upcoming.filter(channels__in=channels).distinct()
+    upcoming = upcoming.select_related('picture')
+
     if anonymous:
         upcoming = upcoming.exclude(privacy=Event.PRIVACY_COMPANY)
     elif contributor:
@@ -161,6 +163,7 @@ def _get_featured_events(channels, anonymous, contributor):
         featured = featured.filter(event__privacy=Event.PRIVACY_PUBLIC)
     elif contributor:
         featured = featured.exclude(event__privacy=Event.PRIVACY_COMPANY)
+    featured = featured.select_related('event__picture')
     return featured
 
 

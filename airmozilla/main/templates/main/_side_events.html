@@ -26,21 +26,6 @@
             {{ event.title }}
           </a>
         </h4>
-        {#
-        {% if event.participants.exists() %}
-          <p class="entry-summary featuring">
-            {{ _('featuring ') }}
-            {% for p in event.participants.all() %}
-              {% if p.is_clear() %}
-                <a href="{{ url('main:participant', slug=p.slug) }}">
-              {%- endif -%}
-              {{ p.name }}
-              {%- if p.is_clear() %}</a>{% endif %}
-              {%- if not loop.last %}, {% endif -%}
-            {% endfor %}
-          </p>
-        {% endif %}
-        #}
         <p class="event-date">{{ event.start_time|js_date }}</p>
         <p class="entry-summary">{{ short_desc(event) | safe_html }}</p>
       </li>
