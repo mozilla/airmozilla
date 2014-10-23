@@ -169,27 +169,23 @@ def dashboard_data(request):
             if lt is not None:
                 filter['%s__lt' % key] = lt
             return filter
-        counts['today'] = qs.filter(**make_filter(gte=today)).count()
 
-        counts['today_delta'] = (
-            counts['today'] -
-            qs.filter(**make_filter(gte=yesterday, lt=today)).count()
-        )
+        counts['today'] = qs.filter(**make_filter(gte=today)).count()
+        counts['yesterday'] = qs.filter(
+            **make_filter(gte=yesterday, lt=today)).count()
+
         counts['this_week'] = qs.filter(**make_filter(gte=this_week)).count()
-        counts['this_week_delta'] = (
-            counts['this_week'] -
-            qs.filter(**make_filter(gte=last_week, lt=this_week)).count()
-        )
+        counts['last_week'] = qs.filter(
+            **make_filter(gte=last_week, lt=this_week)).count()
+
         counts['this_month'] = qs.filter(**make_filter(gte=this_month)).count()
-        counts['this_month_delta'] = (
-            counts['this_month'] -
-            qs.filter(**make_filter(gte=last_month, lt=this_month)).count()
-        )
+        counts['last_month'] = qs.filter(
+            **make_filter(gte=last_month, lt=this_month)).count()
+
         counts['this_year'] = qs.filter(**make_filter(gte=this_year)).count()
-        counts['this_year_delta'] = (
-            counts['this_year'] -
-            qs.filter(**make_filter(gte=last_year, lt=this_year)).count()
-        )
+        counts['last_year'] = qs.filter(
+            **make_filter(gte=last_year, lt=this_year)).count()
+
         counts['ever'] = qs.count()
         return counts
 
