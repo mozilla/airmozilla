@@ -40,13 +40,13 @@ class TestDashboard(ManageTestCase):
         eq_(response.status_code, 200)
         counts = user_counts(response)
         eq_(counts['today'], 1)
-        eq_(counts['today_delta'], 1)  # one more than last yesterday
+        eq_(counts['yesterday'], 0)  # one more than last yesterday
         eq_(counts['this_week'], 1)
-        eq_(counts['this_week_delta'], 1)
+        eq_(counts['last_week'], 0)
         eq_(counts['this_month'], 1)
-        eq_(counts['this_month_delta'], 1)
+        eq_(counts['last_month'], 0)
         eq_(counts['this_year'], 1)
-        eq_(counts['this_year_delta'], 1)
+        eq_(counts['last_year'], 0)
         eq_(counts['ever'], 1)
 
         user.date_joined -= datetime.timedelta(days=1)
@@ -59,13 +59,13 @@ class TestDashboard(ManageTestCase):
         if now.weekday() != 0:
             # Don't test this on a Monday.
             # This is ugly but the dashboard data isn't critical enough :)
-            eq_(counts['today_delta'], -1)  # one more than yesterday
+            eq_(counts['yesterday'], 1)  # one more than yesterday
             eq_(counts['this_week'], 1)
-            eq_(counts['this_week_delta'], 1)
+            eq_(counts['last_week'], 0)
         eq_(counts['this_month'], 1)
-        eq_(counts['this_month_delta'], 1)
+        eq_(counts['last_month'], 0)
         eq_(counts['this_year'], 1)
-        eq_(counts['this_year_delta'], 1)
+        eq_(counts['last_year'], 0)
         eq_(counts['ever'], 1)
 
         user.date_joined -= datetime.timedelta(days=6)
@@ -75,13 +75,13 @@ class TestDashboard(ManageTestCase):
         eq_(response.status_code, 200)
         counts = user_counts(response)
         eq_(counts['today'], 0)
-        eq_(counts['today_delta'], 0)
+        eq_(counts['yesterday'], 0)
         eq_(counts['this_week'], 0)
-        eq_(counts['this_week_delta'], -1)
+        eq_(counts['last_week'], 1)
         eq_(counts['this_month'], 1)
-        eq_(counts['this_month_delta'], 1)
+        eq_(counts['last_month'], 0)
         eq_(counts['this_year'], 1)
-        eq_(counts['this_year_delta'], 1)
+        eq_(counts['last_year'], 0)
         eq_(counts['ever'], 1)
 
         month = user.date_joined.month
@@ -93,13 +93,13 @@ class TestDashboard(ManageTestCase):
         eq_(response.status_code, 200)
         counts = user_counts(response)
         eq_(counts['today'], 0)
-        eq_(counts['today_delta'], 0)
+        eq_(counts['yesterday'], 0)
         eq_(counts['this_week'], 0)
-        eq_(counts['this_week_delta'], 0)
+        eq_(counts['last_week'], 0)
         eq_(counts['this_month'], 0)
-        eq_(counts['this_month_delta'], -1)
+        eq_(counts['last_month'], 1)
         eq_(counts['this_year'], 1)
-        eq_(counts['this_year_delta'], 1)
+        eq_(counts['last_year'], 0)
         eq_(counts['ever'], 1)
 
         year = user.date_joined.year
@@ -111,13 +111,13 @@ class TestDashboard(ManageTestCase):
         eq_(response.status_code, 200)
         counts = user_counts(response)
         eq_(counts['today'], 0)
-        eq_(counts['today_delta'], 0)
+        eq_(counts['yesterday'], 0)
         eq_(counts['this_week'], 0)
-        eq_(counts['this_week_delta'], 0)
+        eq_(counts['last_week'], 0)
         eq_(counts['this_month'], 0)
-        eq_(counts['this_month_delta'], 0)
+        eq_(counts['last_month'], 0)
         eq_(counts['this_year'], 0)
-        eq_(counts['this_year_delta'], -1)
+        eq_(counts['last_year'], 1)
         eq_(counts['ever'], 1)
 
     def test_cache_busting_headers(self):
