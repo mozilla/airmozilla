@@ -69,8 +69,10 @@
       <h2 class="event-date">
         {{ event.start_time | js_date }}
 	      {% if event.is_upcoming() %}
-          &mdash;
-          {{ event.location_time.strftime("%I:%M%p") }} in {{ event.location.name }}
+          {% if event.location %}
+            &mdash;
+            {{ event.location_time.strftime("%I:%M%p") }} in {{ event.location.name }}
+          {% endif %}
         {% endif %}
       </h2>
       {% endif %}

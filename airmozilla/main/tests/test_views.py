@@ -2506,6 +2506,35 @@ class TestPages(DjangoTestCase):
         upcoming_src_after = img.attrib['src']
         ok_(upcoming_src_after != upcoming_src)
 
+    def test_view_event_without_location(self):
+        event = Event.objects.get(title='Test event')
+        location = Location.objects.create(
+            name='London',
+            timezone='Europe/London'
+        )
+        event.location = location
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        tomorrow = now + datetime.timedelta(days=1)
+        event.start_time = tomorrow
+        event.save()
+
+        assert event in Event.objects.upcoming()
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('London' in response.content)
+
+        location.delete()
+        # reload
+        event = Event.objects.get(id=event.id)
+        ok_(event.location is None)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('London' not in response.content)
+        # the start time will be described in UTC
+        ok_(event.start_time.strftime('%H:%M %Z') in response.content)
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
