@@ -14,6 +14,8 @@ screenshots are usually very helpful.
 All open bugs are [listed on Bugzilla](https://bugzilla.mozilla.org/buglist.cgi?product=Webtools&component=Air Mozilla&resolution=---).
 The bugs are sorted by priority from P5 to P1 where P1 are the most "urgent".
 
+You can look for good beginner bugs by searching for the string `[good
+first bug]` in the Whiteboard field.
 
 ## Coding style
 

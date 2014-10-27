@@ -379,10 +379,6 @@ IRC
 ---
 irc://irc.mozilla.org/airmozilla-dev
 
-[django]: http://www.djangoproject.com/
-[gh-playdoh]: https://github.com/mozilla/playdoh
-[south]: http://south.aeracode.org/
-
 
 Cron jobs
 ---------
