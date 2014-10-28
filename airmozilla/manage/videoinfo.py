@@ -105,6 +105,9 @@ def fetch_duration(event, save=False, save_locally=False, verbose=False):
                 event.duration = seconds
                 event.save()
             return seconds
+        elif verbose:  # pragma: no cover
+            print "No Duration output. Error:"
+            print err
     finally:
         if save_locally:
             if os.path.isfile(filepath):
@@ -142,10 +145,13 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
                 verbose=verbose
             )
             if verbose:  # pragma: no cover
-                print (
-                    "Duration: %s\n" %
-                    show_duration(duration, include_seconds=True)
-                )
+                if duration:
+                    print (
+                        "Duration: %s\n" %
+                        show_duration(duration, include_seconds=True)
+                    )
+                else:
+                    print "Unabled to extract Duration"
         except AssertionError:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             print ''.join(traceback.format_tb(exc_traceback))
