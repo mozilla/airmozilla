@@ -1,3 +1,4 @@
+import sys
 from cStringIO import StringIO
 
 from nose.tools import ok_, eq_
@@ -10,14 +11,23 @@ from airmozilla.manage import videoinfo
 
 
 class _Response(object):
-    def __init__(self, content, status_code=200):
+    def __init__(self, content, status_code=200, headers=None):
         self.content = self.text = content
         self.status_code = status_code
+        self.headers = headers or {}
+
+    def iter_content(self, chunk_size=1024):
+        increment = 0
+        while True:
+            chunk = self.content[increment: increment + chunk_size]
+            increment += chunk_size
+            if not chunk:
+                break
+            yield chunk
 
 
 class TestVideoinfo(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    # main_image = 'airmozilla/manage/tests/firefox.png'
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
@@ -118,8 +128,150 @@ class TestVideoinfo(TestCase):
         event = Event.objects.get(id=event.id)
         eq_(event.duration, 1157)
 
-        # now we can check which URLs were sent into the ffmpeg command
-        first, second, third = ffmpeged_urls
-        ok_('hd_mp4' not in first)
-        ok_('hd_mp4' in second)
-        ok_('token=' in third)
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    def test_fetch_duration_fail_to_fetch(
+        self, rhead, p_urllib2, p_logging
+    ):
+
+        def mocked_head(url, **options):
+            return _Response(
+                'Not Found',
+                404
+            )
+
+        rhead.side_effect = mocked_head
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+        assert event.duration is None
+
+        buffer = StringIO()
+        sys.stdout = buffer
+        try:
+            videoinfo.fetch_durations()
+        finally:
+            sys.stdout = sys.__stdout__
+
+        event = Event.objects.get(id=event.id)
+        eq_(event.duration, None)  # because it failed
+        output = buffer.getvalue()
+        ok_('404' in output)
+
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    @mock.patch('requests.get')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_duration_save_locally(
+        self, mock_popen, rget, rhead, p_urllib2, p_logging
+    ):
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>xxx999</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        def mocked_head(url, **options):
+            if 'file.mpg' in url:
+                return _Response(
+                    '',
+                    200
+                )
+            return _Response(
+                '',
+                302,
+                headers={
+                    'Location': 'https://otherplace.com/file.mpg'
+                }
+            )
+
+        rhead.side_effect = mocked_head
+
+        def mocked_get(url, **options):
+            return _Response(
+                '0' * 100000,
+                200,
+                headers={
+                    'Content-Length': 100000
+                }
+            )
+
+        rget.side_effect = mocked_get
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+
+            url = command[2]
+            ffmpeged_urls.append(url)
+
+            class Inner:
+                def communicate(self):
+
+                    out = ''
+                    if 'abc123' in url:
+                        err = "bla bla"
+                    elif 'xyz123' in url:
+                        err = """
+            Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
+                        """
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+        assert event.duration is None
+
+        videoinfo.fetch_durations(save_locally=True)
+        event = Event.objects.get(id=event.id)
+        assert event.duration is None
+
+        ffmpeged_url, = ffmpeged_urls
+        ok_(ffmpeged_url.endswith('abc123.mp4'))
+
+        # need to change to a different tag
+        # and make sure it has a VidlySubmission
+        VidlySubmission.objects.create(
+            event=event,
+            url='https://s3.com/asomething.mov',
+            tag='xyz123',
+            hd=True,
+        )
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+        videoinfo.fetch_durations(save_locally=True)
+        event = Event.objects.get(id=event.id)
+        eq_(event.duration, 1157)
+
+        ffmpeged_url, ffmpeged_url2 = ffmpeged_urls
+        ok_(ffmpeged_url.endswith('abc123.mp4'))
+        ok_(ffmpeged_url2.endswith('xyz123.mp4'))
