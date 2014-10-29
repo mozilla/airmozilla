@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 
 from funfactory.urlresolvers import reverse
 
+from airmozilla.main.models import Event
 from .base import ManageTestCase
 
 
@@ -119,6 +120,44 @@ class TestDashboard(ManageTestCase):
         eq_(counts['this_year'], 0)
         eq_(counts['last_year'], 1)
         eq_(counts['ever'], 1)
+
+    def test_dashboard_data_event_durations(self):
+
+        def event_counts(response):
+            data = json.loads(response.content)
+            return [
+                x['counts'] for x in data['groups']
+                if x['name'] == 'Total Event Durations'
+            ][0]
+
+        assert Event.objects.all().count() == 1
+        event = Event.objects.get(title='Test event')
+
+        # let's pretend it was added today
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = now
+        event.duration = 30  # 30 seconds
+        event.save()
+
+        url = reverse('manage:dashboard_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        counts = event_counts(response)
+        eq_(counts['today'], '30s')
+
+        event.duration = 300  # 5 minutes
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        counts = event_counts(response)
+        eq_(counts['today'], '5m')
+
+        event.duration = 3600 * 3 + 100  # ~ 3 hours
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        counts = event_counts(response)
+        eq_(counts['today'], '3h')
 
     def test_cache_busting_headers(self):
         # viewing any of the public pages should NOT have it

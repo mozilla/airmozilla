@@ -224,6 +224,57 @@ def dashboard_data(request):
         'counts': counts
     })
 
+    def get_duration_totals(qs):
+
+        key = 'start_time'
+
+        def make_filter(gte=None, lt=None):
+            filter = {}
+            if gte is not None:
+                filter['%s__gte' % key] = gte
+            if lt is not None:
+                filter['%s__lt' % key] = lt
+            return filter
+
+        counts = {}
+
+        def sum(elements):
+            seconds = elements.aggregate(Sum('duration'))['duration__sum']
+            seconds = seconds or 0  # in case it's None
+            minutes = seconds / 60
+            hours = minutes / 60
+            if hours > 1:
+                return "%dh" % hours
+            elif minutes > 1:
+                return "%dm" % minutes
+            return "%ds" % seconds
+
+        counts['today'] = sum(qs.filter(**make_filter(gte=today)))
+        counts['yesterday'] = sum(qs.filter(
+            **make_filter(gte=yesterday, lt=today)))
+
+        counts['this_week'] = sum(qs.filter(**make_filter(gte=this_week)))
+        counts['last_week'] = sum(qs.filter(
+            **make_filter(gte=last_week, lt=this_week)))
+
+        counts['this_month'] = sum(qs.filter(**make_filter(gte=this_month)))
+        counts['last_month'] = sum(qs.filter(
+            **make_filter(gte=last_month, lt=this_month)))
+
+        counts['this_year'] = sum(qs.filter(**make_filter(gte=this_year)))
+        counts['last_year'] = sum(qs.filter(
+            **make_filter(gte=last_year, lt=this_year)))
+
+        counts['ever'] = sum(qs)
+        return counts
+
+    # Exceptional
+    counts = get_duration_totals(Event.objects.exclude(duration__isnull=True))
+    context['groups'].append({
+        'name': 'Total Event Durations',
+        'counts': counts
+    })
+
     return context
 
 
