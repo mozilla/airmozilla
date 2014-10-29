@@ -368,6 +368,40 @@ data so that you're now a superuser.
 >>> my_user.save()
 ```
 
+Adding a sample video
+---------------------
+
+Once you're a superuser, the simplest way to add sample content is to
+use existing media from Air Mozilla. We're first going to create a
+template, then create content based on this template.
+
+Let's create the Video template:
+
+ * Go to the management page at `http://localhost:8000/manage`
+ * Click on `Video templates` in the left menu, and initiate a
+   template with `New template`
+ * Fill the `Name` with "Vid.ly"
+ * Fill the `Content` with
+
+    ```html
+    <iframe frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen msallowfullscreen width="640" height="360" name="vidly-frame" src="https://vid.ly/embeded.html?link={{ tag }}&amp;new=1&amp;autoplay={% if autoplay %}true{% else %}false{% endif %}&amp;hd=yes"></iframe>
+    ```
+ * Save changes
+
+We're now going to initiate an event with this template:
+
+ * Click on `Initiate event` in the left menu of the management
+   page
+ * Choose the `Vid.ly` template
+ * Replace the Template environment with `tag=7u9u1i`
+ * Change status to `Scheduled`
+ * Choose a title, a description, a start time, a channel (Main) and a
+   placeholder image
+ * Save and submit
+
+You should now see your video in the Event manager
+(`http://localhost:8000/manage/events/`) and on the main page
+(`http://localhost:8000/`)!
 
 Contributing
 ------------
