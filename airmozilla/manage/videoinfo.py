@@ -123,7 +123,11 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
         .filter(duration__isnull=True)
         .filter(template__name__icontains='Vid.ly')
     )
-
+    total_count = qs.count()
+    if verbose:  # pragma: no cover
+        print total_count, "events to process"
+        print
+    count = success = skipped = 0
     for event in qs.order_by('?')[:max_]:
         if verbose:  # pragma: no cover
             print "Event: %r, (privacy:%s slug:%s)" % (
@@ -135,8 +139,10 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
         if not event.template_environment.get('tag'):
             if verbose:  # pragma: no cover
                 print "No Vid.ly Tag!"
+            skipped += 1
             continue
 
+        count += 1
         try:
             duration = fetch_duration(
                 event,
@@ -144,6 +150,7 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
                 save_locally=save_locally,
                 verbose=verbose
             )
+            success += 1
             if verbose:  # pragma: no cover
                 if duration:
                     print (
@@ -152,7 +159,14 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
                     )
                 else:
                     print "Unabled to extract Duration"
+
         except AssertionError:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             print ''.join(traceback.format_tb(exc_traceback))
             print exc_type, exc_value
+
+    if verbose:  # pragma: no cover
+        print "Processed", count,
+        print '(%d successfully)' % success,
+        print '(%d skipped)' % skipped
+        print total_count - count, "left to go"

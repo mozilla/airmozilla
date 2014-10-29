@@ -50,7 +50,7 @@ def update_event_hit_stats():
 @capture
 def fetch_durations():
     videoinfo.fetch_durations(
-        max_=5,
+        max_=10,
         verbose=True,
         save_locally=True,
     )
