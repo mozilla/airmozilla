@@ -122,6 +122,7 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
         Event.objects
         .filter(duration__isnull=True)
         .filter(template__name__icontains='Vid.ly')
+        .exclude(status=Event.STATUS_REMOVED)
     )
     total_count = qs.count()
     if verbose:  # pragma: no cover
