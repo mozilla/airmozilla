@@ -29,7 +29,9 @@ def _download_file(url, local_filename):
                 f.flush()
 
 
-def fetch_duration(event, save=False, save_locally=False, verbose=False):
+def fetch_duration(
+    event, save=False, save_locally=False, verbose=False, use_https=True,
+):
     assert 'Vid.ly' in event.template.name, "Not a Vid.ly template"
     assert event.template_environment.get('tag'), "No Vid.ly tag in template"
 
@@ -60,6 +62,9 @@ def fetch_duration(event, save=False, save_locally=False, verbose=False):
         if response.headers['Content-Length']:
             print "Content-Length:",
             print filesizeformat(int(response.headers['Content-Length']))
+
+    if not use_https:
+        vidly_url = vidly_url.replace('https://', 'http://')
 
     if save_locally:
         # store it in a temporary location
@@ -115,7 +120,7 @@ def fetch_duration(event, save=False, save_locally=False, verbose=False):
 
 
 def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
-                    save_locally=False):
+                    save_locally=False, save_locally_some=False):
     """this can be called by a cron job that will try to fetch
     duration for as many events as it can."""
     qs = (
@@ -129,6 +134,7 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
         print total_count, "events to process"
         print
     count = success = skipped = 0
+
     for event in qs.order_by('?')[:max_]:
         if verbose:  # pragma: no cover
             print "Event: %r, (privacy:%s slug:%s)" % (
@@ -145,11 +151,19 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
 
         count += 1
         try:
+            use_https = True
+            if save_locally_some:
+                # override save_locally based on the type of event
+                save_locally = event.privacy != Event.PRIVACY_PUBLIC
+                # then this is not necessary
+                use_https = save_locally
+
             duration = fetch_duration(
                 event,
                 save=not dry_run,
                 save_locally=save_locally,
-                verbose=verbose
+                use_https=use_https,
+                verbose=verbose,
             )
             success += 1
             if verbose:  # pragma: no cover

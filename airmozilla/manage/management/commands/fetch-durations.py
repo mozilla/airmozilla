@@ -20,6 +20,12 @@ class Command(BaseCommand):  # pragma: no cover
             '-s', '--save-locally', action='store_true', dest='save_locally',
             default=False, help='Save the video file locally (temporary)'
         ),
+        make_option(
+            '--save-locally-some', action='store_true',
+            dest='save_locally_some',
+            default=False,
+            help='Save the video file locally only if public event'
+        ),
     )
 
     def handle(self, **options):
@@ -28,5 +34,6 @@ class Command(BaseCommand):  # pragma: no cover
             max_=int(options['max']),
             dry_run=options['dry_run'],
             save_locally=options['save_locally'],
+            save_locally_some=options['save_locally_some'],
             verbose=verbosity > 1
         )
