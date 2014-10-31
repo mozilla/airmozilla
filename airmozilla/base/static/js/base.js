@@ -11,7 +11,7 @@ var AutoUpdateTime = (function() {
             var format = $element.attr('data-format');
             var parsed = moment(datetime);
             var time_past = ((new Date()).getTime() - _initial_time) / 1000;
-            parsed.add('seconds', time_past);
+            parsed.add(time_past, 'seconds');
             $element.text(parsed.format(format));
         });
         setTimeout(loop, 60 * 1000);
