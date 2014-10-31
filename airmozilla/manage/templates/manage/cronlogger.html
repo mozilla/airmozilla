@@ -21,6 +21,14 @@
       margin-left: 10px;
       margin-bottom: 30px;
   }
+  .loading {
+      padding: 200px;
+      text-align: center;
+  }
+  div.buttons {
+      float: right;
+      padding-right: 15px;
+  }
   </style>
 {% endblock %}
 
@@ -34,7 +42,16 @@
 
   {% raw %}
 
-  <div class="row filter-bar" ng-class="{hidden: loading}">
+  <div class="row filter-bar" ng-show="!loading">
+    <div class="buttons">
+      <button class="btn btn-xs btn-default"
+        ng-class="{'btn-primary': expandedView}"
+        ng-click="expandedView=true">Expanded view</button>
+      <button class="btn btn-xs btn-default"
+        ng-class="{'btn-primary': !expandedView}"
+        ng-click="expandedView=false">Condensed view</button>
+    </div>
+
     <p>
       There are: <b>{{ count }}</b> logged jobs.
       <span ng-if="filtered_items.length < count">
@@ -50,8 +67,28 @@
       ng-if="hasFilter()" ng-click="clearFilter()">Clear filter</button>
   </div>
 
+  <table ng-show="!expandedView" class="table table-condensed">
+    <thead>
+      <tr>
+        <th>Job</th>
+        <th>Time ago</th>
+        <th>Exact time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="item in filtered_items = (logs)">
+        <td>{{ item.job }}</td>
+        <td>
+          <time title="{{ formatDate(item.created) }}" am-time-ago="item.created"></time>
+        </td>
+        <td>
+          {{ formatDate(item.created) }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
 
-  <div class="panel panel-default" ng-repeat="item in filtered_items = (logs)">
+  <div class="panel panel-default" ng-repeat="item in filtered_items = (logs)" ng-show="expandedView">
     <div class="panel-heading">
       <time title="{{ formatDate(item.created) }}" am-time-ago="item.created" style="float:right"></time>
       <h3 class="panel-title">{{ item.job }}</h3>

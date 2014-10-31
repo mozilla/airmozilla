@@ -14,9 +14,16 @@ app.controller('CronLoggerController', ['$scope', '$http',
     function($scope, $http) {
         'use strict';
 
+        $scope.expandedView = true;
         $scope.logs = [];
         $scope.count = 0;
         $scope.loading = true;
+
+        function reset() {
+            $scope.logs = [];
+            $scope.count = 0;
+            $scope.loading = true;
+        }
 
         $scope.formatDate = function(date) {
             return moment(date).format('ddd, MMM D, YYYY, h:mma UTCZZ');
@@ -31,6 +38,7 @@ app.controller('CronLoggerController', ['$scope', '$http',
         $scope.search_job = null;
         $scope.$watch('search_job', function(new_value, old_value) {
             if (new_value !== old_value) {
+                reset();
                 load();
             }
         });
