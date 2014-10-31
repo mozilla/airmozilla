@@ -343,6 +343,10 @@ class EventView(View):
 
         template_tagged = ''
         if event.template and not event.is_upcoming():
+            # The only acceptable way to make autoplay be on
+            # is to send ?autoplay=true
+            # All other attempts will switch it off.
+            autoplay = request.GET.get('autoplay', 'false') == 'true'
             context = {
                 'md5': lambda s: hashlib.md5(s).hexdigest(),
                 'event': event,
@@ -351,7 +355,7 @@ class EventView(View):
                 'vidly_tokenize': vidly.tokenize,
                 'edgecast_tokenize': edgecast_tokenize,
                 'popcorn_url': event.popcorn_url,
-                'autoplay': request.GET.get('autoplay', 'false'),
+                'autoplay': autoplay and 'true' or 'false',  # javascript
             }
             if isinstance(event.template_environment, dict):
                 context.update(event.template_environment)

@@ -165,6 +165,7 @@ class Template(models.Model):
         ' tags. Other Jinja2 constructs are available, along with the related'
         ' <code>request</code>, <code>datetime</code>, <code>event</code> '
         ' objects, <code>popcorn_url</code> and the <code>md5</code> function.'
+        ' You can also reference <code>autoplay</code> and it\'s always safe.'
         ' Additionally we have <code>vidly_tokenize(tag, seconds)</code> and'
         ' <code>edgecast_tokenize([seconds], **kwargs)</code>.<br>'
         ' Warning! Changes affect'

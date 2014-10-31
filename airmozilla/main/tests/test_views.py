@@ -375,6 +375,30 @@ class TestPages(DjangoTestCase):
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
 
+    def test_view_event_with_autoplay(self):
+        event = Event.objects.get(title='Test event')
+        vidly = Template.objects.create(
+            name="Vid.ly HD",
+            content=(
+                '<iframe src="{{ tag }}?autoplay={{ autoplay }}"></iframe>'
+            )
+        )
+        event.template = vidly
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+        url = reverse('main:event', kwargs={'slug': event.slug})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('autoplay=false' in response.content)
+
+        response = self.client.get(url, {'autoplay': 'true'})
+        eq_(response.status_code, 200)
+        ok_('autoplay=true' in response.content)
+
+        response = self.client.get(url, {'autoplay': '1'})
+        eq_(response.status_code, 200)
+        ok_('autoplay=false' in response.content)
+
     def test_event_with_vidly_download_links(self):
         event = Event.objects.get(title='Test event')
         vidly = Template.objects.create(
