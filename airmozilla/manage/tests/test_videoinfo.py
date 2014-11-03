@@ -4,6 +4,7 @@ from cStringIO import StringIO
 from nose.tools import ok_, eq_
 import mock
 
+from django.core.cache import cache
 from django.test import TestCase
 
 from airmozilla.main.models import Event, Template, VidlySubmission
@@ -28,6 +29,10 @@ class _Response(object):
 
 class TestVideoinfo(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
+
+    def tearDown(self):
+        cache.clear()
+        super(TestVideoinfo, self).tearDown()
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
@@ -394,3 +399,52 @@ class TestVideoinfo(TestCase):
         ok_(ffmpeged_url1.startswith('/'))
         ok_(ffmpeged_url2.endswith('file.mp4'))
         ok_(ffmpeged_url2.startswith('http://'))
+
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_duration_ogg_videos(
+        self, mock_popen, rhead, p_urllib2, p_logging
+    ):
+
+        def mocked_head(url, **options):
+            return _Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+            url = command[2]
+            assert url.endswith('foo.ogg')
+            ffmpeged_urls.append(url)
+
+            class Inner:
+                def communicate(self):
+                    err = """
+                    Duration: 00:10:31.52, start: 0.000000, bitrate: 77 kb/s
+                    """
+                    out = ''
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Ogg Video',
+            content='<source src="{{ url }}" type="video/ogg" />'
+        )
+        event.template = template
+        event.template_environment = {'url': 'http://videos.m.org/foo.ogg'}
+        event.save()
+        assert event.duration is None
+
+        videoinfo.fetch_durations()
+        event = Event.objects.get(id=event.id)
+        eq_(event.duration, 631)

@@ -6,11 +6,14 @@ import os
 import time
 import sys
 import traceback
+import urlparse
 
 import requests
 
+from django.core.cache import cache
 from django.conf import settings
 from django.template.defaultfilters import filesizeformat
+from django.db.models import Q
 
 from airmozilla.main.models import Event  # , VidlySubmission
 from airmozilla.base.helpers import show_duration
@@ -32,31 +35,43 @@ def _download_file(url, local_filename):
 def fetch_duration(
     event, save=False, save_locally=False, verbose=False, use_https=True,
 ):
-    assert 'Vid.ly' in event.template.name, "Not a Vid.ly template"
-    assert event.template_environment.get('tag'), "No Vid.ly tag in template"
 
-    hd = False
-    # This is commented out for the time being because we don't need the
-    # HD version to just capture the duration.
-    # qs = VidlySubmission.objects.filter(event=event)
-    # for submission in qs.order_by('-submission_time')[:1]:
-    #     hd = submission.hd
+    if 'Vid.ly' in event.template.name:
+        assert event.template_environment.get('tag'), "No Vid.ly tag value"
 
-    tag = event.template_environment['tag']
-    vidly_url = 'https://vid.ly/%s?content=video&format=' % tag
-    if hd:
-        vidly_url += 'hd_mp4'
+        hd = False
+        # This is commented out for the time being because we don't need the
+        # HD version to just capture the duration.
+        # qs = VidlySubmission.objects.filter(event=event)
+        # for submission in qs.order_by('-submission_time')[:1]:
+        #     hd = submission.hd
+
+        tag = event.template_environment['tag']
+        video_url = 'https://vid.ly/%s?content=video&format=' % tag
+        if hd:
+            video_url += 'hd_mp4'
+        else:
+            video_url += 'mp4'
+
+        if event.privacy != Event.PRIVACY_PUBLIC:
+            video_url += '&token=%s' % vidly.tokenize(tag, 60)
+    elif 'Ogg Video' in event.template.name:
+        assert event.template_environment.get('url'), "No Ogg Video url value"
+        video_url = event.template_environment['url']
     else:
-        vidly_url += 'mp4'
+        raise AssertionError("Not valid template")
 
-    if event.privacy != Event.PRIVACY_PUBLIC:
-        vidly_url += '&token=%s' % vidly.tokenize(tag, 60)
+    response = requests.head(video_url)
+    _count = 0
+    while response.status_code in (302, 301):
+        video_url = response.headers['Location']
+        response = requests.head(video_url)
+        _count += 1
+        if _count > 5:
+            # just too many times
+            break
 
-    response = requests.head(vidly_url)
-    if response.status_code == 302:
-        vidly_url = response.headers['Location']
-
-    response = requests.head(vidly_url)
+    response = requests.head(video_url)
     assert response.status_code == 200, response.status_code
     if verbose:  # pragma: no cover
         if response.headers['Content-Length']:
@@ -64,20 +79,26 @@ def fetch_duration(
             print filesizeformat(int(response.headers['Content-Length']))
 
     if not use_https:
-        vidly_url = vidly_url.replace('https://', 'http://')
+        video_url = video_url.replace('https://', 'http://')
 
     if save_locally:
         # store it in a temporary location
         dir_ = tempfile.mkdtemp('videoinfo')
-        filepath = os.path.join(dir_, '%s.mp4' % tag)
+        if 'Vid.ly' in event.template.name:
+            filepath = os.path.join(dir_, '%s.mp4' % tag)
+        else:
+            filepath = os.path.join(
+                dir_,
+                os.path.basename(urlparse.urlparse(video_url).path)
+            )
         t0 = time.time()
-        _download_file(vidly_url, filepath)
+        _download_file(video_url, filepath)
         t1 = time.time()
         if verbose:  # pragma: no cover
             seconds = int(t1 - t0)
             print "Took", show_duration(seconds, include_seconds=True),
             print "to download"
-        vidly_url = filepath
+        video_url = filepath
 
     try:
         ffmpeg_location = getattr(
@@ -88,7 +109,7 @@ def fetch_duration(
         command = [
             ffmpeg_location,
             '-i',
-            vidly_url,
+            video_url,
         ]
         if verbose:  # pragma: no cover
             print ' '.join(command)
@@ -123,10 +144,15 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
                     save_locally=False, save_locally_some=False):
     """this can be called by a cron job that will try to fetch
     duration for as many events as it can."""
+
+    template_name_q = (
+        Q(template__name__icontains='Vid.ly') |
+        Q(template__name__icontains='Ogg Video')
+    )
     qs = (
         Event.objects
         .filter(duration__isnull=True)
-        .filter(template__name__icontains='Vid.ly')
+        .filter(template_name_q)
         .exclude(status=Event.STATUS_REMOVED)
     )
     total_count = qs.count()
@@ -135,17 +161,40 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
         print
     count = success = skipped = 0
 
-    for event in qs.order_by('?')[:max_]:
+    cache_key = 'videoinfo_quarantined'
+    quarantined = cache.get(cache_key, {})
+    if quarantined:
+        skipped += len(quarantined)
+        if verbose:  # pragma: no cover
+            print "Deliberately skipping"
+            for e in Event.objects.filter(id__in=quarantined.keys()):
+                print "\t%r (%s)" % (e.title, quarantined[e.id])
+
+        qs = qs.exclude(id__in=quarantined.keys())
+
+    for event in qs.order_by('?')[:max_ * 2]:
         if verbose:  # pragma: no cover
             print "Event: %r, (privacy:%s slug:%s)" % (
                 event.title,
                 event.get_privacy_display(),
                 event.slug,
             )
+            if event.template_environment.get('tag'):
+                print "Vid.ly tag:",
+                print event.template_environment.get('tag')
+            elif event.template_environment.get('url'):
+                print "Ogg URL:",
+                print event.template_environment.get('url')
 
-        if not event.template_environment.get('tag'):
+        if (
+            not (
+                event.template_environment.get('tag')
+                or
+                event.template_environment.get('url')
+            )
+        ):
             if verbose:  # pragma: no cover
-                print "No Vid.ly Tag!"
+                print "No Vid.ly Tag or Ogg URL!"
             skipped += 1
             continue
 
@@ -179,6 +228,12 @@ def fetch_durations(max_=10, order_by='?', verbose=False, dry_run=False,
             exc_type, exc_value, exc_traceback = sys.exc_info()
             print ''.join(traceback.format_tb(exc_traceback))
             print exc_type, exc_value
+            # put it away for a while
+            quarantined[event.id] = exc_value
+            cache.set(cache_key, quarantined, 60 * 60)
+
+        if count >= max_:
+            break
 
     if verbose:  # pragma: no cover
         print "Processed", count,
