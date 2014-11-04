@@ -125,13 +125,8 @@ you uncomment this line:
 ```
 SESSION_COOKIE_SECURE = False
 ```
-For security, you need to enter something into the `HMAC_KEYS`.
-The same is true for `SECRET_KEY`.
+For security, you need to enter something into the `SECRET_KEY`.
 ```
-HMAC_KEYS = {
-    'any': 'thing',
-}
-
 SECRET_KEY = 'somethingnotempty'
 ```
 

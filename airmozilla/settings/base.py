@@ -38,6 +38,10 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     'raven.contrib.django.raven_compat',
 ]
 
+# We can use the simplest hasher because we never store usable passwords
+# thanks to Persona.
+PASSWORD_HASHERS = ('django.contrib.auth.hashers.UnsaltedMD5PasswordHasher',)
+
 # our session storage is all memcache so using it instead of FallbackStorage
 # which uses CookieStorage by default so sessions are better
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
