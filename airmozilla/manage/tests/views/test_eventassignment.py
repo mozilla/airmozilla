@@ -109,6 +109,13 @@ class TestEventAssignment(ManageTestCase):
         eq_(response.status_code, 200)
         ok_('CALNAME:Airmo for %s' % clarissa.email)
         ok_(event.title in response.content)
+        start_time_fmt = event.start_time.strftime('%Y%m%dT%H%M%S')
+        ok_(start_time_fmt not in response.content)
+        padded_start_time_fmt = (
+            event.start_time -
+            datetime.timedelta(minutes=30)
+        ).strftime('%Y%m%dT%H%M%S')
+        ok_(padded_start_time_fmt in response.content)
         ok_('text/calendar' in response['Content-Type'])
         eq_(response['Access-Control-Allow-Origin'], '*')
         ok_(

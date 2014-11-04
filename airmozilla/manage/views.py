@@ -3095,9 +3095,14 @@ def event_assignments_ical(request):
         event = assignment.event
         vevent = cal.add('vevent')
         vevent.add('summary').value = "[AirMo crew] %s" % event.title
-        vevent.add('dtstart').value = event.start_time
-        vevent.add('dtend').value = (event.start_time +
-                                     datetime.timedelta(hours=1))
+        # Adjusted start times for Event Assignment iCal feeds
+        # to allow staff sufficient time for event set-up.
+        vevent.add('dtstart').value = (
+            event.start_time - datetime.timedelta(minutes=30)
+        )
+        vevent.add('dtend').value = (
+            event.start_time + datetime.timedelta(hours=1)
+        )
         vevent.add('description').value = unhtml(short_desc(event))
         vevent.add('url').value = (
             base_url + reverse('main:event', args=(event.slug,))
