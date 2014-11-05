@@ -145,3 +145,20 @@ class TestRoku(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Check out peterbe and' in response.content)
         ok_('alert(&#39;xss&#39;) this' in response.content)
+
+    def test_event_duration(self):
+        event = Event.objects.get(title='Test event')
+        event.duration = 12
+        vidly = Template.objects.create(
+            name="Vid.ly Test",
+            content="test"
+        )
+        event.template = vidly
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+
+        self._attach_file(event, self.main_image)
+        url = reverse('roku:event_feed', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('<runtime>12</runtime>' in response.content)
