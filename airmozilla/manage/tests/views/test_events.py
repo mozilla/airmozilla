@@ -1838,3 +1838,24 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 302)
         thumbnail_url = response['Location']
         ok_(settings.MEDIA_URL in thumbnail_url)
+
+    def test_event_edit_with_hit_statistics(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_edit', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Total Hits:' not in response.content)
+
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        EventHitStats.objects.create(
+            event=event,
+            total_hits=1234,
+            shortcode=event.template_environment['tag']
+        )
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Total Hits:' in response.content)
+        ok_('1,234' in response.content)

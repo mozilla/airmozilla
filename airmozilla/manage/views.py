@@ -921,6 +921,11 @@ def event_edit(request, id):
     except Survey.DoesNotExist:
         context['survey'] = None
 
+    context['total_hits'] = 0
+
+    for each in EventHitStats.objects.filter(event=event).values('total_hits'):
+        context['total_hits'] += each['total_hits']
+
     return render(request, 'manage/event_edit.html', context)
 
 
