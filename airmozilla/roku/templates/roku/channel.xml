@@ -26,7 +26,7 @@
 		</media>
 		<synopsis>{{ strip_html(event.description) }}</synopsis>
 		<description>{{ short_desc(event, strip_html=True) }}</description>
-		<runtime>3600</runtime>
+        <runtime>{{ event.duration or 3600 }}</runtime>
 	</item>
 	{% endif %}
 	{% endfor %}
