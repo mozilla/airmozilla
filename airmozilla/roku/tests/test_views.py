@@ -148,13 +148,21 @@ class TestRoku(DjangoTestCase):
 
     def test_event_duration(self):
         event = Event.objects.get(title='Test event')
-        event.duration = 12
         vidly = Template.objects.create(
             name="Vid.ly Test",
             content="test"
         )
         event.template = vidly
         event.template_environment = {'tag': 'xyz123'}
+        event.save()
+
+        self._attach_file(event, self.main_image)
+        url = reverse('roku:event_feed', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('<runtime>3600</runtime>' in response.content)
+
+        event.duration = 12
         event.save()
 
         self._attach_file(event, self.main_image)
