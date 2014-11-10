@@ -40,10 +40,6 @@ MANAGERS = ADMINS
 # To get all exceptions and tracebacks in the terminal instead of Django errors
 #DEBUG_PROPAGATE_EXCEPTIONS = True
 
-# Is this a development instance? Set this to True on development/master
-# instances and False on stage/prod.
-#DEV = True
-
 # If you intend to run on something like http://127.0.0.1:8000 then
 # set this False so cookies can be set with HTTP
 #SESSION_COOKIE_SECURE = False
