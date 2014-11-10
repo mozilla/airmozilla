@@ -701,6 +701,19 @@ class TestPages(TestCase):
             sorted(['bar', 'buzz'])
         )
 
+    def test_details_discussion_stays_disabled(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='No discussion please!',
+            slug='no-discussion',
+            description='I don\'t like critisism',
+            short_description=''
+        )
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(response.context['form']['enable_discussion'].value(), False)
+
     def test_details_enable_discussion(self):
         event = SuggestedEvent.objects.create(
             user=self.user,

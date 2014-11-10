@@ -356,6 +356,9 @@ def details(request, id):
                 pytz.timezone(event.location.timezone)
             )
         initial = {'enable_discussion': True}
+        if event and not discussion:
+            initial['enable_discussion'] = False
+
         form = forms.DetailsForm(instance=event, initial=initial)
 
     data = {'form': form, 'event': event}
