@@ -9,7 +9,9 @@ python:
 before_install:
     - git submodule update --init --recursive
 install: bin/travis/install.sh
-before_script: bin/travis/setup.sh
+before_script:
+    - bin/travis/lint.sh
+    - bin/travis/setup.sh
 script:
     - bin/travis/test.sh
 
