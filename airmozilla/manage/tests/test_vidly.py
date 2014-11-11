@@ -6,6 +6,37 @@ from django.test import TestCase
 
 from airmozilla.manage import vidly
 
+
+def get_custom_XML(**kwargs):
+    return (
+        '<?xml version="1.0"?>'
+        '<Response><Message>{message}</Message>'
+        '<MessageCode>{message_code}</MessageCode>'
+        '<Success><Task><UserID>{user_id}</UserID>'
+        '<MediaShortLink>{tag}</MediaShortLink>'
+        '<SourceFile>{source_file}</SourceFile>'
+        '<BatchID>{batch_id}</BatchID>'
+        '<Status>{status}</Status>'
+        '<Private>{private}</Private>'
+        '<PrivateCDN>{private_cdn}</PrivateCDN><Created>{created}</Created>'
+        '<Updated>{updated}</Updated>'
+        '<UserEmail>{user_email}</UserEmail>'
+        '</Task></Success></Response>'
+    ).format(message=kwargs.get('message', 'Action successful.'),
+             message_code=kwargs.get('message_code', '4.1'),
+             user_id=kwargs.get('user_id', '1234'),
+             tag=kwargs.get('tag', 'abc123').encode('utf8'),
+             source_file=kwargs.get(
+                 'source_file', 'http://videos.mozilla.org/bla.f4v'),
+             batch_id=kwargs.get('batch_id', '35402'),
+             status=kwargs.get('status', 'Finished'),
+             private=kwargs.get('private', 'false'),
+             private_cdn=kwargs.get('private_cdn', 'false'),
+             created=kwargs.get('created', '2012-08-23 19:30:58'),
+             updated=kwargs.get('updated', '2012-08-23 20:44:22'),
+             user_email=kwargs.get('user_email', 'airmozilla@mozilla.com'))
+
+
 SAMPLE_XML = (
     '<?xml version="1.0"?>'
     '<Response><Message>Action successful.</Message>'
