@@ -243,6 +243,15 @@ class TestEvents(ManageTestCase):
         result = results['events'][0]
         eq_(result['popcorn_url'], event.popcorn_url)
 
+    def test_events_data_with_is_scheduled(self):
+        event = Event.objects.get(title='Test event')
+        assert event.status == Event.STATUS_SCHEDULED
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        result = results['events'][0]
+        ok_(result['is_scheduled'])
+
     def test_events_data_with_limit(self):
         event = Event.objects.get(title='Test event')
         Event.objects.create(

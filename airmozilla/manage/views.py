@@ -732,6 +732,8 @@ def events_data(request):
         # only include certain fields if they're true
         if event.status == Event.STATUS_PENDING:
             row['is_pending'] = True
+        elif event.status == Event.STATUS_SCHEDULED:
+            row['is_scheduled'] = True
         if is_live:
             row['is_live'] = True
         if is_upcoming:
