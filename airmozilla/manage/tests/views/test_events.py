@@ -41,7 +41,7 @@ from airmozilla.base.tests.test_mozillians import (
 )
 from airmozilla.uploads.models import Upload
 from airmozilla.comments.models import Discussion
-from airmozilla.manage.tests.test_vidly import SAMPLE_XML
+from airmozilla.manage.tests.test_vidly import SAMPLE_XML, get_custom_XML
 from .base import ManageTestCase
 
 
@@ -667,6 +667,41 @@ class TestEvents(ManageTestCase):
         event_modified = Event.objects.get(id=event.id)
         eq_(event_modified.archive_time, None)
         eq_(event_modified.status, Event.STATUS_PENDING)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_event_archive_with_vidly_template_with_vidly_submission(
+        self, p_urllib2
+    ):
+        """Event archive an event with a tag that has a VidlySubmission
+        that was successful. If you do that it should immediately
+        set an archive_time."""
+
+        def mocked_urlopen(request):
+            return StringIO(get_custom_XML(tag='abc123'))
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        vidly_template = Template.objects.create(name='Vid.ly HD')
+        event = Event.objects.get(title='Test event')
+        event.archive_time = None
+        assert event.status == Event.STATUS_SCHEDULED
+        event.save()
+
+        VidlySubmission.objects.create(
+            event=event,
+            url='https://aws.com/file.mov',
+            tag='abc123',
+        )
+
+        url = reverse('manage:event_archive', kwargs={'id': event.id})
+        response_ok = self.client.post(url, {
+            'template': vidly_template.pk,
+            'template_environment': 'tag=abc123',
+        })
+        self.assertRedirects(response_ok, reverse('manage:events'))
+        event_modified = Event.objects.get(id=event.id)
+        eq_(event_modified.status, Event.STATUS_SCHEDULED)
+        ok_(event_modified.archive_time)
 
     def test_event_duplication(self):
         event = Event.objects.get(title='Test event')

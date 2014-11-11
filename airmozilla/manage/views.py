@@ -1330,7 +1330,20 @@ def event_archive(request, id):
         form = forms.EventArchiveForm(request.POST, instance=event)
         if form.is_valid():
             event = form.save(commit=False)
-            if event.has_vidly_template():
+
+            def has_successful_vidly_submission(event):
+                submissions = VidlySubmission.objects.filter(event=event)
+                for submission in submissions.order_by('-submission_time')[:1]:
+                    tag = submission.tag
+                    results = vidly.query(tag).get(tag, {})
+                    return results.get('Status') == 'Finished'
+
+                return False
+
+            if (
+                event.has_vidly_template() and
+                not has_successful_vidly_submission(event)
+            ):
                 event.status = Event.STATUS_PENDING
             else:
                 event.status = Event.STATUS_SCHEDULED
