@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 import json
+import hashlib
 from cStringIO import StringIO
 
 from nose.tools import eq_, ok_
@@ -16,7 +18,8 @@ from airmozilla.main.models import (
 from airmozilla.manage.tests.test_vidly import (
     SAMPLE_XML,
     SAMPLE_MEDIALIST_XML,
-    SAMPLE_INVALID_LINKS_XML
+    SAMPLE_INVALID_LINKS_XML,
+    get_custom_XML
 )
 from .base import ManageTestCase
 
@@ -115,6 +118,32 @@ class TestVidlyMedia(ManageTestCase):
         eq_(response.status_code, 200)
         data = json.loads(response.content)
         eq_(data['status'], 'Finished')
+
+    @mock.patch('urllib2.urlopen')
+    def test_non_ascii_char_in_tag(self, p_urlopen):
+        tag = u'kristján'
+
+        def mocked_urlopen(request):
+            return StringIO(get_custom_XML(tag=tag))
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+
+        event.template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<iframe>'
+        )
+        event.template_environment = {'tag': tag}
+        event.save()
+
+        url = reverse('manage:vidly_media_status')
+        response = self.client.get(url, {'id': event.pk, 'refresh': True})
+        eq_(response.status_code, 200)
+
+        cache_key = 'vidly-query-{md5}'.format(
+            md5=hashlib.md5(tag.encode('utf8')).hexdigest()).strip()
+        ok_(cache.get(cache_key))
 
     @mock.patch('urllib2.urlopen')
     def test_vidly_media_status_not_vidly_template(self, p_urlopen):

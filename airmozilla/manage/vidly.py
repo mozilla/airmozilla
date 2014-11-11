@@ -220,7 +220,7 @@ def statistics(shortcode):
 def _download(xml_string):
     req = urllib2.Request(
         settings.VIDLY_API_URL,
-        urllib.urlencode({'xml': xml_string.strip()})
+        urllib.urlencode({'xml': xml_string.encode('utf8').strip()})
     )
     try:
         response = urllib2.urlopen(req)

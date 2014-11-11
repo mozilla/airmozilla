@@ -2403,7 +2403,8 @@ def vidly_media_status(request):
         else:
             return {}
     tag = environment['tag']
-    cache_key = 'vidly-query-%s' % tag
+    cache_key = 'vidly-query-{md5}'.format(
+        md5=hashlib.md5(tag.encode('utf8')).hexdigest().strip())
     force = request.GET.get('refresh', False)
     if force:
         results = None  # force a refresh
