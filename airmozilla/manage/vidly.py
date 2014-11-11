@@ -137,13 +137,12 @@ def query(tags):
     xml_string = template % {
         'user_id': settings.VIDLY_USER_ID,
         'user_key': settings.VIDLY_USER_KEY,
-        #'tag': tag,
+        # 'tag': tag,
         'media_links': '\n'.join(media_links),
     }
 
     response_content = _download(xml_string)
     dom = xml.dom.minidom.parseString(response_content)
-    #print dom.toprettyxml()
     results = _unpack_dom(dom, "Task")
     return results
 
@@ -167,7 +166,6 @@ def medialist(status):
 
     response_content = _download(xml_string)
     dom = xml.dom.minidom.parseString(response_content)
-    #print dom.toprettyxml()
     results = _unpack_dom(dom, "Media")
     return results
 
@@ -206,11 +204,7 @@ def statistics(shortcode):
     filter = ET.SubElement(root, 'Filter')
     ET.SubElement(filter, 'MediaShortLink').text = shortcode
     xml_string = ET.tostring(root)
-    #print "="*80
-    #print xml_string
     response_content = _download(xml_string)
-    #print response_content
-    #print "\n"
     root = ET.fromstring(response_content)
     success = root.find('Success')
     if success is None:
@@ -233,9 +227,9 @@ def _download(xml_string):
     except (urllib2.URLError, httplib.BadStatusLine):
         logging.error('Error on opening request', exc_info=True)
         raise
-        #raise VidlyTokenizeError(
-        #    'Temporary network error when trying to fetch Vid.ly token'
-        #)
+        # raise VidlyTokenizeError(
+        #     'Temporary network error when trying to fetch Vid.ly token'
+        # )
     response_content = response.read().strip()
 
     return response_content
@@ -254,7 +248,6 @@ def _unpack_dom(dom, main_tag_name):
     for task in tasks:
         item = {}
         for element in task.childNodes:
-            #print repr(element)
             item[element.tagName] = _get_text(element.childNodes)
         results[item['MediaShortLink']] = item
     return results

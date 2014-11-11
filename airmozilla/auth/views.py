@@ -13,8 +13,6 @@ logger = logging.getLogger('auth')
 
 class CustomBrowserIDVerify(Verify):
 
-
-
     def login_failure(self, error=None):
         """
         Different to make it not yield a 403 error.

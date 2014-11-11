@@ -1,4 +1,4 @@
-from nose.tools import eq_, ok_
+from nose.tools import eq_
 
 from django.test import TestCase
 from django.contrib.auth.models import User
@@ -9,7 +9,6 @@ from airmozilla.main.models import (
     EventAssignment,
     Location
 )
-
 
 
 class TestForms(TestCase):

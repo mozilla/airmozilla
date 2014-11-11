@@ -73,8 +73,8 @@ class EventHitStatsTestCase(TestCase):
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         half_hour_ago = now - datetime.timedelta(minutes=30)
 
-        #event.update(modified=event.modified - half_hour_ago)
-        #non_signal_save(event, modified=half_hour_ago)
+        # event.update(modified=event.modified - half_hour_ago)
+        # non_signal_save(event, modified=half_hour_ago)
 
         eq_(event_hit_stats.update(), 0)
         eq_(len(calls), 1)

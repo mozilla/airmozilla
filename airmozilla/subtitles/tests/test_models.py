@@ -1,7 +1,6 @@
-from django.contrib.auth.models import User
 from django.test import TestCase
 
-from nose.tools import eq_, ok_
+from nose.tools import ok_
 
 from airmozilla.main.models import Event
 from airmozilla.subtitles.models import AmaraVideo
@@ -11,7 +10,8 @@ SAMPLE_TRANSCRIPT = {
     u'language': {u'code': u'en', u'name': u'English'},
     u'metadata': {},
     u'note': u'From youtube',
-    u'resource_uri': u'/api2/partners/videos/Yt8Od1dxtep1/languages/en/subtitles/',
+    u'resource_uri':
+        u'/api2/partners/videos/Yt8Od1dxtep1/languages/en/subtitles/',
     u'site_url': u'http://www.amara.org/videos/Yt8Od1dxtep1/en/706106/',
     u'sub_format': u'json',
     u'subtitles': [
@@ -34,17 +34,20 @@ SAMPLE_TRANSCRIPT = {
          u'meta': {u'new_paragraph': False},
          u'position': 4,
          u'start': 10201,
-         u'text': u"based on where you've gone before and how often you went there."},
+         u'text': (u"based on where you've gone before and how often you went "
+                   u"there.")},
         {u'end': 18633,
          u'meta': {u'new_paragraph': False},
          u'position': 5,
          u'start': 13568,
-         u'text': u"Sites that you've bookmarked or tagged are highlighted to make the list easy to scan."},
+         u'text': (u"Sites that you've bookmarked or tagged are highlighted "
+                   u"to make the list easy to scan.")},
         {u'end': 22300,
          u'meta': {u'new_paragraph': False},
          u'position': 6,
          u'start': 18634,
-         u'text': u"Just click one of the sites and you'll be taken there instantly."},
+         u'text': (u"Just click one of the sites and you'll be taken there "
+                   u"instantly.")},
         {u'end': 25367,
          u'meta': {u'new_paragraph': False},
          u'position': 7,
@@ -54,7 +57,8 @@ SAMPLE_TRANSCRIPT = {
          u'meta': {u'new_paragraph': False},
          u'position': 8,
          u'start': 25368,
-         u'text': u'You can often find the site you want after typing just one letter.'},
+         u'text': (u'You can often find the site you want after typing just '
+                   'one letter.')},
         {u'end': 31200,
          u'meta': {u'new_paragraph': False},
          u'position': 9,
@@ -64,19 +68,22 @@ SAMPLE_TRANSCRIPT = {
          u'meta': {u'new_paragraph': False},
          u'position': 10,
          u'start': 31201,
-         u'text': u'You can also search the web from here. Just type a search term and hit enter.'},
+         u'text': (u'You can also search the web from here. Just type a '
+                   u'search term and hit enter.')},
         {u'end': 40067,
          u'meta': {u'new_paragraph': False},
          u'position': 11,
          u'start': 36068,
-         u'text': u'The awesome bar makes it easy to do more surfing with less typing.'}],
-     u'title': u'',
-     u'version_no': 1,
-     u'version_number': 1,
-     u'video': u'Firefox Awesome Bar - Find your boo...',
-     u'video_description': u'',
-     u'video_title': u''
+         u'text': (u'The awesome bar makes it easy to do more surfing with '
+                   u'less typing.')}],
+    u'title': u'',
+    u'version_no': 1,
+    u'version_number': 1,
+    u'video': u'Firefox Awesome Bar - Find your boo...',
+    u'video_description': u'',
+    u'video_title': u''
 }
+
 
 class AmaraVideoTestCase(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
