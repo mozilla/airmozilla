@@ -36,7 +36,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
       if (options == null) {
         options = {};
       }
-      _.extend(this, options);
+      $.extend(this, options);
       if (this.file_dom_selector) {
         this.handleFileSelect($(this.file_dom_selector).get(0));
       }
