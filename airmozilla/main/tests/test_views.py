@@ -538,6 +538,24 @@ class TestPages(DjangoTestCase):
         ok_(response_changed.content != response_public.content)
         ok_('cache clear!' in response_changed.content)
 
+    def test_calendar_duration(self):
+        """Test the behavior of duration in the iCal feed."""
+        event = Event.objects.get(title='Test event')
+        url = self._calendar_url('public')
+        dtend = event.start_time + datetime.timedelta(
+            seconds=3600)
+        dtend = dtend.strftime("DTEND:%Y%m%dT%H%M%SZ")
+        response_public = self.client.get(url)
+        ok_(dtend in response_public.content)
+
+        event.duration = 1234
+        event.save()
+        dtend = event.start_time + datetime.timedelta(
+            seconds=1234)
+        dtend = dtend.strftime("DTEND:%Y%m%dT%H%M%SZ")
+        response_public = self.client.get(url)
+        ok_(dtend in response_public.content)
+
     def test_calendar_ical_cors_cached(self):
         url = self._calendar_url('public')
         response_public = self.client.get(url)
