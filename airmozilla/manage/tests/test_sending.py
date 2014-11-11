@@ -101,7 +101,7 @@ class TestSending(TestCase):
         ok_(summary_url in email_sent.body)
 
     def test_email_about_rejected_suggestion(self):
-        #user = User.objects.create(email='richard@mozilla.com')
+        # user = User.objects.create(email='richard@mozilla.com')
         user, = User.objects.all()[:1]
         # event, = Event.objects.all()[:1]
         # comment = Comment.objects.create(

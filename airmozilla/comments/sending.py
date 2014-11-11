@@ -74,18 +74,18 @@ def send_reply_notification(comment, base_url):
         'comments/_email_reply_notification.html',
         context
     )
-    #headers = {'Reply-To': payment.email}
-    #html_body = premailer.transform(
-    #    html_body,
-    #    base_url=base_url
-    #)
+    # headers = {'Reply-To': payment.email}
+    # html_body = premailer.transform(
+    #     html_body,
+    #     base_url=base_url
+    # )
     body = html2text(html_body)
     email = EmailMultiAlternatives(
         subject,
         body,
         'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
         [parent.user.email],
-        #headers=headers,
+        # headers=headers,
     )
     email.attach_alternative(html_body, "text/html")
     email.send()
@@ -135,18 +135,18 @@ def send_moderator_notifications(comment, base_url):
         'comments/_email_moderator_notification.html',
         context
     )
-    #headers = {'Reply-To': payment.email}
-    #html_body = premailer.transform(
-    #    html_body,
-    #    base_url=base_url
-    #)
+    # headers = {'Reply-To': payment.email}
+    # html_body = premailer.transform(
+    #     html_body,
+    #     base_url=base_url
+    # )
     body = html2text(html_body)
     email = EmailMultiAlternatives(
         subject,
         body,
         'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
         [x.email for x in moderators],
-        #headers=headers,
+        # headers=headers,
     )
     email.attach_alternative(html_body, "text/html")
     email.send()

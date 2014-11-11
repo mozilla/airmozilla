@@ -28,11 +28,11 @@ _STATES = [
         'view': 'suggest:placeholder',
         'description': 'No placeholder image',
     },
-    #{
+    # {
     #    'not': [lambda event: event.participants.all().count()],
     #    'view': 'suggest:participants',
     #    'description': 'No participants selected'
-    #},
+    # },
 ]
 
 _DEFAULT_STATE = {

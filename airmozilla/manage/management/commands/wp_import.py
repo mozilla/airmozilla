@@ -6,21 +6,24 @@ import urllib2
 
 from lxml import etree
 from optparse import make_option
-from tempfile import gettempdir
 
 
 from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import utc
 
-from airmozilla.main.models import Event, Tag, Template
+from airmozilla.main.models import Event, Template
 
 DEFAULT_VIDLY_TEMPLATE = """
-<video controls width="100%" controls preload="none" poster="https://d3fenhwk93s16g.cloudfront.net/{{ tag }}/poster.jpg">
+<video controls width="100%" controls preload="none"
+    poster="https://d3fenhwk93s16g.cloudfront.net/{{ tag }}/poster.jpg">
     <source src="http://cf.cdn.vid.ly/{{ tag }}/mp4.mp4" type="video/mp4">
     <source src="http://cf.cdn.vid.ly/{{ tag }}/webm.webm" type="video/webm">
     <source src="http://cf.cdn.vid.ly/{{ tag }}/ogv.ogv" type="video/ogg">
-    <a target="_blank" href="http://vid.ly/{{ tag }}"><img src="https://d3fenhwk93s16g.cloudfront.net/{{ tag }}/poster.jpg" width="500" alt="Video"></a>
+    <a target="_blank" href="http://vid.ly/{{ tag }}">
+        <img src="https://d3fenhwk93s16g.cloudfront.net/{{ tag }}/poster.jpg"
+            width="500" alt="Video">
+    </a>
 </video>
 """
 DEFAULT_VIDLY_NAME = "Vid.ly"
@@ -37,10 +40,10 @@ class Command(BaseCommand):
     args = '<wordpress_xml_dump.xml> <default_thumb>'
     option_list = BaseCommand.option_list + (
         make_option('--clear',
-            action='store_true',
-            dest='clear',
-            default=False,
-            help='Clear all events before running the migration.'),
+                    action='store_true',
+                    dest='clear',
+                    default=False,
+                    help='Clear all events before running the migration.'),
     )
     nsmap = {
         'wp': 'http://wordpress.org/export/1.2/',
