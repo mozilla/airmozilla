@@ -70,11 +70,11 @@ def start(request):
                 slug=slug,
             )
             if not event.upcoming:
-                cyberspace, __ = Location.objects.get_or_create(
-                    name='Cyberspace',
-                    timezone='UTC'
+                location, __ = Location.objects.get_or_create(
+                    name=settings.DEFAULT_PRERECORDED_LOCATION[0],
+                    timezone=settings.DEFAULT_PRERECORDED_LOCATION[1]
                 )
-                event.location = cyberspace
+                event.location = location
                 now = datetime.datetime.utcnow().replace(tzinfo=utc)
                 event.start_time = now
                 event.save()

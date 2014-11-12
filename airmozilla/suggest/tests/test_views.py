@@ -51,9 +51,9 @@ class TestPages(TestCase):
         super(TestPages, self).setUp()
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
-        self.cyberspace = Location.objects.create(
-            name='Cyberspace',
-            timezone='UTC'
+        self.precorded_location = Location.objects.create(
+            name=settings.DEFAULT_PRERECORDED_LOCATION[0],
+            timezone=settings.DEFAULT_PRERECORDED_LOCATION[1]
         )
         self.tmp_dir = tempfile.mkdtemp()
 
@@ -158,8 +158,8 @@ class TestPages(TestCase):
         eq_(event.popcorn_url, None)
         eq_(event.slug, 'a-new-world')
         ok_(event.start_time)
-        eq_(event.location.name, self.cyberspace.name)
-        eq_(event.location.timezone, self.cyberspace.timezone)
+        eq_(event.location.name, self.precorded_location.name)
+        eq_(event.location.timezone, self.precorded_location.timezone)
         url = reverse('uploads:upload')
         self.assertRedirects(response, url)
 
@@ -214,8 +214,8 @@ class TestPages(TestCase):
         eq_(event.popcorn_url, 'https://')
         eq_(event.slug, 'a-new-world')
         ok_(event.start_time)
-        eq_(event.location.name, self.cyberspace.name)
-        eq_(event.location.timezone, self.cyberspace.timezone)
+        eq_(event.location.name, self.precorded_location.name)
+        eq_(event.location.timezone, self.precorded_location.timezone)
         self.assertRedirects(response, url)
 
     def test_start_with_file_upload_id(self):
@@ -438,7 +438,7 @@ class TestPages(TestCase):
         event.upcoming = False
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         event.start_time = now
-        event.location = self.cyberspace
+        event.location = self.precorded_location
         event.save()
 
         response = self.client.get(url)
@@ -479,7 +479,7 @@ class TestPages(TestCase):
         event.popcorn_url = 'https://'
         now = datetime.datetime.utcnow().replace(tzinfo=utc)
         event.start_time = now
-        event.location = self.cyberspace
+        event.location = self.precorded_location
         event.save()
 
         response = self.client.get(url)
@@ -530,7 +530,7 @@ class TestPages(TestCase):
             title='Cool Title',
             slug='cool-title',
             upcoming=False,
-            location=self.cyberspace,
+            location=self.precorded_location,
             start_time=now
         )
         other_event = SuggestedEvent.objects.create(
@@ -538,7 +538,7 @@ class TestPages(TestCase):
             title='Other Title',
             slug='other-title',
             upcoming=False,
-            location=self.cyberspace,
+            location=self.precorded_location,
             start_time=now
         )
 

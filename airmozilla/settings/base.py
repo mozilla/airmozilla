@@ -188,6 +188,12 @@ VIDLY_API_URL = 'http://m.vid.ly/api/'
 DEFAULT_CHANNEL_SLUG = 'main'
 DEFAULT_CHANNEL_NAME = 'Main'
 
+# Default Location for events that are not upcoming
+DEFAULT_PRERECORDED_LOCATION = (
+    'Pre-recorded',  # name
+    'UTC'  # timezone
+)
+
 # How often, maximum are approval pester emails sent
 PESTER_INTERVAL_DAYS = 3  # days
 
