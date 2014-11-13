@@ -21,7 +21,6 @@ notifications:
             - "irc.mozilla.org#airmozilla-dev"
         on_success: always
         on_failure: always
-
     webbooks:
         http://leeroybot.lonnen.com/hubot/travis?room=%23airmozilla-dev
 
