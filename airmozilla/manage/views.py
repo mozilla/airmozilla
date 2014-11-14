@@ -190,7 +190,8 @@ def dashboard_data(request):
         return counts
 
     # Events
-    counts = get_counts(Event.objects.all(), 'created')
+    events = Event.objects.exclude(status=Event.STATUS_REMOVED)
+    counts = get_counts(events, 'start_time')
     context['groups'].append({
         'name': 'New Events',
         'counts': counts
