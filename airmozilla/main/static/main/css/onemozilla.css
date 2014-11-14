@@ -68,7 +68,7 @@ form ul, form ol { list-style: none; }
 a img { border: 0; }
 input, select, textarea { font-family: inherit; font-size: 100%; }
 .dtstart, .dtend, .published, .updated { border: 0; }
-img, video { max-width: 100%; height: auto; }
+img { max-width: 100%; height: auto; }
 iframe { max-width: 100%; }
 
 /* @General styles */
