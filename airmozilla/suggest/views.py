@@ -447,11 +447,18 @@ def placeholder(request, id):
         )
         if form.is_valid():
             event = form.save()
+            if form['placeholder_img'].value() != event.placeholder_img:
+                # User selected a new placeholder image. Clear gallery select.
+                event.picture = None
+                event.save()
             # XXX use next_url() instead?
             url = reverse('suggest:summary', args=(event.pk,))
             return redirect(url)
     else:
         form = forms.PlaceholderForm()
+
+    if event.picture:
+        form.fields['picture'].initial = event.picture.id
 
     data = {'form': form, 'event': event}
     return render(request, 'suggest/placeholder.html', data)

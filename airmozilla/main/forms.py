@@ -1,8 +1,9 @@
 import datetime
 
 from django import forms
-from airmozilla.base.forms import BaseModelForm, BaseForm
-from airmozilla.main.models import EventRevision, RecruitmentMessage
+
+from airmozilla.base.forms import BaseModelForm, BaseForm, GallerySelect
+from airmozilla.main.models import EventRevision, RecruitmentMessage, Event
 
 
 class CalendarDataForm(BaseForm):
@@ -54,6 +55,7 @@ class PinForm(BaseForm):
 
 class EventEditForm(BaseModelForm):
 
+    event_id = forms.CharField(widget=forms.HiddenInput())
     tags = forms.CharField(required=False)
 
     class Meta:
@@ -63,15 +65,25 @@ class EventEditForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         super(EventEditForm, self).__init__(*args, **kwargs)
         self.fields['placeholder_img'].required = False
+        self.fields['placeholder_img'].label = (
+            'Upload a picture from your computer')
         self.fields['channels'].help_text = ""
         self.fields['recruitmentmessage'].label = 'Recruitment message'
         self.fields['recruitmentmessage'].required = False
         self.fields['recruitmentmessage'].queryset = (
             RecruitmentMessage.objects.filter(active=True)
         )
+        self.fields['picture'].widget = GallerySelect()
+        self.fields['picture'].label = (
+            'Select an existing picture from the gallery'
+        )
 
-    # def clean_recruimentmessage(self):
-    #     value = self.cleaned_data['recruitmentmessage']
-    #     if value:
-    #         value = RecruitmentMessage.objects.get(pk=value)
-    #     return value
+    def clean(self):
+        cleaned_data = super(EventEditForm, self).clean()
+        event = Event.objects.get(id=cleaned_data.get('event_id'))
+        placeholder_img = cleaned_data.get(
+            'placeholder_img') or event.placeholder_img
+        picture = cleaned_data.get('picture') or event.picture
+        if not placeholder_img and not picture:
+            raise forms.ValidationError('Events needs to have a picture')
+        return cleaned_data

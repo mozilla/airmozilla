@@ -34,7 +34,7 @@ from airmozilla.main.models import (
     Location,
     EventHitStats,
     CuratedGroup,
-    EventRevision
+    EventRevision,
 )
 from airmozilla.base.utils import (
     paginate,
@@ -607,7 +607,9 @@ class EventEditView(EventView):
 
     @staticmethod
     def event_to_dict(event):
+        picture_id = event.picture.id if event.picture else None
         data = {
+            'event_id': event.id,
             'title': event.title,
             'description': event.description,
             'short_description': event.short_description,
@@ -616,6 +618,7 @@ class EventEditView(EventView):
             'call_info': event.call_info,
             'additional_links': event.additional_links,
             'recruitmentmessage': None,
+            'picture': picture_id
         }
         if event.recruitmentmessage_id:
             data['recruitmentmessage'] = event.recruitmentmessage_id
@@ -699,6 +702,10 @@ class EventEditView(EventView):
                     current_value = ', '.join(x.name for x in event.tags.all())
                 elif key == 'channels':
                     current_value = [x.pk for x in event.channels.all()]
+                elif key == 'picture':
+                    current_value = event.picture.id if event.picture else None
+                elif key == 'event_id':
+                    pass
                 else:
                     current_value = getattr(event, key)
                     if key == 'recruitmentmessage':
@@ -764,6 +771,8 @@ class EventEditView(EventView):
                             'from': prev,
                             'to': event.recruitmentmessage
                         }
+                elif key == 'event_id':
+                    pass
                 else:
                     if value != previous[key]:
                         changes[key] = {
@@ -797,9 +806,6 @@ class EventEditView(EventView):
                     base_revision.delete()
 
             return redirect('main:event', event.slug)
-        # else:
-        #     print "ERRORS"
-        #     print form.errors
 
         return self.get(request, slug, form=form)
 

@@ -2648,6 +2648,7 @@ class TestEventEdit(DjangoTestCase):
         previous = json.dumps(data)
 
         data = {
+            'event_id': event.id,
             'previous': previous,
             'title': 'Different title',
             'short_description': event.short_description,
@@ -2685,6 +2686,7 @@ class TestEventEdit(DjangoTestCase):
         previous = json.dumps(data)
 
         data = {
+            'event_id': event.id,
             'previous': previous,
             'title': event.title,
             'short_description': event.short_description,
@@ -2704,6 +2706,39 @@ class TestEventEdit(DjangoTestCase):
         eq_(response.status_code, 302)
         ok_(not EventRevision.objects.all())
 
+    def test_edit_no_image(self):
+        """basically pressing save without changing anything"""
+        event = Event.objects.get(title='Test event')
+        event.placeholder_img = None
+        event.save()
+        url = reverse('main:event_edit', args=(event.slug,))
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        data = {
+            'event_id': event.id,
+            'previous': previous,
+            'title': event.title,
+            'short_description': event.short_description,
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()]
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        self._login()
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('Events needs to have a picture' in
+            response.context['form'].errors['__all__'])
+        ok_('Events needs to have a picture' in response.content)
+
     def test_bad_edit_title(self):
         event = Event.objects.get(title='Test event')
         self._attach_file(event, self.main_image)
@@ -2714,6 +2749,7 @@ class TestEventEdit(DjangoTestCase):
         previous = json.dumps(data)
 
         data = {
+            'event_id': event.id,
             'previous': previous,
             'title': '',
             'short_description': event.short_description,
@@ -2797,6 +2833,7 @@ class TestEventEdit(DjangoTestCase):
             slug='new-stuff-2'
         )
         data = {
+            'event_id': event.id,
             'previous': previous,
             'title': 'Different title',
             'short_description': 'new short description',
@@ -2880,10 +2917,15 @@ class TestEventEdit(DjangoTestCase):
         ok_(msg2.text in response.content)
         ok_(msg3.text not in response.content)  # not active
 
+        with open('airmozilla/manage/tests/firefox.png') as fp:
+            picture = Picture.objects.create(file=File(fp))
+
         data = {
+            'event_id': event.id,
             'previous': previous,
             'recruitmentmessage': msg1.pk,
             'title': event.title,
+            'picture': picture.id,
             'description': event.description,
             'short_description': event.short_description,
             'channels': [x.id for x in event.channels.all()],
@@ -2959,6 +3001,7 @@ class TestEventEdit(DjangoTestCase):
 
         with open(self.other_image) as fp:
             data = {
+                'event_id': event.id,
                 'previous': previous,
                 'title': event.title,
                 'short_description': event.short_description,
@@ -3000,6 +3043,7 @@ class TestEventEdit(DjangoTestCase):
         event.save()
 
         data = {
+            'event_id': event.id,
             'previous': previous,
             'title': 'Different title',
             'short_description': event.short_description,
@@ -3027,6 +3071,7 @@ class TestEventEdit(DjangoTestCase):
 
         with open(self.third_image) as fp:
             data = {
+                'event_id': event.id,
                 'previous': previous,
                 'title': event.title,
                 'short_description': event.short_description,
@@ -3056,6 +3101,7 @@ class TestEventEdit(DjangoTestCase):
         event.save()
 
         data = {
+            'event_id': event.id,
             'previous': previous,
             'title': 'Test event',
             'short_description': 'new short description',
@@ -3080,6 +3126,7 @@ class TestEventEdit(DjangoTestCase):
         previous = json.dumps(data)
 
         data = {
+            'event_id': event.id,
             'previous': previous,
             'title': 'Test event',
             'short_description': 'new short description',

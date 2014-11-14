@@ -9,6 +9,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
 from django.utils.timezone import utc
 from django.core import mail
+from django.core.files import File
 
 import pytz
 from mock import patch
@@ -21,7 +22,8 @@ from airmozilla.main.models import (
     Event,
     Location,
     Channel,
-    Tag
+    Tag,
+    Picture
 )
 from airmozilla.uploads.models import Upload
 from airmozilla.comments.models import SuggestedDiscussion
@@ -387,6 +389,76 @@ class TestPages(TestCase):
         eq_(response.status_code, 302)
         next_url = reverse('suggest:summary', args=(event.pk,))
         self.assertRedirects(response, next_url)
+
+    def test_select_placeholder_from_gallery(self):
+        location, = Location.objects.filter(name='Mountain View')
+        today = datetime.datetime.utcnow()
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            short_description='Short Description',
+            description='Description',
+            start_time=today.replace(tzinfo=utc),
+            location=location
+        )
+        url = reverse('suggest:placeholder', args=(event.pk,))
+        with open(self.placeholder) as fp:
+            picture_id = Picture.objects.create(file=File(fp)).id
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = {'picture': picture_id}
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:summary', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+
+    def test_change_picture(self):
+        location, = Location.objects.filter(name='Mountain View')
+        today = datetime.datetime.utcnow()
+        with open(self.placeholder) as fp:
+            picture = Picture.objects.create(file=File(fp))
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            short_description='Short Description',
+            description='Description',
+            start_time=today.replace(tzinfo=utc),
+            location=location,
+            picture=picture
+        )
+        url = reverse('suggest:placeholder', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = {'picture': picture.id}
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        next_url = reverse('suggest:summary', args=(event.pk,))
+        self.assertRedirects(response, next_url)
+
+    def test_creating_event_without_placeholder_or_picture(self):
+        location, = Location.objects.filter(name='Mountain View')
+        today = datetime.datetime.utcnow()
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            short_description='Short Description',
+            description='Description',
+            start_time=today.replace(tzinfo=utc),
+            location=location
+        )
+        url = reverse('suggest:placeholder', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = {}
+        response = self.client.post(url, data)
+        ok_('Events needs to have a picture' in
+            response.context['form'].errors['__all__'])
 
     def test_not_yours_to_edit(self):
         jane = User.objects.create_user('jane')

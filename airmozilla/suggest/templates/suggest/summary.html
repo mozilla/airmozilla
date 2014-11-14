@@ -213,10 +213,16 @@ Event summary | {{ super() }}
     <tr>
       <th>Placeholder picture</th>
       <td>
-          {% if event.placeholder_img %}
-          {% set thumb = thumbnail(event.placeholder_img, '160x160', crop='center') %}
+          {% if event.picture %}
+          {% set thumb = thumbnail(event.picture.file, '160x160', crop='center') %}
           <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
                alt="{{ event.title }}" class="wp-post-image">
+          {% elif event.placeholder_img %}
+          {% set thumb = thumbnail(event.placeholder_img, '160x160', crop='center') %}
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+          alt="{{ event.title }}" class="wp-post-image">
+          {% else %}
+          No image!
           {% endif %}
       </td>
     </tr>

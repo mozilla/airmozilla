@@ -1,0 +1,43 @@
+.picture_gallery {
+    padding-top: 10px;
+    overflow: auto;
+    height: 200px;
+    border: 1px solid #898F91;
+    text-align: center;
+}
+
+.picture_gallery.larger {
+    height: 375px;
+}
+
+.picture_gallery .picture {
+    padding: 10px;
+    display: inline-block;
+    width: 100px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.picture_gallery .picture.selected {
+    background-color: #6A7B86;
+}
+
+.picture_gallery .picture.selected span {
+    font-weight: bold;
+}
+
+.expand-gallery {
+    color: #fff;
+    background-color: #6A7B86;
+    text-align: center;
+    padding: 10px;
+    margin: 15px 0px;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
