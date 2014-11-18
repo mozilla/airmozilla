@@ -69,7 +69,6 @@ Video Upload | {{ super() }}
 
 {% block site_js %}
   {{ super() }}
-  <script src="{{ static('uploads/js/lodash.min.js') }}"></script>
   {% compress js %}
   <script src="{{ static('uploads/js/s3upload.js') }}"></script>
   <script src="{{ static('uploads/js/upload.js') }}"></script>
