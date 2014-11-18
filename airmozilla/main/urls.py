@@ -50,6 +50,8 @@ urlpatterns = patterns(
         cache_page(60 * 60)(views.EventsFeed()),
         name='channel_feed_format_type'),
     url(r'^tagcloud/$', views.tag_cloud, name='tag_cloud'),
+    url(r'^videoredirector/$', views.videoredirector, name='videoredirector'),
+
     url(r'^all-tags/$', views.all_tags, name='all_tags'),
     url(r'^(?P<slug>[-\w]+)/$', views.EventView.as_view(),
         name='event'),
@@ -71,7 +73,6 @@ urlpatterns = patterns(
     url(r'^crossdomain.xml$',
         views.crossdomain_xml,
         name='crossdomain_xml'),
-
 
 
 
