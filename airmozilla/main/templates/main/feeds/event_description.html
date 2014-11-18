@@ -1,4 +1,8 @@
+{% if obj.picture %}
+{% set thumb = thumbnail(obj.picture.file, '68x68', crop='center') %}
+{% else %}
 {% set thumb = thumbnail(obj.placeholder_img, '68x68', crop='center') %}
+{% endif %}
 <p><img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
      alt="{{ obj.title }}" class="attachment-68x68 wp-post-image">
 {{ short_desc(obj)|striptags }}

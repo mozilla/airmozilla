@@ -46,7 +46,7 @@ urlpatterns = patterns(
         name='channel_feed'),
     url(r'^feed/(?P<channel_slug>[-\w]+)/'
         r'(?P<private_or_public>company|public|private|contributors)/'
-        r'(?P<format_type>webm)/?$',
+        r'(?P<format_type>webm|mp4)/?$',
         cache_page(60 * 60)(views.EventsFeed()),
         name='channel_feed_format_type'),
     url(r'^tagcloud/$', views.tag_cloud, name='tag_cloud'),
