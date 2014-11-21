@@ -22,7 +22,7 @@
         <th>Event title</th>
         <th>Start time</th>
         <th>Location</th>
-        <th>Creator</th>
+        <th>Event Originator</th>
         <th>Created</th>
         <th></th>
       </tr>
@@ -33,7 +33,14 @@
         <td><a href="{{ url('main:event', approval.event.slug) }}">{{ approval.event.title }}</a></td>
         <td>{{ approval.event.start_time|js_date }}</td>
         <td>{{ approval.event.location }}</td>
-        <td>{{ approval.event.creator.email }}</td>
+        <td>
+          {% set suggested_event = get_suggested_event(approval.event) %}
+          {% if suggested_event %}
+            {{ suggested_event.user.email }}
+          {% else %}
+            {{ approval.event.creator.email }}
+          {% endif %}
+        </td>
         <td>{{ approval.event.created|js_date }}</td>
         <td>
           <a class="btn btn-primary"

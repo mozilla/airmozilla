@@ -1849,12 +1849,21 @@ def approvals(request):
         ).select_related('event', 'user', 'group')
     else:
         approvals = recent = Approval.objects.none()
-    data = {
+
+    def get_suggested_event(event):
+        """return the original suggested event or None"""
+        try:
+            return SuggestedEvent.objects.get(accepted=event)
+        except SuggestedEvent.DoesNotExist:
+            pass
+
+    context = {
         'approvals': approvals,
         'recent': recent,
         'user_groups': groups,
+        'get_suggested_event': get_suggested_event,
     }
-    return render(request, 'manage/approvals.html', data)
+    return render(request, 'manage/approvals.html', context)
 
 
 @staff_required

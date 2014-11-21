@@ -41,6 +41,36 @@ class TestApprovals(ManageTestCase):
         eq_(response.status_code, 200)
         ok_('Test event' not in response.content)
 
+    def test_approvals_with_original_suggested_event(self):
+        event = Event.objects.get(title='Test event')
+        group = Group.objects.get(name='testapprover')
+        Approval.objects.create(event=event, group=group)
+
+        self.user.groups.add(group)
+        response = self.client.get(reverse('manage:approvals'))
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+        ok_(event.creator.email in response.content)
+
+        # now let's pretend it came from a SuggestedEvent
+        bob = User.objects.create(
+            username='bob',
+            email='bob@mozilla.com',
+        )
+        suggested_event = SuggestedEvent.objects.create(
+            title=event.title,
+            slug=event.slug,
+            placeholder_img=event.placeholder_img,
+            user=bob,
+            start_time=event.start_time,
+            accepted=event,
+        )
+        response = self.client.get(reverse('manage:approvals'))
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+        ok_(event.creator.email not in response.content)
+        ok_(suggested_event.user.email in response.content)
+
     def test_approval_review(self):
         event = Event.objects.get(title='Test event')
         group = Group.objects.get(name='testapprover')
