@@ -52,5 +52,4 @@ def fetch_durations():
     videoinfo.fetch_durations(
         max_=10,
         verbose=True,
-        save_locally_some=True,
     )
