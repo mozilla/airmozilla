@@ -28,36 +28,49 @@
 {% block extra_columns %}
 <div class="col-md-4">
   <div class="sidebar span4 well">
-    <p><strong>Event status: {{ event.status }}</strong></p>
-    <ul>
-      {% for approval in event.approval_set.all() %}
-        <li>
-        {% if approval.processed %}
-          {% set badge = 'success' if approval.approved else 'important' %}
-          <span class="badge badge-{{ badge }}">
-            {{ 'Approved' if approval.approved else 'Rejected' }}
-          </span>
-          <span class="badge badge-inverse">{{ approval.group }}</span>
-          &nbsp;
-          {{ approval.processed_time|js_date }}<br>{{ approval.user.email }}
-          {% if approval.comment %}
-            - {{ approval.comment }}
-          {% endif %}
-        {% else %}
-          Needs review from {{ approval.group }}
+    {% for approval in event.approval_set.all() %}
+      <p>
+      {% if approval.processed %}
+        {% set badge = 'success' if approval.approved else 'important' %}
+        <span class="badge badge-{{ badge }}">
+          {{ 'Approved' if approval.approved else 'Rejected' }}
+        </span>
+        <span class="badge badge-inverse">{{ approval.group }}</span>
+        &nbsp;
+        {{ approval.processed_time|js_date }}<br>{{ approval.user.email }}
+        {% if approval.comment %}
+          - {{ approval.comment }}
         {% endif %}
-        </li>
-      {% endfor %}
-      {% if not almost_equal(event.modified, event.created) %}
-      <li>
-        <span class="badge badge-info">Modified</span>
-        {{ event.modified|js_date }}<br>{{ event.modified_user.email }}
-      </li>
+      {% else %}
+        Needs review from {{ approval.group }}
       {% endif %}
-      <li>
-        <span class="badge badge-info">Created</span>
-        {{ event.created|js_date }}<br>{{ event.creator.email }}</li>
-    </ul>
+    </p>
+    {% endfor %}
+    {% if not almost_equal(event.modified, event.created) %}
+    <p>
+      <span class="badge badge-info">Modified</span>
+      {{ event.modified|js_date }}<br>{{ event.modified_user.email }}
+    </p>
+    {% endif %}
+    <p>
+      <span class="badge badge-info">Created</span>
+      {{ event.created|js_date }}<br>{{ event.creator.email }}
+    </p>
+    {% if suggested_event %}
+    <p>
+      <a href="{{ url('suggest:summary', suggested_event.pk) }}">
+        <span class="badge badge-info">Requested by</span>
+      </a>
+      {% if suggested_event.submitted %}
+        {{ suggested_event.submitted | js_date }}
+      {% else %}
+        <br>
+        <em>suggested event submission retracted</em>
+      {% endif %}
+      <br>
+      {{ suggested_event.user.email }}
+    </p>
+    {% endif %}
 
     {% if event.duration %}
     <p>
@@ -72,17 +85,6 @@
       <strong>
         Total Hits: {{ thousands(total_hits) }}
       </strong>
-    </p>
-    {% endif %}
-
-    {% if suggested_event %}
-    <p><a href="{{ url('suggest:summary', suggested_event.pk) }}">This event was originally suggested</a> by
-      <strong>{{ suggested_event.user.email }}</strong>
-      {% if suggested_event.submitted %}
-      {{ suggested_event.submitted|js_date }}.
-      {% else %}
-        <em>suggested event submission retracted</em>.
-      {% endif %}
     </p>
     {% endif %}
 
