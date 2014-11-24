@@ -120,6 +120,19 @@ class TestCase(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('value="Name"' in response.content)
+        # check for error trying to activate with no questions
+        response = self.client.post(url, {
+            'active': True
+        })
+        eq_(response.status_code, 200)
+        ok_("Survey must have at least one question in order to be active"
+            in response.content
+            )
+        # add a question and check for successful activation
+        Question.objects.create(
+            survey=survey,
+            question={},
+            )
         response = self.client.post(url, {
             'name': 'New Name',
             'active': True

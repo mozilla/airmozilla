@@ -439,16 +439,23 @@ class SurveyEditForm(BaseModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SurveyEditForm, self).__init__(*args, **kwargs)
+        self.fields['active'].validators.append(self.validate_active)
         self.fields['events'].required = False
         self.fields['events'].queryset = (
             self.fields['events'].queryset.order_by('title')
         )
 
+    def validate_active(self, value):
+        if value and not self.instance.question_set.count():
+            raise forms.ValidationError(
+                "Survey must have at least one question in order to be active"
+            )
+
 
 class SurveyNewForm(BaseModelForm):
     class Meta:
         model = Survey
-        fields = ('name', 'active')
+        fields = ('name', )
 
 
 class LocationEditForm(BaseModelForm):
