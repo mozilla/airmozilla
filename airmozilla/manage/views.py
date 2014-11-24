@@ -741,6 +741,8 @@ def events_data(request):
             row['is_upcoming'] = is_upcoming
         if needs_approval:
             row['needs_approval'] = True
+        if event.mozillian:
+            row['mozillian'] = event.mozillian
 
         if row.get('is_pending'):
             # this one is only relevant if it's pending

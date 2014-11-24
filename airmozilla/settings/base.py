@@ -27,6 +27,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     '%s.surveys' % PROJECT_MODULE,
     '%s.roku' % PROJECT_MODULE,
     '%s.cronlogger' % PROJECT_MODULE,
+    '%s.webrtc' % PROJECT_MODULE,
 
     'bootstrapform',
     'sorl.thumbnail',
@@ -193,6 +194,10 @@ DEFAULT_PRERECORDED_LOCATION = (
     'Pre-recorded',  # name
     'UTC'  # timezone
 )
+
+# Name of the default channel for Mozillians
+MOZILLIANS_CHANNEL_SLUG = 'mozillians'
+MOZILLIANS_CHANNEL_NAME = 'Mozillians'
 
 # How often, maximum are approval pester emails sent
 PESTER_INTERVAL_DAYS = 3  # days

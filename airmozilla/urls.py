@@ -20,6 +20,7 @@ urlpatterns = patterns(
     (r'^surveys/', include('airmozilla.surveys.urls', namespace='surveys')),
     (r'^uploads/', include('airmozilla.uploads.urls', namespace='uploads')),
     (r'^roku/', include('airmozilla.roku.urls', namespace='roku')),
+    (r'^mozillian/', include('airmozilla.webrtc.urls', namespace='webrtc')),
     ('^(?P<path>favicon\.ico)$', 'django.views.static.serve',
      {'document_root': settings.ROOT + '/airmozilla/base/static/img'}),
     (r'', include('django_browserid.urls')),

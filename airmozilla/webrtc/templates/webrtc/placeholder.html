@@ -1,0 +1,37 @@
+{% extends "webrtc/webrtc_base.html" %}
+
+{% block page_title %}
+Picture | {{ super() }}
+{% endblock %}
+
+
+{% block content_main %}
+  {% include 'webrtc/_breadcrumb.html' %}
+  <h2 class="section-title">Picture</h2>
+
+  {% if event.placeholder_img %}
+  <div class="existing">
+    <h4>You currently have this one</h4>
+    <p style="float:right">
+      <a href="{{ webrtc_next_url(event) }}">That's fine</a>
+    </p>
+    <p>
+    {% set thumb = thumbnail(event.placeholder_img, '160x160', crop='center') %}
+    <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+         alt="{{ event.title }}" class="wp-post-image">
+    </p>
+
+  </div>
+  {% endif %}
+
+  {% set submit_text='Upload and proceed' %}
+  {% include 'suggest/_default_form_upload.html' %}
+
+  <h3>Or...</h3>
+  <p>You can take a picture with your built-in web camera.</p>
+  <form action="{{ url('webrtc:photobooth', event.id) }}">
+    <button type="submit" class="btn btn-primary submit">Start the camera</button>
+  </form>
+
+
+{% endblock %}

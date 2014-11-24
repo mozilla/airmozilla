@@ -1,5 +1,5 @@
-{% extends 'main/main_base.html' %}
-{% set page='suggest' %}
+{% extends "main/main_base.html" %}
+{% set page='mozillian' %}
 
 {% block site_css %}
   {{ super() }}
@@ -7,7 +7,7 @@
   <link href="{{ static('tooltipster/css/tooltipster.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
   {% compress css %}
-  <link href="{{ static('suggest/css/suggest.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('webrtc/css/webrtc.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 {% endblock %}
 
@@ -18,7 +18,7 @@
     <script src="{{ static('tooltipster/js/jquery.tooltipster.min.js') }}"></script>
   {% endcompress %}
   {% compress js %}
-    <script src="{{ static('suggest/js/suggest.js') }}"></script>
+    <script src="{{ static('webrtc/js/webrtc.js') }}"></script>
   {% endcompress %}
 {% endblock %}
 
