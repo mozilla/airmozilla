@@ -24,7 +24,7 @@ def bootstrapform(form):
 
 @register.function
 def bootstrapform_horizontal(form):
-    return bootstrap_horizontal(form, 'col-sm-3 col-lg-3')
+    return bootstrap_horizontal(form, 'col-sm-2 col-lg-2')
 
 
 @register.function
