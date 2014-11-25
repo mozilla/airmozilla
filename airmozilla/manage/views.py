@@ -1082,6 +1082,34 @@ def event_vidly_submissions(request, id):
         .filter(event=event)
         .order_by('submission_time')
     )
+
+    if request.method == 'POST':
+        ids = request.POST.getlist('id')
+        submissions = submissions.filter(id__in=ids, tag__isnull=False)
+        # if any of those have tag that we're currently using, raise a 400
+        current_tag = event.template_environment.get('tag')
+        if current_tag and submissions.filter(tag=current_tag):
+            return http.HttpResponseBadRequest(
+                "not not delete because it's in use"
+            )
+        deletions = failures = 0
+        for submission in submissions:
+            results = vidly.delete_media(submission.tag)
+            if submission.tag in results:
+                submission.delete()
+                deletions += 1
+            else:
+                failures += 1
+
+        messages.success(
+            request,
+            "%s vidly submissions deleted. %s failures" % (
+                deletions,
+                failures
+            )
+        )
+        return redirect('manage:event_vidly_submissions', event.id)
+
     paged = paginate(submissions, request.GET.get('page'), 20)
 
     data = {

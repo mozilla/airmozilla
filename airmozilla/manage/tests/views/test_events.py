@@ -1381,6 +1381,73 @@ class TestEvents(ManageTestCase):
         ok_('http://something.long/url.file' in response.content)
         ok_('abc123' in response.content)
 
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_delete_event_vidly_submissions(self, p_urllib2):
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>Success</Message>
+              <MessageCode>0.0</MessageCode>
+              <Success>
+                <MediaShortLink>abc456</MediaShortLink>
+              </Success>
+              <Errors>
+                <Error>
+                  <SourceFile>http://www.com</SourceFile>
+                  <ErrorCode>1</ErrorCode>
+                  <Description>ErrorDescriptionK</Description>
+                  <Suggestion>ErrorSuggestionK</Suggestion>
+                </Error>
+              </Errors>
+            </Response>
+            """)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        template = event.template
+        template.name = 'Vid.ly Fun'
+        template.save()
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        url = reverse('manage:event_vidly_submissions', args=(event.pk,))
+
+        # add one
+        vs1 = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url.file',
+            hd=True,
+            token_protection=False,
+            tag='abc123',
+        )
+        vs2 = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url2.file',
+            hd=True,
+            token_protection=False,
+            tag='abc456',
+        )
+        vs3 = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url2.file.broken',
+            hd=True,
+            token_protection=False,
+            tag='xyz987',
+        )
+        response = self.client.post(url, {'id': [vs1.id, vs2.id, vs3.id]})
+        # because we're not allowed to delete vs1
+        eq_(response.status_code, 400)
+
+        response = self.client.post(url, {'id': [vs2.id, vs3.id]})
+        eq_(response.status_code, 302)
+        ok_(VidlySubmission.objects.filter(tag='abc123'))
+        ok_(not VidlySubmission.objects.filter(tag='abc456'))
+        # because it couldn't be deleted, we don't delete the record
+        ok_(VidlySubmission.objects.filter(tag='xyz987'))
+
     def test_event_vidly_submission(self):
         event = Event.objects.get(title='Test event')
         submission = VidlySubmission.objects.create(

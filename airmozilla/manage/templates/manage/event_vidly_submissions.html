@@ -23,6 +23,8 @@
 
 {% block manage_content %}
 
+<form action="" method="post">{{ csrf() }}
+
   <div class="info">
     <p style="text-align:right">
       <button class="btn btn-xs close-info">&times; close</button>
@@ -35,6 +37,7 @@
   <table class="table table-striped">
     <thead>
       <tr>
+        <th></th>
         <th>URL</th>
         <th>Submission Time</th>
         <th>Shortcode</th>
@@ -47,6 +50,13 @@
     <tbody>
       {% for submission in paginate %}
       <tr>
+        <td>
+          {% if event.template_environment and event.template_environment['tag'] == submission.tag %}
+          <span class="label label-info" title="The one still being used now by this event">Actively used</span>
+          {% else %}
+            <input type="checkbox" name="id" value="{{ submission.id }}" checked>
+          {% endif %}
+        </td>
         <td class="url">{{ scrub_transform_passwords(submission.url) }}</td>
         <td>{{ submission.submission_time|js_date }}</td>
         <td>
@@ -83,7 +93,13 @@
     </tbody>
   </table>
 
+  <button type="submit" class="btn btn-primary">Delete selected submissions from Vid.ly</button>
+</form>
+
   {% include 'manage/_paginate.html' %}
 
+<p>
+  <a href="..">&larr; Return to event</a>
+</p>
 
 {% endblock %}
