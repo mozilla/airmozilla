@@ -411,6 +411,7 @@ class EventView(View):
             'Event': Event,
             'hits': hits,
             'tags': [t.name for t in event.tags.all()],
+            'channels': request.channels,
             'curated_groups': curated_groups,
         })
 

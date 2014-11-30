@@ -124,6 +124,15 @@
         {% endfor %}
       </p>
       {% endif %}
+      
+      {% if channels %}
+      <p>
+        {{ _('Channels') }}:
+        {% for channel in channels %}
+          <a href="{{ url('main:home_channels', channel.slug) }}" class="channel">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
+        {% endfor %}
+      </p>
+      {% endif %}
 
       {% if event.call_info %}
         <p>{{ _('Call info') }}: {{ event.call_info }}</p>

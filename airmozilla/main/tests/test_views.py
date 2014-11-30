@@ -375,6 +375,40 @@ class TestPages(DjangoTestCase):
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
 
+    def test_view_event_channels(self):
+        event = Event.objects.get(title='Test event')
+
+        channel1 = Channel.objects.create(
+            name='Test Channel1',
+            slug='test-channel1')
+        channel2 = Channel.objects.create(
+            name='Test Channel2',
+            slug='test-channel2')
+
+        event.channels.add(channel1)
+        event.channels.add(channel2)
+
+        event_url = reverse('main:event', kwargs={'slug': event.slug})
+        response = self.client.get(event_url)
+        eq_(response.status_code, 200)
+
+        main_channel_url = reverse(
+            'main:home_channels',
+            args=(self.main_channel.slug,))
+        test_channel1_url = reverse(
+            'main:home_channels',
+            args=(channel1.slug,))
+        test_channel2_url = reverse(
+            'main:home_channels',
+            args=(channel2.slug,))
+
+        ok_(self.main_channel.name in response.content
+            and main_channel_url in response.content)
+        ok_('Test Channel1' in response.content
+            and test_channel1_url in response.content)
+        ok_('Test Channel2' in response.content
+            and test_channel2_url in response.content)
+
     def test_view_event_with_autoplay(self):
         event = Event.objects.get(title='Test event')
         vidly = Template.objects.create(
