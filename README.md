@@ -199,6 +199,96 @@ And last but not least:
 Now you should be able to open `http://localhost:8000`.
 
 
+How to contribute
+-----------------
+
+There are levels of contribution. All are appreciated.
+
+### Filing bugs
+
+The best start you can get is to file bugs when you spot things that are broken
+or could be made better. Don't be shy with filing bugs that are actually
+feature requests. Your voice will always be appreciated.
+
+[To file a bug go to this URL](https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes%7CAir+Mozilla%7COther)
+
+### Taking bugs/Finding bugs to work on
+
+If you [spot a bug](https://bugzilla.mozilla.org/buglist.cgi?product=Webtools&component=Air%20Mozilla&resolution=---)
+that you would like to work on, you can either just get started and when you
+present your patch you hope that nobody else was working on it at the same time.
+Or you can post a comment on the bug saying you'd like to work on this.
+
+An even better way would be to jump into IRC on the `#airmozilla-dev` channel
+and ask around about the feature/bug you intend to work on.
+
+We don't assign bugs to people until after the bug is resolved.
+
+### Writing code patches
+
+All code patches have to be submitted as GitHub Pull Requests on
+https://github.com/mozilla/airmozilla.
+
+When a pull request is made, our automation will check a couple of things:
+
+1. **Strict PEP8 and pyflakes standards.** If your patch introduces code with
+   incorrect indentation or lines too long the pull request will fail.
+   This rule is there to remove any debate about how to style code as per
+   how a machine likes it. It makes it non-subjective and clear.
+
+2. All tests are run on Travis in Python 2.6. If any test fails, the pull
+   request fails.
+
+3. Test coverage regression. Test coverage is measured for every pull request
+   and if you introduce a patch that has more features/changes than it has
+   test coverage the test coverage percentage goes down and this doesn't
+   necessarily fail the pull request but it will be less likely to be merged.
+
+When you start working on a patch, please try to make it only about the bug
+you're working on. Try to avoid fixing other things that aren't related to
+the issue at hand.
+
+Always start your work in a new git branch. **Don't start to work on the
+master branch**. Before you start your branch make sure you have the most
+up-to-date version of the master branch then, make a branch that ideally
+has the bug number in the branch name.
+
+Also, your git commit message should contain the bug number. If you think by
+merging this patch it should resolve the bug you can add the prefix "Fixes"
+before the bug number.
+Like this for example:
+
+    git pull origin master
+    git checkout -b bug123456789-fixing-that-thing
+    ...work work work...
+    git commit -a -m "Fixes 123456789 - Fixing that thing"
+    git push myforkremote bug123456789-fixing-that-thing
+
+When you have created a pull request on GitHub, take the URL to the pull
+request and post that as a comment on the bug on Bugzilla.
+
+### Rebasing branches
+
+Oftentimes, when you start on a branch and make a pull request you might be
+asked to correct things and add more commits to it until the tests pass and
+it's ready to be merged.
+
+You might then be asked to rebase and squash your branch into a single
+succinct commit. This makes it easier to look back into the commit history
+when we reflect on what we've done in the year or last year.
+
+If you're unfamiliar with rebasing, there are plenty of tutorials online but
+you can also say so and we can rebase it for you manually.
+
+### Easy does it
+
+Any change is a good change. Getting warmed up and familiar with the code base
+is best done in incremental steps. Try to start small and go through the steps
+until the code has landed. The sense of accomplishment for getting your name
+into the commit log history is a great boost for tackling more advanced
+features or bugs.
+
+
 Getting help
 ------------
 
