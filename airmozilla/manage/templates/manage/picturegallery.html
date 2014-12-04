@@ -17,6 +17,10 @@
 {% block site_css %}
   {{ super() }}
   <style>
+  #total-pictures-stats {
+      float: right;
+      font-size: 80%;
+  }
   div.filter-bar {
       margin: 20px;
   }
@@ -158,6 +162,13 @@
         </p>
     </div>
 
+  </div>
+  <div id="total-pictures-stats">
+    <p>
+      <b>Total # pictures:</b>
+      {{ stats.total_pictures }}
+      ({{ stats.event_pictures }} of those belong to specific events)
+    </p>
   </div>
   {% endraw %}
 

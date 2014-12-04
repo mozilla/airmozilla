@@ -3524,12 +3524,20 @@ def picturegallery(request):
 @json_view
 def picturegallery_data(request):
     context = {}
-    items = cache.get('_get_all_pictures')
+    if request.GET.get('event'):
+        event = get_object_or_404(Event, id=request.GET['event'])
+    else:
+        event = None
+
+    cache_key = '_get_all_pictures'
+    if event:
+        cache_key += str(event.id)
+    items = cache.get(cache_key)
 
     if items is None:
-        items = _get_all_pictures()
+        items = _get_all_pictures(event=event)
         # this is invalidated in models.py
-        cache.set('_get_all_pictures', items, 60 * 60)
+        cache.set(cache_key, items, 60)
 
     context['pictures'] = items
     context['urls'] = {
@@ -3543,11 +3551,15 @@ def picturegallery_data(request):
         ),
         'manage:event_edit': reverse('manage:event_edit', args=('0',)),
     }
+    context['stats'] = {
+        'total_pictures': Picture.objects.all().count(),
+        'event_pictures': Picture.objects.filter(event__isnull=False).count(),
+    }
 
     return context
 
 
-def _get_all_pictures():
+def _get_all_pictures(event=None):
 
     values = (
         'id',
@@ -3577,8 +3589,15 @@ def _get_all_pictures():
         'modified',
         'modified_user',
     )
-    qs = Picture.objects.all().order_by('-created')
-    for picture_dict in qs.values(*values):
+    qs = Picture.objects.all()
+    if event:
+        qs = qs.filter(
+            Q(event__isnull=True) |
+            Q(event=event)
+        )
+    else:
+        qs = qs.filter(event__isnull=True)
+    for picture_dict in qs.order_by('event', '-created').values(*values):
         picture = dot_dict(picture_dict)
         item = {
             'id': picture.id,

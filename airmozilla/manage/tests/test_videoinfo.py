@@ -1,4 +1,6 @@
+import os
 import sys
+import shutil
 from cStringIO import StringIO
 
 from nose.tools import ok_, eq_
@@ -7,7 +9,7 @@ import mock
 from django.core.cache import cache
 from django.test import TestCase
 
-from airmozilla.main.models import Event, Template, VidlySubmission
+from airmozilla.main.models import Event, Template, VidlySubmission, Picture
 from airmozilla.manage import videoinfo
 
 
@@ -29,6 +31,8 @@ class _Response(object):
 
 class TestVideoinfo(TestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
+    sample_jpg2 = 'airmozilla/manage/tests/tucker.jpg'
 
     def tearDown(self):
         cache.clear()
@@ -448,3 +452,97 @@ class TestVideoinfo(TestCase):
         videoinfo.fetch_durations()
         event = Event.objects.get(id=event.id)
         eq_(event.duration, 631)
+
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_screencapture(self, mock_popen, rhead, p_urllib2, p_log):
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>xxx999</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        def mocked_head(url, **options):
+            return _Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        sample_jpg = self.sample_jpg
+        sample_jpg2 = self.sample_jpg2
+
+        def mocked_popen(command, **kwargs):
+            # print (args, kwargs)
+            url = command[2]
+            ffmpeged_urls.append(url)
+            destination = command[-1]
+            assert os.path.isdir(os.path.dirname(destination))
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if 'xyz123' in url:
+                        # Let's create two jpeg's in that directory that
+                        # are identical.
+                        shutil.copyfile(sample_jpg, destination % 1)
+                        shutil.copyfile(sample_jpg, destination % 2)
+                        # then create a 3rd one that is different
+                        shutil.copyfile(sample_jpg2, destination % 3)
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.save()
+        assert event.duration is None
+
+        videoinfo.fetch_screencaptures()
+        assert not ffmpeged_urls  # because no event has a duration yet
+        event.duration = 1157
+        event.save()
+
+        # Make sure it has a HD VidlySubmission
+        VidlySubmission.objects.create(
+            event=event,
+            url='https://s3.com/asomething.mov',
+            tag='xyz123',
+            hd=True,
+        )
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+        videoinfo.fetch_screencaptures()
+        assert ffmpeged_urls
+        eq_(Picture.objects.filter(event=event).count(), 2)
+
+        # Try to do it again and it shouldn't run it again
+        # because there are pictures in the gallery already.
+        assert len(ffmpeged_urls) == 1
+        videoinfo.fetch_screencaptures()
+        eq_(len(ffmpeged_urls), 1)
+        # and still
+        eq_(Picture.objects.filter(event=event).count(), 2)

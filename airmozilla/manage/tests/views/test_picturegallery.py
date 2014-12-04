@@ -70,6 +70,36 @@ class TestPictureGallery(ManageTestCase):
         eq_(response.status_code, 200)
         struct = json.loads(response.content)
         eq_(struct['pictures'][1]['notes'], 'Other notes')
+        eq_(struct['stats']['total_pictures'], 2)
+        eq_(struct['stats']['event_pictures'], 0)
+
+    def test_picturegallery_data_event_filtering(self):
+        url = reverse('manage:picturegallery_data')
+        event = Event.objects.get(title='Test event')
+        with open(self.main_image) as fp:
+            Picture.objects.create(
+                file=File(fp),
+                notes="Some notes"
+            )
+            Picture.objects.create(
+                file=File(fp),
+                notes="Other notes",
+                event=event
+            )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        eq_(len(struct['pictures']), 1)
+        p, = struct['pictures']
+        eq_(p['notes'], 'Some notes')
+
+        response = self.client.get(url, {'event': event.id})
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        eq_(len(struct['pictures']), 2)
+
+        eq_(struct['stats']['total_pictures'], 2)
+        eq_(struct['stats']['event_pictures'], 1)
 
     def test_picture_edit(self):
         with open(self.main_image) as fp:

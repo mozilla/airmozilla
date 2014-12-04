@@ -247,9 +247,11 @@ app.controller('PictureGalleryController', ['$scope', '$http',
             return $scope.urls[viewname].replace('0', item);
         };
 
-        function fetchPictures(params) {
+        function fetchPictures() {
             var url = location.pathname + 'data/';
-            url += '?' + serializeObject(params);
+            if (window.location.search) {
+                url += window.location.search;
+            }
             return $http.get(url);
         }
 
@@ -257,6 +259,8 @@ app.controller('PictureGalleryController', ['$scope', '$http',
             fetchPictures()
                 .success(function(data) {
                     $scope.pictures = data.pictures;
+                    $scope.stats = data.stats;
+                    console.log(data.stats);
                     $scope.urls = data.urls;
                 }).error(function(data, status) {
                     console.warn('Failed to fetch pictures', status);

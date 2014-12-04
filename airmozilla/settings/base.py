@@ -237,3 +237,9 @@ try:
     JSON_USE_DJANGO_SERIALIZER = False
 except ImportError:
     pass
+
+
+# When extracting screen captures, how many do we want to extract
+# for each video. This number is static independent of the length
+# of the video.
+SCREENCAPTURES_NO_PICTURES = 10

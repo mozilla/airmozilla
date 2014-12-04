@@ -53,3 +53,12 @@ def fetch_durations():
         max_=10,
         verbose=True,
     )
+
+
+@cronjobs.register
+@capture
+def fetch_screencaptures():
+    videoinfo.fetch_screencaptures(
+        max_=5,
+        verbose=True,
+    )
