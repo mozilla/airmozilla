@@ -173,6 +173,7 @@
   {% endraw %}
 
   <div ng-show="filtered_items.length">
+    {% set paginate_label='Pictures per page' %}
     {% include "manage/_angular_pagesize.html" %}
     {% include "manage/_angular_paginate.html" %}
   </div>

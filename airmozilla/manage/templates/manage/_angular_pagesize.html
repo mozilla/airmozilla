@@ -1,9 +1,14 @@
-{% raw %}
 <div class="pagesize-option" ng-cloak>
-  <label for="id_pagesize">Pictures per page
-  <select id="id_pagesize" name="pagesize" ng-model="pageSize">
-    <option ng-repeat="size in pageSizeOptions">{{ size }}</option>
-  </select>
+  <label for="id_pagesize">
+    {% if paginate_label %}
+    {{ paginate_label }}
+    {% else %}
+    Rows per page
+    {% endif %}
+    {% raw %}
+    <select id="id_pagesize" name="pagesize" ng-model="pageSize">
+      <option ng-repeat="size in pageSizeOptions">{{ size }}</option>
+    </select>
+    {% endraw %}
   </label>
 </div>
-{% endraw %}
