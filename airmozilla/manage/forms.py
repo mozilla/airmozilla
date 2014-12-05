@@ -685,7 +685,7 @@ class EventAssignmentForm(BaseModelForm):
             .extra(select={
                 'email_lower': 'LOWER(email)'
             })
-            .filter(is_active=True)
+            .filter(is_active=True, is_staff=True)
             .order_by('email_lower')
         )
 
