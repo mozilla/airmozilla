@@ -1,4 +1,4 @@
-from nose.tools import eq_
+from nose.tools import eq_, ok_
 
 from django.test import TestCase
 from django.contrib.auth.models import User
@@ -24,12 +24,18 @@ class TestForms(TestCase):
         alf = User.objects.create(
             username='alf',
             email='alf@email.com',
-            first_name='Alf'
+            first_name='Alf',
+            is_staff=True
         )
         zorro = User.objects.create(
             username='zorro',
             email='Zorro@email.com',
+            is_staff=True
         )
+        carlos = User.objects.create(
+            username='carlos',
+            email='carlos@email.com'
+            )
 
         assignment = EventAssignment.objects.create(event=event)
         form = forms.EventAssignmentForm(instance=assignment)
@@ -41,3 +47,6 @@ class TestForms(TestCase):
                 (zorro.pk, u'Zorro@email.com')
             ]
         )
+        ok_(
+            (carlos.pk, 'carlos@email.com') not in form.fields['users'].choices
+            )
