@@ -35,6 +35,19 @@ def _download_file(url, local_filename):
                 f.flush()
 
 
+# originally from github.com/erikrose/peep
+def hash_of_file(path):
+    """Return the hash of a downloaded file."""
+    with open(path, 'rb') as archive:
+        sha = hashlib.sha256()
+        while True:
+            data = archive.read(2 ** 20)
+            if not data:
+                break
+            sha.update(data)
+    return sha.hexdigest()
+
+
 def fetch_duration(
     event, save=False, save_locally=False, verbose=False, use_https=True,
 ):
@@ -139,21 +152,21 @@ def fetch_screencapture(
         last_picture_hash = None
         for i, filepath in enumerate(files):
             if save:
+                this_picture_hash = hash_of_file(filepath)
+                if last_picture_hash is None:
+                    last_picture_hash = this_picture_hash
+                elif last_picture_hash == this_picture_hash:
+                    if verbose:  # pragma: no cover
+                        print "Skipping identically picture", i + 1
+                    continue
                 with open(filepath) as fp:
-                    this_picture_hash = hashlib.md5(fp.read()).hexdigest()
-                    if last_picture_hash is None:
-                        last_picture_hash = this_picture_hash
-                    elif last_picture_hash == this_picture_hash:
-                        if verbose:  # pragma: no cover
-                            print "Skipping identically picture", i + 1
-                        continue
                     Picture.objects.create(
                         file=File(fp),
                         notes="Screencapture %d" % (i + 1,),
                         event=event,
                     )
                     created += 1
-                    last_picture_hash = this_picture_hash
+                last_picture_hash = this_picture_hash
         if not files:  # pragma: no cover
             print "No output. Error:"
             print err
