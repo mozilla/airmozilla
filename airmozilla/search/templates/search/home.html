@@ -64,7 +64,14 @@
         {% endif %}
       </header>
       <div class="entry-summary">
-        <p class="event-date">{{ event.start_time | js_date }}</p>
+        <p>
+          <span class="event-date">{{ event.start_time | js_date }}</span>
+          <span class="event-channels">  
+            {% for channel in channels[event] %}              
+                <a title="Click to go to the {{ channel.name }} channel" href="{{ url('main:home_channels',channel.slug) }}">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
+            {% endfor %}
+          </span>
+        </p>                 
         {% if event.picture %}
           {% set thumb = thumbnail(event.picture.file, '68x68', crop='center') %}
         {% else %}
@@ -87,6 +94,7 @@
           {% else %}
             {{ short_desc(event) }}
           {% endif %}
+          
           <a class="go" href="{{ href }}">{{ _('See more') }}</a>
         </p>
       </div>

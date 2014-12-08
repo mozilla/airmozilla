@@ -504,7 +504,8 @@ class TestSearch(TestCase):
         response = self.client.get(url, {'q': 'channel: Grow Mozilla'})
         eq_(response.status_code, 200)
         ok_('Nothing found' in response.content)
-        channel = Channel.objects.create(name='Grow Mozilla')
+        channel = Channel.objects.create(
+            name='Grow Mozilla', slug='gr-mozilla')
         event.channels.add(channel)
 
         response = self.client.get(url, {'q': 'channel: Grow Mozilla'})
@@ -622,3 +623,16 @@ class TestSearch(TestCase):
         response = self.client.get(url, {'q': u'T\xe4sT'})
         eq_(response.status_code, 200)
         ok_('Nothing found' not in response.content)
+
+    def test_event_channels(self):
+        # tests if channels were in events from search
+        event = Event.objects.get(title='Test event')
+        channel = Channel.objects.create(
+            name='TestChannel', slug='test-channel')
+        event.channels.add(channel)
+
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': 'Test event'})
+        eq_(response.status_code, 200)
+        ok_(channel.slug in response.content)
+        ok_(channel.name in response.content)

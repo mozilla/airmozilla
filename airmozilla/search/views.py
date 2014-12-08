@@ -13,6 +13,7 @@ from funfactory.urlresolvers import reverse
 from airmozilla.main.models import Event, Tag, Channel
 from airmozilla.main.views import is_contributor
 from airmozilla.base.utils import paginator
+from airmozilla.main.utils import get_event_channels
 
 from . import forms
 from . import utils
@@ -188,6 +189,7 @@ def home(request):
         context['next_page_url'] = next_page_url
         context['prev_page_url'] = prev_page_url
         context['events_found'] = pager.count
+        context['channels'] = get_event_channels(events_paged)
 
         log_searches = settings.LOG_SEARCHES and '_nolog' not in request.GET
         if (
