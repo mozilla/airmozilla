@@ -254,14 +254,14 @@ up-to-date version of the master branch then, make a branch that ideally
 has the bug number in the branch name.
 
 Also, your git commit message should contain the bug number. If you think by
-merging this patch it should resolve the bug you can add the prefix "Fixes"
+merging this patch it should resolve the bug you can add the prefix "fixes"
 before the bug number.
 Like this for example:
 
     git pull origin master
     git checkout -b bug123456789-fixing-that-thing
     ...work work work...
-    git commit -a -m "Fixes 123456789 - Fixing that thing"
+    git commit -a -m "fixes bug 123456789 - Fixing that thing"
     git push myforkremote bug123456789-fixing-that-thing
 
 When you have created a pull request on GitHub, take the URL to the pull
