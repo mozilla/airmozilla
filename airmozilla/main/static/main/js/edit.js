@@ -94,5 +94,4 @@ $(function() {
             $('form.event-edit').data('conflict-errors')
         );
     }
-
 });

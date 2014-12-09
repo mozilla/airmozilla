@@ -9,7 +9,7 @@ from slugify import slugify
 import requests
 from funfactory.urlresolvers import reverse
 
-from airmozilla.base.forms import BaseModelForm
+from airmozilla.base.forms import BaseModelForm, GallerySelect
 from airmozilla.main.models import (
     SuggestedEvent,
     Event,
@@ -298,34 +298,30 @@ class PlaceholderForm(BaseModelForm):
 
     class Meta:
         model = SuggestedEvent
-        fields = ('placeholder_img',)
+        fields = ('placeholder_img', 'picture')
 
     def __init__(self, *args, **kwargs):
         super(PlaceholderForm, self).__init__(*args, **kwargs)
+        self.fields['placeholder_img'].label = (
+            'Upload a picture from your computer'
+        )
         self.fields['placeholder_img'].help_text = (
             "We need a placeholder image for your event. &lt;br&gt;"
             "A recent head-shot of the speaker is preferred. &lt;br&gt;"
             "Placeholder images should be 200 x 200 px or larger."
         )
+        self.fields['picture'].widget = GallerySelect()
+        self.fields['picture'].label = (
+            'Select an existing picture from the gallery'
+        )
 
-# class ParticipantsForm(BaseModelForm):
-#
-#    participants = forms.CharField(required=False)
-#
-#    class Meta:
-#        model = SuggestedEvent
-#        fields = ('participants',)
-#
-#    def clean_participants(self):
-#        participants = self.cleaned_data['participants']
-#        split_participants = [p.strip() for p in participants.split(',')
-#                              if p.strip()]
-#        final_participants = []
-#        for participant_name in split_participants:
-#            p = Participant.objects.get(name=participant_name)
-#            final_participants.append(p)
-#        return final_participants
-#
+    def clean(self):
+        cleaned_data = super(PlaceholderForm, self).clean()
+        placeholder_img = cleaned_data.get('placeholder_img')
+        picture = cleaned_data.get('picture')
+        if not placeholder_img and not picture:
+            raise forms.ValidationError('Events needs to have a picture')
+        return cleaned_data
 
 
 class SuggestedEventCommentForm(BaseModelForm):

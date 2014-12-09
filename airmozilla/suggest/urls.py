@@ -14,9 +14,6 @@ urlpatterns = patterns(
     url(r'^(?P<id>\d+)/details/$', views.details, name='details'),
     url(r'^(?P<id>\d+)/discussion/$', views.discussion, name='discussion'),
     url(r'^(?P<id>\d+)/image/$', views.placeholder, name='placeholder'),
-    # url(r'^(?P<id>\d+)/participants/$', views.participants,
-    #    name='participants'),
     url(r'^(?P<id>\d+)/summary/$', views.summary, name='summary'),
     url(r'^(?P<id>\d+)/delete/$', views.delete, name='delete'),
-    # url(r'^(?P<id>\d+)/comment/$', views.comment, name='comment'),
 )

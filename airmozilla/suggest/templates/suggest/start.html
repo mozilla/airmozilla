@@ -52,7 +52,11 @@ Request | {{ super() }}
       {% endif %}
     </td>
     <td>
+      {% if not event.picture and not event.placeholder_img %}
+      Image missing!
+      {% else %}
       {{ state_description(event) }}
+      {% endif %}
     </td>
     <td class="delete" data-delete-url="{{ url('suggest:delete', event.pk) }}">
       {% if event.accepted %}

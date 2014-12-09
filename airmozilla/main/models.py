@@ -294,13 +294,13 @@ class Event(models.Model):
                               default=STATUS_INITIATED, db_index=True)
     placeholder_img = ImageField(
         upload_to=_upload_path('event-placeholder'),
+        blank=True,
         null=True,
-        blank=True
     )
     picture = models.ForeignKey(
         'Picture',
-        null=True,
         blank=True,
+        null=True,
         related_name='event_picture',
         on_delete=models.SET_NULL
     )
@@ -432,6 +432,7 @@ class EventRevisionManager(models.Manager):
             user=user,
             title=event.title,
             placeholder_img=event.placeholder_img,
+            picture=event.picture,
             description=event.description,
             short_description=event.short_description,
             call_info=event.call_info,
@@ -449,7 +450,9 @@ class EventRevision(models.Model):
     event = models.ForeignKey(Event)
     user = models.ForeignKey(User, null=True)
     title = models.CharField(max_length=200)
-    placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
+    placeholder_img = ImageField(
+        upload_to=_upload_path('event-placeholder'), blank=True, null=True)
+    picture = models.ForeignKey('Picture', blank=True, null=True)
     description = models.TextField()
     short_description = models.TextField(
         blank=True,
@@ -490,7 +493,9 @@ class SuggestedEvent(models.Model):
     upcoming = models.BooleanField(default=True)
     slug = models.SlugField(blank=True, max_length=215, unique=True,
                             db_index=True)
-    placeholder_img = ImageField(upload_to=_upload_path('event-placeholder'))
+    placeholder_img = ImageField(
+        upload_to=_upload_path('event-placeholder'), blank=True, null=True)
+    picture = models.ForeignKey('Picture', blank=True, null=True)
     upload = models.ForeignKey(
         'uploads.Upload',
         null=True,

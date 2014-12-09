@@ -947,6 +947,7 @@ def redirect_event_thumbnail(request, id):
         thumb = thumbnail(event.picture.file, geometry, crop=crop)
     else:
         thumb = thumbnail(event.placeholder_img, geometry, crop=crop)
+
     return redirect(thumb.url)
 
 
@@ -2164,6 +2165,7 @@ def suggestion_review(request, id):
                 if real_event_form.is_valid():
                     real = real_event_form.save(commit=False)
                     real.placeholder_img = event.placeholder_img
+                    real.picture = event.picture
                     real.slug = event.slug
                     real.additional_links = event.additional_links
                     real.remote_presenters = event.remote_presenters

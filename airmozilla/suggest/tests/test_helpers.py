@@ -50,17 +50,13 @@ class TestStateHelpers(TestCase):
         url = next_url(event)
         eq_(url, reverse('suggest:placeholder', args=(event.pk,)))
         description = state_description(event)
-        eq_(description, 'No placeholder image')
+        eq_(description, 'No image')
 
         event.placeholder_img = 'some/path.png'
         event.save()
         url = next_url(event)
-        # eq_(url, reverse('suggest:participants', args=(event.pk,)))
-        # description = state_description(event)
-        # eq_(description, 'No participants selected')
-        # event.participants.add(self.participant)
-        # url = next_url(event)
         eq_(url, reverse('suggest:summary', args=(event.pk,)))
+
         description = state_description(event)
         eq_(description, 'Not yet submitted')
 

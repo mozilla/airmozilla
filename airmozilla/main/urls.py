@@ -73,7 +73,4 @@ urlpatterns = patterns(
     url(r'^crossdomain.xml$',
         views.crossdomain_xml,
         name='crossdomain_xml'),
-
-
-
 )

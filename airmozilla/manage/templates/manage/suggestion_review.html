@@ -37,7 +37,13 @@
       </tr>
       <tr>
         <td>Placeholder image</td>
-        <td><a href="{{ event.placeholder_img.url }}">View</a></td>
+        <td>
+          {% if event.picture %}
+          <a href="{{ event.picture.url }}">View</a>
+          {% else %}
+          <a href="{{ event.placeholder_img.url }}">View</a>
+          {% endif %}
+        </td>
       </tr>
       <tr>
         <td>Description</td>

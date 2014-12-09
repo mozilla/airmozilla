@@ -6,6 +6,16 @@ Event picture | {{ super() }}
 
 {% block banner %}
     {% include 'main/_banner_small.html' %}
+    {% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {{ form.media.css }}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {{ form.media.js }}
 {% endblock %}
 
 
@@ -28,8 +38,5 @@ Event picture | {{ super() }}
   </div>
   {% endif %}
 
-  {% set submit_text='Upload and proceed' %}
   {% include 'suggest/_default_form_upload.html' %}
-
-
 {% endblock %}

@@ -24,15 +24,10 @@ _STATES = [
         'description': 'Details missing',
     },
     {
-        'not': ['placeholder_img'],
+        'not': [['placeholder_img', 'picture']],
         'view': 'suggest:placeholder',
-        'description': 'No placeholder image',
+        'description': 'No image',
     },
-    # {
-    #    'not': [lambda event: event.participants.all().count()],
-    #    'view': 'suggest:participants',
-    #    'description': 'No participants selected'
-    # },
 ]
 
 _DEFAULT_STATE = {
@@ -52,6 +47,8 @@ def _get_state(event):
             if isinstance(requirement, basestring):
                 if not getattr(event, requirement, None):
                     all = False
+            elif isinstance(requirement, list):
+                all = any(getattr(event, x, None) for x in requirement)
             else:
                 if not requirement(event):
                     all = False
