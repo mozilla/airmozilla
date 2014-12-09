@@ -162,10 +162,12 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
     if 'Vid.ly' in event.template.name:
         assert event.template_environment.get('tag'), "No Vid.ly tag value"
 
+        token_protected = event.privacy != Event.PRIVACY_PUBLIC
         hd = False
         qs = VidlySubmission.objects.filter(event=event)
         for submission in qs.order_by('-submission_time')[:1]:
             hd = submission.hd
+            token_protected = submission.token_protection
 
         tag = event.template_environment['tag']
         video_url = 'https://vid.ly/%s?content=video&format=' % tag
@@ -174,7 +176,7 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
         else:
             video_url += 'mp4'
 
-        if event.privacy != Event.PRIVACY_PUBLIC:
+        if token_protected:
             video_url += '&token=%s' % vidly.tokenize(tag, 60)
     elif 'Ogg Video' in event.template.name:
         assert event.template_environment.get('url'), "No Ogg Video url value"

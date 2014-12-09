@@ -120,22 +120,84 @@ class TestVideoinfo(TestCase):
         event = Event.objects.get(id=event.id)
         eq_(event.duration, 1157)
 
-        # let's change our mind and make it a private event
-        event.privacy = Event.PRIVACY_COMPANY
-        event.duration = None
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_duration_token_protected_public_event(
+        self, mock_popen, rhead, p_urllib2, p_logging
+    ):
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>xxx999</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        def mocked_head(url, **options):
+            return _Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+            # print (args, kwargs)
+            url = command[2]
+            ffmpeged_urls.append(url)
+
+            class Inner:
+                def communicate(self):
+                    assert 'xyz123' in url
+                    out = ''
+                    err = """
+            Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
+                    """
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.template_environment = {'tag': 'abc123'}
         event.save()
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        assert event.duration is None
+
+        # need to change to a different tag
+        # and make sure it has a VidlySubmission
         VidlySubmission.objects.create(
             event=event,
             url='https://s3.com/asomething.mov',
-            tag='xxx9999',
+            tag='xyz123',
+            token_protection=True,  # Note!~
             hd=True,
-            token_protection=True
         )
-
-        # this won't be different
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
         videoinfo.fetch_durations()
         event = Event.objects.get(id=event.id)
         eq_(event.duration, 1157)
+        url, = ffmpeged_urls
+        ok_('&token=' in url)
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
