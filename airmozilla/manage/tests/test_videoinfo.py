@@ -600,6 +600,13 @@ class TestVideoinfo(TestCase):
         assert ffmpeged_urls
         eq_(Picture.objects.filter(event=event).count(), 2)
 
+        # When viewed, like it's viewed in the picture gallery and gallery
+        # select widget, we want the one called "Screencap 1" to appear
+        # before the one called "Screencap 2"
+        pictures = Picture.objects.all().order_by('event', '-created')
+        notes = [x.notes for x in pictures]
+        eq_(notes, ["Screencap 1", "Screencap 2"])
+
         # Try to do it again and it shouldn't run it again
         # because there are pictures in the gallery already.
         assert len(ffmpeged_urls) == 1

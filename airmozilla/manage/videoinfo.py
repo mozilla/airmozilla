@@ -123,7 +123,7 @@ def fetch_screencapture(
             video_url,
             '-r',
             r,
-            os.path.join(save_dir, 'screencap-%2d.jpg')
+            os.path.join(save_dir, 'screencap-%02d.jpg')
         ]
         if verbose:  # pragma: no cover
             print ' '.join(command)
@@ -135,12 +135,17 @@ def fetch_screencapture(
 
         files = glob.glob(os.path.join(save_dir, 'screencap*.jpg'))
         created = 0
-        for i, filepath in enumerate(files):
+        # We sort and reverse by name so that the first instance
+        # that is created is the oldest one.
+        # That way, when you look at the in the picture gallery
+        # (which is sorted by ('event', '-created')) they appear in
+        # correct chronological order.
+        for i, filepath in enumerate(reversed(sorted(files))):
             if save:
                 with open(filepath) as fp:
                     Picture.objects.create(
                         file=File(fp),
-                        notes="Screencap %d" % (i + 1,),
+                        notes="Screencap %d" % (len(files) - i,),
                         event=event,
                     )
                     created += 1

@@ -116,7 +116,7 @@
             </ng-pluralize>
           </a>
           <button class="btn btn-danger btn-xs"
-            ng-show="!picture._delete_confirmation && !picture.cant_delete && !current_event"
+            ng-show="!picture._delete_confirmation && !picture.cant_delete"
             ng-click="toggleDeleteConfirmation(picture)">Delete</button>
           <br>
           <button ng-click="associatePicture(picture)" ng-show="current_event && current_event_picture != picture.id"
