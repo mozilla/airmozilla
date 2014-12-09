@@ -7,7 +7,6 @@ import time
 import sys
 import traceback
 import urlparse
-import hashlib
 import glob
 
 import requests
@@ -33,19 +32,6 @@ def _download_file(url, local_filename):
             if chunk:  # filter out keep-alive new chunks
                 f.write(chunk)
                 f.flush()
-
-
-# originally from github.com/erikrose/peep
-def hash_of_file(path):
-    """Return the hash of a downloaded file."""
-    with open(path, 'rb') as archive:
-        sha = hashlib.sha256()
-        while True:
-            data = archive.read(2 ** 20)
-            if not data:
-                break
-            sha.update(data)
-    return sha.hexdigest()
 
 
 def fetch_duration(
@@ -149,24 +135,15 @@ def fetch_screencapture(
 
         files = glob.glob(os.path.join(save_dir, 'screencap*.jpg'))
         created = 0
-        last_picture_hash = None
         for i, filepath in enumerate(files):
             if save:
-                this_picture_hash = hash_of_file(filepath)
-                if last_picture_hash is None:
-                    last_picture_hash = this_picture_hash
-                elif last_picture_hash == this_picture_hash:
-                    if verbose:  # pragma: no cover
-                        print "Skipping identically picture", i + 1
-                    continue
                 with open(filepath) as fp:
                     Picture.objects.create(
                         file=File(fp),
-                        notes="Screencapture %d" % (i + 1,),
+                        notes="Screencap %d" % (i + 1,),
                         event=event,
                     )
                     created += 1
-                last_picture_hash = this_picture_hash
         if not files:  # pragma: no cover
             print "No output. Error:"
             print err
