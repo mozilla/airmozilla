@@ -498,12 +498,9 @@ class TestVideoinfo(TestCase):
                 def communicate(self):
                     out = err = ''
                     if 'xyz123' in url:
-                        # Let's create two jpeg's in that directory that
-                        # are identical.
+                        # Let's create two jpeg's in that directory
                         shutil.copyfile(sample_jpg, destination % 1)
-                        shutil.copyfile(sample_jpg, destination % 2)
-                        # then create a 3rd one that is different
-                        shutil.copyfile(sample_jpg2, destination % 3)
+                        shutil.copyfile(sample_jpg2, destination % 2)
                     else:
                         raise NotImplementedError(url)
                     return out, err
