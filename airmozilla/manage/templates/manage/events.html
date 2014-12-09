@@ -125,7 +125,7 @@
           <img ng-if="event.thumbnail"
                ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}">
           <img ng-if="!event.thumbnail"
-               ng-src="{{ url('manage:redirect_event_thumbnail', event.id) }}?geometry=32x32">
+               ng-src="{{ url('manage:redirect_event_thumbnail', event.id) }}?geometry=40x40">
         </td>
         <td>
           <a href="/{{ event.slug }}/">{{ event.title }}</a>

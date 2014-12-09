@@ -22,7 +22,7 @@
       <tr>
         <td>
         {% if participant.photo %}
-          {% set thumb = thumbnail(participant.photo, '32x32') %}
+          {% set thumb = thumbnail(participant.photo, '40x40') %}
           <img src="{{ thumb.url }}" width="{{ thumb.width }}"
                    height="{{ thumb.height }}" alt="Participant photo">
         {% endif %}
