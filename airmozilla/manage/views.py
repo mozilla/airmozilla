@@ -665,6 +665,16 @@ def events_data(request):
         .values_list('event_id', flat=True)
     )
 
+    pictures_counts = {}
+    grouped_pictures = (
+        Picture.objects
+        .filter(event__in=qs)
+        .values('event')
+        .annotate(Count('event'))
+    )
+    for each in grouped_pictures:
+        pictures_counts[each['event']] = each['event__count']
+
     if request.GET.get('limit'):
         try:
             limit = int(request.GET['limit'])
@@ -733,6 +743,8 @@ def events_data(request):
             row['needs_approval'] = True
         if event.mozillian:
             row['mozillian'] = event.mozillian
+        if event.id in pictures_counts:
+            row['pictures'] = pictures_counts[event.id]
 
         if row.get('is_pending'):
             # this one is only relevant if it's pending
@@ -766,6 +778,7 @@ def events_data(request):
         'manage:event_duplicate': reverse(
             'manage:event_duplicate', args=('0',)
         ),
+        'manage:picturegallery': reverse('manage:picturegallery'),
     }
 
     return {'events': events, 'urls': urls}

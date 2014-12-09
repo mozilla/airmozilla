@@ -243,6 +243,24 @@ class TestEvents(ManageTestCase):
         result = results['events'][0]
         eq_(result['popcorn_url'], event.popcorn_url)
 
+    def test_events_data_with_pictures_count(self):
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        result = results['events'][0]
+        ok_('pictures' not in result)
+        with open(self.placeholder) as fp:
+            Picture.objects.create(
+                file=File(fp),
+                event=event,
+            )
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        result = results['events'][0]
+        eq_(result['pictures'], 1)
+
     def test_events_data_with_is_scheduled(self):
         event = Event.objects.get(title='Test event')
         assert event.status == Event.STATUS_SCHEDULED
