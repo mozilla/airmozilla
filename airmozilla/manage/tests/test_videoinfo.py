@@ -459,6 +459,8 @@ class TestVideoinfo(TestCase):
     @mock.patch('subprocess.Popen')
     def test_fetch_screencapture(self, mock_popen, rhead, p_urllib2, p_log):
 
+        assert Picture.objects.all().count() == 0, Picture.objects.all()
+
         def mocked_urlopen(request):
             return StringIO("""
             <?xml version="1.0"?>

@@ -645,7 +645,7 @@ class EventEditView(EventView):
 
         initial = self.event_to_dict(event)
         if form is None:
-            form = forms.EventEditForm(initial=initial)
+            form = forms.EventEditForm(initial=initial, event=event)
             if not request.user.has_perm('main.change_recruitmentmessage'):
                 del form.fields['recruitmentmessage']
 
@@ -681,7 +681,7 @@ class EventEditView(EventView):
 
         previous = request.POST['previous']
         previous = json.loads(previous)
-        form = forms.EventEditForm(request.POST, request.FILES)
+        form = forms.EventEditForm(request.POST, request.FILES, event=event)
         base_revision = None
 
         if form.is_valid():
