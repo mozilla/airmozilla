@@ -30,7 +30,7 @@ class GallerySelect(forms.widgets.Widget):
     """ Produces a gallery of all Pictures for the user to select from. """
     def render(self, name, value, attrs):
         pictures = []
-        for pic in Picture.objects.all():
+        for pic in Picture.objects.all().order_by('event', '-created'):
             thumb = thumbnail(pic.file, '100x100', crop='center')
             pictures.append({
                 'thumb': {
