@@ -40,3 +40,16 @@ a.reverse-toggle,
 a.reverse-toggle:hover {
     text-decoration: none;
 }
+
+
+td.event-thumbnail {
+    position: relative;
+}
+
+span.badge.picture-gallery-count {
+    position: absolute;
+    bottom: 3px;
+    right: 2px;
+    background-color: #5CB85C;
+    font-size: 9px; /* 12px by default in bootstrap */
+}

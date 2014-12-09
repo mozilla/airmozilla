@@ -121,11 +121,16 @@
     </thead>
     <tbody>
       <tr ng-repeat="event in filtered_items = (events | filter:filterBySearch) | orderBy:sorting:sorting_reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
-        <td>
+        <td class="event-thumbnail">
           <img ng-if="event.thumbnail"
                ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}">
           <img ng-if="!event.thumbnail"
                ng-src="{{ url('manage:redirect_event_thumbnail', event.id) }}?geometry=40x40">
+          <a ng-if="event.pictures"
+             href="{{ url('manage:picturegallery') }}?event={{ event.id }}"
+             title="Number of pictures belonging to this event">
+            <span class="badge picture-gallery-count">{{ event.pictures }}</span>
+          </a>
         </td>
         <td>
           <a href="/{{ event.slug }}/">{{ event.title }}</a>
