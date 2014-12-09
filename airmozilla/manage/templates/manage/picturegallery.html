@@ -30,6 +30,15 @@
   .current-event-picture div {
       background-color: lightblue;
   }
+  div.thumbnail {
+      position: relative;
+  }
+  .picture-metadata {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      opacity: 0.9;
+  }
   </style>
 {% endblock %}
 
@@ -91,8 +100,12 @@
       <div class="thumbnail">
         <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
           <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=200x200">
-        </a>
+          <span class="label label-primary picture-metadata">
+            {{ picture.width }}x{{ picture.height }}
+            {{ picture.size | filesize }}
+          </span>
 
+        </a>
         <div class="caption">
 
           <input name="notes" value="{{ picture.notes }}"
@@ -105,19 +118,19 @@
             <span ng-if="picture._saving">Saving</span>
             <span ng-if="!picture._saving">Save</span>
           </button>
+          <button
+            class="btn btn-danger btn-xs"
+            ng-show="!picture._delete_confirmation && !picture.cant_delete"
+            ng-click="toggleDeleteConfirmation(picture)">Delete</button>
+          <small ng-show="picture.cant_delete">can't be deleted</small>
           <br>
-          {{ picture.width }}x{{ picture.height }},
-          {{ picture.size | filesize }}<br>
-          <!-- <time title="{{ formatDate(picture.created) }}" am-time-ago="picture.created"></time>, -->
           <a href="" ng-show="picture.events.length"
              ng-click="toggleShowEvents(picture)">
              <ng-pluralize count="picture.events.length"
               when="{'one': '1 event', 'other': '{} events'}">
             </ng-pluralize>
           </a>
-          <button class="btn btn-danger btn-xs"
-            ng-show="!picture._delete_confirmation && !picture.cant_delete"
-            ng-click="toggleDeleteConfirmation(picture)">Delete</button>
+
           <br>
           <button ng-click="associatePicture(picture)" ng-show="current_event && current_event_picture != picture.id"
                   class="btn btn-primary">
