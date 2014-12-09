@@ -719,16 +719,6 @@ def events_data(request):
             'can': [],  # actions you can take on the event
         }
 
-        # Commented out in case we decide to go back and use it
-        # if event.placeholder_img:
-        #     thumb = thumbnail(event.placeholder_img, '32x32', crop='center')
-        #     thumbnail_ = {
-        #         'url': thumb.url,
-        #         'width': thumb.width,
-        #         'height': thumb.height,
-        #     }
-        #     row['thumbnail'] = thumbnail_
-
         # to make the size of the JSON file as small as possible,
         # only include certain fields if they're true
         if event.status == Event.STATUS_PENDING:
@@ -941,7 +931,7 @@ def redirect_event_thumbnail(request, id):
     smaller and makes it possible to only need the thumbnail for few
     (at a time) thumbnails that we need. """
     event = get_object_or_404(Event, id=id)
-    geometry = request.GET.get('geometry', '32x32')
+    geometry = request.GET.get('geometry', '40x40')
     crop = request.GET.get('crop', 'center')
     if event.picture:
         thumb = thumbnail(event.picture.file, geometry, crop=crop)
