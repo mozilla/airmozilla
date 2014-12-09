@@ -1,11 +1,11 @@
 <div class="picture_gallery">
-  <input id="id_picture" type="hidden" name="picture" value="{{ current_id }}" />
+  <input id="id_{{ name }}" type="hidden" name="{{ name }}" value="{{ current_id }}" />
   {% for pic in pictures %}
   <div data-picture-id="{{ pic.id }}"
-       class="picture{% if pic.selected %} selected{% endif %}"
+       class="{% if pic.selected %}selected {% endif %}picture"
        data-title-when-selected="This is the currently selected picture"
-       data-title-when-not-selected='Click to select this picture'>
-      <img src="{{ pic.thumb.url }}" height="{{ pic.thumb.height }}" width="{{ pic.thumb.width }}" /><br />
+       data-title-when-not-selected="Click to select this picture">
+      <img src="{{ pic.thumb.url }}" height="{{ pic.thumb.height }}" width="{{ pic.thumb.width }}" alt="{{ pic.notes }}"><br>
       <span>{{ pic.notes }}</span>
     </div>
   {% endfor %}

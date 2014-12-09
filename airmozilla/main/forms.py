@@ -63,6 +63,7 @@ class EventEditForm(BaseModelForm):
         exclude = ('event', 'user', 'created', 'change')
 
     def __init__(self, *args, **kwargs):
+        self.event = kwargs.pop('event', None)
         super(EventEditForm, self).__init__(*args, **kwargs)
         self.fields['placeholder_img'].required = False
         self.fields['placeholder_img'].label = (
@@ -73,7 +74,7 @@ class EventEditForm(BaseModelForm):
         self.fields['recruitmentmessage'].queryset = (
             RecruitmentMessage.objects.filter(active=True)
         )
-        self.fields['picture'].widget = GallerySelect()
+        self.fields['picture'].widget = GallerySelect(event=self.event)
         self.fields['picture'].label = (
             'Select an existing picture from the gallery'
         )
