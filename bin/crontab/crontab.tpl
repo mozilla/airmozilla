@@ -6,8 +6,8 @@ MAILTO=peterbe@mozilla.com
 
 HOME=/tmp
 
-# Every 5 minutes
-*/5 * * * * {{ cron }} send_unsent_tweets 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+# Every 1 hour
+0 */1 * * * {{ cron }} send_unsent_tweets 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
 # Every 2 minutes
 */2 * * * * {{ cron }} auto_archive 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
