@@ -50,7 +50,7 @@ def update_event_hit_stats():
 @capture
 def fetch_durations():
     videoinfo.fetch_durations(
-        max_=10,
+        max_=5,
         verbose=True,
     )
 
@@ -59,6 +59,6 @@ def fetch_durations():
 @capture
 def fetch_screencaptures():
     videoinfo.fetch_screencaptures(
-        max_=5,
+        max_=2,
         verbose=True,
     )
