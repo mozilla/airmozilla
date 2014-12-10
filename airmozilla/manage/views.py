@@ -225,6 +225,13 @@ def dashboard_data(request):
         'counts': counts
     })
 
+    # Pictures
+    counts = get_counts(Picture.objects.all(), 'created')
+    context['groups'].append({
+        'name': 'Pictures',
+        'counts': counts
+    })
+
     def get_duration_totals(qs):
 
         key = 'start_time'
