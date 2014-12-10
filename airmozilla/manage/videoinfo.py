@@ -58,11 +58,17 @@ def fetch_duration(
         ]
         if verbose:  # pragma: no cover
             print ' '.join(command)
+
+        t0 = time.time()
         out, err = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         ).communicate()
+        t1 = time.time()
+
+        if verbose:  # pragma: no cover
+            print "Took", t1 - t0, "seconds to extract duration information"
 
         matches = REGEX.findall(err)
         if matches:
@@ -127,13 +133,18 @@ def fetch_screencapture(
         ]
         if verbose:  # pragma: no cover
             print ' '.join(command)
+        t0 = time.time()
         out, err = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         ).communicate()
+        t1 = time.time()
 
         files = glob.glob(os.path.join(save_dir, 'screencap*.jpg'))
+        if verbose:  # pragma: no cover
+            print "Took", t1 - t0, "seconds to extract", len(files), "pictures"
+
         created = 0
         # We sort and reverse by name so that the first instance
         # that is created is the oldest one.
