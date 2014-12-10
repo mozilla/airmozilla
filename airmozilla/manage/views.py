@@ -2445,24 +2445,28 @@ def vidly_media(request):
 @superuser_required
 @json_view
 def vidly_media_status(request):
-    if not request.GET.get('id'):
-        return http.HttpResponseBadRequest("No 'id'")
-    event = get_object_or_404(Event, pk=request.GET['id'])
-    environment = event.template_environment or {}
+    if request.GET.get('tag'):
+        tag = request.GET.get('tag')
+    else:
+        if not request.GET.get('id'):
+            return http.HttpResponseBadRequest("No 'id'")
+        event = get_object_or_404(Event, pk=request.GET['id'])
+        environment = event.template_environment or {}
 
-    if not environment.get('tag') or environment.get('tag') == 'None':
-        # perhaps it has a VidlySubmission anyway
-        submissions = (
-            VidlySubmission.objects
-            .exclude(tag__isnull=True)
-            .filter(event=event).order_by('-submission_time')
-        )
-        for submission in submissions[:1]:
-            environment = {'tag': submission.tag}
-            break
-        else:
-            return {}
-    tag = environment['tag']
+        if not environment.get('tag') or environment.get('tag') == 'None':
+            # perhaps it has a VidlySubmission anyway
+            submissions = (
+                VidlySubmission.objects
+                .exclude(tag__isnull=True)
+                .filter(event=event).order_by('-submission_time')
+            )
+            for submission in submissions[:1]:
+                environment = {'tag': submission.tag}
+                break
+            else:
+                return {}
+        tag = environment['tag']
+
     cache_key = 'vidly-query-{md5}'.format(
         md5=hashlib.md5(tag.encode('utf8')).hexdigest().strip())
     force = request.GET.get('refresh', False)

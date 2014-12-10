@@ -2,8 +2,9 @@ var queue = [];
 
 function qNext() {
     var next = queue.shift();
-    if (next)
-      $.ajax(next).success(qNext);
+    if (next) {
+        $.ajax(next).success(qNext);
+    }
 }
 
 function qAjax(options) {

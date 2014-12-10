@@ -1,3 +1,16 @@
+var queue = [];
+
+function qNext() {
+    var next = queue.shift();
+    if (next) {
+        $.ajax(next).success(qNext);
+    }
+}
+
+function qAjax(options) {
+    queue.push(options);
+}
+
 $(function() {
 
     $('button[name="info"]').click(function() {
@@ -25,5 +38,17 @@ $(function() {
         $('.info').fadeOut(400);
         return false;
     });
+
+    $('span.status').each(function() {
+        var self = $(this);
+        qAjax({
+            url: '/manage/vidly/status/',
+            data: {tag: self.data('tag')},
+            success: function(response) {
+                process_vidly_status_response(response, self);
+            }
+        });
+    });
+    qNext();
 
 });

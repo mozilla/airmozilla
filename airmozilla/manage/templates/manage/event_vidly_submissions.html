@@ -45,6 +45,7 @@
         <th>Token</th>
         <th>HD</th>
         <th>Error</th>
+        <th>Status</th>
       </tr>
     </thead>
     <tbody>
@@ -87,6 +88,9 @@
             Show info
           </button>
           {% endif %}
+        </td>
+        <td>
+          <span data-tag="{{ submission.tag }}" class="label status">Finding out</span>
         </td>
       </tr>
       {% endfor %}
