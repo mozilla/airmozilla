@@ -1,4 +1,5 @@
 import sys
+from decimal import Decimal
 
 from nose.tools import ok_, eq_
 
@@ -41,6 +42,8 @@ class TestCaptureDecorator(DjangoTestCase):
         eq_(cr.exc_type, None)
         eq_(cr.exc_value, None)
         eq_(cr.exc_traceback, None)
+        ok_(cr.duration is not None)
+        ok_(cr.duration <= Decimal('0.001'))
 
     def test_loud(self):
         loud()
@@ -68,3 +71,5 @@ class TestCaptureDecorator(DjangoTestCase):
         ok_(cr.exc_type)
         ok_(cr.exc_value)
         ok_(cr.exc_traceback)
+        ok_(cr.duration is not None)
+        ok_(cr.duration <= Decimal('0.001'))

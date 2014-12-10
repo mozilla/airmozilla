@@ -1,3 +1,4 @@
+import time
 import sys
 import functools
 import contextlib
@@ -22,18 +23,20 @@ def capture(f):
     def inner(*args, **kwargs):
         stdout = StringIO()
         stderr = StringIO()
-        # L = open('/tmp/log.log', 'a')
         with redirect_streams(stdout, stderr):
             try:
+                t0 = time.time()
                 result = f(*args, **kwargs)
+                t1 = time.time()
                 CronLog.objects.create(
                     job=f.func_name,
                     stdout=stdout.getvalue(),
-                    stderr=stderr.getvalue()
+                    stderr=stderr.getvalue(),
+                    duration='%.3f' % (t1 - t0),
                 )
-                # L.write('RESULT:%r\n'% result)
                 return result
             except Exception:
+                t1 = time.time()
                 exc_type, exc_value, exc_tb = sys.exc_info()
                 CronLog.objects.create(
                     job=f.func_name,
@@ -41,7 +44,8 @@ def capture(f):
                     stderr=stderr.getvalue(),
                     exc_type=str(exc_type),
                     exc_value=str(exc_value),
-                    exc_traceback=''.join(traceback.format_tb(exc_tb))
+                    exc_traceback=''.join(traceback.format_tb(exc_tb)),
+                    duration='%.3f' % (t1 - t0),
                 )
                 raise
 

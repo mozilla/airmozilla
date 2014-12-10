@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 from nose.tools import eq_, ok_
 
@@ -26,16 +27,19 @@ class TestCronLogger(ManageTestCase):
 
         CronLog.objects.create(
             job='foo',
+            duration=Decimal('0.1'),
         )
         CronLog.objects.create(
             job='bar',
             stdout='Out',
+            duration=Decimal('1.1'),
         )
         CronLog.objects.create(
             job='bar',
             exc_type='NameError',
             exc_value='Value',
-            exc_traceback='Traceback'
+            exc_traceback='Traceback',
+            duration=Decimal('10.1'),
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -53,6 +57,7 @@ class TestCronLogger(ManageTestCase):
         eq_(last['exc_type'], 'NameError')
         eq_(last['exc_value'], 'Value')
         eq_(last['exc_traceback'], 'Traceback')
+        eq_(last['duration'], 10.1)
 
         # lastly we filter
         response = self.client.get(url, {'job': 'foo'})

@@ -3750,6 +3750,7 @@ def cronlogger_data(request):
         'exc_type',
         'exc_value',
         'exc_traceback',
+        'duration',
     )
     qs = CronLog.objects.all()
     jobs = []
