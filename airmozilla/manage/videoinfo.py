@@ -165,6 +165,8 @@ def fetch_screencapture(
             print err
         if verbose:  # pragma: no cover
             print "Created", created, "pictures"
+            # end of this section, so add some margin
+            print "\n"
         return created
     finally:
         if save_locally:
