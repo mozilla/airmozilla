@@ -288,6 +288,60 @@ until the code has landed. The sense of accomplishment for getting your name
 into the commit log history is a great boost for tackling more advanced
 features or bugs.
 
+### Code style
+
+Consistency is key. Mixing conventions and styles makes code look
+un-maintained and sticking to *one* way makes it easier to just do
+instead of having to think about style choices.
+
+For Python, all code must be PEP8 and pyflakes compliant. See the section
+on **PEP8 and pyflakes**. There are some things that `flake8` can't
+automatically check for. For example some choices on indentation using
+newlines to split code up.
+
+```python
+# bad
+channel = Channel.objects.create(name="Something",
+                                 slug="something")
+
+# ideal
+channel = Channel.objects.create(
+    name="Something",
+    slug="something"
+)
+```
+
+For Javascript, use the notation of spaced before and after brackets.
+
+```javascript
+// bad
+if(number < 42){
+    return 'less';
+}
+
+// ideal
+if (number < 42) {
+    return 'less';
+}
+```
+
+For both Javascript and Python there is no rule on using single quotation
+marks (`'`) or double quotation marks (`"`). But what ever the file is
+using, try to stick to that.
+
+For CSS ideally we avoid one-liners. Feel free to use plenty of space.
+
+```css
+/* bad */
+.event, h2.summary{background-color:#fff;font-size:10px}
+
+/* ideal */
+.event,
+h2.summary {
+    background-color: #fff;
+    font-size: 10px;
+}
+```
 
 Getting help
 ------------
