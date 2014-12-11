@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.sites.models import RequestSite
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
+from django.contrib.auth.decorators import login_required
 from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
 from django.contrib.flatpages.views import flatpage
@@ -35,6 +36,7 @@ from airmozilla.main.models import (
     EventHitStats,
     CuratedGroup,
     EventRevision,
+    Picture,
 )
 from airmozilla.base.utils import (
     paginate,
@@ -1190,3 +1192,35 @@ def videoredirector(request):  # pragma: no cover
     fallback = response.headers['location']
     urls = [url, fallback]
     return {'urls': urls, 'user_agent': user_agent}
+
+
+@login_required
+def unpicked_pictures(request):
+    """returns a report of all events that have pictures in the picture
+    gallery but none has been picked yet. """
+    pictures = Picture.objects.filter(event__isnull=False)
+    events = Event.objects.archived()
+    assert request.user.is_active
+    if is_contributor(request.user):
+        events = events.exclude(privacy=Event.PRIVACY_COMPANY)
+
+    events = events.filter(id__in=pictures.values('event'))
+    events = events.exclude(picture__in=pictures)
+    count = events.count()
+    events = events.order_by('?')[:20]
+    pictures_counts = {}
+    grouped_pictures = (
+        Picture.objects
+        .filter(event__in=events)
+        .values('event')
+        .annotate(Count('event'))
+    )
+    for each in grouped_pictures:
+        pictures_counts[each['event']] = each['event__count']
+
+    context = {
+        'count': count,
+        'events': events,
+        'pictures_counts': pictures_counts,
+    }
+    return render(request, 'main/unpicked_pictures.html', context)

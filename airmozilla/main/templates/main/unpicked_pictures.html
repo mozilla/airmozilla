@@ -1,0 +1,56 @@
+{% extends 'main/main_base.html' %}
+
+{% block site_css %}
+{{ super() }}
+<style type="text/css">
+</style>
+{% endblock %}
+
+
+{% block content_main %}
+  <h2 class="section-title">
+    Unpicked Pictures
+  </h2>
+  <h4 class="section-title">
+    These are events that you can edit that have scraped pictures from
+    the video itself but still uses a placeholder image for its thumbnail.<br>
+    Events are sorted randomly to make it less likely two people edit
+    the same event.
+  </h4>
+  <h4 class="section-title">
+    There are currently <b>{{ count }}</b> events that needs a picture chosen.
+  </h4>
+
+  {% for event in events %}
+    {% set href = url('main:event', slug=event.slug) %}
+    <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry">
+      <header class="entry-header">
+        <h2 class="entry-title">
+          <a href="{{ href }}">{{ event.title }}</a>
+        </h2>
+      </header>
+      <div class="entry-summary">
+        <p class="event-date">{{ event.start_time|js_date }}</p>
+        <a href="{{ href }}">
+          {% if event.picture %}
+            {% set thumb = thumbnail(event.picture.file, '68x68', crop='center') %}
+          {% else %}
+            {% set thumb = thumbnail(event.placeholder_img, '68x68', crop='center') %}
+          {% endif %}
+          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+               alt="{{ event.title }}" class="attachment-68x68 wp-post-image">
+        </a>
+        <p>
+          {{ short_desc(event) | safe_html }}
+          <br>
+
+          <a class="go" href="{{ url('main:event_edit', event.slug) }}"
+             title="{{ pictures_counts[event.id] }} pictures to choose from"
+            >Edit event</a>
+
+        </p>
+      </div>
+    </article>
+  {% endfor %}
+
+{% endblock %}
