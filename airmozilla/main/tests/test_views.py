@@ -2616,6 +2616,89 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
+    def test_unpicked_pictures(self):
+        event = Event.objects.get(title='Test event')
+        event.start_time -= datetime.timedelta(days=1)
+        event.archive_time = event.start_time
+        event.save()
+        assert event in Event.objects.archived()
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        edit_url = reverse('main:event_edit', args=(event.slug,))
+        url = reverse('main:unpicked_pictures')
+        response = self.client.get(url)
+        # because we're not logged in
+        eq_(response.status_code, 302)
+        self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # but it doesn't appear because it has no pictures
+        ok_(edit_url not in response.content)
+
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(
+                file=File(fp),
+                notes='general picture'
+            )
+            event.picture = picture
+            # but also make a screencap available
+            picture2 = Picture.objects.create(
+                file=File(fp),
+                event=event,
+                notes='screencap 1'
+            )
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # but it doesn't appear because it has no pictures
+        ok_(edit_url in response.content)
+
+        event.picture = picture2
+        event.save()
+        # now it shouldn't be offered because it already has a picture
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(edit_url not in response.content)
+
+    def test_unpicked_pictures_contributor(self):
+        event = Event.objects.get(title='Test event')
+        event.start_time -= datetime.timedelta(days=1)
+        event.archive_time = event.start_time
+        event.save()
+        assert event in Event.objects.archived()
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        edit_url = reverse('main:event_edit', args=(event.slug,))
+        url = reverse('main:unpicked_pictures')
+
+        with open(self.main_image) as fp:
+            # but also make a screencap available
+            Picture.objects.create(
+                file=File(fp),
+                event=event,
+                notes='screencap 1'
+            )
+        user = self._login()
+        UserProfile.objects.create(
+            user=user,
+            contributor=True
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(edit_url in response.content)
+
+        # and it should continue to be offered if the event is...
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(edit_url in response.content)
+
+        # but not if it's only company
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(edit_url not in response.content)  # note the not
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
