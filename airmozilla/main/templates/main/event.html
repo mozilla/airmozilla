@@ -109,7 +109,11 @@
              <span class="problem"></span>
            </p>
         {% else %}
+          {% if event.picture %}
+          {% set thumb = thumbnail(event.picture.file, '120x120') %}
+          {% else %}
           {% set thumb = thumbnail(event.placeholder_img, '120x120') %}
+          {% endif %}
           <img src="{{ thumb.url }}" width="{{ thumb.width }}"
                height="{{ thumb.height }}" alt="{{ event.title }}">
         {% endif %}
@@ -124,7 +128,7 @@
         {% endfor %}
       </p>
       {% endif %}
-      
+
       {% if channels %}
       <p>
         {{ _('Channels') }}:

@@ -12,6 +12,7 @@ from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser, Permission
 from django.contrib.sites.models import Site
 from django.utils.timezone import utc
+from django.utils import timezone
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files import File
@@ -2592,6 +2593,28 @@ class TestPages(DjangoTestCase):
         ok_('London' not in response.content)
         # the start time will be described in UTC
         ok_(event.start_time.strftime('%H:%M %Z') in response.content)
+
+    def test_view_upcoming_event_without_placeholder_img(self):
+        """This is a stupidity fix for
+        https://bugzilla.mozilla.org/show_bug.cgi?id=1110004
+        where you try to view an *upcoming* event (which doesn't have a
+        video) that doesn't have a placeholder_img upload.
+        """
+        event = Event.objects.get(title='Test event')
+        event.archive_time = None
+        event.start_time = timezone.now() + datetime.timedelta(days=1)
+        event.placeholder_img = None
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(file=File(fp))
+            event.picture = picture
+        event.save()
+
+        event.save()
+        assert event in Event.objects.upcoming()
+
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
 
 
 class TestEventEdit(DjangoTestCase):
