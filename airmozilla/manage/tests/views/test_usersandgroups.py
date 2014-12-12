@@ -6,6 +6,8 @@ from django.contrib.auth.models import User, Group
 
 from funfactory.urlresolvers import reverse
 
+from airmozilla.main.views import is_contributor
+from airmozilla.main.models import UserProfile
 from .base import ManageTestCase
 
 
@@ -82,8 +84,9 @@ class TestUsersAndGroups(ManageTestCase):
         eq_(len(struct['users']), User.objects.all().count())
         ok_('manage:user_edit' in struct['urls'])
         user, = User.objects.filter(is_staff=False)
+        assert not is_contributor(user)
         same_user, = [x for x in struct['users'] if x['id'] == user.id]
-        ok_(same_user['is_contributor'])
+        ok_(not same_user.get('is_contributor'))
         ok_(not same_user.get('is_superuser'))
         ok_(not same_user.get('is_staff'))
         ok_(not same_user.get('is_inactive'))
@@ -109,3 +112,17 @@ class TestUsersAndGroups(ManageTestCase):
         struct = json.loads(response.content)
         same_user, = [x for x in struct['users'] if x['id'] == user.id]
         eq_(same_user['groups'], [testgroup.name])
+
+    def test_users_data_contributor(self):
+        user, = User.objects.filter(username='fake')
+        UserProfile.objects.create(
+            user=user,
+            contributor=True
+        )
+        assert is_contributor(user)
+        url = reverse('manage:users_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        row = [x for x in struct['users'] if x['email'] == user.email][0]
+        ok_(row['is_contributor'])

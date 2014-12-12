@@ -65,7 +65,8 @@ from airmozilla.main.models import (
     LocationDefaultEnvironment,
     RecruitmentMessage,
     Picture,
-    EventRevision
+    EventRevision,
+    UserProfile,
 )
 from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
@@ -350,9 +351,14 @@ def _get_all_users():
         'is_active',
         'is_superuser'
     )
+    # make a big fat list of the user IDs of people who are contributors
+    contributor_ids = (
+        UserProfile.objects
+        .filter(contributor=True)
+        .values_list('user_id', flat=True)
+    )
     for user_dict in qs.values(*values):
         user = dot_dict(user_dict)
-        domain = user.email.split('@')[1]
         item = {
             'id': user.id,
             'email': user.email,
@@ -366,7 +372,7 @@ def _get_all_users():
             item['is_staff'] = True
         if user.is_superuser:
             item['is_superuser'] = True
-        if domain not in settings.ALLOWED_BID:
+        if user.id in contributor_ids:
             item['is_contributor'] = True
         if not user.is_active:
             item['is_inactive'] = True

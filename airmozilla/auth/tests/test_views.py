@@ -254,6 +254,45 @@ class TestViews(TestCase):
         # self.assertRedirects(response,
         #                      settings.LOGIN_REDIRECT_URL)
 
+    @mock.patch('requests.get')
+    def test_was_contributor_now_mozilla_bid(self, rget):
+        """Suppose a user *was* a contributor but now her domain name
+        is one of the allowed ones, it should undo that contributor status
+        """
+        assert not UserProfile.objects.all()
+
+        def mocked_get(url, **options):
+            return Response(VOUCHED_FOR)
+
+        rget.side_effect = mocked_get
+        response = self._login_attempt('peterbe@gmail.com')
+        eq_(response['content-type'], 'application/json')
+        redirect = json.loads(response.content)['redirect']
+        eq_(redirect, settings.LOGIN_REDIRECT_URL)
+
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Sign in' not in response.content)
+        ok_('Sign out' in response.content)
+
+        profile = UserProfile.objects.get(user__email='peterbe@gmail.com')
+        ok_(profile.contributor)
+
+        self.client.logout()
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Sign in' in response.content)
+        ok_('Sign out' not in response.content)
+
+        with self.settings(ALLOWED_BID=settings.ALLOWED_BID + ('gmail.com',)):
+            response = self._login_attempt('peterbe@gmail.com')
+            eq_(response['content-type'], 'application/json')
+            redirect = json.loads(response.content)['redirect']
+            eq_(redirect, settings.LOGIN_REDIRECT_URL)
+
+        profile = UserProfile.objects.get(user__email='peterbe@gmail.com')
+        ok_(not profile.contributor)  # fixed!
+
     @mock.patch('airmozilla.auth.views.logger')
     @mock.patch('requests.get')
     def test_nonmozilla_mozillians_unhappy(self, rget, rlogger):
