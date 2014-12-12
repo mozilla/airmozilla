@@ -261,6 +261,25 @@ class TestEvents(ManageTestCase):
         result = results['events'][0]
         eq_(result['pictures'], 1)
 
+    def test_events_data_with_has_picture(self):
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        result = results['events'][0]
+        ok_('picture' not in result)
+        with open(self.placeholder) as fp:
+            picture = Picture.objects.create(
+                file=File(fp),
+            )
+            event.picture = picture
+            event.save()
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        result = results['events'][0]
+        eq_(result['picture'], picture.id)
+
     def test_events_data_with_is_scheduled(self):
         event = Event.objects.get(title='Test event')
         assert event.status == Event.STATUS_SCHEDULED

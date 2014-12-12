@@ -758,6 +758,8 @@ def events_data(request):
             row['mozillian'] = event.mozillian
         if event.id in pictures_counts:
             row['pictures'] = pictures_counts[event.id]
+        if event.picture_id:
+            row['picture'] = event.picture_id
 
         if row.get('is_pending'):
             # this one is only relevant if it's pending

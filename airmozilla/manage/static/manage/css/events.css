@@ -53,3 +53,15 @@ span.badge.picture-gallery-count {
     background-color: #5CB85C;
     font-size: 9px; /* 12px by default in bootstrap */
 }
+
+a.picture-gallery-use {
+    position: absolute;
+    left: 3px;
+    bottom: 1px;
+    color: green;
+    font-size: 10px;
+    opacity: 0.7;
+}
+a.picture-gallery-use:hover {
+    opacity: 1;
+}

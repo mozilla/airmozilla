@@ -129,8 +129,17 @@
           <a ng-if="event.pictures"
              href="{{ url('manage:picturegallery') }}?event={{ event.id }}"
              title="Number of pictures belonging to this event">
-            <span class="badge picture-gallery-count">{{ event.pictures }}</span>
+            <span class="badge picture-gallery-count"
+                  title="Number of pictures in gallery just for this event"
+              >{{ event.pictures }}</span>
           </a>
+          <a ng-if="event.picture"
+             href="{{ url('manage:picturegallery') }}?event={{ event.id }}"
+             title="Uses a picture in the gallery"
+             class="picture-gallery-use">
+              <i class="glyphicon glyphicon-ok"></i>
+          </a>
+
         </td>
         <td>
           <a href="/{{ event.slug }}/">{{ event.title }}</a>
