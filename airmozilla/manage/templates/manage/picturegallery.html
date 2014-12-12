@@ -122,7 +122,6 @@
             class="btn btn-danger btn-xs"
             ng-show="!picture._delete_confirmation && !picture.cant_delete"
             ng-click="toggleDeleteConfirmation(picture)">Delete</button>
-          <small ng-show="picture.cant_delete">can't be deleted</small>
           <br>
           <a href="" ng-show="picture.events.length"
              ng-click="toggleShowEvents(picture)">
