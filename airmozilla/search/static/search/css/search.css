@@ -5,3 +5,5 @@
 .entry-summary p .transcript:after { content: '”'; }
 
 p.found-tags, p.possible-tags { float: right; }
+
+.event-channels { padding-left: 20px; }
