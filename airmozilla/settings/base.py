@@ -242,4 +242,4 @@ except ImportError:
 # When extracting screen captures, how many do we want to extract
 # for each video. This number is static independent of the length
 # of the video.
-SCREENCAPTURES_NO_PICTURES = 10
+SCREENCAPTURES_NO_PICTURES = 15
