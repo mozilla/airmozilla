@@ -59,6 +59,6 @@ def fetch_durations():
 @capture
 def fetch_screencaptures():
     videoinfo.fetch_screencaptures(
-        max_=2,
+        max_=4,
         verbose=True,
     )
