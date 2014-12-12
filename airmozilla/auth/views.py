@@ -28,8 +28,19 @@ class CustomBrowserIDVerify(Verify):
         domain = self.user.email.split('@')[-1].lower()
         try:
             if domain in settings.ALLOWED_BID:
-                # awesome!
-                pass
+                # If you were a contributor before, undo that.
+                # This might be the case when we extend settings.ALLOWED_BID
+                # with new domains and people with those domains logged
+                # in before.
+                try:
+                    profile = self.user.get_profile()
+                    # if you were a contributor before, undo that now
+                    if profile.contributor:
+                        profile.contributor = False
+                        profile.save()
+                except UserProfile.DoesNotExist:
+                    pass
+
             elif is_vouched(self.user.email):
                 try:
                     profile = self.user.get_profile()
