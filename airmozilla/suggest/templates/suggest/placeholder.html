@@ -30,10 +30,7 @@ Event picture | {{ super() }}
       <a href="{{ next_url(event) }}">That's fine</a>
     </p>
     <p>
-    {% set thumb = thumbnail(event.placeholder_img, '160x160', crop='center') %}
-    <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
-         alt="{{ event.title }}" class="wp-post-image">
-    </p>
+      {{ show_thumbnail(event, '160x160', image=event.placeholder_img) }}
 
   </div>
   {% endif %}

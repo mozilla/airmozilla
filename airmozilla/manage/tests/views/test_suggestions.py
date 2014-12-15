@@ -29,7 +29,12 @@ from .base import ManageTestCase
 
 class TestSuggestions(ManageTestCase):
 
-    placeholder = 'airmozilla/manage/tests/firefox.png'
+    placeholder_path = 'airmozilla/manage/tests/firefox.png'
+    placeholder = os.path.basename(placeholder_path)
+
+    def setUp(self):
+        super(TestSuggestions, self).setUp()
+        self._upload_media(self.placeholder_path)
 
     def test_suggestions_page(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
@@ -589,6 +594,7 @@ class TestSuggestions(ManageTestCase):
             first_submitted=now,
             # Note! No `submitted=now` here
         )
+        assert os.path.isfile(event.placeholder_img.path)
         event.tags.add(tag1)
         event.tags.add(tag2)
         event.channels.add(channel)
