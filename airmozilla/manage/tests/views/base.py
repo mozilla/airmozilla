@@ -1,12 +1,13 @@
 from nose.tools import ok_
 
-from django.test import TestCase
 from django.contrib.auth.models import User
 
 from funfactory.urlresolvers import reverse
 
+from airmozilla.base.tests.testbase import DjangoTestCase
 
-class ManageTestCase(TestCase):
+
+class ManageTestCase(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def shortDescription(self):
@@ -14,6 +15,7 @@ class ManageTestCase(TestCase):
         pass
 
     def setUp(self):
+        super(ManageTestCase, self).setUp()
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
 

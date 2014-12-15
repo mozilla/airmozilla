@@ -51,15 +51,11 @@ div.change label {
       {% if difference.key == 'placeholder_img' %}
         {% if difference.before %}
         <div class="change-from" style="text-align: center">
-          {% set thumb = thumbnail(difference.before, '68x68', crop='center') %}
-          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
-               alt="Previous image">
+          {{ show_thumbnail(None, image=difference.before, alt='Previous image') }}
         </div>
         {% endif %}
         <div class="change-to" style="text-align: center">
-          {% set thumb = thumbnail(difference.after, '68x68', crop='center') %}
-          <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
-               alt="New image">
+          {{ show_thumbnail(None, image=difference.after, alt='New image') }}
         </div>
       {% elif difference.key == 'recruitmentmessage' %}
         <div class="change-from">

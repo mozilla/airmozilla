@@ -31,3 +31,12 @@ class DjangoTestCase(TestCase):
             img = File(f)
             event.placeholder_img.save(os.path.basename(image), img)
             assert os.path.isfile(event.placeholder_img.path)
+
+    def _upload_media(self, image_path):
+        # make sure the main_image is actually accessible
+        if not os.path.isdir(settings.MEDIA_ROOT):
+            os.mkdir(settings.MEDIA_ROOT)
+        shutil.copy(
+            image_path,
+            settings.MEDIA_ROOT
+        )

@@ -11,6 +11,8 @@ from django.utils.text import Truncator
 from django.utils.timezone import utc
 from django.db.utils import IntegrityError
 from django.contrib.sites.models import RequestSite
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
 
 from jingo import register
 from sorl.thumbnail import get_thumbnail
@@ -143,3 +145,27 @@ def safe_html(text):
     """allow some of the text's HTML tags and escape the rest"""
     text = bleach.clean(text, tags=['a', 'p', 'b', 'i', 'em', 'strong', 'br'])
     return jinja2.Markup(text)
+
+
+@register.function
+def show_thumbnail(
+    event,
+    geometry='68x68',
+    crop='center',
+    alt=None,
+    image=None
+):
+    alt = alt or event.title
+    if not image:
+        image = event.picture and event.picture.file or event.placeholder_img
+    thumb = thumbnail(image, geometry, crop=crop)
+    html = (
+        '<img src="%(url)s" width="%(width)s" height="%(height)s" '
+        'alt="%(alt)s" class="wp-post-image">' % {
+            'url': thumb.url,
+            'width': thumb.width,
+            'height': thumb.height,
+            'alt': escape(alt),
+        }
+    )
+    return mark_safe(html)

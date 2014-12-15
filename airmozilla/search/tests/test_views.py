@@ -1,7 +1,7 @@
 import datetime
 import urllib
+import os
 
-from django.test import TestCase
 from django.utils.timezone import utc
 from django.contrib.auth.models import User
 
@@ -10,14 +10,18 @@ from nose.tools import eq_, ok_
 
 from airmozilla.search.models import LoggedSearch
 from airmozilla.main.models import Event, UserProfile, Tag, Channel
+from airmozilla.base.tests.testbase import DjangoTestCase
 
 
-class TestSearch(TestCase):
+class TestSearch(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    placeholder = 'airmozilla/manage/tests/firefox.png'
+    placeholder_path = 'airmozilla/manage/tests/firefox.png'
+    placeholder = os.path.basename(placeholder_path)
 
     def test_basic_search(self):
         Event.objects.all().delete()
+
+        self._upload_media(self.placeholder_path)
 
         today = datetime.datetime.utcnow()
         event = Event.objects.create(

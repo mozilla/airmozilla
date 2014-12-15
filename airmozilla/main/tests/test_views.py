@@ -59,6 +59,8 @@ class TestPages(DjangoTestCase):
         event.archive_time = None
         event.save()
 
+        self._upload_media(self.main_image)
+
         self.main_channel = Channel.objects.get(
             slug=settings.DEFAULT_CHANNEL_SLUG
         )
