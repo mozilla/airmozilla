@@ -3136,6 +3136,58 @@ class TestEventEdit(DjangoTestCase):
         ok_(os.path.isfile(old_placeholder_img_path))
         ok_(os.path.isfile(new_placeholder_img_path))
 
+    def test_edit_placeholder_img_to_unselect_picture(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+
+        # also, let's pretend the event has a picture already selected
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(file=File(fp))
+            event.picture = picture
+            event.save()
+
+        url = reverse('main:event_edit', args=(event.slug,))
+        self._login()
+
+        old_placeholder_img_path = event.placeholder_img.path
+
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+
+        with open(self.other_image) as fp:
+            data = {
+                'event_id': event.id,
+                'previous': previous,
+                'title': event.title,
+                'short_description': event.short_description,
+                'description': event.description,
+                'additional_links': event.additional_links,
+                'tags': ', '.join(x.name for x in event.tags.all()),
+                'channels': [x.pk for x in event.channels.all()],
+                'placeholder_img': fp,
+                # this is a hidden field you can't not send
+                'picture': picture.id,
+            }
+            response = self.client.post(url, data)
+            eq_(response.status_code, 302)
+            self.assertRedirects(
+                response,
+                reverse('main:event', args=(event.slug,))
+            )
+
+        # this should have created 2 EventRevision objects.
+        initial, current = EventRevision.objects.all().order_by('created')
+        ok_(initial.placeholder_img)
+        ok_(current.placeholder_img)
+        ok_(not current.picture)
+        # reload the event
+        event = Event.objects.get(pk=event.pk)
+        ok_(not event.picture)
+        new_placeholder_img_path = event.placeholder_img.path
+        ok_(old_placeholder_img_path != new_placeholder_img_path)
+        ok_(os.path.isfile(old_placeholder_img_path))
+        ok_(os.path.isfile(new_placeholder_img_path))
+
     def test_edit_conflict(self):
         """You can't edit the title if someone else edited it since the
         'previous' JSON dump was taken."""

@@ -67,7 +67,8 @@ class EventEditForm(BaseModelForm):
         super(EventEditForm, self).__init__(*args, **kwargs)
         self.fields['placeholder_img'].required = False
         self.fields['placeholder_img'].label = (
-            'Upload a picture from your computer')
+            'Upload a picture from your computer'
+        )
         self.fields['channels'].help_text = ""
         self.fields['recruitmentmessage'].label = 'Recruitment message'
         self.fields['recruitmentmessage'].required = False

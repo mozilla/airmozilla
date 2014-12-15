@@ -514,6 +514,7 @@ class EventRevisionView(EventView):
         fields = (
             ('title', 'Title'),
             ('placeholder_img', 'Placeholder image'),
+            ('picture', 'Picture'),
             ('description', 'Description'),
             ('short_description', 'Short description'),
             ('channels', 'Channels'),
@@ -690,16 +691,24 @@ class EventEditView(EventView):
             if not EventRevision.objects.filter(event=event).count():
                 base_revision = EventRevision.objects.create_from_event(event)
 
+            cleaned_data = form.cleaned_data
+            if 'placeholder_img' in request.FILES:
+                cleaned_data['picture'] = None
+
             changes = {}
             conflict_errors = []
-            for key, value in form.cleaned_data.items():
+            for key, value in cleaned_data.items():
 
                 # figure out what the active current value is in the database
                 if key == 'placeholder_img':
-                    if event.picture:
+                    if (
+                        event.picture and
+                        'placeholder_img' not in request.FILES
+                    ):
                         current_value = event.picture.file.url
                     else:
                         current_value = event.placeholder_img.url
+
                 elif key == 'tags':
                     current_value = ', '.join(x.name for x in event.tags.all())
                 elif key == 'channels':
