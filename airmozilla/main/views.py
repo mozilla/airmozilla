@@ -630,7 +630,7 @@ class EventEditView(EventView):
             data['thumbnail_url'] = (
                 get_thumbnail(
                     event.placeholder_img,
-                    '68x68',
+                    '68x38',
                     crop='center'
                 ).url
             )

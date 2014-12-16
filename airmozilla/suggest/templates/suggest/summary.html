@@ -214,7 +214,7 @@ Event summary | {{ super() }}
       <th>Placeholder picture</th>
       <td>
         {% if event.picture or event.placeholder_img %}
-          {{ show_thumbnail(event, '160x160') }}
+          {{ show_thumbnail(event, '160x90') }}
         {% else %}
           <p>No image!</p>
         {% endif %}

@@ -65,7 +65,7 @@ Summary | {{ super() }}
       <th>Placeholder picture</th>
       <td>
         {% if event.placeholder_img %}
-          {{ show_thumbnail(event, '160x160', image=event.placeholder_img) }}
+          {{ show_thumbnail(event, '160x90', image=event.placeholder_img) }}
         {% endif %}
       </td>
     </tr>
