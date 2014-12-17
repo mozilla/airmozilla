@@ -1,11 +1,13 @@
 import os
 import sys
 import shutil
+import tempfile
 from cStringIO import StringIO
 
 from nose.tools import ok_, eq_
 import mock
 
+from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
 
@@ -34,8 +36,23 @@ class TestVideoinfo(TestCase):
     sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
     sample_jpg2 = 'airmozilla/manage/tests/tucker.jpg'
 
+    _original_temp_directory_name = settings.SCREENCAPTURES_TEMP_DIRECTORY_NAME
+
+    def setUp(self):
+        super(TestVideoinfo, self).setUp()
+        settings.SCREENCAPTURES_TEMP_DIRECTORY_NAME = (
+            'test_' + self._original_temp_directory_name
+        )
+
     def tearDown(self):
         cache.clear()
+        assert settings.SCREENCAPTURES_TEMP_DIRECTORY_NAME.startswith('test_')
+        temp_dir = os.path.join(
+            tempfile.gettempdir(),
+            settings.SCREENCAPTURES_TEMP_DIRECTORY_NAME
+        )
+        if os.path.isdir(temp_dir):
+            shutil.rmtree(temp_dir)
         super(TestVideoinfo, self).tearDown()
 
     @mock.patch('airmozilla.manage.vidly.logging')
@@ -613,4 +630,147 @@ class TestVideoinfo(TestCase):
         videoinfo.fetch_screencaptures()
         eq_(len(ffmpeged_urls), 1)
         # and still
+        eq_(Picture.objects.filter(event=event).count(), 2)
+
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_screencapture_without_import(
+        self, mock_popen, rhead, p_urllib2, p_log
+    ):
+        """This test is effectively the same as test_fetch_screencapture()
+        but with `import_=False` set.
+        """
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>xxx999</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        def mocked_head(url, **options):
+            return _Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        sample_jpg = self.sample_jpg
+        sample_jpg2 = self.sample_jpg2
+
+        def mocked_popen(command, **kwargs):
+            # print (args, kwargs)
+            url = command[2]
+            ffmpeged_urls.append(url)
+            destination = command[-1]
+            assert os.path.isdir(os.path.dirname(destination))
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if 'xyz123' in url:
+                        # Let's create two jpeg's in that directory
+                        shutil.copyfile(sample_jpg, destination % 1)
+                        shutil.copyfile(sample_jpg2, destination % 2)
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.duration = 1157
+        event.template = template
+        event.save()
+
+        # Make sure it has a HD VidlySubmission
+        VidlySubmission.objects.create(
+            event=event,
+            url='https://s3.com/asomething.mov',
+            tag='xyz123',
+            hd=True,
+        )
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+        videoinfo.fetch_screencaptures(import_=False)
+        assert ffmpeged_urls
+        eq_(Picture.objects.filter(event=event).count(), 0)
+
+        # there should now be some JPEGs in the dedicated temp directory
+        temp_dir = os.path.join(
+            tempfile.gettempdir(),
+            settings.SCREENCAPTURES_TEMP_DIRECTORY_NAME
+        )
+        # expect there to be a directory with the event's ID
+        directory_name = '%s_%s' % (event.id, event.slug)
+        event_temp_dir = os.path.join(temp_dir, directory_name)
+        ok_(os.path.isdir(event_temp_dir))
+        # there should be 2 JPEGs in there
+        eq_(
+            os.listdir(event_temp_dir),
+            ['screencap-01.jpg', 'screencap-02.jpg']
+        )
+
+    def test_import_screencaptures_empty(self):
+        """it should be possible to run this at any time, even if
+        the dedicated temp directory does not exist yet. """
+        assert not Picture.objects.all().count()
+        videoinfo.import_screencaptures()
+        ok_(not Picture.objects.all().count())
+
+    def test_import_screencaptures(self):
+        """it should be possible to run this at any time, even if
+        the dedicated temp directory does not exist yet. """
+        event = Event.objects.get(title='Test event')
+        # First, put some pictures in the temp directory for this event.
+        temp_dir = os.path.join(
+            tempfile.gettempdir(),
+            settings.SCREENCAPTURES_TEMP_DIRECTORY_NAME
+        )
+        if not os.path.isdir(temp_dir):
+            os.mkdir(temp_dir)
+        # expect there to be a directory with the event's ID
+        directory_name = '%s_%s' % (event.id, event.slug)
+        event_temp_dir = os.path.join(temp_dir, directory_name)
+        if not os.path.isdir(event_temp_dir):
+            os.mkdir(event_temp_dir)
+
+        # sample_jpg = self.sample_jpg
+        # sample_jpg2 = self.sample_jpg2
+        shutil.copyfile(
+            self.sample_jpg,
+            os.path.join(event_temp_dir, 'screencap-01.jpg')
+        )
+        shutil.copyfile(
+            self.sample_jpg2,
+            os.path.join(event_temp_dir, 'screencap-02.jpg')
+        )
+        # a third one that won't get imported
+        shutil.copyfile(
+            self.sample_jpg2,
+            os.path.join(event_temp_dir, 'otherfile.jpg')
+        )
+
+        videoinfo.import_screencaptures()
+
+        ok_(not os.path.isdir(event_temp_dir))
+        ok_(os.path.isdir(temp_dir))
         eq_(Picture.objects.filter(event=event).count(), 2)

@@ -243,3 +243,8 @@ except ImportError:
 # for each video. This number is static independent of the length
 # of the video.
 SCREENCAPTURES_NO_PICTURES = 15
+
+# Name of the directory that gets created in the temp directory
+# that we fill with screencaps, and that gets later picked up
+# by another job that imports the JPEGs created there.
+SCREENCAPTURES_TEMP_DIRECTORY_NAME = 'airmozilla-screencaps'

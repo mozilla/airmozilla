@@ -57,8 +57,17 @@ def fetch_durations():
 
 @cronjobs.register
 @capture
+def import_screencaptures():
+    videoinfo.import_screencaptures(
+        verbose=True,
+    )
+
+
+@cronjobs.register
+@capture
 def fetch_screencaptures():
     videoinfo.fetch_screencaptures(
         max_=2,
         verbose=True,
+        import_=False,
     )
