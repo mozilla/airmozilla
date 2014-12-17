@@ -174,7 +174,7 @@ def fetch_screencapture(
         else:
             if verbose:  # pragma: no cover
                 print "Created Temporary Directory", save_dir
-                print os.listdir(save_dir)
+                print '\t' + '\n\t'.join(os.listdir(save_dir))
             return len(files)
     finally:
         if save_locally:
@@ -442,7 +442,8 @@ def import_screencaptures(verbose=False):
             files = _get_files(sub_dir_path)
             created = _import_files(event, files)
             if verbose:  # pragma: no cover
-                print "Created", created, "pictures for", event.slug
+                print "Created", created, "pictures for", event.slug,
+                print "(id=%d)" % (event.id,)
             shutil.rmtree(sub_dir_path)
         except Event.DoesNotExist:
             if verbose:  # pragma: no cover
