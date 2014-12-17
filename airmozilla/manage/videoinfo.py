@@ -95,6 +95,7 @@ def fetch_duration(
 
 def fetch_screencapture(
     event, save=False, save_locally=False, verbose=False, use_https=True,
+    import_=True,
 ):
     assert event.duration, "no duration"
     video_url, filepath = _get_video_url(
@@ -104,7 +105,21 @@ def fetch_screencapture(
         verbose=verbose,
     )
 
-    save_dir = tempfile.mkdtemp('screencaptures-%s' % event.id)
+    if import_:
+        save_dir = tempfile.mkdtemp('screencaptures-%s' % event.id)
+    else:
+        # Instead of importing we're going to put them in a directory
+        # that does NOT get deleted when it has created the screecaps.
+        save_dir = os.path.join(
+            tempfile.gettempdir(),
+            settings.SCREENCAPTURES_TEMP_DIRECTORY_NAME
+        )
+        if not os.path.isdir(save_dir):
+            os.mkdir(save_dir)
+        directory_name = '%s_%s' % (event.id, event.slug)
+        save_dir = os.path.join(save_dir, directory_name)
+        if not os.path.isdir(save_dir):
+            os.mkdir(save_dir)
     try:
 
         # r is "no. of frames to be extracted into images per second" which
@@ -141,39 +156,36 @@ def fetch_screencapture(
         ).communicate()
         t1 = time.time()
 
-        files = glob.glob(os.path.join(save_dir, 'screencap*.jpg'))
+        # files = glob.glob(os.path.join(save_dir, 'screencap*.jpg'))
+        files = _get_files(save_dir)
         if verbose:  # pragma: no cover
             print "Took", t1 - t0, "seconds to extract", len(files), "pictures"
 
-        created = 0
-        # We sort and reverse by name so that the first instance
-        # that is created is the oldest one.
-        # That way, when you look at the in the picture gallery
-        # (which is sorted by ('event', '-created')) they appear in
-        # correct chronological order.
-        for i, filepath in enumerate(reversed(sorted(files))):
-            if save:
-                with open(filepath) as fp:
-                    Picture.objects.create(
-                        file=File(fp),
-                        notes="Screencap %d" % (len(files) - i,),
-                        event=event,
-                    )
-                    created += 1
-        if not files:  # pragma: no cover
-            print "No output. Error:"
-            print err
-        if verbose:  # pragma: no cover
-            print "Created", created, "pictures"
-            # end of this section, so add some margin
-            print "\n"
-        return created
+        if import_:
+            if verbose and not files:  # pragma: no cover
+                print "No output. Error:"
+                print err
+            created = _import_files(event, files)
+            if verbose:  # pragma: no cover
+                print "Created", created, "pictures"
+                # end of this section, so add some margin
+                print "\n"
+            return created
+        else:
+            if verbose:  # pragma: no cover
+                print "Created Temporary Directory", save_dir
+                print os.listdir(save_dir)
+            return len(files)
     finally:
         if save_locally:
             if os.path.isfile(filepath):
                 shutil.rmtree(os.path.dirname(filepath))
-        if os.path.isdir(save_dir):
+        if os.path.isdir(save_dir) and import_:
             shutil.rmtree(save_dir)
+
+
+def _get_files(directory):
+    return glob.glob(os.path.join(directory, 'screencap*.jpg'))
 
 
 def _get_video_url(event, use_https, save_locally, verbose=False):
@@ -182,7 +194,12 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
 
         token_protected = event.privacy != Event.PRIVACY_PUBLIC
         hd = False
-        qs = VidlySubmission.objects.filter(event=event)
+        qs = (
+            VidlySubmission.objects
+            .filter(event=event)
+            .filter(tag=event.template_environment['tag'])
+        )
+
         for submission in qs.order_by('-submission_time')[:1]:
             hd = submission.hd
             token_protected = submission.token_protection
@@ -246,6 +263,24 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
     return video_url, filepath
 
 
+def _import_files(event, files):
+    created = 0
+    # We sort and reverse by name so that the first instance
+    # that is created is the oldest one.
+    # That way, when you look at the in the picture gallery
+    # (which is sorted by ('event', '-created')) they appear in
+    # correct chronological order.
+    for i, filepath in enumerate(reversed(sorted(files))):
+        with open(filepath) as fp:
+            Picture.objects.create(
+                file=File(fp),
+                notes="Screencap %d" % (len(files) - i,),
+                event=event,
+            )
+            created += 1
+    return created
+
+
 def _fetch(
     qs,
     transform_function,
@@ -254,7 +289,8 @@ def _fetch(
     verbose=False,
     dry_run=False,
     save_locally=False,
-    save_locally_some=False
+    save_locally_some=False,
+    **kwargs
 ):
 
     total_count = qs.count()
@@ -315,6 +351,7 @@ def _fetch(
                 save_locally=save_locally,
                 use_https=use_https,
                 verbose=verbose,
+                **kwargs
             )
             success += 1
 
@@ -379,3 +416,34 @@ def fetch_screencaptures(**kwargs):
         fetch_screencapture,
         **kwargs
     )
+
+
+def import_screencaptures(verbose=False):
+    dir_ = os.path.join(
+        tempfile.gettempdir(),
+        settings.SCREENCAPTURES_TEMP_DIRECTORY_NAME
+    )
+    if not os.path.isdir(dir_):
+        if verbose:  # pragma: no cover
+            print "Screencaps temp directory does not exist"
+        return
+
+    # every dir in this directory is expected to the event ID as a string
+    for sub_dir in os.listdir(dir_):
+        sub_dir_path = os.path.join(dir_, sub_dir)
+        try:
+            id, slug = sub_dir.split('_', 1)
+        except ValueError:
+            if verbose:  # pragma: no cover
+                print "Unrecognized directory name", sub_dir
+            continue
+        try:
+            event = Event.objects.get(slug=slug, id=id)
+            files = _get_files(sub_dir_path)
+            created = _import_files(event, files)
+            if verbose:  # pragma: no cover
+                print "Created", created, "pictures for", event.slug
+            shutil.rmtree(sub_dir_path)
+        except Event.DoesNotExist:
+            if verbose:  # pragma: no cover
+                print "Unrecognized event", sub_dir

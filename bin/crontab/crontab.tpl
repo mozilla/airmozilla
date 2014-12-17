@@ -27,5 +27,8 @@ HOME=/tmp
 # Every 10 minutes
 */10 * * * * {{ cron }} fetch_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
+# Every 10 minutes
+*/10 * * * * {{ cron }} import_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+
 
 MAILTO=root

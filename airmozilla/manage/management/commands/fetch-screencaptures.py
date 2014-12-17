@@ -21,6 +21,11 @@ class Command(BaseCommand):  # pragma: no cover
             default=False, help='Save the video file locally (temporary)'
         ),
         make_option(
+            '--no-import', action='store_true', dest='no_import',
+            default=False,
+            help="Just create the screencaps and don't create Picture instance"
+        ),
+        make_option(
             '--save-locally-some', action='store_true',
             dest='save_locally_some',
             default=False,
@@ -30,10 +35,12 @@ class Command(BaseCommand):  # pragma: no cover
 
     def handle(self, **options):
         verbosity = int(options['verbosity'])
+        import_ = not options['no_import']
         fetch_screencaptures(
             max_=int(options['max']),
             dry_run=options['dry_run'],
             save_locally=options['save_locally'],
             save_locally_some=options['save_locally_some'],
+            import_=import_,
             verbose=verbosity > 1
         )
