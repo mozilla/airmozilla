@@ -11,9 +11,9 @@
 }
 
 .picture_gallery .picture {
-    padding: 10px;
+    padding: 8px;
     display: inline-block;
-    width: 100px;
+    width: 121px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;

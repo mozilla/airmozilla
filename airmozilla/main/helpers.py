@@ -150,7 +150,7 @@ def safe_html(text):
 @register.function
 def show_thumbnail(
     event,
-    geometry='68x38',
+    geometry='96x54',
     crop='center',
     alt=None,
     image=None

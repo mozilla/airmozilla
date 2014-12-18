@@ -45,7 +45,7 @@ class GallerySelect(forms.widgets.Widget):
         else:
             qs = qs.filter(event__isnull=True)
         for pic in qs.order_by('event', '-created'):
-            thumb = thumbnail(pic.file, '100x56', crop='center')
+            thumb = thumbnail(pic.file, '121x68', crop='center')
             pictures.append({
                 'thumb': {
                     'url': thumb.url,

@@ -79,14 +79,14 @@ p.feed { float: right; }
     {% endif %}
   {% endif %}
 
-    {% if tags %}
-    <h2 class="section-title">
-      {{ _('Videos by tags') }} -
-      {% for tag in tags %}
-      {{ tag.name }}{% if not loop.last %}, {% endif %}
-      {% endfor %}
-    </h2>
-    {% endif %}
+  {% if tags %}
+  <h2 class="section-title">
+    {{ _('Videos by tags') }} -
+    {% for tag in tags %}
+    {{ tag.name }}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+  </h2>
+  {% endif %}
 
   {% for event in events %}
     {% set href = url('main:event', slug=event.slug) %}
