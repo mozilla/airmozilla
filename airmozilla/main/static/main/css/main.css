@@ -231,7 +231,7 @@ div.warning { background-color: #FF9EC5; color: #8A0037; border: 1px solid #8A00
 .entry-content a:hover img, .entry-content a:focus img, .entry-content a:active img,
 .entry-summary a:hover img, .entry-summary a:focus img, .entry-summary a:active img { background-color: #2592e6; }
 
-.entry-summary { padding-left: 120px; position: relative; min-height: 92px; }
+.entry-summary { padding-left: 180px; position: relative; min-height: 92px; }
 .entry-summary .wp-post-image { position: absolute; left: 0; top: 0; }
 
 .entry-meta { border-bottom: 1px solid rgba(197,204,201,.1); }
@@ -257,7 +257,7 @@ form.publish-form { display: block; clear: both; text-align: center; }
 .more-posts .entry-summary { font-size: .857em; line-height: 1.3; margin: 0; padding: 0; min-height: 0; }
 .more-posts .entry-summary a { color: rgb(220, 220, 220); }
 
-.more-posts .video-thumb { display: block; float:right; overflow: hidden; margin: 0 0 .25em; }
+.more-posts .video-thumb { display: block; margin: 0 0 .25em; }
 
 #current-time { padding: 10px; background: hsla(200,30%,10%,.2); text-align: center; margin: -10px -10px 1.5em; box-shadow: inset 0 0 2px rgba(0,0,0,.1); }
 #current-time .widget-title { font-size: 1.125em; margin: 0 0 .25em; }
@@ -475,9 +475,9 @@ px      68    160    252    */
 
   #content-sub { margin-left: -24px; margin-right: -24px; }
 
-  .more-posts .hentry { padding: 0 0 10px 68px; min-height: 48px; }
-  .more-posts .video-thumb { position: absolute; left: 0; top: 0; width: 48px; height: 48px; }
-  .more-posts .video-thumb img { margin-top:0; width: 48px; height: 48px; }
+  .more-posts .hentry { padding: 0 0 10px 8px; min-height: 48px; }
+  .more-posts .video-thumb { display: block; }
+  .more-posts .video-thumb img { margin-top:0; }
 
 }
 

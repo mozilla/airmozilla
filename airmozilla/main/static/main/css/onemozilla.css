@@ -266,7 +266,7 @@ px      68    160    252    344    436    528    620    712    804    896    */
 .entry-content tbody th { text-align: left; }
 .entry-content pre { overflow: auto; }
 .entry-content code { font-size: .857em; }
-.entry-content img, .entry-summary img { padding: 1px; background-color: #fff; border: 6px solid #fff; box-shadow: 0 1px 1px rgba(0,0,0,.1);
+.entry-content img, .entry-summary img { padding: 1px; background-color: #fff; border: 4px solid #fff; box-shadow: 0 1px 1px rgba(0,0,0,.1);
   -moz-transition: all .1s ease-out;
   -webkit-transition: all .1s ease-out;
   -o-transition: all .1s ease-out;

@@ -19,7 +19,7 @@ class PictureWidget(widgets.Select):
     def render(self, name, value, attrs=None, **__):
         if value:
             picture = Picture.objects.get(id=value)
-            thumb = thumbnail(picture.file, '50x28', crop='center')
+            thumb = thumbnail(picture.file, '96x54', crop='center')
             img = (
                 '<img src="%s" width="%d" height="%d" alt="%s">' % (
                     thumb.url,

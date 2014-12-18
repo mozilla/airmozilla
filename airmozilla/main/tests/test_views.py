@@ -2528,7 +2528,7 @@ class TestPages(DjangoTestCase):
         assert event.title in response.content
         doc = pyquery.PyQuery(response.content)
         img, = doc('article img')
-        eq_(img.attrib['width'], '68')
+        eq_(img.attrib['width'], '160')
         archived_src = img.attrib['src']
 
         # put the picture back on
@@ -2555,7 +2555,7 @@ class TestPages(DjangoTestCase):
         assert event.title in response.content
         doc = pyquery.PyQuery(response.content)
         img, = doc('aside img')  # side event
-        eq_(img.attrib['width'], '68')
+        eq_(img.attrib['width'], '160')
         upcoming_src = img.attrib['src']
 
         # put the picture back on
