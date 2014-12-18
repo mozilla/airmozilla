@@ -51,7 +51,13 @@ Air Mozilla | Mozilla, in Video
             </a>
           </li>
           {% endif %}
-        {% endfor %}
+        {% endfor %} 
+          {% if not request.user.is_active %}
+          <li>
+            {# the redirect_next function comes from the browserid context processor #}
+            {{ browserid_login(text='Sign in', color='dark', next=redirect_next()) }}
+          </li>
+          {% endif %}
       </ul>
     </nav>
     {% block banner %}
@@ -83,10 +89,6 @@ Air Mozilla | Mozilla, in Video
                               autoupdate=True) }}
       </p>
       </aside>
-      {% if not request.user.is_active %}
-        {# the redirect_next function comes from the browserid context processor #}
-        {{ browserid_login(text='Sign in', color='dark', next=redirect_next()) }}
-      {% endif %}
 
       {% if sidebar_top %}
       <div class="sidebar-top">

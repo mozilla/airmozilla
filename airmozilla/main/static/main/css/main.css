@@ -79,6 +79,13 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
     font-weight: normal;
 }
 
+#masthead nav ul li a.browserid-login.persona-button.dark {
+    padding: 0px;
+    top: 5px;
+    text-transform: none;
+    font-weight: bold;
+}
+
 #masthead nav ul li b, #masthead nav ul li .current {
     background-position: 50% 0;
     background-repeat: no-repeat;
