@@ -426,6 +426,10 @@ Another common mistake is to *not* have `SESSION_COOKIE_SECURE = False` in your
 `airmozilla/settings/local.py` but using `http://localhost:8000` to reach
 the site.
 
+### Tests are not working
+
+If tests don't work around code you didn't touch, it might be that your test
+database is out-of-sync so then next time simply run: `FORCE_DB=1 ./manage.py test`.
 
 Migrations
 ----------
