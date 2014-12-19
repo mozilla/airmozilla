@@ -84,6 +84,7 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
     top: 5px;
     text-transform: none;
     font-weight: bold;
+    display: inline-block;
 }
 
 #masthead nav ul li b, #masthead nav ul li .current {
