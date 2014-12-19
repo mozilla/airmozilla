@@ -1418,6 +1418,37 @@ class TestEvents(ManageTestCase):
         ok_('http://something.long/url.file' in response.content)
         ok_('abc123' in response.content)
 
+    def test_event_vidly_submissions_with_active_submission(self):
+        event = Event.objects.get(title='Test event')
+        template = event.template
+        template.name = 'Vid.ly Fun'
+        template.save()
+        # add one
+        submission = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url.file',
+            hd=True,
+            token_protection=False,
+            tag='abc123',
+        )
+        assert 'Vid.ly' in event.template.name
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        url = reverse('manage:event_vidly_submissions', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Actively used' in response.content)
+
+        # If you have a submission with token_protection and the event
+        # is public, you'll get a warning message.
+        submission.token_protection = True
+        submission.save()
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Warning!' in response.content)
+
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_delete_event_vidly_submissions(self, p_urllib2):
 

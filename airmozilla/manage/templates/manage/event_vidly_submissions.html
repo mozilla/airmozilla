@@ -23,6 +23,19 @@
 
 {% block manage_content %}
 
+{% if active_submission %}
+  {% if active_submission.token_protection and event.privacy == 'public' %}
+  <div class="alert alert-danger" role="alert">
+    <p>
+      <b>Warning!</b>
+      This is a <b>public</b> event whose active Vid.ly submission requires
+      a token.
+    </p>
+  </div>
+  {% endif %}
+{% endif %}
+
+
 <form action="" method="post">{{ csrf() }}
 
   <div class="info">

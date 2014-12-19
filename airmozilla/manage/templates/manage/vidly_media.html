@@ -73,7 +73,10 @@
     <tbody>
       {% for event in paginate %}
       <tr>
-        <td><a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}">{{ truncate_words(event.title, 8) }}</a></td>
+        <td>
+          <a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}"
+            data-privacy="{{ event.privacy }}">{{ truncate_words(event.title, 8) }}</a>
+        </td>
         <td>
           {{ event.template.name }}
         </td>
