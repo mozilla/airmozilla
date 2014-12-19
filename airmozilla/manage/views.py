@@ -1131,9 +1131,20 @@ def event_vidly_submissions(request, id):
 
     paged = paginate(submissions, request.GET.get('page'), 20)
 
+    active_submission = None
+    try:
+        te = event.template_environment
+        if te and te.get('tag'):
+            active_submission = submissions.get(
+                tag=te['tag']
+            )
+    except VidlySubmission.DoesNotExist:  # pragma: no cover
+        pass
+
     data = {
         'paginate': paged,
         'event': event,
+        'active_submission': active_submission,
     }
     return render(request, 'manage/event_vidly_submissions.html', data)
 
