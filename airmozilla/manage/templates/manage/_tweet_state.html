@@ -1,14 +1,14 @@
-          {% if tweet.tweet_id %}
-            <a href="{{ full_tweet_url(tweet.tweet_id) }}"><i class="glyphicon glyphicon-ok"></i> {{ tweet.sent_date|js_date }}</a>
-          {% elif tweet.sent_date %}
-            <i class="glyphicon glyphicon-warning-sign"></i> Failed to send {{ tweet.sent_date|js_date }}
-          {% else %}
-            {% if not tweet.event.is_scheduled() %}
-              Needs to be scheduled first
-            {% elif tweet.event.needs_approval() %}
-              Needs to be approved first
-            {% else %}
-              Not yet sent
-              <i class="glyphicon glyphicon-time"></i> {{ tweet.send_date|js_date }}
-            {% endif %}
-          {% endif %}
+{% if tweet.tweet_id %}
+  <a href="{{ full_tweet_url(tweet.tweet_id) }}"><i class="glyphicon glyphicon-ok icon-positive"></i> {{ tweet.sent_date|js_date }}</a>
+{% elif tweet.sent_date %}
+  <i class="glyphicon glyphicon-warning-sign icon-negative"></i> Failed to send {{ tweet.sent_date|js_date }}
+{% else %}
+  {% if not tweet.event.is_scheduled() %}
+    Needs to be scheduled first
+  {% elif tweet.event.needs_approval() %}
+    Needs to be approved first
+  {% else %}
+    Not yet sent
+    <i class="glyphicon glyphicon-time"></i> {{ tweet.send_date|js_date }}
+  {% endif %}
+{% endif %}
