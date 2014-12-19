@@ -18,7 +18,7 @@ Function preShowPosterScreen(breadA=invalid, breadB=invalid) As Object
         screen.SetBreadcrumbText(breadA, breadB)
     end if
 
-    screen.SetListStyle("arced-landscape")
+    screen.SetListStyle("arced-16x9")
     return screen
 
 End Function

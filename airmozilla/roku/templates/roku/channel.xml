@@ -11,12 +11,14 @@
 	{% set media_info = get_media_info(event) %}
 	{% if media_info %}
 	{% if event.picture %}
-		{% set thumb = thumbnail(event.picture.file, '300x300') %}
+		{% set thumb_hd = thumbnail(event.picture.file, '385x218', crop='center') %}
+		{% set thumb_sd = thumbnail(event.picture.file, '285x145', crop='center') %}
 	{% else %}
-		{% set thumb = thumbnail(event.placeholder_img, '300x300') %}
+		{% set thumb_hd = thumbnail(event.placeholder_img, '385x218', crop='center') %}
+		{% set thumb_sd = thumbnail(event.placeholder_img, '285x145', crop='center') %}
 	{% endif %}
 
-	<item sdImg="{{ make_absolute(thumb.url) }}" hdImg="{{ make_absolute(thumb.url) }}">
+	<item sdImg="{{ make_absolute(thumb_sd.url) }}" hdImg="{{ make_absolute(thumb_hd.url) }}">
 		<title>{{ event.title }} - {{ event.start_time.strftime('%b %d %Y') }}</title>
 		<contentId>{{ event.id }}</contentId>
 		<contentType>Talk</contentType>

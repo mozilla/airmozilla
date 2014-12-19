@@ -24,12 +24,19 @@
 	</category>
 
 	{% for event in live_events %}
+	<!-- EVENT LIVE -->
 	{% set media_info = get_media_info(event) %}
 	{% if media_info %}
-	{% if media_info.format == 'hls' %}
-	{% set thumb = thumbnail(event.placeholder_img, '300x300') %}
+	{% if media_info.format == 'hls' or 1 %}
+		{% if event.picture %}
+			{% set thumb_hd = thumbnail(event.picture.file, '304x237', crop='center') %}
+			{% set thumb_sd = thumbnail(event.picture.file, '224x158', crop='center') %}
+		{% else %}
+			{% set thumb_hd = thumbnail(event.placeholder_img, '304x237', crop='center') %}
+			{% set thumb_sd = thumbnail(event.placeholder_img, '224x158', crop='center') %}
+		{% endif %}
 		<specialCategory title="Live right now" description="{{ event.title }}"
-		sd_img="{{ make_absolute(thumb.url) }}" hd_img="{{ make_absolute(thumb.url) }}"
+		sd_img="{{ make_absolute(thumb_sd.url) }}" hd_img="{{ make_absolute(thumb_hd.url) }}"
 		 type="special_category">
 		<categoryLeaf title="{{ event.title }}" description="{{ event.title }}"
 			feed="{{ abs_url('roku:event_feed', event.id) }}">
