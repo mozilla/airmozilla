@@ -8,6 +8,7 @@ import sys
 import traceback
 import urlparse
 import glob
+import stat
 
 import requests
 
@@ -185,7 +186,13 @@ def fetch_screencapture(
 
 
 def _get_files(directory):
-    return glob.glob(os.path.join(directory, 'screencap*.jpg'))
+    filenames = []
+    for filename in glob.glob(os.path.join(directory, 'screencap*.jpg')):
+        size = os.stat(filename)[stat.ST_SIZE]
+        if size > 0:
+            filenames.append(filename)
+
+    return filenames
 
 
 def _get_video_url(event, use_https, save_locally, verbose=False):

@@ -9,10 +9,10 @@ import mock
 
 from django.conf import settings
 from django.core.cache import cache
-from django.test import TestCase
 
 from airmozilla.main.models import Event, Template, VidlySubmission, Picture
 from airmozilla.manage import videoinfo
+from airmozilla.base.tests.testbase import DjangoTestCase
 
 
 class _Response(object):
@@ -31,7 +31,7 @@ class _Response(object):
             yield chunk
 
 
-class TestVideoinfo(TestCase):
+class TestVideoinfo(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
     sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
     sample_jpg2 = 'airmozilla/manage/tests/tucker.jpg'
@@ -763,7 +763,13 @@ class TestVideoinfo(TestCase):
             self.sample_jpg2,
             os.path.join(event_temp_dir, 'screencap-02.jpg')
         )
-        # a third one that won't get imported
+        # Also create an empty broken file
+        dest = os.path.join(event_temp_dir, 'screencap-03.jpg')
+        with open(dest, 'wb') as f:
+            f.write('')
+
+        # An extra one that won't get imported because the name isn't
+        # matching.
         shutil.copyfile(
             self.sample_jpg2,
             os.path.join(event_temp_dir, 'otherfile.jpg')
