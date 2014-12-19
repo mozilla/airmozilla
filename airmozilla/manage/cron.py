@@ -70,4 +70,5 @@ def fetch_screencaptures():
         max_=1,
         verbose=True,
         import_=False,
+        save_locally=True,
     )
