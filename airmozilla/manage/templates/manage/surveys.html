@@ -23,9 +23,9 @@
         <td>{{ count_survey_questions(survey) }}</td>
         <td>
           {% if survey.active %}
-          <i class="glyphicon glyphicon-ok" style="color:green" title="Yes, it's active"></i>
+          <i class="glyphicon glyphicon-ok icon-positive" title="Yes, it's active"></i>
           {% else %}
-          <i class="glyphicon glyphicon-remove" style="color:red" title="No, not active"></i>
+          <i class="glyphicon glyphicon-remove icon-negative" title="No, not active"></i>
           {% endif %}
         </td>
         <td>{{ count_events(survey) }}</td>

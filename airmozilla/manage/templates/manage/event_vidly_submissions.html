@@ -66,23 +66,23 @@
         <td>{{ submission.email }}</td>
         <td>
           {% if submission.token_protection %}
-          <i class="glyphicon glyphicon-ok"></i>
+          <i class="glyphicon glyphicon-ok icon-positive"></i>
           {% else %}
-          <i class="glyphicon glyphicon-minus-sign"></i>
+          <i class="glyphicon glyphicon-minus-sign icon-negative"></i>
           {% endif %}
         </td>
         <td>
           {% if submission.hd %}
-          <i class="glyphicon glyphicon-ok"></i>
+          <i class="glyphicon glyphicon-ok icon-positive"></i>
           {% else %}
-          <i class="glyphicon glyphicon-minus-sign"></i>
+          <i class="glyphicon glyphicon-minus-sign icon-negative"></i>
           {% endif %}
         </td>
         <td>
           {% if not submission.submission_error %}
-          <i class="glyphicon glyphicon-minus-sign"></i>
+          <i class="glyphicon glyphicon-minus-sign icon-negative"></i>
           {% else %}
-          <i class="glyphicon glyphicon-ok"></i>
+          <i class="glyphicon glyphicon-ok icon-positive"></i>
           <button name="info" class="btn btn-xs" value="{{ submission.pk }}">
             <i class="glyphicon glyphicon-search"></i>
             Show info

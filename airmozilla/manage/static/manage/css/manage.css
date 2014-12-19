@@ -204,3 +204,11 @@ p.logged-in {
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
     display: none !important;
 }
+
+/* For glyphicons we add extra color to make it more user-friendly */
+.icon-positive {
+    color: green;
+}
+.icon-negative {
+    color: darkred;
+}

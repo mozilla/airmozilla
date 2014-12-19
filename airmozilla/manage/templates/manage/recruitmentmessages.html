@@ -23,9 +23,9 @@
         <td><a href="{{ msg.url }}">{{ truncate_url(msg.url, 60) }}</a></td>
         <td>
           {% if msg.active %}
-          <i class="glyphicon glyphicon-ok" title="Yes, it's active"></i>
+          <i class="glyphicon glyphicon-ok icon-positive" title="Yes, it's active"></i>
           {% else %}
-          <i class="glyphicon glyphicon-remove" title="No, not active"></i>
+          <i class="glyphicon glyphicon-remove icon-negative" title="No, not active"></i>
           {% endif %}
         </td>
         <td>{{ count_events(msg) }}</td>
