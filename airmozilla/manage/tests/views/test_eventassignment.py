@@ -3,7 +3,7 @@ import datetime
 from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
@@ -52,7 +52,7 @@ class TestEventAssignment(ManageTestCase):
 
         # set up an assignment for a user
         event = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         event.start_time = tomorrow
         event.save()
@@ -94,7 +94,7 @@ class TestEventAssignment(ManageTestCase):
         eq_(response.status_code, 200)
 
         event = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         event.start_time = tomorrow
         event.save()

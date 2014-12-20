@@ -3,7 +3,7 @@ import json
 
 from nose.tools import eq_, ok_
 
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 from funfactory.urlresolvers import reverse
@@ -31,7 +31,7 @@ class TestDashboard(ManageTestCase):
         User.objects.exclude(username='fake').delete()
         user, = User.objects.all()
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         # let's pretend this user was created "today"
         user.date_joined = now
         user.save()
@@ -138,7 +138,7 @@ class TestDashboard(ManageTestCase):
         event = Event.objects.get(title='Test event')
 
         # let's pretend it was added today
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.start_time = now
         event.duration = 30  # 30 seconds
         event.save()

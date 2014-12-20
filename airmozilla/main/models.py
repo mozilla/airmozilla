@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.db import models
 from django.db.models import Q
 from django.dispatch import receiver
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from airmozilla.base.utils import unique_slugify
 from airmozilla.main.fields import EnvironmentField
@@ -20,7 +20,7 @@ from sorl.thumbnail import ImageField
 
 
 def _get_now():
-    return datetime.datetime.utcnow().replace(tzinfo=utc)
+    return timezone.now()
 
 
 def _get_live_time():

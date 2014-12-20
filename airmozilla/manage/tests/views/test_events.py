@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.flatpages.models import FlatPage
 from django.core import mail
+from django.utils import timezone
 from django.utils.timezone import utc
 from django.core.files import File
 
@@ -328,7 +329,7 @@ class TestEvents(ManageTestCase):
     def test_events_data_with_live_and_upcoming(self):
         # some events will be annotated with is_live and is_upcoming
         event = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event2 = Event.objects.create(
             title='Event 2',
             slug='event2',
@@ -620,8 +621,7 @@ class TestEvents(ManageTestCase):
         event_modified = Event.objects.get(id=event.id)
         eq_(event_modified.status, Event.STATUS_SCHEDULED)
         now = (
-            datetime.datetime.utcnow()
-            .replace(tzinfo=utc, microsecond=0)
+            timezone.now()
         )
         ok_(
             abs(event_modified.archive_time - now)
@@ -664,7 +664,7 @@ class TestEvents(ManageTestCase):
             size=12345
         )
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
         SuggestedEvent.objects.create(
@@ -1546,7 +1546,7 @@ class TestEvents(ManageTestCase):
 
     def test_event_hit_stats(self):
         event = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.start_time = now - datetime.timedelta(days=400)
         event.archive_time = now - datetime.timedelta(days=365)
         event.save()
@@ -1574,7 +1574,7 @@ class TestEvents(ManageTestCase):
         )
         event.channels.add(poison)
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.start_time = now - datetime.timedelta(days=400)
         event.archive_time = now - datetime.timedelta(days=365)
         event.save()
@@ -1596,7 +1596,7 @@ class TestEvents(ManageTestCase):
 
     def test_event_hit_stats_archived_today(self):
         event = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.start_time = now
         event.archive_time = now
         event.save()
@@ -1665,7 +1665,7 @@ class TestEvents(ManageTestCase):
 
     def test_event_edit_with_suggested_event_comments(self):
         event = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         suggested_event = SuggestedEvent.objects.create(
             user=self.user,
             title=event.title,
@@ -1693,7 +1693,7 @@ class TestEvents(ManageTestCase):
 
     def test_event_edit_of_retracted_submitted_event(self):
         event = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         suggested_event = SuggestedEvent.objects.create(
             user=self.user,
             title=event.title,
@@ -1974,7 +1974,7 @@ class TestEvents(ManageTestCase):
         event = Event.objects.get(title='Test event')
         assert event in Event.objects.approved()
         event.archive_time = None
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         nowish = now - datetime.timedelta(minutes=1)
         event.start_time = nowish
         event.save()

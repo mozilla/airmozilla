@@ -1,7 +1,7 @@
 import logging
 import datetime
 
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from airmozilla.main.models import Event, EventHitStats
 from . import vidly
@@ -88,7 +88,7 @@ def update(cap=10, swallow_errors=False):
         return count
 
     # Old one only get updated once a week
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     week_ago = now - datetime.timedelta(days=7)
     qs = (
         EventHitStats.objects

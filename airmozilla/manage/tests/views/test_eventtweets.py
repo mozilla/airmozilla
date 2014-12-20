@@ -6,7 +6,7 @@ import mock
 
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
@@ -106,7 +106,7 @@ class TestEventTweets(ManageTestCase):
         })
         eq_(response.status_code, 302)
         ok_(EventTweet.objects.all().count())
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event_tweet, = EventTweet.objects.all()
         _fmt = '%Y%m%d%H%M'
         eq_(
@@ -139,7 +139,7 @@ class TestEventTweets(ManageTestCase):
         tweet = EventTweet.objects.create(
             event=event,
             text='Bla bla',
-            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+            send_date=timezone.now(),
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -159,7 +159,7 @@ class TestEventTweets(ManageTestCase):
 
         tweet.tweet_id = '1234567890'
         tweet.sent_date = (
-            datetime.datetime.utcnow().replace(tzinfo=utc)
+            timezone.now()
             - datetime.timedelta(days=1)
         )
         tweet.save()
@@ -210,7 +210,7 @@ class TestEventTweets(ManageTestCase):
         tweet = EventTweet.objects.create(
             event=event,
             text='Bla bla',
-            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+            send_date=timezone.now(),
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -230,7 +230,7 @@ class TestEventTweets(ManageTestCase):
 
         tweet.tweet_id = '1234567890'
         tweet.sent_date = (
-            datetime.datetime.utcnow().replace(tzinfo=utc)
+            timezone.now()
             - datetime.timedelta(days=1)
         )
         tweet.save()
@@ -272,7 +272,7 @@ class TestEventTweets(ManageTestCase):
         tweet = EventTweet.objects.create(
             event=event,
             text='Bla bla',
-            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+            send_date=timezone.now(),
         )
 
         def mock_send_tweet(event_tweet):
@@ -294,7 +294,7 @@ class TestEventTweets(ManageTestCase):
         tweet = EventTweet.objects.create(
             event=event,
             text='Bla bla',
-            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+            send_date=timezone.now(),
             error='Crap!'
         )
         url = reverse('manage:event_tweets', args=(event.pk,))
@@ -311,7 +311,7 @@ class TestEventTweets(ManageTestCase):
         tweet = EventTweet.objects.create(
             event=event,
             text='Bla bla',
-            send_date=datetime.datetime.utcnow().replace(tzinfo=utc),
+            send_date=timezone.now(),
         )
 
         url = reverse('manage:event_tweets', args=(event.pk,))

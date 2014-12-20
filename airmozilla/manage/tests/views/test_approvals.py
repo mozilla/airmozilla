@@ -3,7 +3,7 @@ import datetime
 from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User, Group
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
@@ -132,7 +132,7 @@ class TestApprovals(ManageTestCase):
     def test_approval_review_with_suggested_event(self):
         event = Event.objects.get(title='Test event')
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         SuggestedEvent.objects.create(
             user=bob,

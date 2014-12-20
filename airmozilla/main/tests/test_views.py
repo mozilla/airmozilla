@@ -11,8 +11,8 @@ import time
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser, Permission
 from django.contrib.sites.models import Site
-from django.utils.timezone import utc
 from django.utils import timezone
+from django.utils.timezone import utc
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files import File
@@ -55,7 +55,7 @@ class TestPages(DjangoTestCase):
         super(TestPages, self).setUp()
         # Make the fixture event live as of the test.
         event = Event.objects.get(title='Test event')
-        event.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = timezone.now()
         event.archive_time = None
         event.save()
 
@@ -757,7 +757,7 @@ class TestPages(DjangoTestCase):
         ok_(url_mv in response.content)
 
         # but, suppose the events belonging to MV is far future
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event1.start_time = now + datetime.timedelta(days=20)
         event1.save()
         # and, suppose the events belong to London is very very old
@@ -1191,7 +1191,7 @@ class TestPages(DjangoTestCase):
     def test_404_page_with_side_events(self):
         """404 pages should work when there's stuff in the side bar"""
         event1 = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
 
         event = Event.objects.create(
             title='Second test event',
@@ -1260,7 +1260,7 @@ class TestPages(DjangoTestCase):
 
         # create an archived event that can belong to this channel
         event1 = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event = Event.objects.create(
             title='Third test event',
             description='Anything',
@@ -1341,7 +1341,7 @@ class TestPages(DjangoTestCase):
 
         # create an event in that channel
         event1 = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event = Event.objects.create(
             title='Third test event',
             description='Anything',
@@ -1375,7 +1375,7 @@ class TestPages(DjangoTestCase):
         event1.featured = True
         event1.save()
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
 
         channel = Channel.objects.create(
             name='Culture & Context',
@@ -1538,7 +1538,7 @@ class TestPages(DjangoTestCase):
 
     def test_channel_page_with_pagination(self):
         event1 = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         channel = Channel.objects.create(
             name='Culture & Context',
             slug='culture-and-context',
@@ -1579,7 +1579,7 @@ class TestPages(DjangoTestCase):
 
     def test_home_page_with_pagination(self):
         event1 = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
 
         for i in range(1, 40):
             event = Event.objects.create(
@@ -1842,7 +1842,7 @@ class TestPages(DjangoTestCase):
         # add some events
         events = []
         event1 = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         for i in range(1, 10):
             event = Event.objects.create(
                 title='%d test event' % i,
@@ -2109,7 +2109,7 @@ class TestPages(DjangoTestCase):
 
         # set up 3 events
         event0 = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event1 = Event.objects.create(
             title='1 Test Event',
             description='Anything',
@@ -2227,7 +2227,7 @@ class TestPages(DjangoTestCase):
         url = reverse('main:calendar')
         # set up 3 events
         event0 = Event.objects.get(title='Test event')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event1 = Event.objects.create(
             title='1 Test Event',
             description='Anything',
@@ -2514,7 +2514,7 @@ class TestPages(DjangoTestCase):
         ok_(live_src != live_src_after)
 
         # make it not a live event
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         yesterday = now - datetime.timedelta(days=1)
         event.archive_time = yesterday
         event.start_time = yesterday
@@ -2574,7 +2574,7 @@ class TestPages(DjangoTestCase):
             timezone='Europe/London'
         )
         event.location = location
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         event.start_time = tomorrow
         event.save()

@@ -6,7 +6,7 @@ import datetime
 import collections
 import urlparse
 
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -35,7 +35,7 @@ def pester(dry_run=False, force_run=False):
 
     # we only want to bother with approvals of events that are
     # of a minimum age
-    now = datetime.datetime.utcnow().replace(tzinfo=utc, microsecond=0)
+    now = timezone.now()
     minimum_created_date = now - datetime.timedelta(seconds=INTERVAL)
 
     approvals = (

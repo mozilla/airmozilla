@@ -1,6 +1,5 @@
 import locale
 import time
-import datetime
 import urllib
 import json
 
@@ -8,7 +7,7 @@ import bleach
 import jinja2
 
 from django.utils.text import Truncator
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.db.utils import IntegrityError
 from django.contrib.sites.models import RequestSite
 from django.utils.safestring import mark_safe
@@ -41,7 +40,7 @@ def js_date(dt, format='ddd, MMM D, YYYY, h:mma UTCZZ', enable_timeago=True,
 @register.function
 def date_now():
     """The current date in UTC."""
-    return datetime.datetime.utcnow().replace(tzinfo=utc, microsecond=0)
+    return timezone.now()
 
 
 @register.function

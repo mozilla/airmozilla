@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib.auth.models import Group, User
 from django.test import TestCase
+from django.utils import timezone
 from django.utils.timezone import utc
 from django.core.files import File
 
@@ -70,7 +71,7 @@ class EventTests(TestCase):
 
 class EventStateTests(TestCase):
     def test_event_state(self):
-        time_now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        time_now = timezone.now()
         time_soon = time_now + datetime.timedelta(hours=1)
         time_before = time_now - datetime.timedelta(hours=1)
         # initiated event
@@ -158,7 +159,7 @@ class EventStateTests(TestCase):
         ok_(archived not in Event.objects.archived_and_removed())
 
     def test_needs_approval_if_not_approved(self):
-        time_now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        time_now = timezone.now()
         to_approve = Event.objects.create(
             status=Event.STATUS_SCHEDULED,
             start_time=time_now,
