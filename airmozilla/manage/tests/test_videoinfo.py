@@ -569,8 +569,7 @@ class TestVideoinfo(DjangoTestCase):
         sample_jpg2 = self.sample_jpg2
 
         def mocked_popen(command, **kwargs):
-            # print (args, kwargs)
-            url = command[2]
+            url = command[4]
             ffmpeged_urls.append(url)
             destination = command[-1]
             assert os.path.isdir(os.path.dirname(destination))
@@ -579,9 +578,10 @@ class TestVideoinfo(DjangoTestCase):
                 def communicate(self):
                     out = err = ''
                     if 'xyz123' in url:
-                        # Let's create two jpeg's in that directory
-                        shutil.copyfile(sample_jpg, destination % 1)
-                        shutil.copyfile(sample_jpg2, destination % 2)
+                        if '01.jpg' in destination:
+                            shutil.copyfile(sample_jpg, destination)
+                        else:
+                            shutil.copyfile(sample_jpg2, destination)
                     else:
                         raise NotImplementedError(url)
                     return out, err
@@ -615,22 +615,26 @@ class TestVideoinfo(DjangoTestCase):
         event.save()
         videoinfo.fetch_screencaptures()
         assert ffmpeged_urls
-        eq_(Picture.objects.filter(event=event).count(), 2)
+        eq_(Picture.objects.filter(event=event).count(), 14)
 
         # When viewed, like it's viewed in the picture gallery and gallery
         # select widget, we want the one called "Screencap 1" to appear
         # before the one called "Screencap 2"
         pictures = Picture.objects.all().order_by('event', '-created')
         notes = [x.notes for x in pictures]
-        eq_(notes, ["Screencap 1", "Screencap 2"])
+        eq_(
+            notes,
+            ["Screencap %d" % x for x in range(1, 15)]
+            # ["Screencap 1", "Screencap 2"]
+        )
 
         # Try to do it again and it shouldn't run it again
         # because there are pictures in the gallery already.
-        assert len(ffmpeged_urls) == 1
+        assert len(ffmpeged_urls) == 14, len(ffmpeged_urls)
         videoinfo.fetch_screencaptures()
-        eq_(len(ffmpeged_urls), 1)
+        eq_(len(ffmpeged_urls), 14)
         # and still
-        eq_(Picture.objects.filter(event=event).count(), 2)
+        eq_(Picture.objects.filter(event=event).count(), 14)
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
@@ -671,8 +675,7 @@ class TestVideoinfo(DjangoTestCase):
         sample_jpg2 = self.sample_jpg2
 
         def mocked_popen(command, **kwargs):
-            # print (args, kwargs)
-            url = command[2]
+            url = command[4]
             ffmpeged_urls.append(url)
             destination = command[-1]
             assert os.path.isdir(os.path.dirname(destination))
@@ -682,8 +685,10 @@ class TestVideoinfo(DjangoTestCase):
                     out = err = ''
                     if 'xyz123' in url:
                         # Let's create two jpeg's in that directory
-                        shutil.copyfile(sample_jpg, destination % 1)
-                        shutil.copyfile(sample_jpg2, destination % 2)
+                        if '01.jpg' in destination:
+                            shutil.copyfile(sample_jpg, destination)
+                        else:
+                            shutil.copyfile(sample_jpg2, destination)
                     else:
                         raise NotImplementedError(url)
                     return out, err
@@ -725,8 +730,8 @@ class TestVideoinfo(DjangoTestCase):
         ok_(os.path.isdir(event_temp_dir))
         # there should be 2 JPEGs in there
         eq_(
-            os.listdir(event_temp_dir),
-            ['screencap-01.jpg', 'screencap-02.jpg']
+            sorted(os.listdir(event_temp_dir)),
+            ["screencap-%02d.jpg" % x for x in range(1, 15)]
         )
 
     def test_import_screencaptures_empty(self):
