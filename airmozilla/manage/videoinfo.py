@@ -121,15 +121,15 @@ def fetch_screencapture(
         save_dir = os.path.join(save_dir, directory_name)
         if not os.path.isdir(save_dir):
             os.mkdir(save_dir)
-    try:
 
-        # r is "no. of frames to be extracted into images per second" which
-        # means that if it's 1 it's one picture per second.
-        # Instead, we want to extract a certain number of videos independent
-        # of length
-        r = '%.4f' % (
-            1.0 * settings.SCREENCAPTURES_NO_PICTURES / event.duration,
-        )
+    def format_time(seconds):
+        m = seconds / 60
+        s = seconds % 60
+        h = m / 60
+        m = m % 60
+        return '%02d:%02d:%02d' % (h, m, s)
+
+    try:
         if verbose:  # pragma: no cover
             print "Video duration:",
             print show_duration(event.duration, include_seconds=True)
@@ -139,25 +139,38 @@ def fetch_screencapture(
             'FFMPEG_LOCATION',
             'ffmpeg'
         )
-        command = [
-            ffmpeg_location,
-            '-i',
-            video_url,
-            '-r',
-            r,
-            os.path.join(save_dir, 'screencap-%02d.jpg')
-        ]
-        if verbose:  # pragma: no cover
-            print ' '.join(command)
+        incr = float(event.duration) / settings.SCREENCAPTURES_NO_PICTURES
+        seconds = incr
         t0 = time.time()
-        out, err = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        ).communicate()
+        number = 0
+        output_template = os.path.join(save_dir, 'screencap-%02d.jpg')
+        all_out = []
+        all_err = []
+        while seconds < event.duration:
+            number += 1
+            output = output_template % number
+            command = [
+                ffmpeg_location,
+                '-ss',
+                format_time(seconds),
+                '-i',
+                video_url,
+                '-vframes',
+                '1',
+                output,
+            ]
+            if verbose:  # pragma: no cover
+                print ' '.join(command)
+            out, err = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            ).communicate()
+            all_out.append(out)
+            all_err.append(err)
+            seconds += incr
         t1 = time.time()
 
-        # files = glob.glob(os.path.join(save_dir, 'screencap*.jpg'))
         files = _get_files(save_dir)
         if verbose:  # pragma: no cover
             print "Took", t1 - t0, "seconds to extract", len(files), "pictures"
@@ -165,7 +178,7 @@ def fetch_screencapture(
         if import_:
             if verbose and not files:  # pragma: no cover
                 print "No output. Error:"
-                print err
+                print '\n'.join(all_err)
             created = _import_files(event, files)
             if verbose:  # pragma: no cover
                 print "Created", created, "pictures"
