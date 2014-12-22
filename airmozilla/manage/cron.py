@@ -41,7 +41,7 @@ def auto_archive():
 @capture
 def update_event_hit_stats():
     event_hit_stats.update(
-        cap=15,
+        cap=25,
         swallow_errors=True,
     )
 
