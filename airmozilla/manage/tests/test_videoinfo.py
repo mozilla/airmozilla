@@ -615,7 +615,7 @@ class TestVideoinfo(DjangoTestCase):
         event.save()
         videoinfo.fetch_screencaptures()
         assert ffmpeged_urls
-        eq_(Picture.objects.filter(event=event).count(), 14)
+        eq_(Picture.objects.filter(event=event).count(), 15)
 
         # When viewed, like it's viewed in the picture gallery and gallery
         # select widget, we want the one called "Screencap 1" to appear
@@ -624,17 +624,16 @@ class TestVideoinfo(DjangoTestCase):
         notes = [x.notes for x in pictures]
         eq_(
             notes,
-            ["Screencap %d" % x for x in range(1, 15)]
-            # ["Screencap 1", "Screencap 2"]
+            ["Screencap %d" % x for x in range(1, 16)]
         )
 
         # Try to do it again and it shouldn't run it again
         # because there are pictures in the gallery already.
-        assert len(ffmpeged_urls) == 14, len(ffmpeged_urls)
+        assert len(ffmpeged_urls) == 15, len(ffmpeged_urls)
         videoinfo.fetch_screencaptures()
-        eq_(len(ffmpeged_urls), 14)
+        eq_(len(ffmpeged_urls), 15)
         # and still
-        eq_(Picture.objects.filter(event=event).count(), 14)
+        eq_(Picture.objects.filter(event=event).count(), 15)
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
@@ -731,7 +730,7 @@ class TestVideoinfo(DjangoTestCase):
         # there should be 2 JPEGs in there
         eq_(
             sorted(os.listdir(event_temp_dir)),
-            ["screencap-%02d.jpg" % x for x in range(1, 15)]
+            ["screencap-%02d.jpg" % x for x in range(1, 16)]
         )
 
     def test_import_screencaptures_empty(self):

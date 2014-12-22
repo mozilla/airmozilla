@@ -140,7 +140,7 @@ def fetch_screencapture(
             'ffmpeg'
         )
         incr = float(event.duration) / settings.SCREENCAPTURES_NO_PICTURES
-        seconds = incr
+        seconds = 0
         t0 = time.time()
         number = 0
         output_template = os.path.join(save_dir, 'screencap-%02d.jpg')
