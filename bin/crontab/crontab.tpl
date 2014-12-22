@@ -18,8 +18,8 @@ HOME=/tmp
 # Every hour
 0 */1 * * * {{ cron }} cron_ping 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
-# Every 10 minutes
-*/10 * * * * {{ cron }} update_event_hit_stats 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+# Every 30 minutes
+*/30 * * * * {{ cron }} update_event_hit_stats 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
 # Every 10 minutes
 */10 * * * * {{ cron }} fetch_durations 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
