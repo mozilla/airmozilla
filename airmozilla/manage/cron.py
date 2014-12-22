@@ -67,7 +67,7 @@ def import_screencaptures():
 @capture
 def fetch_screencaptures():
     videoinfo.fetch_screencaptures(
-        max_=1,
+        max_=2,
         verbose=True,
         import_=False,
         save_locally=True,
