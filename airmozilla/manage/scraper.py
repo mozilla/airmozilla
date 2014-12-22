@@ -51,6 +51,7 @@ def get_urls(text):
         url_parsed = urlparse(token)
         if not url_parsed.scheme or not url_parsed.netloc:
             continue
+        token = token.strip(".")
         yield token
 
 
