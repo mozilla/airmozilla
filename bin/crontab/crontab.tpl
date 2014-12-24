@@ -21,14 +21,14 @@ HOME=/tmp
 # Every 30 minutes
 */30 * * * * {{ cron }} update_event_hit_stats 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
+# Every 15 minutes
+*/15 * * * * {{ cron }} fetch_durations 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+
 # Every 10 minutes
-*/10 * * * * {{ cron }} fetch_durations 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+*/10 * * * * {{ cron }} fetch_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
-# Every 15 minutes
-*/15 * * * * {{ cron }} fetch_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
-
-# Every 15 minutes
-*/15 * * * * {{ cron }} import_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+# Every 10 minutes
+*/10 * * * * {{ cron }} import_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
 
 MAILTO=root
