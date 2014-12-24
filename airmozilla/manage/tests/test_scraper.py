@@ -38,13 +38,20 @@ class TestScraper(TestCase):
         Some junk
         http://airmozilla/manage/events/1068/ stuff
         https://etherpad.mozilla.org/sumo-mobile
+        hello, this is madness
+        https://docs.python.org/2/library/urlparse.html..
+        madness I say https://github.com/mozilla/airmozilla........
+        yes http://blog.mozilla.org/devtools/.
         """
         urls = list(scraper.get_urls(text))
         eq_(
             urls,
             [
                 'http://airmozilla/manage/events/1068/',
-                'https://etherpad.mozilla.org/sumo-mobile'
+                'https://etherpad.mozilla.org/sumo-mobile',
+                'https://docs.python.org/2/library/urlparse.html',
+                'https://github.com/mozilla/airmozilla',
+                'http://blog.mozilla.org/devtools/'
             ]
         )
 
