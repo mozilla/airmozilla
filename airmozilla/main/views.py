@@ -38,6 +38,7 @@ from airmozilla.main.models import (
     CuratedGroup,
     EventRevision,
     Picture,
+    VidlySubmission,
 )
 from airmozilla.base.utils import (
     paginate,
@@ -424,6 +425,18 @@ class EventView(View):
         ):
             if event.template_environment.get('tag'):
                 context['vidly_tag'] = event.template_environment['tag']
+                hd = False  # default
+                vidly_submissions = (
+                    VidlySubmission.objects
+                    .filter(event=event, tag=context['vidly_tag'])
+                    .order_by('-submission_time')
+                )
+
+                for vidly_submission in vidly_submissions.values('hd'):
+                    hd = vidly_submission['hd']
+                    break
+
+                context['vidly_hd'] = hd
 
         if event.pin:
             if (

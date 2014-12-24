@@ -36,7 +36,8 @@ from airmozilla.main.models import (
     CuratedGroup,
     EventRevision,
     RecruitmentMessage,
-    Picture
+    Picture,
+    VidlySubmission,
 )
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -457,6 +458,16 @@ class TestPages(DjangoTestCase):
         ok_(
             'https://vid.ly/abc123?content=video&amp;format=mp4'
             in response.content
+        )
+
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=hd_webm'
+            not in response.content
+        )
+
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=hd_mp4'
+            not in response.content
         )
 
     def test_private_event_redirect(self):
@@ -2700,6 +2711,63 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_(edit_url not in response.content)  # note the not
+
+    def test_hd_download_links(self):
+        event = Event.objects.get(title='Test event')
+        vidly = Template.objects.create(
+            name="Vid.ly HD",
+            content='<iframe src="{{ tag }}"></iframe>'
+        )
+        event.template = vidly
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        vidly_submission = VidlySubmission.objects.create(
+            event=event,
+            url='https://s3.amazonaws.com/airmozilla/example.mp4',
+            tag='abc123',
+            hd=True
+        )
+
+        url = reverse('main:event', kwargs={'slug': event.slug})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        assert event.privacy == Event.PRIVACY_PUBLIC
+
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=webm'
+            in response.content
+        )
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=mp4'
+            in response.content
+        )
+
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=hd_webm'
+            in response.content
+        )
+
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=hd_mp4'
+            in response.content
+        )
+
+        vidly_submission.hd = False
+        vidly_submission.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=hd_webm'
+            not in response.content
+        )
+
+        ok_(
+            'https://vid.ly/abc123?content=video&amp;format=hd_mp4'
+            not in response.content
+        )
 
 
 class TestEventEdit(DjangoTestCase):
