@@ -3,7 +3,7 @@ from cStringIO import StringIO
 from nose.tools import eq_, ok_
 import mock
 
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.test import TestCase
 
 from airmozilla.manage import event_hit_stats
@@ -70,7 +70,7 @@ class EventHitStatsTestCase(TestCase):
         eq_(len(calls), 1)
 
         # let's pretend the event is half an hour old
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         half_hour_ago = now - datetime.timedelta(minutes=30)
 
         # event.update(modified=event.modified - half_hour_ago)
@@ -179,7 +179,7 @@ class EventHitStatsTestCase(TestCase):
         event.save()
 
         # set them back two days
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         days_ago = now - datetime.timedelta(hours=24 * 2, seconds=1)
         non_signal_save(stat, modified=days_ago)
         non_signal_save(
@@ -216,7 +216,7 @@ class EventHitStatsTestCase(TestCase):
         event.save()
 
         # set them back two days
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         days_ago = now - datetime.timedelta(hours=24 * 2, seconds=1)
         non_signal_save(stat, modified=days_ago)
         non_signal_save(
@@ -248,7 +248,7 @@ class EventHitStatsTestCase(TestCase):
         )
 
         # set them back two days
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         days_ago = now - datetime.timedelta(hours=24 * 2, seconds=1)
         non_signal_save(stat, modified=days_ago)
         non_signal_save(

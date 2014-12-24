@@ -3,7 +3,7 @@ import datetime
 from django.conf import settings
 from django.contrib.flatpages.models import FlatPage
 from django.db.models import Q
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.core.cache import cache
 
 from funfactory.urlresolvers import reverse
@@ -138,7 +138,7 @@ def get_featured_events(channels, user,
 
 def _get_featured_events(channels, anonymous, contributor):
     """do the heavy lifting of getting the featured events"""
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     yesterday = now - datetime.timedelta(days=1)
     # subtract one second to not accidentally tip it
     yesterday -= datetime.timedelta(seconds=1)

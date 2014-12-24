@@ -1,4 +1,3 @@
-import datetime
 import time
 import os
 import stat
@@ -8,7 +7,7 @@ import twython
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.importlib import import_module
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.conf import settings
 from django.db.models import Q
 
@@ -26,7 +25,7 @@ def send_unsent_tweets():
             .count()
         )
 
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     query = Q(sent_date__isnull=True) | Q(error__isnull=False)
     qs = (
         EventTweet.objects
@@ -69,7 +68,7 @@ def send_tweet(event_tweet, save=True):
     except Exception, msg:
         logging.error("Failed to send tweet", exc_info=True)
         event_tweet.error = str(msg)
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     event_tweet.sent_date = now
     save and event_tweet.save()
 

@@ -1,11 +1,10 @@
-import datetime
 import logging
 import urlparse
 
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.cache import cache
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.contrib.sites.models import Site
 
 from funfactory.urlresolvers import reverse
@@ -76,7 +75,7 @@ def archive(event, swallow_email_exceptions=False):
 
     elif results[tag].get('Status') == 'Finished':
         # hurray!
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.archive_time = now
         event.status = Event.STATUS_SCHEDULED
         event.save()

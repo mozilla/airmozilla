@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.conf import settings
 from django.core.files import File
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.core.files.temp import NamedTemporaryFile
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -74,7 +74,7 @@ def start(request):
             # lastly make it a string
             additional_links = '\n'.join(additional_links)
 
-            now = datetime.datetime.utcnow().replace(tzinfo=utc)
+            now = timezone.now()
 
             title = (
                 information.get('full_name') or

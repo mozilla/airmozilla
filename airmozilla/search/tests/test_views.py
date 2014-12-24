@@ -2,6 +2,7 @@ import datetime
 import urllib
 import os
 
+from django.utils import timezone
 from django.utils.timezone import utc
 from django.contrib.auth.models import User
 
@@ -23,11 +24,11 @@ class TestSearch(DjangoTestCase):
 
         self._upload_media(self.placeholder_path)
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = Event.objects.create(
             title='Entirely Different',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_INITIATED,
             description="These are my words."
@@ -56,11 +57,11 @@ class TestSearch(DjangoTestCase):
     def test_basic_search_with_privacy_filter(self):
         Event.objects.all().delete()
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = Event.objects.create(
             title='Entirely Different',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="These are my words."
@@ -109,11 +110,11 @@ class TestSearch(DjangoTestCase):
     def test_search_ordering(self):
         Event.objects.all().delete()
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event1 = Event.objects.create(
             title='Entirely Different',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="A different word is not mentioned here."
@@ -154,11 +155,11 @@ class TestSearch(DjangoTestCase):
     def test_search_by_stopwords(self):
         Event.objects.all().delete()
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = Event.objects.create(
             title='THis is Different',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="These are my words."
@@ -182,11 +183,11 @@ class TestSearch(DjangoTestCase):
     def test_search_with_strange_characters(self):
         Event.objects.all().delete()
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = Event.objects.create(
             title='THis is Different',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="These are my words."
@@ -226,11 +227,11 @@ class TestSearch(DjangoTestCase):
     def test_search_with_nothing(self):
         Event.objects.all().delete()
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = Event.objects.create(
             title='THis is Different',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="These are my words."
@@ -245,11 +246,11 @@ class TestSearch(DjangoTestCase):
     def test_search_by_stemming(self):
         Event.objects.all().delete()
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = Event.objects.create(
             title='Engagement Discussion',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="These are my words."
@@ -275,11 +276,11 @@ class TestSearch(DjangoTestCase):
     def test_search_with_highlight(self):
         Event.objects.all().delete()
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = Event.objects.create(
             title='Engagement Discussion',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="These are my words."
@@ -324,11 +325,11 @@ class TestSearch(DjangoTestCase):
 
         Event.objects.all().delete()
 
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event1 = Event.objects.create(
             title='Blobber Fest',
             slug='blobbering',
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="These are my words."
@@ -338,7 +339,7 @@ class TestSearch(DjangoTestCase):
         event2 = Event.objects.create(
             title='Beauty and the Beast',
             slug='beauty-and-beast',
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             placeholder_img=self.placeholder,
             status=Event.STATUS_SCHEDULED,
             description="These are other words."

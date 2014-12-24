@@ -1,7 +1,7 @@
 import datetime
 
 from django.conf import settings
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.core.files import File
 
 from funfactory.urlresolvers import reverse
@@ -34,7 +34,7 @@ class TestRoku(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_(event.title not in response.content)
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.start_time = now - datetime.timedelta(seconds=3600)
         event.save()
         assert not event.archive_time

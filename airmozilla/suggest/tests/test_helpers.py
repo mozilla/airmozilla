@@ -1,8 +1,7 @@
-import datetime
 from nose.tools import eq_
 from django.test import TestCase
 from django.contrib.auth.models import User
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
@@ -41,7 +40,7 @@ class TestStateHelpers(TestCase):
         description = state_description(event)
         eq_(description, 'Details missing')
 
-        event.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.start_time = timezone.now()
         event.location = Location.objects.create(
             name='Mountain View', timezone='US/Pacific',
         )
@@ -60,7 +59,7 @@ class TestStateHelpers(TestCase):
         description = state_description(event)
         eq_(description, 'Not yet submitted')
 
-        event.submitted = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.submitted = timezone.now()
         event.save()
         url = next_url(event)
         eq_(url, reverse('suggest:summary', args=(event.pk,)))

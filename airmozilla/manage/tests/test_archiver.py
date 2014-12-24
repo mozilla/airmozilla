@@ -4,7 +4,7 @@ from cStringIO import StringIO
 from django.test import TestCase
 from django.core import mail
 from django.conf import settings
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.test.utils import override_settings
 
 from funfactory.urlresolvers import reverse
@@ -53,7 +53,7 @@ class ArchiverTestCase(TestCase):
 
     def _age_event_created(self, event, save=True):
         extra_seconds = settings.PESTER_INTERVAL_DAYS * 24 * 60 * 60 + 1
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.created = now - datetime.timedelta(seconds=extra_seconds)
         save and event.save()
 
@@ -164,7 +164,7 @@ class ArchiverTestCase(TestCase):
         eq_(len(mail.outbox), 0)
 
         event = Event.objects.get(pk=event.pk)
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         eq_(
             event.archive_time.strftime('%Y%m%d %H%M'),
             now.strftime('%Y%m%d %H%M'),

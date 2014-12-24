@@ -5,7 +5,7 @@ from django.core import mail
 from django.contrib.auth.models import Group, User
 from django.conf import settings
 from django.contrib.sites.models import Site
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
@@ -23,7 +23,7 @@ class PesteringTestCase(TestCase):
 
     def _age_event_created(self, event, save=True):
         extra_seconds = settings.PESTER_INTERVAL_DAYS * 24 * 60 * 60 + 1
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.created = now - datetime.timedelta(seconds=extra_seconds)
         save and event.save()
 
@@ -50,7 +50,7 @@ class PesteringTestCase(TestCase):
         event = Event.objects.get(title='Test event')
 
         # first pretend that the event was created now
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.created = now
         event.save()
 
@@ -87,7 +87,7 @@ class PesteringTestCase(TestCase):
         manage_url = reverse('manage:approvals')
         ok_(manage_url in message)
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         assert event.start_time < now
         ok_('Time left: overdue!' in message)
 
@@ -127,7 +127,7 @@ class PesteringTestCase(TestCase):
         steve.groups.add(group)
         steve.groups.add(group2)
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event = Event.objects.get(title='Test event')
         event.start_time = now + datetime.timedelta(hours=1, minutes=1)
         event.save()

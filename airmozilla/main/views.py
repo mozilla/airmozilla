@@ -11,6 +11,7 @@ from django.contrib.sites.models import RequestSite
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
 from django.contrib.flatpages.views import flatpage
@@ -875,7 +876,7 @@ def events_calendar_ical(request, privacy=None):
         return cached
     cal = vobject.iCalendar()
 
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     base_qs = Event.objects.approved()
     if privacy == 'public':
         base_qs = base_qs.filter(privacy=Event.PRIVACY_PUBLIC)
@@ -953,7 +954,7 @@ class EventsFeed(Feed):
         return self.link()
 
     def items(self):
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         qs = (
             Event.objects.approved()
             .filter(start_time__lt=now,
@@ -1023,7 +1024,7 @@ def channels(request):
 def calendars(request):
     data = {}
     locations = []
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     time_ago = now - datetime.timedelta(days=30)
     base_qs = Event.objects.filter(start_time__gte=time_ago)
     for location in Location.objects.all().order_by('name'):

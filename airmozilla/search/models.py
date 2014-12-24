@@ -1,14 +1,12 @@
-import datetime
-
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from airmozilla.main.models import Event
 
 
 def _get_now():
-    return datetime.datetime.utcnow().replace(tzinfo=utc)
+    return timezone.now()
 
 
 class LoggedSearch(models.Model):

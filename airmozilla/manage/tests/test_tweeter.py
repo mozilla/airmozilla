@@ -6,7 +6,7 @@ import mock
 from django.contrib.auth.models import User, Group
 from django.test import TestCase
 from django.conf import settings
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
@@ -136,7 +136,7 @@ class TweeterTestCase(TestCase):
     def test_send_unsent_tweets_by_send_date(self, mocked_twython):
         event = Event.objects.get(title='Test event')
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         future = now + datetime.timedelta(hours=1)
         past = now - datetime.timedelta(hours=1)
 
@@ -173,7 +173,7 @@ class TweeterTestCase(TestCase):
     def test_send_unsent_tweets_no_approval_needed(self, mocked_twython):
         event = Event.objects.get(title='Test event')
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         past = now - datetime.timedelta(hours=1)
 
         EventTweet.objects.create(
@@ -200,7 +200,7 @@ class TweeterTestCase(TestCase):
         event = Event.objects.get(title='Test event')
         assert event in Event.objects.approved()
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         past = now - datetime.timedelta(hours=1)
 
         event_tweet = EventTweet.objects.create(

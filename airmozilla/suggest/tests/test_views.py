@@ -7,6 +7,7 @@ import shutil
 from django.test import TestCase
 from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
+from django.utils import timezone
 from django.utils.timezone import utc
 from django.core import mail
 from django.core.files import File
@@ -275,7 +276,7 @@ class TestPages(TestCase):
         )
 
     def test_start_duplicate_slug_desperate(self):
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = Event.objects.get(slug='test-event')
         event.title = 'Some Other Title'
         event.save()
@@ -283,7 +284,7 @@ class TestPages(TestCase):
         Event.objects.create(
             title='Entirely Different',
             slug=today.strftime('test-event-%Y%m%d'),
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
         )
         url = reverse('suggest:start')
         response = self.client.post(url, {
@@ -369,14 +370,14 @@ class TestPages(TestCase):
 
     def test_upload_placeholder(self):
         location, = Location.objects.filter(name='Mountain View')
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = SuggestedEvent.objects.create(
             user=self.user,
             title='Cool Title',
             slug='cool-title',
             short_description='Short Description',
             description='Description',
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             location=location
         )
         url = reverse('suggest:placeholder', args=(event.pk,))
@@ -392,14 +393,14 @@ class TestPages(TestCase):
 
     def test_select_placeholder_from_gallery(self):
         location, = Location.objects.filter(name='Mountain View')
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = SuggestedEvent.objects.create(
             user=self.user,
             title='Cool Title',
             slug='cool-title',
             short_description='Short Description',
             description='Description',
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             location=location
         )
         url = reverse('suggest:placeholder', args=(event.pk,))
@@ -416,7 +417,7 @@ class TestPages(TestCase):
 
     def test_change_picture(self):
         location, = Location.objects.filter(name='Mountain View')
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         with open(self.placeholder) as fp:
             picture = Picture.objects.create(file=File(fp))
         event = SuggestedEvent.objects.create(
@@ -425,7 +426,7 @@ class TestPages(TestCase):
             slug='cool-title',
             short_description='Short Description',
             description='Description',
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             location=location,
             picture=picture
         )
@@ -441,14 +442,14 @@ class TestPages(TestCase):
 
     def test_creating_event_without_placeholder_or_picture(self):
         location, = Location.objects.filter(name='Mountain View')
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = SuggestedEvent.objects.create(
             user=self.user,
             title='Cool Title',
             slug='cool-title',
             short_description='Short Description',
             description='Description',
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             location=location
         )
         url = reverse('suggest:placeholder', args=(event.pk,))
@@ -508,7 +509,7 @@ class TestPages(TestCase):
             reverse('suggest:description', args=(event.pk,))
         )
         event.upcoming = False
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.start_time = now
         event.location = self.precorded_location
         event.save()
@@ -549,7 +550,7 @@ class TestPages(TestCase):
         )
         event.upcoming = False
         event.popcorn_url = 'https://'
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.start_time = now
         event.location = self.precorded_location
         event.save()
@@ -596,7 +597,7 @@ class TestPages(TestCase):
         eq_(response.status_code, 400)
 
     def test_file_with_uploads_to_choose(self):
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event = SuggestedEvent.objects.create(
             user=self.user,
             title='Cool Title',
@@ -992,14 +993,14 @@ class TestPages(TestCase):
 
     def test_discussion(self):
         location, = Location.objects.filter(name='Mountain View')
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = SuggestedEvent.objects.create(
             user=self.user,
             title='Cool Title',
             slug='cool-title',
             short_description='Short Description',
             description='Description',
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             location=location
         )
         discussion = SuggestedDiscussion.objects.create(
@@ -1076,14 +1077,14 @@ class TestPages(TestCase):
 
     def test_discussion_default_moderator(self):
         location, = Location.objects.filter(name='Mountain View')
-        today = datetime.datetime.utcnow()
+        today = timezone.now()
         event = SuggestedEvent.objects.create(
             user=self.user,
             title='Cool Title',
             slug='cool-title',
             short_description='Short Description',
             description='Description',
-            start_time=today.replace(tzinfo=utc),
+            start_time=today,
             location=location
         )
         discussion = SuggestedDiscussion.objects.create(
@@ -1241,7 +1242,7 @@ class TestPages(TestCase):
 
     def test_summary_after_event_approved(self):
         event = self._make_suggested_event()
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.first_submitted = now
         event.submitted = now
         url = reverse('suggest:summary', args=(event.pk,))
@@ -1332,7 +1333,7 @@ class TestPages(TestCase):
         response = self.client.get(url)
         eq_(response.status_code, 400)
         # because it's not submitted
-        event.submitted = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.submitted = timezone.now()
         event.save()
 
         # finally
@@ -1549,7 +1550,7 @@ class TestPages(TestCase):
         event = self._make_suggested_event()
         # give it an exceptionally long title
         event.title = 'Title' * 10
-        event.submitted = datetime.datetime.utcnow().replace(tzinfo=utc)
+        event.submitted = timezone.now()
         event.save()
         url = reverse('suggest:summary', args=(event.pk,))
         assert self.client.get(url).status_code == 200
@@ -1601,7 +1602,7 @@ class TestPages(TestCase):
         )
         event = self._make_suggested_event()
         event.title = 'Title Title Title'
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         event.first_submitted = now
         event.submitted = now
         event.save()

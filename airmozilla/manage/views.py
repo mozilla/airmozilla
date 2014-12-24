@@ -23,7 +23,6 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q, Max, Sum, Count
 from django.contrib.flatpages.models import FlatPage
-from django.utils.timezone import utc
 from django.contrib.sites.models import RequestSite
 from django.core.exceptions import ImproperlyConfigured
 from django.views.decorators.cache import cache_page
@@ -149,7 +148,7 @@ def dashboard(request):
 @json_view
 def dashboard_data(request):
     context = {}
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     yesterday = today - datetime.timedelta(days=1)
     this_week = today - datetime.timedelta(days=today.weekday())
@@ -669,7 +668,7 @@ def events_data(request):
             _channel_names[each['channel_id']]
         )
 
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     live_time = now + datetime.timedelta(minutes=settings.LIVE_MARGIN)
 
     all_needs_approval = (
@@ -899,7 +898,7 @@ def event_edit(request, id):
 
     # Is it stuck and won't auto-archive?
     context['stuck_pending'] = False
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     time_ago = now - datetime.timedelta(minutes=15)
     if (
         event.status == Event.STATUS_PENDING
@@ -1258,7 +1257,7 @@ def new_event_tweet(request, id):
                 tz = pytz.timezone(event.location.timezone)
                 event_tweet.send_date = tz_apply(event_tweet.send_date, tz)
             else:
-                now = datetime.datetime.utcnow().replace(tzinfo=utc)
+                now = timezone.now()
                 event_tweet.send_date = now
             event_tweet.event = event
             event_tweet.creator = request.user
@@ -1409,8 +1408,7 @@ def event_archive(request, id):
             else:
                 event.status = Event.STATUS_SCHEDULED
                 now = (
-                    datetime.datetime.utcnow()
-                    .replace(tzinfo=utc, microsecond=0)
+                    timezone.now()
                 )
                 # add one second otherwise, it will not appear on the
                 # event manager immediately after the redirect
@@ -2105,7 +2103,7 @@ def suggestions(request):
     )
     context['include_old'] = request.GET.get('include_old')
     if not context['include_old']:
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         then = now - datetime.timedelta(days=30)
         events = events.filter(first_submitted__gte=then)
 
@@ -2807,7 +2805,7 @@ def event_hit_stats(request):
         order_by = possible_order_by[-1]
 
     include_excluded = bool(request.GET.get('include_excluded'))
-    today = datetime.datetime.utcnow().replace(tzinfo=utc)
+    today = timezone.now()
     yesterday = today - datetime.timedelta(days=1)
     title = request.GET.get('title')
     stats = (
@@ -3128,7 +3126,7 @@ def event_assignments(request):
     context['assigned_users'] = assigned_users
 
     events = []
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     qs = Event.objects.filter(start_time__gte=now)
     for event in qs.order_by('start_time'):
         try:
@@ -3165,7 +3163,7 @@ def event_assignments_ical(request):
 
     cal = vobject.iCalendar()
 
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     base_qs = EventAssignment.objects.all().order_by('-event__start_time')
     if assignee:
         base_qs = base_qs.filter(users=assignee)
@@ -3488,7 +3486,7 @@ def loggedsearches(request):
 def loggedsearches_stats(request):
     context = {}
 
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    now = timezone.now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     this_week = today - datetime.timedelta(days=today.weekday())
     this_month = today.replace(day=1)

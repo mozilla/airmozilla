@@ -4,7 +4,7 @@ import os
 from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User, Group, Permission
-from django.utils.timezone import utc
+from django.utils import timezone
 from django.core import mail
 
 from funfactory.urlresolvers import reverse
@@ -38,7 +38,7 @@ class TestSuggestions(ManageTestCase):
 
     def test_suggestions_page(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
         SuggestedEvent.objects.create(
@@ -107,7 +107,7 @@ class TestSuggestions(ManageTestCase):
 
     def test_suggestions_page_states(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
         event = SuggestedEvent.objects.create(
@@ -162,7 +162,7 @@ class TestSuggestions(ManageTestCase):
     def test_approve_suggested_event_basic(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         tag1 = Tag.objects.create(name='TAG1')
         tag2 = Tag.objects.create(name='TAG2')
@@ -240,7 +240,7 @@ class TestSuggestions(ManageTestCase):
     def test_approve_suggested_event_pre_recorded(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         channel = Channel.objects.create(name='CHANNEL')
 
@@ -278,7 +278,7 @@ class TestSuggestions(ManageTestCase):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)
         template = Template.objects.create(name='My Template')
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         channel = Channel.objects.create(name='CHANNEL')
 
@@ -331,7 +331,7 @@ class TestSuggestions(ManageTestCase):
     def test_approved_suggested_popcorn_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         channel = Channel.objects.create(name='CHANNEL')
 
@@ -389,7 +389,7 @@ class TestSuggestions(ManageTestCase):
     def test_approved_suggested_event_with_discussion(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         channel = Channel.objects.create(name='CHANNEL')
 
@@ -452,7 +452,7 @@ class TestSuggestions(ManageTestCase):
     def test_reject_suggested_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         tag1 = Tag.objects.create(name='TAG1')
         tag2 = Tag.objects.create(name='TAG2')
@@ -515,7 +515,7 @@ class TestSuggestions(ManageTestCase):
     def test_comment_suggested_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         location = Location.objects.get(id=1)
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         tag1 = Tag.objects.create(name='TAG1')
         tag2 = Tag.objects.create(name='TAG2')
@@ -574,7 +574,7 @@ class TestSuggestions(ManageTestCase):
             password='secret'
         )
         location = Location.objects.get(id=1)
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         tag1 = Tag.objects.create(name='TAG1')
         tag2 = Tag.objects.create(name='TAG2')

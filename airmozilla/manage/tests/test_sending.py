@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User, Group
 from django.core import mail
 from django.test.client import RequestFactory
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from nose.tools import eq_, ok_
 from funfactory.urlresolvers import reverse
@@ -29,7 +29,7 @@ class TestSending(TestCase):
 
     def test_email_about_suggestion_comment(self):
         user, = User.objects.all()[:1]
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
 
@@ -64,7 +64,7 @@ class TestSending(TestCase):
     def test_email_about_accepted_suggestion(self):
         user, = User.objects.all()[:1]
         event, = Event.objects.all()[:1]
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
 
@@ -110,7 +110,7 @@ class TestSending(TestCase):
         #     comment='Bla Bla',
         #     status=Comment.STATUS_APPROVED
         # )
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
 

@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User, Group, Permission
 from django.core import mail
 from django.test.client import RequestFactory
-from django.utils.timezone import utc
+from django.utils import timezone
 
 from nose.tools import ok_
 from funfactory.urlresolvers import reverse
@@ -46,7 +46,7 @@ class TestSending(TestCase):
         )
 
         user, = User.objects.all()[:1]
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
 
@@ -98,7 +98,7 @@ class TestSending(TestCase):
         )
 
         user, = User.objects.all()[:1]
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         location = Location.objects.get(id=1)
 
