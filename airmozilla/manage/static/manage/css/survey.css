@@ -1,0 +1,21 @@
+.survey-link {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+td.question {
+    width: 80%;
+}
+
+textarea {
+    width: 100%;
+    height: 140px;
+}
+
+.question {
+    overflow: auto;
+}
+
+td.ordering {
+    vertical-align: middle;
+}

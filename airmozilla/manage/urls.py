@@ -76,6 +76,8 @@ urlpatterns = patterns(
     url(r'^surveys/(?P<id>\d+)/$', views.survey_edit, name='survey_edit'),
     url(r'^surveys/(?P<id>\d+)/delete/$', views.survey_delete,
         name='survey_delete'),
+    url(r'^surveys/(?P<id>\d+)/questions/$', views.survey_questions,
+        name='survey_questions'),
     url(r'^surveys/(?P<id>\d+)/question/(?P<question_id>\d+)/$',
         views.survey_question_edit,
         name='survey_question_edit'),
