@@ -256,6 +256,92 @@ class TestVideoinfo(DjangoTestCase):
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
     @mock.patch('requests.head')
+    def test_fetch_duration_fail_to_fetch_not_video(
+        self, rhead, p_urllib2, p_logging
+    ):
+
+        def mocked_head(url, **options):
+            return _Response(
+                '<html>',
+                200,
+                headers={
+                    'Content-Type': 'text/html; charset=utf-8'
+                }
+            )
+
+        rhead.side_effect = mocked_head
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+        assert event.duration is None
+
+        buffer = StringIO()
+        sys.stdout = buffer
+        try:
+            videoinfo.fetch_durations()
+        finally:
+            sys.stdout = sys.__stdout__
+
+        event = Event.objects.get(id=event.id)
+        eq_(event.duration, None)  # because it failed
+        output = buffer.getvalue()
+        ok_(
+            'https://vid.ly/abc123?content=video&format=mp4 is a '
+            'text/html document' in output
+        )
+
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    def test_fetch_duration_fail_to_fetch_0_content_length(
+        self, rhead, p_urllib2, p_logging
+    ):
+
+        def mocked_head(url, **options):
+            return _Response(
+                '<html>',
+                200,
+                headers={
+                    'Content-Length': '0'
+                }
+            )
+
+        rhead.side_effect = mocked_head
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+        assert event.duration is None
+
+        buffer = StringIO()
+        sys.stdout = buffer
+        try:
+            videoinfo.fetch_durations()
+        finally:
+            sys.stdout = sys.__stdout__
+
+        event = Event.objects.get(id=event.id)
+        eq_(event.duration, None)  # because it failed
+        output = buffer.getvalue()
+        ok_(
+            'https://vid.ly/abc123?content=video&format=mp4 has a 0 byte '
+            'Content-Length' in output
+        )
+
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
     @mock.patch('requests.get')
     @mock.patch('subprocess.Popen')
     def test_fetch_duration_save_locally(

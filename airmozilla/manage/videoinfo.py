@@ -46,6 +46,22 @@ def fetch_duration(
         verbose=verbose
     )
 
+    # Some videos might return a 200 OK on a HEAD but are corrupted
+    # and contains nothing
+    if not save_locally:
+        assert '://' in video_url
+        head = requests.head(video_url)
+        if head.headers.get('Content-Length') == '0':
+            # corrupt file!
+            raise AssertionError(
+                '%s has a 0 byte Content-Length' % video_url
+            )
+        if head.headers.get('Content-Type', '').startswith('text/html'):
+            # Not a URL to an actual file!
+            raise AssertionError(
+                '%s is a text/html document' % video_url
+            )
+
     try:
         ffmpeg_location = getattr(
             settings,
@@ -332,6 +348,7 @@ def _fetch(
 
     for event in qs.order_by(order_by)[:max_ * 2]:
         if verbose:  # pragma: no cover
+            print "-" * 80
             print "Event: %r, (privacy:%s slug:%s)" % (
                 event.title,
                 event.get_privacy_display(),
@@ -353,6 +370,7 @@ def _fetch(
         ):
             if verbose:  # pragma: no cover
                 print "No Vid.ly Tag or Ogg URL!"
+            quarantined[event.id] = "No Vid.ly Tag or Ogg URL"
             skipped += 1
             continue
 
