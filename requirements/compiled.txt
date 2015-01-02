@@ -2,6 +2,6 @@ psycopg2==2.5.1
 Jinja2==2.5.5
 
 simplejson
-Pillow==2.3.0
+Pillow==2.7.0
 lxml>=2.1
 ujson==1.33
