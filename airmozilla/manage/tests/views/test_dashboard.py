@@ -1,6 +1,7 @@
 import datetime
 import json
 
+import mock
 from nose.tools import eq_, ok_
 
 from django.utils import timezone
@@ -18,7 +19,12 @@ class TestDashboard(ManageTestCase):
         response = self.client.get(reverse('manage:dashboard'))
         eq_(response.status_code, 200)
 
-    def test_dashboard_data(self):
+    @mock.patch('django.utils.timezone.now')
+    def test_dashboard_data(self, mocked_now):
+
+        specific_date = datetime.datetime(2014, 10, 25, 1, 2, 3)
+        specific_date = specific_date.replace(tzinfo=timezone.utc)
+        mocked_now.return_value = specific_date
 
         def user_counts(response):
             data = json.loads(response.content)
@@ -57,12 +63,9 @@ class TestDashboard(ManageTestCase):
         eq_(response.status_code, 200)
         counts = user_counts(response)
         eq_(counts['today'], 0)
-        if now.weekday() != 0:
-            # Don't test this on a Monday.
-            # This is ugly but the dashboard data isn't critical enough :)
-            eq_(counts['yesterday'], 1)  # one more than yesterday
-            eq_(counts['this_week'], 1)
-            eq_(counts['last_week'], 0)
+        eq_(counts['yesterday'], 1)  # one more than yesterday
+        eq_(counts['this_week'], 1)
+        eq_(counts['last_week'], 0)
         eq_(counts['this_month'], 1)
         eq_(counts['last_month'], 0)
         eq_(counts['this_year'], 1)
@@ -79,12 +82,10 @@ class TestDashboard(ManageTestCase):
         eq_(counts['yesterday'], 0)
         eq_(counts['this_week'], 0)
         eq_(counts['last_week'], 1)
-        if now.day > 7:
-            # this doesn't work when last week was last month
-            eq_(counts['this_month'], 1)
-            eq_(counts['last_month'], 0)
-            eq_(counts['this_year'], 1)
-            eq_(counts['last_year'], 0)
+        eq_(counts['this_month'], 1)
+        eq_(counts['last_month'], 0)
+        eq_(counts['this_year'], 1)
+        eq_(counts['last_year'], 0)
         eq_(counts['ever'], 1)
 
         month = user.date_joined.month
@@ -99,12 +100,10 @@ class TestDashboard(ManageTestCase):
         eq_(counts['yesterday'], 0)
         eq_(counts['this_week'], 0)
         eq_(counts['last_week'], 0)
-        if now.day > 7:
-            # this doesn't work when last week was last month
-            eq_(counts['this_month'], 0)
-            eq_(counts['last_month'], 1)
-            eq_(counts['this_year'], 1)
-            eq_(counts['last_year'], 0)
+        eq_(counts['this_month'], 0)
+        eq_(counts['last_month'], 1)
+        eq_(counts['this_year'], 1)
+        eq_(counts['last_year'], 0)
         eq_(counts['ever'], 1)
 
         year = user.date_joined.year
