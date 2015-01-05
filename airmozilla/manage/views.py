@@ -3412,7 +3412,7 @@ def survey_delete(request, id):
 def survey_question_new(request, id):
     survey = get_object_or_404(Survey, id=id)
     Question.objects.create(survey=survey)
-    return redirect('manage:survey_edit', survey.id)
+    return redirect('manage:survey_questions', survey.id)
 
 
 @json_view
@@ -3447,13 +3447,26 @@ def survey_question_edit(request, id, question_id):
                 question.order = i
                 question.save()
 
-        return redirect('manage:survey_edit', survey.id)
+        return redirect('manage:survey_questions', survey.id)
     else:  # pragma: no cover
         raise NotImplementedError
 
     return {
         'question': json.dumps(question.question, indent=2)
     }
+
+
+@staff_required
+@permission_required('surveys.change_survey')
+@cancel_redirect('manage:surveys')
+@transaction.commit_on_success
+def survey_questions(request, id):
+    survey = get_object_or_404(Survey, id=id)
+    context = {
+        'survey': survey,
+        'questions': Question.objects.filter(survey=survey),
+    }
+    return render(request, 'manage/survey_edit_questions.html', context)
 
 
 @require_POST
@@ -3463,7 +3476,7 @@ def survey_question_edit(request, id, question_id):
 def survey_question_delete(request, id, question_id):
     survey = get_object_or_404(Survey, id=id)
     get_object_or_404(Question, survey=survey, id=question_id).delete()
-    return redirect('manage:survey_edit', survey.id)
+    return redirect('manage:survey_questions', survey.id)
 
 
 @superuser_required

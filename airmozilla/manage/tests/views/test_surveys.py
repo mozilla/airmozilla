@@ -224,8 +224,11 @@ class TestCase(ManageTestCase):
             args=(survey.id, question_2.id)
         )
         response = self.client.post(url, {'ordering': 'up'})
-        survey_url = reverse('manage:survey_edit', args=(survey.id,))
-        self.assertRedirects(response, survey_url)
+        survey_questions_url = reverse(
+            'manage:survey_questions',
+            args=(survey.id,)
+        )
+        self.assertRedirects(response, survey_questions_url)
         questions = list(Question.objects.filter(survey=survey))
         eq_(questions, [question_2, question_1, question_3])
 
@@ -235,6 +238,6 @@ class TestCase(ManageTestCase):
             args=(survey.id, question_1.id)
         )
         response = self.client.post(url, {'ordering': 'down'})
-        self.assertRedirects(response, survey_url)
+        self.assertRedirects(response, survey_questions_url)
         questions = list(Question.objects.filter(survey=survey))
         eq_(questions, [question_2, question_3, question_1])
