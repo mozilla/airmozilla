@@ -1,0 +1,63 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+Contributors | {{ super() }}
+{% endblock %}
+
+{% block site_css %}
+{{ super() }}
+<style type="text/css">
+.mugshot img {
+    border-radius: 100%;
+    background-clip: padding-box;
+    width: 75px;
+}
+.mugshot {
+    float: left;
+}
+.contributor-profile {
+    padding: 30px 50px;
+    clear: left;
+}
+.contributor-profile h2 {
+    margin-left: 90px;
+    padding-top: 20px;
+}
+.footnote {
+    margin-top: 70px;
+}
+</style>
+{% endblock %}
+
+{% block content_main %}
+  <h2 class="section-title">Amazing Contributors</h2>
+
+  <h4 class="section-title">
+    These are the amazing people who have taken their personal time to
+    help the Air Mozilla Open Source project by submitting accepted
+    code patches.
+  </h4>
+  {% for user in users %}
+  <article id="event-{{ user.username }}" class="contributor-profile">
+    <a href="{{ user.url }}" class="mugshot">
+      <img src="{{ user.photo_thumbnail }}" alt="{{ user.full_name }}">
+    </a>
+
+    <h2 class="entry-title">
+      <a href="{{ user.url }}" title="Go to {{ user.full_name }}'s Mozillians.org profile"
+       >{{ user.full_name }}</a>
+    </h2>
+  </article>
+  {% endfor %}
+
+  <p class="footnote">
+    The people in this list are people who have not Mozilla staff, have
+    contributed code on <a href="https://github.com/mozilla/airmozilla"
+    >GitHub</a> and have been vouched into the
+    <a href="https://mozillians.org/en-US/group/air-mozilla-contributors/"
+       title="You must be signed in to Mozillians.org to see this"
+    ><b>air mozilla contributors</b> Mozillians group</a>.
+
+  </p>
+
+{% endblock %}

@@ -38,6 +38,7 @@ VOUCHED_FOR = """
       "allows_mozilla_sites": true,
       "photo": "http://www.gravatar.com/avatar/0409b497734934400822bb33...",
       "is_vouched": true,
+      "url": "https://mozillians.org/u/peterbe",
       "email": "peterbe@gmail.com",
       "ircname": "",
       "allows_community_sites": true,

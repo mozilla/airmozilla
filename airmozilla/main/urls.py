@@ -54,6 +54,9 @@ urlpatterns = patterns(
 
     url(r'^unpicked-pictures/$', views.unpicked_pictures,
         name='unpicked_pictures'),
+    url(r'^contributors/$',
+        views.contributors,
+        name='contributors'),
     url(r'^all-tags/$', views.all_tags, name='all_tags'),
     url(r'^(?P<slug>[-\w]+)/$', views.EventView.as_view(),
         name='event'),

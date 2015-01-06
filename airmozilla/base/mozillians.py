@@ -12,7 +12,7 @@ class BadStatusCodeError(Exception):
     pass
 
 
-def _fetch_users(email, groups=None, is_username=False):
+def _fetch_users(email=None, groups=None, is_username=False):
     if not getattr(settings, 'MOZILLIANS_API_KEY', None):  # pragma no cover
         logging.warning("'MOZILLIANS_API_KEY' not set up.")
         return False
@@ -23,10 +23,11 @@ def _fetch_users(email, groups=None, is_username=False):
         'app_name': settings.MOZILLIANS_API_APPNAME,
         'app_key': settings.MOZILLIANS_API_KEY,
     }
-    if is_username:
-        data['username'] = email
-    else:
-        data['email'] = email
+    if email:
+        if is_username:
+            data['username'] = email
+        else:
+            data['email'] = email
     if groups:
         data['groups'] = ','.join(groups)
     url += '?' + urllib.urlencode(data)
@@ -48,7 +49,7 @@ def is_vouched(email):
 
 
 def fetch_user(email, is_username=False):
-    content = _fetch_users(email, is_username=True)
+    content = _fetch_users(email, is_username=is_username)
     if content:
         for obj in content['objects']:
             return obj
@@ -126,3 +127,24 @@ def get_all_groups_cached(name_search=None, lasting=60 * 60):
         cache.set(cache_key, all, lasting)
         cache.delete(cache_key_lock)
     return all
+
+
+def get_contributors():
+    """Return a list of all users who are in the
+    https://mozillians.org/en-US/group/air-mozilla-contributors/ group
+    and whose usernames are in the settings.CONTRIBUTORS list.
+
+    Return them in the order of settings.CONTRIBUTORS.
+    """
+
+    users = []
+    for username in settings.CONTRIBUTORS:
+        user = fetch_user(username, is_username=True)
+        if not user:
+            continue
+        if not user.get('photo'):
+            continue
+        if not user.get('is_vouched'):
+            continue
+        users.append(user)
+    return users
