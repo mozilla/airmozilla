@@ -43,7 +43,8 @@ from airmozilla.base.tests.test_mozillians import (
     Response,
     GROUPS1,
     GROUPS2,
-    VOUCHED_FOR
+    VOUCHED_FOR,
+    NO_VOUCHED_FOR
 )
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -2768,6 +2769,41 @@ class TestPages(DjangoTestCase):
             'https://vid.ly/abc123?content=video&amp;format=hd_mp4'
             not in response.content
         )
+
+    @mock.patch('requests.get')
+    def test_contributors_page(self, rget):
+
+        def mocked_get(url, **options):
+            if 'notfound' in url:
+                return Response(NO_VOUCHED_FOR)
+
+            vouched_for = json.loads(VOUCHED_FOR)
+            if 'nophoto' in url:
+                vouched_for['objects'][0]['photo'] = ''
+            elif 'notvouched' in url:
+                vouched_for['objects'][0]['is_vouched'] = False
+            elif 'peterbe' in url:
+                pass
+            else:
+                raise NotImplementedError(url)
+
+            return Response(json.dumps(vouched_for))
+
+        rget.side_effect = mocked_get
+
+        url = reverse('main:contributors')
+        contributors = (
+            'peterbe',
+            'nophoto',
+            'notfound',
+            'notvouched'
+        )
+        with self.settings(CONTRIBUTORS=contributors):
+            response = self.client.get(url)
+            eq_(response.status_code, 200)
+            user = json.loads(VOUCHED_FOR)['objects'][0]
+            ok_(user['full_name'] in response.content)
+            ok_(user['url'] in response.content)
 
 
 class TestEventEdit(DjangoTestCase):

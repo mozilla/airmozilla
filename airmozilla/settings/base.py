@@ -248,3 +248,20 @@ SCREENCAPTURES_NO_PICTURES = 15
 # that we fill with screencaps, and that gets later picked up
 # by another job that imports the JPEGs created there.
 SCREENCAPTURES_TEMP_DIRECTORY_NAME = 'airmozilla-screencaps'
+
+
+# Usernames of people who have contributed to Air Mozilla (as a contributor).
+# This list is ordered! Ordered by the first contributor first, and the most
+# recent contributor last.
+# These usernames must exist in the
+# https://mozillians.org/en-US/group/air-mozilla-contributors/ group.
+CONTRIBUTORS = (
+    'onceuponatimeforever',
+    'bugZPDX',
+    'lcamacho',
+    'quentinp',
+    'leo',
+    'koddsson',
+    'KrystalYu',
+    'anuragchaudhury',
+)
