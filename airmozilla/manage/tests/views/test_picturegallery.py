@@ -62,8 +62,6 @@ class TestPictureGallery(ManageTestCase):
         assert p2['id'] == picture.id
         eq_(p2['notes'], 'Some notes')
 
-        # the view is cached but it should be invalidated if you change
-        # any picture
         picture.notes = 'Other notes'
         picture.save()
         response = self.client.get(url)
@@ -150,25 +148,6 @@ class TestPictureGallery(ManageTestCase):
         url = reverse('manage:picture_delete', args=(picture.id,))
         response = self.client.post(url)
         eq_(response.status_code, 400)
-
-    def test_picture_delete_updates_cache(self):
-        with open(self.main_image) as fp:
-            picture = Picture.objects.create(
-                file=File(fp),
-                notes="Some notes"
-            )
-
-        response = self.client.get(reverse('manage:picturegallery'))
-        assert response.status_code == 200
-
-        url = reverse('manage:picture_delete', args=(picture.id,))
-        response = self.client.post(url)
-        assert response.status_code == 200
-
-        response2 = self.client.get(reverse('manage:picturegallery'))
-        assert response2.status_code == 200
-
-        ok_(response.content != response2.content)
 
     def test_picture_add(self):
         url = reverse('manage:picture_add')

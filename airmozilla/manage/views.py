@@ -3575,15 +3575,7 @@ def picturegallery_data(request):
     else:
         event = None
 
-    cache_key = '_get_all_pictures'
-    if event:
-        cache_key += str(event.id)
-    items = cache.get(cache_key)
-
-    if items is None:
-        items = _get_all_pictures(event=event)
-        # this is invalidated in models.py
-        cache.set(cache_key, items, 60)
+    items = _get_all_pictures(event=event)
 
     context['pictures'] = items
     context['urls'] = {
