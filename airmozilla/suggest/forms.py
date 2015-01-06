@@ -141,6 +141,7 @@ class DescriptionForm(BaseModelForm):
             "&lt;br&gt;"
             "Please phrase your description in the present tense. "
         )
+        self.fields['short_description'].label += ' (optional)'
         self.fields['short_description'].help_text = (
             "This Short Description is used in public feeds and tweets.  "
             "&lt;br&gt;If your event is non-public be careful "
@@ -262,7 +263,6 @@ class DiscussionForm(BaseModelForm):
 
     def __init__(self, *args, **kwargs):
         super(DiscussionForm, self).__init__(*args, **kwargs)
-        event = self.instance.event
         self.fields['moderate_all'].help_text = (
             'That every comment has to be approved before being shown '
             'publically. '
@@ -270,16 +270,6 @@ class DiscussionForm(BaseModelForm):
         self.fields['emails'].widget.attrs.update({
             'data-autocomplete-url': reverse('suggest:autocomplete_emails')
         })
-
-        if event.privacy != Event.PRIVACY_COMPANY:
-            self.fields['moderate_all'].widget.attrs.update(
-                {'disabled': 'disabled'}
-            )
-            self.fields['moderate_all'].help_text += (
-                '<br>If the event is not MoCo private you have to have '
-                'full moderation on '
-                'all the time.'
-            )
 
     def clean_emails(self):
         value = self.cleaned_data['emails']

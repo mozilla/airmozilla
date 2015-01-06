@@ -1029,22 +1029,6 @@ class TestPages(TestCase):
         # reset that
         discussion.enabled = True
 
-        # try to disable moderate_all even though the event is not private
-        response = self.client.post(url, dict(data, moderate_all=False))
-        eq_(response.status_code, 302)
-        self.assertRedirects(response, next_url)
-        discussion = SuggestedDiscussion.objects.get(pk=discussion.pk)
-        ok_(discussion.moderate_all)
-
-        # try that again now that the event is private
-        event.privacy = Event.PRIVACY_COMPANY
-        event.save()
-        response = self.client.post(url, dict(data, moderate_all=False))
-        eq_(response.status_code, 302)
-        self.assertRedirects(response, next_url)
-        discussion = SuggestedDiscussion.objects.get(pk=discussion.pk)
-        ok_(not discussion.moderate_all)
-
         # try to add something that doesn't look like a valid email address
         response = self.client.post(url, dict(data, emails='not an email'))
         eq_(response.status_code, 200)

@@ -316,9 +316,9 @@ def details(request, id):
                 if discussion:
                     # make sure it's enabled
                     discussion.enabled = True
-                    discussion.moderate_all = (
-                        event.privacy != Event.PRIVACY_COMPANY
-                    )
+                    # discussion.moderate_all = (
+                    #     event.privacy != Event.PRIVACY_COMPANY
+                    # )
                     discussion.save()
                 else:
                     discussion = SuggestedDiscussion.objects.create(
@@ -376,9 +376,6 @@ def discussion(request, id):
         if form.is_valid():
             discussion = form.save()
 
-            if event.privacy != Event.PRIVACY_COMPANY:
-                discussion.moderate_all = True
-                discussion.save()
             discussion.moderators.clear()
             for email in form.cleaned_data['emails']:
                 try:
