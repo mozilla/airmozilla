@@ -51,7 +51,7 @@ Air Mozilla | Mozilla, in Video
             </a>
           </li>
           {% endif %}
-        {% endfor %} 
+        {% endfor %}
           {% if not request.user.is_active %}
           <li>
             {# the redirect_next function comes from the browserid context processor #}
@@ -128,9 +128,16 @@ Air Mozilla | Mozilla, in Video
       <a class="logo" href="//mozilla.org" rel="external">Mozilla</a>
     </p>
     <p id="colophon">
-      Except where otherwise <a href="//www.mozilla.org/en-US/about/legal.html#site" rel="external">noted</a>, content on this site is licensed under the <a href="http://creativecommons.org/licenses/by-sa/3.0/" rel="external license">Creative Commons Attribution Share-Alike License v3.0</a> or any later version.</p>
+      Except where otherwise
+      <a href="//www.mozilla.org/en-US/about/legal.html#site" rel="external">noted</a>,
+      content on this site is licensed under the
+      <a href="http://creativecommons.org/licenses/by-sa/3.0/"
+      rel="external license">Creative Commons Attribution Share-Alike License v3.0</a>
+      or any later version.
+    </p>
     <nav id="nav-meta">
       <ul>
+        <li><a href="{{ url('main:contributors') }}">Contributors</a></li>
         <li><a href="https://github.com/mozilla/airmozilla">Code on GitHub</a></li>
         <li><a href="https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes%7CAir+Mozilla%7COther">
           Report a bug</a></li>
