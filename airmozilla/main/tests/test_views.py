@@ -7,6 +7,7 @@ import urllib2
 import urllib
 import re
 import time
+import copy
 
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser, Permission
@@ -43,8 +44,7 @@ from airmozilla.base.tests.test_mozillians import (
     Response,
     GROUPS1,
     GROUPS2,
-    VOUCHED_FOR,
-    NO_VOUCHED_FOR
+    VOUCHED_FOR
 )
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -2774,20 +2774,24 @@ class TestPages(DjangoTestCase):
     def test_contributors_page(self, rget):
 
         def mocked_get(url, **options):
-            if 'notfound' in url:
-                return Response(NO_VOUCHED_FOR)
-
-            vouched_for = json.loads(VOUCHED_FOR)
-            if 'nophoto' in url:
-                vouched_for['objects'][0]['photo'] = ''
-            elif 'notvouched' in url:
-                vouched_for['objects'][0]['is_vouched'] = False
-            elif 'peterbe' in url:
-                pass
-            else:
-                raise NotImplementedError(url)
-
-            return Response(json.dumps(vouched_for))
+            # we need to deconstruct the NO_VOUCHED_FOR fixture
+            # and put it together with some dummy data
+            result = json.loads(VOUCHED_FOR)
+            objects = result['objects']
+            assert len(objects) == 1
+            objects[0]['username'] = 'peterbe'
+            cp = copy.copy(objects[0])
+            cp['username'] = 'nophoto'
+            cp['photo'] = ''
+            objects.append(cp)
+            cp = copy.copy(cp)
+            cp['username'] = 'notvouched'
+            cp['photo'] = 'http://imgur.com/a.jpg'
+            cp['is_vouched'] = False
+            objects.append(cp)
+            result['objects'] = objects
+            assert len(objects) == 3
+            return Response(json.dumps(result))
 
         rget.side_effect = mocked_get
 
