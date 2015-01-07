@@ -136,10 +136,14 @@ def get_contributors():
 
     Return them in the order of settings.CONTRIBUTORS.
     """
-
+    all_users = dict(
+        (x['username'], x)
+        for x in
+        _fetch_users(groups=['air mozilla contributors'])['objects']
+    )
     users = []
     for username in settings.CONTRIBUTORS:
-        user = fetch_user(username, is_username=True)
+        user = all_users.get(username)
         if not user:
             continue
         if not user.get('photo'):

@@ -1254,7 +1254,7 @@ def contributors(request):
     cache_key = 'mozillians_contributors'
     cache_key += hashlib.md5(str(settings.CONTRIBUTORS)).hexdigest()[:10]
     users = cache.get(cache_key)
-    if users is None:
+    if 1 or users is None:
         users = mozillians.get_contributors()
         # if in DEBUG mode, only cache for 1 hour, else 1 day
         cache.set(cache_key, users, 60 * 60 * 24)
