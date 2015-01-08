@@ -2809,6 +2809,26 @@ class TestPages(DjangoTestCase):
             ok_(user['full_name'] in response.content)
             ok_(user['url'] in response.content)
 
+    def test_event_duration(self):
+        event = Event.objects.get(title='Test event')
+        event.duration = 3840
+        event.save()
+
+        url = reverse('main:event', kwargs={'slug': event.slug})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        assert event.privacy == Event.PRIVACY_PUBLIC
+
+        ok_('Duration: 1 hour 4 minutes' in response.content)
+
+        event.duration = 49
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        ok_('Duration: 49 seconds' in response.content)
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
