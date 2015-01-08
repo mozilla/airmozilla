@@ -3592,6 +3592,9 @@ def picturegallery_data(request):
     context['urls'] = {
         'manage:picture_edit': reverse('manage:picture_edit', args=('0',)),
         'manage:picture_delete': reverse('manage:picture_delete', args=('0',)),
+        'manage:picture_delete_all': reverse(
+            'manage:picture_delete_all', args=('0',)
+        ),
         'manage:redirect_picture_thumbnail': reverse(
             'manage:redirect_picture_thumbnail', args=('0',)
         ),
@@ -3637,6 +3640,7 @@ def _get_all_pictures(event=None):
         'created',
         'modified',
         'modified_user',
+        'event_id'
     )
     qs = Picture.objects.all()
     if event:
@@ -3654,7 +3658,8 @@ def _get_all_pictures(event=None):
             'height': picture.height,
             'size': picture.size,
             'created': picture.created.isoformat(),
-            'events': event_map[picture.id]
+            'events': event_map[picture.id],
+            'event': picture.event_id
         }
         if cant_delete.get(picture.id):
             item['cant_delete'] = True
@@ -3694,6 +3699,22 @@ def picture_delete(request, id):
         if not event.placeholder_img:
             return http.HttpResponseBadRequest("Can't delete this")
     picture.delete()
+    return True
+
+
+@require_POST
+@staff_required
+@permission_required('main.delete_picture')
+@transaction.commit_on_success
+@json_view
+def picture_delete_all(request, id):
+    event = get_object_or_404(Event, id=id)
+    pictures = Picture.objects.filter(event=event)
+    if event.picture and event.picture in pictures:
+        assert event.placeholder_img
+        event.picture = None
+        event.save()
+    pictures.delete()
     return True
 
 

@@ -134,6 +134,55 @@ class TestPictureGallery(ManageTestCase):
         struct = json.loads(response.content)
         eq_(struct, True)
 
+    def test_picture_delete_all(self):
+        event1 = Event.objects.get(title='Test event')
+        with open(self.main_image) as fp:
+            event2 = Event.objects.create(
+                title='Second test',
+                description='Anything goes',
+                start_time=event1.start_time,
+                archive_time=event1.archive_time,
+                privacy=Event.PRIVACY_PUBLIC,
+                status=event1.status,
+                placeholder_img=event1.placeholder_img,
+            )
+            Picture.objects.create(
+                file=File(fp),
+                notes="Some notes",
+                event=event2
+            )
+            picture2 = Picture.objects.create(
+                file=File(fp),
+                notes="Some other notes"
+            )
+
+        event2.picture = picture2
+
+        # check button is present for placeholder + picture case
+        url = reverse('manage:picturegallery')
+
+        response = self.client.get(url, {'event': event2.id})
+        eq_(response.status_code, 200)
+        ok_("Remove all pictures" in response.content)
+
+        # check delete works properly
+        delete_url = reverse("manage:picture_delete_all", args=(event2.id,))
+
+        response = self.client.post(delete_url, data={"event": event2.id})
+        eq_(response.status_code, 200)
+        eq_(Picture.objects.filter(event=event2).count(), 0)
+        eq_(Picture.objects.all().count(), 1)
+
+        # do not set a picture not associated with the event to None
+        eq_(not event2.picture, False)
+
+        # check correct response if no place holder
+        event2.placeholder_img = None
+        event2.save()
+        response = self.client.get(url, {'event': event2.id})
+        eq_(response.status_code, 200)
+        ok_("Unable to delete all pictures" in response.content)
+
     def test_picture_delete_blocked(self):
         with open(self.main_image) as fp:
             picture = Picture.objects.create(
