@@ -99,3 +99,6 @@ class TestDuration(DjangoTestCase):
 
         result = show_duration(1 * 60 * 60 + 1 * 60 + 2, include_seconds=True)
         eq_(result, "1 hour 1 minute 2 seconds")
+
+        result = show_duration(49)
+        eq_(result, "49 seconds")

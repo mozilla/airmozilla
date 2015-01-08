@@ -45,7 +45,7 @@ def show_duration(duration, include_seconds=False):
         out.append('%d minutes' % minutes)
     elif minutes:
         out.append('1 minute')
-    if include_seconds:
+    if include_seconds or (not hours and not minutes):
         if seconds > 1:
             out.append('%d seconds' % seconds)
         elif seconds:
