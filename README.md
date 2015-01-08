@@ -23,6 +23,22 @@ Most of this information is also available on
 How to get it running locally from scratch
 ------------------------------------------
 
+### First of all...
+
+All of these manual steps can be done with one optimistic script. All you
+need is to have Python (2.6 or 2.7) installed. Run it like this:
+
+    curl -o https://raw.githubusercontent.com/mozilla/airmozilla/master/devup.py | python
+
+Or just [download the file](https://raw.githubusercontent.com/mozilla/airmozilla/master/devup.py)
+and manually run:
+
+    python devup.py
+
+It will ask you a series of questions and how and where you want it installed.
+
+### Doing it the manual way...
+
 This section assumes you know about and are using a
 [virtualenv](http://www.virtualenv.org/).
 If you're not familiar with `virtualenv`, that's fine. You can use your "system python"

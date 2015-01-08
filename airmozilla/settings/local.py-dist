@@ -13,8 +13,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'airmozilla',
-        'USER': 'username',
-        'PASSWORD': 'password',
+        'USER': '',
+        'PASSWORD': '',
         'HOST': '',
         'PORT': '',
     },
@@ -66,7 +66,13 @@ CACHES = {
         'LOCATION': 'localhost:11211'
     }
 }
-
+# If you don't want to use memcache, you can use the built in one
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#        'LOCATION': 'unique-snowflake'
+#    }
+#}
 
 
 # Email backend - fill in with SMTP details
