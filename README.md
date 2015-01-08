@@ -26,11 +26,9 @@ How to get it running locally from scratch
 ### First of all...
 
 All of these manual steps can be done with one optimistic script. All you
-need is to have Python (2.6 or 2.7) installed. Run it like this:
+need is to have Python (2.6 or 2.7) installed. 
 
-    curl -o https://raw.githubusercontent.com/mozilla/airmozilla/master/devup.py | python
-
-Or just [download the file](https://raw.githubusercontent.com/mozilla/airmozilla/master/devup.py)
+[Download this file](https://raw.githubusercontent.com/mozilla/airmozilla/master/devup.py)
 and manually run:
 
     python devup.py
