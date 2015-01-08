@@ -116,6 +116,11 @@
           {{ show_thumbnail(event, '121x68') }}
         {% endif %}
       {% endif %}
+      {% if event.duration %}
+        <p>
+          Duration: {{ show_duration(event.duration) }}
+        </p>
+      {% endif %}
       <p>{{ event.description | carefulnl2br | safe_html }}</p>
 
       {% if tags %}
