@@ -3,15 +3,6 @@
 import os
 import sys
 import subprocess
-import platform
-
-# XXX is this really the best way to do this?!
-if platform.uname()[0] == 'Linux':
-    OS = 'Linux'
-elif platform.uname()[0] == 'Darwin':
-    OS = 'OSX'
-else:
-    OS = 'Windows'
 
 
 def _proceed(msg="Ready to proceed?"):
@@ -45,7 +36,7 @@ def _process_streamed(command):
     if isinstance(command, basestring):
         command = command.split()
     assert isinstance(command, list)
-    print "COMMAND\t", command
+    # print "COMMAND\t", command
     process = subprocess.Popen(command, stdout=subprocess.PIPE)
     for c in iter(lambda: process.stdout.read(1), ''):
         sys.stdout.write(c)
@@ -400,7 +391,7 @@ def about_first_migration(repo_root, venv_path):
     \t./manage.py syncdb
     \t./manage.py migrate
 
-        """ % repo_root
+        """
 
 
 def run():
