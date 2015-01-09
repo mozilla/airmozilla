@@ -4,10 +4,11 @@ from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
+from django.core.files import File
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Approval, Event, SuggestedEvent
+from airmozilla.main.models import Approval, Event, SuggestedEvent, Picture
 from .base import ManageTestCase
 
 
@@ -89,6 +90,26 @@ class TestApprovals(ManageTestCase):
         ok_(app.approved)
         ok_(app.processed)
         eq_(app.user, User.objects.get(username='fake'))
+
+    def test_approval_review_no_placeholder_img(self):
+        event = Event.objects.get(title='Test event')
+        group = Group.objects.get(name='testapprover')
+        app = Approval.objects.create(event=event, group=group)
+        event.placeholder_img = None
+        with open(self.placeholder) as fp:
+            picture = Picture.objects.create(
+                file=File(fp),
+            )
+            event.picture = picture
+            event.save()
+        event.picture = picture
+        event.save()
+
+        url = reverse('manage:approval_review', kwargs={'id': app.id})
+        User.objects.get(username='fake').groups.add(1)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Picture' in response.content)
 
     def test_approval_reconsider(self):
         event = Event.objects.get(title='Test event')
