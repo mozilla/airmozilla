@@ -34,7 +34,7 @@ def cron_ping():
 @cronjobs.register
 @capture
 def auto_archive():
-    archiver.auto_archive()
+    archiver.auto_archive(verbose=True)
 
 
 @cronjobs.register

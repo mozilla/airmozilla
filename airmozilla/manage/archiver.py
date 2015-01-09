@@ -15,18 +15,26 @@ from .vidly import query
 
 
 # what the cron jobs can execute
-def auto_archive():
+def auto_archive(verbose=False):
     events = (
         Event.objects
         .filter(status=Event.STATUS_PENDING,
                 archive_time__isnull=True,
                 template__name__contains='Vid.ly')
     )
+    any = False
     for event in events:
-        archive(event, swallow_email_exceptions=True)
+        archive(event, swallow_email_exceptions=True, verbose=verbose)
+        any = True
+
+    if verbose:  # pragma: no cover
+        if any:
+            print "No pending events."
+        else:
+            print "No events to archive."
 
 
-def archive(event, swallow_email_exceptions=False):
+def archive(event, swallow_email_exceptions=False, verbose=False):
     if 'Vid.ly' not in event.template.name:
         logging.warn("Event %r not a Vid.ly event", event.title)
         return
@@ -36,6 +44,11 @@ def archive(event, swallow_email_exceptions=False):
         logging.warn("Event %r does not have a Vid.ly tag", event.title)
         return
     results = query([tag])
+
+    if verbose:  # pragma: no cover
+        print "Results for", tag
+        print results
+
     if tag not in results:
         cache_key = 'archiver-%s-notfound' % tag
         if not cache.get(cache_key):
@@ -44,6 +57,14 @@ def archive(event, swallow_email_exceptions=False):
                     event,
                     tag,
                 )
+                if verbose:  # pragma: no cover
+                    print (
+                        'Unable to find Vid.ly video with tag %s for event '
+                        '"%s"' % (
+                            tag,
+                            event
+                        )
+                    )
             except:  # pragma: no cover
                 if not swallow_email_exceptions:
                     raise
@@ -63,6 +84,13 @@ def archive(event, swallow_email_exceptions=False):
                     event,
                     tag,
                 )
+                if verbose:  # pragma: no cover
+                    print (
+                        'Unable to archive pending event "%s" with tag %s' % (
+                            event,
+                            tag
+                        )
+                    )
             except:  # pragma: no cover
                 if not swallow_email_exceptions:
                     raise
@@ -79,6 +107,9 @@ def archive(event, swallow_email_exceptions=False):
         event.archive_time = now
         event.status = Event.STATUS_SCHEDULED
         event.save()
+
+        if verbose:  # pragma: no cover
+            print 'Event "%s" archived!' % event
 
         # if it belonged to a Mozillian, then send an email to the creator
         if event.mozillian:
