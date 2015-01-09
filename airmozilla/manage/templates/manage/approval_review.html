@@ -12,10 +12,21 @@
         <td>Title</td>
         <td>{{ approval.event.title }}</td>
       </tr>
+      {% if approval.event.picture %}
+      <tr>
+        <td>Picture</td>
+        <td><a href="{{ url('manage:picture_edit', approval.event.picture.id) }}"
+          >{{ show_thumbnail(approval.event) }}</a>
+        </td>
+      </tr>
+      {% else %}
       <tr>
         <td>Placeholder image</td>
-        <td><a href="{{ approval.event.placeholder_img.url }}">View</a></td>
+        <td><a href="{{ approval.event.placeholder_img.url }}"
+          >{{ show_thumbnail(approval.event) }}</a>
+        </td>
       </tr>
+      {% endif %}
       <tr>
         <td>Description</td>
         <td>{{ approval.event.description }}</td>
