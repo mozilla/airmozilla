@@ -150,12 +150,18 @@ def dashboard_data(request):
     context = {}
     now = timezone.now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
     this_week = today - datetime.timedelta(days=today.weekday())
+    next_week = this_week + datetime.timedelta(days=7)
     last_week = this_week - datetime.timedelta(days=7)
     this_month = today.replace(day=1)
+    next_month = this_month
+    while next_month.month == this_month.month:
+        next_month += datetime.timedelta(days=1)
     last_month = (this_month - datetime.timedelta(days=1)).replace(day=1)
     this_year = this_month.replace(month=1)
+    next_year = this_year.replace(year=this_year.year + 1)
     last_year = this_year.replace(year=this_year.year - 1)
     context['groups'] = []
 
@@ -170,19 +176,24 @@ def dashboard_data(request):
                 filter['%s__lt' % key] = lt
             return filter
 
-        counts['today'] = qs.filter(**make_filter(gte=today)).count()
+        counts['today'] = qs.filter(
+            **make_filter(gte=today, lt=tomorrow)
+        ).count()
         counts['yesterday'] = qs.filter(
             **make_filter(gte=yesterday, lt=today)).count()
 
-        counts['this_week'] = qs.filter(**make_filter(gte=this_week)).count()
+        counts['this_week'] = qs.filter(
+            **make_filter(gte=this_week, lt=next_week)).count()
         counts['last_week'] = qs.filter(
             **make_filter(gte=last_week, lt=this_week)).count()
 
-        counts['this_month'] = qs.filter(**make_filter(gte=this_month)).count()
+        counts['this_month'] = qs.filter(
+            **make_filter(gte=this_month, lt=next_month)).count()
         counts['last_month'] = qs.filter(
             **make_filter(gte=last_month, lt=this_month)).count()
 
-        counts['this_year'] = qs.filter(**make_filter(gte=this_year)).count()
+        counts['this_year'] = qs.filter(
+            **make_filter(gte=this_year, lt=next_year)).count()
         counts['last_year'] = qs.filter(
             **make_filter(gte=last_year, lt=this_year)).count()
 
