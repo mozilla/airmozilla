@@ -2829,6 +2829,33 @@ class TestPages(DjangoTestCase):
 
         ok_('Duration: 49 seconds' in response.content)
 
+    def test_executive_summary(self):
+        """Note! The Executive Summary page is a very low priority page.
+        For example, it's not linked to from any other page.
+        Hence, the test is very sparse and just makes sure it renders.
+        """
+        url = reverse('main:executive_summary')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        response = self.client.get(url, {'start': 'xxx'})
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {'start': '2015-01-05'})
+        eq_(response.status_code, 200)
+        ok_('Week of 05 - 11 January 2015' in response.content)
+        ok_('"?start=2014-12-29"' in response.content)
+        ok_('"?start=2015-01-12"' in response.content)
+
+        # make the subtitle span two different months
+        response = self.client.get(url, {'start': '2014-12-29'})
+        eq_(response.status_code, 200)
+        ok_('Week of 29 December - 04 January 2015' in response.content)
+
+        response = self.client.get(url, {'start': '2015-01-04'})
+        # a valid date but not a Monday
+        eq_(response.status_code, 400)
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
