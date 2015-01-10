@@ -67,6 +67,10 @@ app.controller('PictureGalleryController', ['$scope', '$http',
 
         $scope.currentPage = 0;
 
+        $scope.deleteAllConfirmation = false;
+
+        $scope.deleteAllSuccess = false;
+
         $scope.numberOfPages = function(items){
             if (typeof items === 'undefined') return 0;
             return Math.ceil(items.length / $scope.pageSize);
@@ -218,6 +222,10 @@ app.controller('PictureGalleryController', ['$scope', '$http',
             return false;
         };
 
+        $scope.toggleDeleteAllConfirmation = function() {
+            $scope.deleteAllConfirmation = !$scope.deleteAllConfirmation;
+        };
+
         $scope.deletePicture = function(picture) {
             var csrf = $('input[name="csrfmiddlewaretoken"]').val();
             var url = $scope.url('manage:picture_delete', picture.id);
@@ -237,6 +245,27 @@ app.controller('PictureGalleryController', ['$scope', '$http',
                 );
             }).error(function(data, status) {
                 console.warn('Failed to delete picture with event', status);
+            });
+        };
+
+        $scope.deleteAllPictures = function() {
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val();
+            var url = $scope.url('manage:picture_delete_all', $scope.current_event);
+            var data = {
+                'csrfmiddlewaretoken': csrf
+            };
+            $http({
+                method: 'POST',
+                url: url,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                data: serializeObject(data)
+            }).success(function(data) {
+                $scope.pictures = $scope.pictures.filter(function(picture) {
+                    return picture.event !== CURRENT_EVENT;
+                });
+                $scope.deleteAllSuccess = true;
+            }).error(function(data, status) {
+                console.warn('Failed to delete pictures for this event', status);
             });
         };
 

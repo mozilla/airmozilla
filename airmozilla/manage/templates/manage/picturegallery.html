@@ -16,55 +16,80 @@
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  #total-pictures-stats {
-      float: right;
-      font-size: 80%;
-  }
-  div.filter-bar {
-      margin: 20px;
-  }
-  div.filter-bar input[type="text"] {
-      width: 400px;
-  }
-  .current-event-picture div {
-      background-color: lightblue;
-  }
-  div.thumbnail {
-      position: relative;
-  }
-  .picture-metadata {
-      position: absolute;
-      right: 5px;
-      top: 5px;
-      opacity: 0.9;
-  }
-  </style>
+  {% compress css %}
+  <link href="{{ static('manage/css/picture-gallery.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+
 {% endblock %}
 
 {% block manage_content %}
-
-{% if event %}
-<h4>
-  You are here to associate a picture with
-  <a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a>
-
-  <script>
-  window.CURRENT_EVENT = {{ event.id }};
-  {% if event.picture %}
-  window.CURRENT_EVENT_PICTURE = {{ event.picture.id }};
-  {% endif %}
-  </script>
-
-</h4>
-
-{% endif %}
 
 <div ng-app="picturegalleryApp" ng-controller="PictureGalleryController">
   <p ng-if="loading" class="loading">
     <img src="{{ static('img/spinner.gif') }}">
     <span class="blinking">Loading pictures...</span>
   </p>
+
+  {% if event %}
+    <h4>
+      You are here to associate a picture with
+      <a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a>
+
+    <script>
+      window.CURRENT_EVENT = {{ event.id }};
+      {% if event.picture %}
+        window.CURRENT_EVENT_PICTURE = {{ event.picture.id }};
+      {% endif %}
+    </script>
+
+    </h4>
+
+    {% if event.placeholder_img %}
+
+      <p>
+        <a class="btn btn-danger"
+           ng-show="!deleteAllConfirmation"
+           ng-click="toggleDeleteAllConfirmation()">
+          <i class="glyphicon glyphicon-minus-sign"></i>
+          Remove all pictures made for this event.
+        </a>
+      </p>
+
+      <p ng-show="deleteAllConfirmation && !deleteAllSuccess">
+        Are you sure?
+        <button class="btn btn-danger btn-sm"
+        ng-click="deleteAllPictures()">
+        Yes
+        </button>
+        <button class="btn btn-default btn-sm"
+        ng-click="toggleDeleteAllConfirmation()">Cancel</button>
+        <br>
+      </p>
+
+      <div ng-show="deleteAllSuccess" class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+      </button>
+      <p>
+        Successfully deleted all pictures associated with the event {{ event.title }}.
+      </p>
+     </div>
+
+    {% else %}
+
+     <div class="alert alert-warning alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+      </button>
+      <p>
+        Unable to delete all pictures associated with this event because the event
+        relies on one of them and has no fallback placeholder image.
+      </p>
+     </div>
+
+    {% endif %}
+
+  {% endif %}
 
   <p style="float: right">
     <a class="btn btn-primary"
