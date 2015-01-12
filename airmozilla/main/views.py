@@ -39,7 +39,6 @@ from airmozilla.main.models import (
     EventRevision,
     Picture,
     VidlySubmission,
-    SuggestedEvent,
 )
 from airmozilla.base.utils import (
     paginate,
@@ -1284,8 +1283,8 @@ def executive_summary(request):
         title += '- ' + last.strftime('%d %B %Y')
         return title
 
-    def get_ranges(this_week):
-        this_week = this_week.replace(hour=0, minute=0, second=0)
+    def get_ranges(start):
+        this_week = start.replace(hour=0, minute=0, second=0)
         next_week = this_week + datetime.timedelta(days=7)
         yield ("This Week", this_week, next_week)
         last_week = this_week - datetime.timedelta(days=7)
@@ -1299,12 +1298,15 @@ def executive_summary(request):
         next_week_ly = this_week_ly + datetime.timedelta(days=7)
         yield ("This Week Last Year", this_week_ly, next_week_ly)
         first_day = this_week.replace(month=1, day=1)
-        yield ("Year to Date", first_day, timezone.now())
+        if first_day.year == next_week.year:
+            yield ("Year to Date", first_day, next_week)
+        else:
+            yield ("Year to Date", first_day, this_week)
         first_day_ny = first_day.replace(year=first_day.year + 1)
         yield ("%s Total" % first_day.year, first_day, first_day_ny)
-        last_year = first_day.replace(year=first_day.year + 1)
+        last_year = first_day.replace(year=first_day.year - 1)
         yield ("%s Total" % last_year.year, last_year, first_day)
-        last_year2 = last_year.replace(year=last_year.year + 1)
+        last_year2 = last_year.replace(year=last_year.year - 1)
         yield ("%s Total" % last_year2.year, last_year2, last_year)
 
     ranges = get_ranges(start_date)
@@ -1314,25 +1316,22 @@ def executive_summary(request):
         events = Event.objects.filter(
             start_time__gte=start, start_time__lt=end
         )
-        uploads = SuggestedEvent.objects.filter(
-            start_time__gte=start, start_time__lt=end,
-            upcoming=False,
-            popcorn_url__isnull=True
-        )
+        uploads_name = settings.DEFAULT_PRERECORDED_LOCATION[0]  # name
         rows.append((
             label,
-            (start, end),
+            (start, end, end - datetime.timedelta(days=1)),
             events.count(),
             events.filter(location__name__istartswith='Cyberspace').count(),
-            uploads.count(),
+            events.filter(location__name=uploads_name).count(),
         ))
 
     # Now for stats on views, which is done by their archive date
+    week_from_today = timezone.now() - datetime.timedelta(days=7)
     stats = (
         EventHitStats.objects
         .exclude(event__archive_time__isnull=True)
         .filter(
-            event__archive_time__lt=start_date,
+            event__archive_time__lt=week_from_today,
         )
         .order_by('-score')
         .extra(select={
