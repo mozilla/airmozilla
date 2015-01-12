@@ -39,6 +39,7 @@ from airmozilla.main.models import (
     EventRevision,
     Picture,
     VidlySubmission,
+    SuggestedEvent,
 )
 from airmozilla.base.utils import (
     paginate,
@@ -1259,3 +1260,100 @@ def contributors(request):
         cache.set(cache_key, users, 60 * 60 * 24)
     context['users'] = reversed(users)
     return render(request, 'main/contributors.html', context)
+
+
+def executive_summary(request):
+    form = forms.ExecutiveSummaryForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(str(form.errors))
+    if form.cleaned_data.get('start'):
+        start_date = form.cleaned_data['start']
+    else:
+        start_date = timezone.now()
+        start_date -= datetime.timedelta(days=start_date.weekday())
+    # start date is now a Monday
+    assert start_date.strftime('%A') == 'Monday'
+
+    def make_date_range_title(start):
+        title = "Week of "
+        last = start + datetime.timedelta(days=6)
+        if start.month == last.month:
+            title += start.strftime('%d ')
+        else:
+            title += start.strftime('%d %B ')
+        title += '- ' + last.strftime('%d %B %Y')
+        return title
+
+    def get_ranges(this_week):
+        this_week = this_week.replace(hour=0, minute=0, second=0)
+        next_week = this_week + datetime.timedelta(days=7)
+        yield ("This Week", this_week, next_week)
+        last_week = this_week - datetime.timedelta(days=7)
+        yield ("Last Week", last_week, this_week)
+        # Subtracting 365 days doesn't mean land on a Monday of last
+        # year so we need to trace back to the nearest Monday
+        this_week_ly = this_week - datetime.timedelta(days=365)
+        this_week_ly = (
+            this_week_ly - datetime.timedelta(days=this_week_ly.weekday())
+        )
+        next_week_ly = this_week_ly + datetime.timedelta(days=7)
+        yield ("This Week Last Year", this_week_ly, next_week_ly)
+        first_day = this_week.replace(month=1, day=1)
+        yield ("Year to Date", first_day, timezone.now())
+        first_day_ny = first_day.replace(year=first_day.year + 1)
+        yield ("%s Total" % first_day.year, first_day, first_day_ny)
+        last_year = first_day.replace(year=first_day.year + 1)
+        yield ("%s Total" % last_year.year, last_year, first_day)
+        last_year2 = last_year.replace(year=last_year.year + 1)
+        yield ("%s Total" % last_year2.year, last_year2, last_year)
+
+    ranges = get_ranges(start_date)
+
+    rows = []
+    for label, start, end in ranges:
+        events = Event.objects.filter(
+            start_time__gte=start, start_time__lt=end
+        )
+        uploads = SuggestedEvent.objects.filter(
+            start_time__gte=start, start_time__lt=end,
+            upcoming=False,
+            popcorn_url__isnull=True
+        )
+        rows.append((
+            label,
+            (start, end),
+            events.count(),
+            events.filter(location__name__istartswith='Cyberspace').count(),
+            uploads.count(),
+        ))
+
+    # Now for stats on views, which is done by their archive date
+    stats = (
+        EventHitStats.objects
+        .exclude(event__archive_time__isnull=True)
+        .filter(
+            event__archive_time__lt=start_date,
+        )
+        .order_by('-score')
+        .extra(select={
+            'score': '(featured::int + 1) * total_hits'
+                     '/ extract(days from (now() - archive_time)) ^ 1.8',
+        })
+        .select_related('event')
+    )
+
+    prev_start = start_date - datetime.timedelta(days=7)
+    now = timezone.now()
+    if (start_date + datetime.timedelta(days=7)) <= now:
+        next_start = start_date + datetime.timedelta(days=7)
+    else:
+        next_start = None
+
+    context = {
+        'date_range_title': make_date_range_title(start_date),
+        'rows': rows,
+        'stats': stats[:10],
+        'prev_start': prev_start,
+        'next_start': next_start,
+    }
+    return render(request, 'main/executive_summary.html', context)

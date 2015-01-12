@@ -89,3 +89,14 @@ class EventEditForm(BaseModelForm):
         if not placeholder_img and not picture:
             raise forms.ValidationError('Events needs to have a picture')
         return cleaned_data
+
+
+class ExecutiveSummaryForm(BaseForm):
+
+    start = forms.DateTimeField(required=False)
+
+    def clean_start(self):
+        value = self.cleaned_data['start']
+        if value and value.weekday() != 0:
+            raise forms.ValidationError("Not a Monday")
+        return value

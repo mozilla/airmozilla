@@ -1,0 +1,100 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+Weekly Utilization Report | {{ super() }}
+{% endblock %}
+
+{% block site_css %}
+{{ super() }}
+<style type="text/css">
+table.counts, table.hits {
+    width: 100%;
+}
+table.hits th {
+    text-align: left;
+}
+table.counts th {
+    text-align: right;
+}
+td.count {
+    text-align: right;
+}
+h3 small {
+    font-size: 50%;
+}
+p.prev-next {
+    float: right;
+}
+</style>
+{% endblock %}
+
+{% block content_main %}
+  <h2 class="section-title">Weekly Utilization Report</h2>
+  <p class="prev-next">
+    <a href="?start={{ prev_start.strftime('%Y-%m-%d') }}">&lt;Previous</a>
+    {% if next_start %}
+    <a href="?start={{ next_start.strftime('%Y-%m-%d') }}">Next&gt;</a>
+    {% endif %}
+  </p>
+  <h3 class="section-title">
+    {{ date_range_title }}
+  </h3>
+  <table class="counts">
+    <thead>
+      <tr>
+        <th>&nbsp;</th>
+        <th>Events</th>
+        <th>Cyberspace</th>
+        <th>Uploads</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for label, range_, events_count, cyberspace_count, uploads_count in rows %}
+      <tr>
+        {% set first=range_[0] %}
+        {% set last=range_[1] %}
+        <td title="Between {{ first.strftime('%A %d %b %Y') }} and {{ last.strftime('%A %d %b %Y') }}"
+         >{{ label }}</td>
+        <td class="count">{{ events_count }}</td>
+        <td class="count">{{ cyberspace_count }}</td>
+        <td class="count">{{ uploads_count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    <small>
+      * Uploads are included in Cyberspace counts for events before 2015
+    </small>
+  </p>
+
+  <h3 class="section-title">
+    Top 10 Trending Events This Week<br>
+    <small>
+      (counts are views since archived -  live stream viewers not included)
+    </small>
+  </h3>
+  <table class="hits">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Views</th>
+        <th>Age</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in stats %}
+      <tr>
+        <td>
+          <a href="{{ url('main:event', stat.event.slug) }}" title="{{ stat.event.title }}">{{ truncate_words(stat.event.title, 6) }}</a>
+        </td>
+        <td title="{{ (stat.hits_per_day or 0.0)|round(1) }} hits per day">{{ thousands(stat.total_hits) }}</td>
+        <td>{{ timesince(stat.event.archive_time) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+
+
+{% endblock %}
