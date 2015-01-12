@@ -52,8 +52,8 @@ p.prev-next {
       {% for label, range_, events_count, cyberspace_count, uploads_count in rows %}
       <tr>
         {% set first=range_[0] %}
-        {% set last=range_[1] %}
-        <td title="Between {{ first.strftime('%A %d %b %Y') }} and {{ last.strftime('%A %d %b %Y') }}"
+        {% set last_minus_one=range_[2] %}
+        <td title="Between {{ first.strftime('%A %d %b %Y') }} and {{ last_minus_one.strftime('%A %d %b %Y') }}"
          >{{ label }}</td>
         <td class="count">{{ events_count }}</td>
         <td class="count">{{ cyberspace_count }}</td>
