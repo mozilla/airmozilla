@@ -264,6 +264,9 @@ def can_view_event(event, user):
             CuratedGroup.objects.filter(event=event).values_list('name')
         ]
         if curated_groups:
+            if 'nda' in curated_groups:
+                # https://bugzilla.mozilla.org/show_bug.cgi?id=1120661
+                return False
             return mozillians.in_groups(
                 user.email,
                 curated_groups
