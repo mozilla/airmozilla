@@ -1316,7 +1316,7 @@ def executive_summary(request):
 
     rows = []
     for label, start, end in ranges:
-        events = Event.objects.filter(
+        events = Event.objects.approved().filter(
             start_time__gte=start, start_time__lt=end
         )
         uploads_name = settings.DEFAULT_PRERECORDED_LOCATION[0]  # name
