@@ -13,7 +13,7 @@
 .picture_gallery .picture {
     padding: 8px;
     display: inline-block;
-    width: 121px;
+    width: 160px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
