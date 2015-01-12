@@ -265,7 +265,7 @@ class TestEventTweets(ManageTestCase):
         )
         ok_('Failed to send' in response.content)
 
-    @mock.patch('airmozilla.manage.views.send_tweet')
+    @mock.patch('airmozilla.manage.views.events.send_tweet')
     def test_force_send_now(self, mocked_send_tweet):
         event = Event.objects.get(title='Test event')
 
