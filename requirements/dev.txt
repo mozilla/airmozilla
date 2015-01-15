@@ -1,4 +1,0 @@
-# This file pulls in everything you need to run tests.
-
-nose
-mock

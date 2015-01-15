@@ -5,7 +5,6 @@ set -e
 echo "Making settings/local.py"
 cat > airmozilla/settings/local.py <<SETTINGS
 from . import base
-INSTALLED_APPS = base.INSTALLED_APPS + ['django_nose']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',

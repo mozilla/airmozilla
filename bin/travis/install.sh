@@ -3,8 +3,7 @@
 set -e
 
 echo "Install Python dependencies"
-pip install -r requirements/compiled.txt
-pip install --no-deps -r requirements/dev.txt
+pip install -r requirements.txt
 pip install coverage
 pip install flake8
 

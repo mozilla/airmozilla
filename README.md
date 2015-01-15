@@ -26,7 +26,7 @@ How to get it running locally from scratch
 ### First of all...
 
 All of these manual steps can be done with one optimistic script. All you
-need is to have Python (2.6 or 2.7) installed. 
+need is to have Python (2.6 or 2.7) installed.
 
 [Download this file](https://raw.githubusercontent.com/mozilla/airmozilla/master/devup.py)
 and manually run:
@@ -125,11 +125,6 @@ Here, replace `username` and `password` accordingly.
 If you want to use MySQL, which should work except the Search, you replace
 the `ENGINE` setting with `django.db.backends.mysql`.
 
-If you're a developer and intend to run tests make sure you have this line uncommented:
-
-```
-INSTALLED_APPS = base.INSTALLED_APPS + ['django_nose']
-```
 For local development, make sure the following lines are uncommented:
 ```
 DEBUG = TEMPLATE_DEBUG = True

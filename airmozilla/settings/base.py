@@ -13,7 +13,17 @@ PROJECT_MODULE = 'airmozilla'
 # Defines the views served for root URLs.
 ROOT_URLCONF = '%s.urls' % PROJECT_MODULE
 
-INSTALLED_APPS = list(INSTALLED_APPS) + [
+INSTALLED_APPS = (
+    'funfactory',
+    'compressor',
+    'django_browserid',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.staticfiles',
+    'commonware.response.cookies',
+    'session_csrf',
+
     # Application base, containing global templates.
     '%s.base' % PROJECT_MODULE,
     '%s.main' % PROJECT_MODULE,
@@ -37,7 +47,8 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     'django.contrib.flatpages',
     'cronjobs',
     'raven.contrib.django.raven_compat',
-]
+    'django_nose',  # deliberately making this the last one
+)
 
 # We can use the simplest hasher because we never store usable passwords
 # thanks to Persona.
@@ -79,7 +90,7 @@ ALLOWED_BID = (
 )
 
 # This is only needed when not in DEBUG mode
-#SITE_URL = 'http://127.0.0.1:8000'
+# SITE_URL = 'http://127.0.0.1:8000'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
@@ -132,17 +143,17 @@ LOGGING = {
 
 
 # Remove localization middleware
-MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
-MIDDLEWARE_CLASSES.remove('funfactory.middleware.LocaleURLMiddleware')
-MIDDLEWARE_CLASSES.insert(0, 'airmozilla.locale_middleware.' +
-                             'LocaleURLMiddleware')
-MIDDLEWARE_CLASSES.append(
-    'airmozilla.manage.middleware.CacheBustingMiddleware'
-)
-MIDDLEWARE_CLASSES.append(
+MIDDLEWARE_CLASSES = (
+    'airmozilla.locale_middleware.LocaleURLMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'session_csrf.CsrfMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'commonware.middleware.FrameOptionsHeader',
+    'airmozilla.manage.middleware.CacheBustingMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware'
 )
-MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
 
 # Enable timezone support for Django TZ-aware datetime objects
 # Times stored in the db as UTC; forms/templates as Pacific time
