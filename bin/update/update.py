@@ -24,7 +24,8 @@ def update_code(ctx, tag):
         # ctx.local('git submodule sync')
         # ctx.local('git submodule update --init --recursive')
         ctx.local("find . -type f -name '*.pyc' -delete")
-        ctx.local('./bin/peep install -r requirements.txt')
+        ctx.local('pip install bin/peep-2.1.1.tar.gz')
+        ctx.local('peep install -r requirements.txt')
 
 
 @task
