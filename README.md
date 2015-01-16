@@ -71,16 +71,9 @@ git config --global url."https://".insteadOf git://
 ```
 
 ```
-git clone --recursive https://github.com/mozilla/airmozilla.git
+git clone https://github.com/mozilla/airmozilla.git
 cd airmozilla
-pip install -r requirements/compiled.txt
-```
-
-If you intend to use this for also running tests, you need to install
-one more file:
-
-```
-pip install -r requirements/dev.txt
+pip install -r requirements.txt
 ```
 
 **Step 3 - Create a database**

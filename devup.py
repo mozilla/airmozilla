@@ -223,7 +223,7 @@ def git_clone():
 
     _process_streamed(
         [
-            'git', 'clone', '--recursive',
+            'git', 'clone',
             'https://github.com/mozilla/airmozilla.git',
             destination
         ]
@@ -232,11 +232,6 @@ def git_clone():
     print "Yay! All the code has been clone. Now let's configure things"
     _proceed()
     return destination
-
-
-def check_submodules():
-    print "Checking that all submodules are there"
-    _process_streamed('git submodule update --init --recursive'.split())
 
 
 def create_virtualenv(repo_root):
@@ -268,8 +263,7 @@ def create_virtualenv(repo_root):
         print "These are the commands you need to run:"
         print
         print "\tmkvirtualenv airmozilla"
-        print "\tpip install -r %s/requirements/dev.txt" % repo_root
-        print "\tpip install -r %s/requirements/compiled.txt" % repo_root
+        print "\tpip install -r %s/requirements.txt" % repo_root
         print
         print "You can do that once the other things are set up"
         return
@@ -285,31 +279,25 @@ def create_virtualenv(repo_root):
 
 def install_python_dependencies(repo_root, virtualenv_name):
     # then virtualenv_name is a path
+    print
+    print (
+        "Now we're going to attempt to install all the\n"
+        "dependencies. Let's hope it works. If not you might\n"
+        "have to attempt this manually. The command we're going"
+        " to use is:\n"
+        'pip install -r %s/requirements.txt' % (
+            repo_root,
+        )
+    )
+
     _process_streamed(
-        '%s/bin/pip install -r %s/requirements/dev.txt' % (
+        '%s/bin/pip install -r %s/requirements.txt' % (
             virtualenv_name,
             repo_root
         )
     )
     print "Great! Python dependencies installed."
-    print
-    print (
-        "Now we're going to attempt to installed the binary\n"
-        "dependencies. Let's hope it works. If not you might\n"
-        "have to attempt this manually. The command we're going"
-        " to use is:\n"
-        '%s/bin/pip install -r %s/requirements/compiled.txt' % (
-            virtualenv_name,
-            repo_root
-        )
-    )
     _proceed()
-    _process_streamed(
-        '%s/bin/pip install -r %s/requirements/compiled.txt' % (
-            virtualenv_name,
-            repo_root
-        )
-    )
 
 
 def create_local_settings(repo_root, database_name):
@@ -379,7 +367,9 @@ def about_first_migration(repo_root, venv_path):
     if venv_path:
         print "Activate your virtualenv. E.g.:"
         print ""
-        print "\tsource %s/bin/activate" % venv_path
+        print "\tsource %s/bin/activate" % (
+            venv_path.replace(repo_root + '/', ''),
+        )
         print
     else:
 
@@ -408,7 +398,6 @@ def run():
     database_name = create_database()
 
     if in_git_cloned_already():
-        check_submodules()
         repo_root = _norm_path('.')
     else:
         repo_root = git_clone()
