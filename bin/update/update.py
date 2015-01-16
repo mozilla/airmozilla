@@ -22,8 +22,9 @@ def update_code(ctx, tag):
         ctx.local('git checkout %s' % tag)
         ctx.local('git pull -f')
         ctx.local("find . -type f -name '*.pyc' -delete")
-        ctx.local('pip install bin/peep-2.1.1.tar.gz')
-        ctx.local('peep install -r requirements.txt')
+        ctx.local('virtualenv ../venv')
+        ctx.local('../venv/bin/pip install bin/peep-2.1.1.tar.gz')
+        ctx.local('../venv/bin/peep install -r requirements.txt')
 
 
 @task
