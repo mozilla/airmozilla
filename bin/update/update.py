@@ -21,9 +21,11 @@ def update_code(ctx, tag):
     with ctx.lcd(settings.SRC_DIR):
         ctx.local('git checkout %s' % tag)
         ctx.local('git pull -f')
-        ctx.local('git submodule sync')
-        ctx.local('git submodule update --init --recursive')
+        # ctx.local('git submodule sync')
+        # ctx.local('git submodule update --init --recursive')
         ctx.local("find . -type f -name '*.pyc' -delete")
+        ctx.local('./bin/peep install -r requirements.txt')
+
 
 @task
 def update_assets(ctx):

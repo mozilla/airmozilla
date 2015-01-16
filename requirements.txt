@@ -1,0 +1,126 @@
+# These are all the packages you need to be able to run airmozilla
+# and to run its tests.
+# sha256: JLo_Moq6CNjVBbwqj2ipTr4kqF6Eg2QLZnIhvA79Ox4
+psycopg2==2.5.4
+# sha256: IvlnXkLcZAxEadT30hC67LXmlYI6-VTIE9UckwI1Z10
+Jinja2==2.5.5
+# sha256: KjGJ950ce4ohSaDng8C0IX-tmzCm59YEUPJVPcLA5X4
+simplejson==3.6.5
+# tar.gz
+# sha256: JukyDnP1ghgmtrJAijv_Cowp5FFZUwBpoRfv0572Gfg
+# zip
+# sha256: M6XQFF6CMm54Hd7hrTdfksuE-M-v6lbpUEaCrf9kpe4
+Pillow==2.7.0
+# tar.gz
+# sha256: ataUncfup0SjD7p3qWjdWRD1RSIOWLzIE7nfXHk-MYo
+lxml==3.3.5
+# zip
+# sha256: aM-CXyJ8guGsYeQjz8rZI_9zTCe1vdcXRJXRYsQsYCs
+ujson==1.33
+# sha256: eLAxFrrdDbsu1N7clqSj1CE4uUu4n8Lrmffzvf0Zn1Y
+# sha256: drxjpOLV5aDfd8p9GPD1bixGz7YrcRA7qSqSx5-rHgM
+nose==1.3.4
+# sha256: uDndLZwRfHAUMMFJlWkYpCOphjtIsJyQ4wpgE-fS9E8
+# sha256: j4MIDaoknQNsvM-4rlzG_wB7iNbZN1ITca-r57Gbrbw
+mock==1.0.1
+# sha256: R85QXFBGw4gXgovuJTtyVocvhsQ0DbGvaYy4VI26oNI
+Django==1.5.9
+# sha256: UvCV-GFHuwtfYjva-VJVLReOu8XqyI2RsvWR09IsO4A
+funfactory==2.3.0
+# sha256: w5d9_m_Rug1AkfhZYzBkiLPp4jbP5g2IIRWM5af8thk
+html2text==2014.12.29
+# sha256: HwRtz17HEu076GhLnzPJW3bijNHIJdsPXhVXv9h7N0U
+# sha256: e3c179Ox4jI9yfzvBgs4DQX18YvQ8kf16edKYoJ53mY
+requests==2.5.1
+# sha256: Wa85MButOX4IXlCAmH-U7zBnLxz45z0Z0zB7O2PDy0s
+pyquery==1.2.8
+# sha256: VDjXSekjyRR0H-KkELUoq-JwUwAPv4eLxDdCjQiuCrE
+# sha256: e0ZyF7n0tLNXjqgMGH1KZFhBN-s5pP0J06k5uyWiRzE
+# sha256: _iM9iNuVAbn4doWmVuCAQioE3fsR8AInX4KYbXFwSfg
+# sha256: OH-Wj955OxQoZYApFlYYOfVZHYtLFMlBEl6w_Kfk5Y0
+# sha256: qUE4tjiQdJH0c8h16MlSA6agLv71K2VivjAuQ1AW9PM
+# sha256: TH1S2kEIdel3YFwZTJP7KaLZIfmSNLUBM8Zip9Qmj9Y
+pytz==2014.10
+# sha256: BTWn4nAUh0snrjpNM-h0njRb36YnZhlSCLeZa_EQBoI
+cssselect==0.9.1
+# sha256: TETsP5_wV7jHtMeL7KX92HEGAOqaHfQvMb_Lri8Fne4
+python-dateutil==2.1
+# sha256: MVg9nhJ2eR2EqgFv3IeR_RhSisV5fbrhGLMOMuApDE8
+django-jsonview==0.4.3
+# sha256: zuWf2ql6QKxQW7Bim9yLqbp5AS0JnvEdbTooS342nJw
+# sha256: 1CcdVvqPDDnYRxFgIhdXTwUMAoHvv68c-ogh8NfypxQ
+httplib2==0.8
+# sha256: gqOPZ02h-klsD8TfcUy7BYVAvtcqMMUKLjRLDZhMTSE
+oauth2==1.5.211
+# sha256: wn5AqzzPN_MKn3estJFzcNk0HiWr2o6Uub1IxxJ_fUg
+raven==3.4.1
+# sha256: oFHwTujsMwUFWrNNh7NsmkSTdeB8fWoFvK-kgynKx8M
+oauthlib==0.7.2
+# sha256: jEIaWBAHBBSP2a0uOLBdVkb20xOawgnf2kyYDRJMdbo
+six==1.1.0
+# sha256: AW21Ktp2WXYb2l7gNy9g2H2-8F1S9GaqYZci526qA9E
+awesome-slugify==1.6
+# sha256: hPtZujVa8xIv8lqpikSYECSgI4S6d8fx0Fuevv5MCxQ
+sorl-thumbnail==11.12
+# sha256: 22FYVWYhAfnq6NFed7wjtxD-iJHcn-gujcV3EOYa7Dc
+south==0.7.5
+# sha256: qw3sUihmd-lE3cAOr2oOuJr0ixpmljJOopNRNC0cSD8
+twython==3.2.0
+# sha256: 8PjVPTmHfaSEkpPVSO7LXnk2S1c2QyloadvH9bhnCe8
+Unidecode==0.04.17
+# sha256: mwNS2w8Rgb53KvceMgkHfy4GFeNLDJ3nB3tTm9a5Jng
+# sha256: WUETEX8gF-2DfI885ydhb5BTuqWlRjp0IMgkm4_FVvU
+vobject==0.8.1c
+# sha256: aoy0QBER4BG1ecjFKlHNq5cAQcxUOBS72Vd6RSn-HNs
+BeautifulSoup==3.2.1
+# sha256: UE5EGWeseGBKs18DABj8mm-icOam6YRx0jEf139wZ0s
+# sha256: smA0Iw78731g5SZ4kO2mVt_EnFZ_JxJdkH7uT-f5puw
+django_compressor==1.4
+# sha256: F3KVsUQkAMks22fo4Y-f9ZRvtEL4WBO50IN4I3IuoI0
+django-cronjobs==0.2.3
+# sha256: 2G3HpwzvCTy3dc1YE7H4XQH6ZN8M3gWpkVFR28OOsNE
+django-bootstrap-form==3.1
+# sha256: jiOPwzhIDdvXgwiOhFgqN6dfB8mSdTNzMsmjmbIBkfI
+regex==2014.12.24
+# sha256: ngIjuJUY7axhqXtW_3jycQVs4IyKF8a2RK7yRPrIPyM
+# sha256: mtSFI-JzXivaPvY1QHN3jIf9cY5OVmGh0bcODKBbYZ4
+requests-oauthlib==0.4.2
+# sha256: PCzNDHsT4v3NdXGY84XWS-cINBs5fEFPDAU4tW5rskw
+bleach==1.2.1
+# sha256: o71QUd0X6dUOip8tNiUI6C1wYwEP3AbV4HzjYI54D-Y
+jingo==0.7
+# sha256: qI7Y-5I6U8cMLEb75FCLX4Fka0sBQB8VaKghZxszIVw
+# sha256: 53T3tTehlADKaH9I01KrdGFzKsQThd2I_a1Hie-tKcU
+django-appconf==0.6
+# sha256: NmfSakH-wwNkoO9yWAgyylMogC1VP21ucq9awhyzY2U
+django-nose==1.3
+# sha256: RORjnsBXprap3duGnU46SBj8knjsSQzOOa7whEBZKpM
+django-session-csrf==0.5
+# sha256: B-lA57jFsdXYf3h9luYXt_gbsep2FZ4ZIvPHvzt0Y4Y
+https://github.com/jbalogh/test-utils/archive/4ae9327.zip#egg=test-utils
+# sha256: sGqGRRqZ1sJr-mUIKZnb9ljgh-WW6SkszmiLU-q6qto
+django-sha2==0.4
+# sha256: TEiNy4TP_Yi80rFlGWK3Z_m7JFIGQHyOpngEPNOdPKg
+django-multidb-router==0.6
+# sha256: sTuMGdnDYUP9YU5TXCP9vnsUbLgrjZokbsrLNo4U0t0
+tower==0.4.1
+# sha256: nwLQNXGE3h8JPBABK1LnRUoQCL5qXBhat6Mwes6x0S4
+Babel==1.3
+# sha256: 1BuH0etCTRi6Lb5zMTHp2HPnCcwR63PaJIw07sHV7W4
+django-browserid==0.10.1
+# sha256: akF58qKszaKyc7_Ybeb3AkzuIDBDzJp8BA_nswa74SA
+fancy-tag==0.2.0
+# sha256: OxNQQo3tQ4uqhTRD9zfPOTHrRggCTveBe2Dl3bp0nT8
+commonware==0.4.2
+# sha256: LRy1WDkWc99RCaP-XoT95hYO3IskGz6xmrPTq-m43zE
+cef==0.5
+# sha256: -fUE8yboUH-tNZdMGuX5HUpzX7M-VWtu2PXsEGBUpHM
+https://github.com/mozilla/nuggets/archive/ce50688.zip#egg=nuggets
+# sha256: pucH2csXyL8eVTcTrRSzEnSoHVwM4PziGwKTbQ79fbs
+html5lib==0.95
+# sha256: HDW0rCBs7y0kgWyJ-Jzyid09OM98RJuz-re_bUPwGx8
+ordereddict==1.1
+# sha256: 2KRxgJ87Wj2-eXpwyM93XAN_Yl8jb3BPRPIkTuyDjCM
+readability-api==0.2.4
+# sha256: Eq491FQ_jcXMX0vdf2_RaPTRYkQU11OkQVc8zBh6jkM
+django-jsonfield==0.9.13

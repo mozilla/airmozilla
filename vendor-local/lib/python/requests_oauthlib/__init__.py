@@ -1,1 +1,0 @@
-from .core import OAuth1
