@@ -22,14 +22,16 @@ def update_code(ctx, tag):
         ctx.local('git checkout %s' % tag)
         ctx.local('git pull -f')
         ctx.local("find . -type f -name '*.pyc' -delete")
-        ctx.local('pip install bin/peep-2.1.1.tar.gz')
-        ctx.local('peep install -r requirements.txt')
+        ctx.local('virtualenv ../venv')
+        ctx.local('../venv/bin/pip install bin/peep-2.1.1.tar.gz')
+        ctx.local('../venv/bin/peep install -r requirements.txt')
+        ctx.local('virtualenv --relocatable ../venv')
 
 
 @task
 def update_assets(ctx):
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local("python2.6 manage.py collectstatic --noinput")
+        ctx.local("../venv/bin/python manage.py collectstatic --noinput")
 
 
 @task
@@ -37,14 +39,14 @@ def update_db(ctx):
     """Update the database schema, if necessary."""
 
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local('python2.6 manage.py syncdb')
-        ctx.local('python2.6 manage.py migrate --delete-ghost-migrations --noinput airmozilla.main')
-        ctx.local('python2.6 manage.py migrate airmozilla.comments')
-        ctx.local('python2.6 manage.py migrate airmozilla.uploads')
-        ctx.local('python2.6 manage.py migrate airmozilla.subtitles')
-        ctx.local('python2.6 manage.py migrate airmozilla.search')
-        ctx.local('python2.6 manage.py migrate airmozilla.surveys')
-        ctx.local('python2.6 manage.py migrate airmozilla.cronlogger')
+        ctx.local('../venv/bin/python manage.py syncdb')
+        ctx.local('../venv/bin/python manage.py migrate --delete-ghost-migrations --noinput airmozilla.main')
+        ctx.local('../venv/bin/python manage.py migrate airmozilla.comments')
+        ctx.local('../venv/bin/python manage.py migrate airmozilla.uploads')
+        ctx.local('../venv/bin/python manage.py migrate airmozilla.subtitles')
+        ctx.local('../venv/bin/python manage.py migrate airmozilla.search')
+        ctx.local('../venv/bin/python manage.py migrate airmozilla.surveys')
+        ctx.local('../venv/bin/python manage.py migrate airmozilla.cronlogger')
 
 
 @task
@@ -52,7 +54,7 @@ def install_cron(ctx):
     """Use gen-crons.py method to install new crontab."""
 
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local('python2.6 ./bin/crontab/gen-crons.py -w %s -u apache > /etc/cron.d/%s_generated' % (settings.SRC_DIR, settings.REMOTE_HOSTNAME))
+        ctx.local('../venv/bin/python ./bin/crontab/gen-crons.py -w %s -u apache > /etc/cron.d/%s_generated' % (settings.SRC_DIR, settings.REMOTE_HOSTNAME))
 
 
 @task
