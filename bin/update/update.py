@@ -25,6 +25,7 @@ def update_code(ctx, tag):
         ctx.local('virtualenv ../venv')
         ctx.local('../venv/bin/pip install bin/peep-2.1.1.tar.gz')
         ctx.local('../venv/bin/peep install -r requirements.txt')
+        ctx.local('virtualenv --relocatable ../venv')
 
 
 @task
