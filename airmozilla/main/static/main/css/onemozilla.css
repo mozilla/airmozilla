@@ -120,16 +120,20 @@ px      68    160    252    344    436    528    620    712    804    896    */
 #site-title a:hover, #site-title a:focus, #site-title a:active { color: #962c2c; text-decoration: none; }
 #masthead #tabzilla { position: absolute; top: 0; right: 0; border: 0; }
 
-#content:after { content: "."; display: block; clear: both; height: 0; visibility: hidden; }
+#content { clear: both; }
+#content:after, .main:after, .sub:after { content: ""; display: block; clear: both; height: 0; visibility: hidden; }
 
-.main { float: left; width: 620px; }
-.sub { float: right; width: 160px; font-size: .875em; }
+.with-sidebar .main { float: left; width: 620px; }
+.with-sidebar .sub { float: right; width: 160px; font-size: .875em; }
 
 /*** @Widgets *********/
-.widget { margin: 0 0 1.5em; padding: 0 1px; clear: both; }
+.widget { margin: 0 0 1.5em; padding: 0 1px; }
 .widget ul, .widget ol, .widget p { list-style: none; margin: 0 0 1em; }
 .widget ul.children { margin-top: .15em; }
 .widget li { margin-bottom: .15em; }
+
+.sub .widget { float: left; width: 400px; margin: 0 10px 1.5em; }
+.with-sidebar .sub .widget { float: none; width: auto; margin: 0 0 1.5em; }
 
 .widget .widget-title { font-size: 1.571em; margin: .382em -1px 12px; }
 
@@ -525,9 +529,11 @@ px      68    160    252    344    436    528    620    712    */
 @media only screen and (min-width: 768px) and (max-width: 991px) {
 
   .wrap { width: 712px; padding: 0 28px; }
-  .main { width: 528px; }
-  .sub { width: 160px; }
+  .with-sidebar .main { width: 528px; }
+  .with-sidebar .sub { width: 160px; }
   #content-sub .sidebar.second { float: right; }
+
+  .sub .widget { width: 320px; }
 
   #site-title h1 { font-size: 3em; letter-spacing: -2px; margin-left: 0; }
   #site-description { font-size: 1.5em; letter-spacing: -.5px; }
@@ -556,8 +562,8 @@ px      68    160    252    */
 @media only screen and (max-width: 767px) {
   #page { padding-bottom: 24px; }
   .wrap { width: 252px; padding: 0 34px; }
-  .main { width: 100%; }
-  .sub { width: 100%; }
+  .with-sidebar .main { width: 100%; }
+  .with-sidebar .sub { width: 100%; }
   #content-main { float: none; margin-bottom: 48px; }
   #content-sub { float: none; margin-bottom: 48px; }
   #content-sub .sidebar { float: none; width: 100%; }
@@ -611,6 +617,8 @@ px      68    160    252    */
   .featured-posts .feature-img { width: 48px; height: 48px; float: left; margin: -.5em 24px 12px 0; }
   .featured-posts .feature-img img { margin: 0; }
   .featured-posts .entry-title { padding-top: .5em; }
+
+  .sub .widget { width: auto; float: none; padding: 0; margin: 0 0 1.5em; }
 
   .sub .featured-posts { background: #fff; padding: 24px; overflow: auto;
     -ms-box-shadow: 0 1px 1px rgba(0,0,0,0.1);

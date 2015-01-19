@@ -1,6 +1,7 @@
 {% extends 'main/main_base.html' %}
 {% set front_page = (events.number == 1) %}
 
+{% block body_class %}with-sidebar{% endblock %}
 
 {% block site_css %}
 {{ super() }}

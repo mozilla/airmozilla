@@ -20,7 +20,7 @@
     </script>
     {% endif %}
   </head>
-  <body class="home blog stone" role="document">
+  <body class="{% block body_class %}{% endblock %}" role="document">
     {% block content %}{% endblock %}
 
     {% block site_js %}

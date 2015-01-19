@@ -81,17 +81,8 @@ Air Mozilla | Mozilla, in Video
       {% block content_main %}{% endblock %}
     </div>
     <div id="content-sub" class="sub sidebar widgets" role="complementary">
-      <aside id="current-time" class="widget">
-      <h3 class="widget-title">{{ _('Your Local Time') }}</h3>
-      <p class="datetime">
-        {{ date_now()|js_date(enable_timeago=False,
-                              format='ddd, MMM D, YYYY h:mma',
-                              autoupdate=True) }}
-      </p>
-      </aside>
-
       {% if sidebar_top %}
-      <div class="sidebar-top">
+      <div class="sidebar-top sidebar-extra">
       {{ sidebar_top.content|safe }}
       </div>
       {% endif %}
@@ -111,7 +102,7 @@ Air Mozilla | Mozilla, in Video
       {% endblock %}
 
       {% if sidebar_bottom %}
-      <div class="sidebar-bottom">
+      <div class="sidebar-bottom sidebar-extra">
       {{ sidebar_bottom.content|safe }}
       </div>
       {% endif %}
