@@ -54,7 +54,7 @@ def install_cron(ctx):
     """Use gen-crons.py method to install new crontab."""
 
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local('../venv/bin/python ./bin/crontab/gen-crons.py -w %s -u apache > /etc/cron.d/%s_generated' % (settings.SRC_DIR, settings.REMOTE_HOSTNAME))
+        ctx.local('../venv/bin/python ./bin/crontab/gen-crons.py -p ../venv/bin/python -w %s -u apache > /etc/cron.d/%s_generated' % (settings.SRC_DIR, settings.REMOTE_HOSTNAME))
 
 
 @task
