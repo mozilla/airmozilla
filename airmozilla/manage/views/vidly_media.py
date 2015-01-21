@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from funfactory.urlresolvers import reverse
 from jsonview.decorators import json_view
@@ -21,7 +21,6 @@ from .decorators import superuser_required
 
 @superuser_required
 def vidly_media(request):
-    data = {}
     events = Event.objects.filter(
         Q(template__name__contains='Vid.ly')
         |
@@ -30,6 +29,9 @@ def vidly_media(request):
     )
 
     status = request.GET.get('status')
+    repeated = request.GET.get('repeated') == 'event'
+    repeats = {}
+
     if status:
         if status not in ('New', 'Processing', 'Finished', 'Error'):
             return http.HttpResponseBadRequest("Invalid 'status' value")
@@ -51,18 +53,33 @@ def vidly_media(request):
                 logging.debug("Unknown event with tag=%r", tag)
 
         events = events.filter(id__in=event_ids)
+    elif repeated:
+        repeats = dict(
+            (x['event_id'], x['event__id__count'])
+            for x in
+            VidlySubmission.objects
+            .values('event_id')
+            .annotate(Count('event__id'))
+            .filter(event__id__count__gt=1)
+        )
+        events = Event.objects.filter(id__in=repeats.keys())
+
+    def get_repeats(event):
+        return repeats[event.id]
 
     events = events.order_by('-start_time')
     events = events.select_related('template')
 
     paged = paginate(events, request.GET.get('page'), 15)
     vidly_resubmit_form = forms.VidlyResubmitForm()
-    data = {
+    context = {
         'paginate': paged,
         'status': status,
         'vidly_resubmit_form': vidly_resubmit_form,
+        'repeated': repeated,
+        'get_repeats': get_repeats,
     }
-    return render(request, 'manage/vidly_media.html', data)
+    return render(request, 'manage/vidly_media.html', context)
 
 
 @superuser_required

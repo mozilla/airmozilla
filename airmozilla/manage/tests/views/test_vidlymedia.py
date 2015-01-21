@@ -65,6 +65,43 @@ class TestVidlyMedia(ManageTestCase):
         eq_(response.status_code, 200)
         ok_(event.title in response.content)
 
+    def test_vidly_media_repeated_events(self):
+        url = reverse('manage:vidly_media')
+        event = Event.objects.get(title='Test event')
+
+        event.template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<iframe>'
+        )
+        event.save()
+
+        response = self.client.get(url, {'repeated': 'event'})
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
+
+        VidlySubmission.objects.create(
+            event=event,
+            tag='xyz001'
+        )
+        response = self.client.get(url, {'repeated': 'event'})
+        eq_(response.status_code, 200)
+        # still not because there's only one VidlySubmission
+        ok_(event.title not in response.content)
+
+        VidlySubmission.objects.create(
+            event=event,
+            tag='xyz002'
+        )
+        response = self.client.get(url, {'repeated': 'event'})
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+        vidly_submissions_url = reverse(
+            'manage:event_vidly_submissions',
+            args=(event.id,)
+        )
+        ok_(vidly_submissions_url in response.content)
+
     @mock.patch('urllib2.urlopen')
     def test_vidly_media_with_status(self, p_urlopen):
 

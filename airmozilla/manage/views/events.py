@@ -690,6 +690,7 @@ def event_vidly_submissions(request, id):
 
     if request.method == 'POST':
         ids = request.POST.getlist('id')
+        forced = request.POST.get('forced')
         submissions = submissions.filter(id__in=ids, tag__isnull=False)
         # if any of those have tag that we're currently using, raise a 400
         current_tag = event.template_environment.get('tag')
@@ -700,7 +701,7 @@ def event_vidly_submissions(request, id):
         deletions = failures = 0
         for submission in submissions:
             results = vidly.delete_media(submission.tag)
-            if submission.tag in results:
+            if submission.tag in results or forced:
                 submission.delete()
                 deletions += 1
             else:

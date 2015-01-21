@@ -36,6 +36,13 @@
     Or, reverse the search and find <a href="?status=Error">all that have errored</a>.
   {% endif %}
 </p>
+<p>
+{% if repeated %}
+  Return to <a href=".">all Vid.ly media</a>.
+{% else %}
+  Show only events that have <a href="?repeated=event">more than one Vid.ly submission</a>.
+{% endif %}
+</p>
 
 <div class="info">
 <p style="text-align:right">
@@ -65,6 +72,7 @@
     <thead>
       <tr>
         <th>Event</th>
+        {% if repeated %}<th># Submissions</th>{% endif %}
         <th>Template</th>
         <th>Status</th>
         <th class="buttons">Options</th>
@@ -77,6 +85,12 @@
           <a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}"
             data-privacy="{{ event.privacy }}">{{ truncate_words(event.title, 8) }}</a>
         </td>
+        {% if repeated %}
+        <td>
+          <a href="{{ url('manage:event_vidly_submissions', event.pk) }}"
+          >{{ get_repeats(event) }}</a>
+        </td>
+        {% endif %}
         <td>
           {{ event.template.name }}
         </td>

@@ -1516,6 +1516,12 @@ class TestEvents(ManageTestCase):
         # because it couldn't be deleted, we don't delete the record
         ok_(VidlySubmission.objects.filter(tag='xyz987'))
 
+        # this time, do it by force
+        response = self.client.post(url, {'id': [vs3.id], 'forced': 1})
+        eq_(response.status_code, 302)
+        ok_(VidlySubmission.objects.filter(tag='abc123'))
+        ok_(not VidlySubmission.objects.filter(tag='xyz987'))
+
     def test_event_vidly_submission(self):
         event = Event.objects.get(title='Test event')
         submission = VidlySubmission.objects.create(
