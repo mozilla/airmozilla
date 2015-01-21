@@ -1308,7 +1308,7 @@ def executive_summary(request):
         yield ("%s Total" % last_year.year, last_year, first_day)
         last_year2 = last_year.replace(year=last_year.year - 1)
         yield ("%s Total" % last_year2.year, last_year2, last_year)
-        last_year3 = last_year2.replace(year=last_year.year - 1)
+        last_year3 = last_year2.replace(year=last_year2.year - 1)
         yield ("%s Total" % last_year3.year, last_year3, last_year2)
 
     ranges = get_ranges(start_date)
