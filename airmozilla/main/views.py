@@ -1335,6 +1335,7 @@ def executive_summary(request):
         .filter(
             event__archive_time__lt=week_from_today,
         )
+        .exclude(event__channels__exclude_from_trending=True)
         .order_by('-score')
         .extra(select={
             'score': '(featured::int + 1) * total_hits'
