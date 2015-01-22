@@ -102,6 +102,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
     'airmozilla.main.context_processors.analytics',
     'airmozilla.main.context_processors.dev',
     'airmozilla.main.context_processors.browserid',
+    'airmozilla.main.context_processors.faux_i18n',
 )
 
 # Always generate a CSRF token for anonymous users.
@@ -109,14 +110,14 @@ ANON_ALWAYS = True
 
 # Tells the extract script what files to look for L10n in and what function
 # handles the extraction. The Tower library expects this.
-DOMAIN_METHODS['messages'] = [
-    ('%s/**.py' % PROJECT_MODULE,
-        'tower.management.commands.extract.extract_tower_python'),
-    ('%s/**/templates/**.html' % PROJECT_MODULE,
-        'tower.management.commands.extract.extract_tower_template'),
-    ('templates/**.html',
-        'tower.management.commands.extract.extract_tower_template'),
-],
+# DOMAIN_METHODS['messages'] = [
+#     ('%s/**.py' % PROJECT_MODULE,
+#         'tower.management.commands.extract.extract_tower_python'),
+#     ('%s/**/templates/**.html' % PROJECT_MODULE,
+#         'tower.management.commands.extract.extract_tower_template'),
+#     ('templates/**.html',
+#         'tower.management.commands.extract.extract_tower_template'),
+# ],
 
 # # Use this if you have localizable HTML files:
 # DOMAIN_METHODS['lhtml'] = [
@@ -151,7 +152,7 @@ def JINJA_CONFIG():
             'jinja2.ext.with_',
             'jinja2.ext.loopcontrols'
         ],
-        'finalize': lambda x: x if x is not None else ''
+        'finalize': lambda x: x if x is not None else '',
     }
     #config = funfactory_JINJA_CONFIG()
     #config['extensions'].remove('tower.template.i18n')
@@ -167,7 +168,6 @@ def COMPRESS_JINJA2_GET_ENVIRONMENT():
 
 # Remove localization middleware
 MIDDLEWARE_CLASSES = (
-    'airmozilla.locale_middleware.LocaleURLMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
