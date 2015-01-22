@@ -377,13 +377,11 @@ The -s makes it so that any print statements aren't swallowed if tests pass. The
 Troubleshooting
 --------------
 
-### ImportErrors
+### Deprecated Files
 
-If you get import errors, make sure the directory `./vendor/src/` is not empty
-or contains only directories that are empty. If they are empty, run the
-following command:
-
-``git submodule update --init --recursive``
+Make sure you don't have a `./vendor` or `./vendor-local` directory. This
+functionality has been deprecated. All dependencies are now contained in the
+`requirements.txt` file.
 
 ### Unable to sign in
 
