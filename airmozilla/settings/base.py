@@ -142,6 +142,29 @@ LOGGING = {
 }
 
 
+def JINJA_CONFIG():
+    # different from that in funfactory in that we don't want to
+    # load the `tower` extension
+    config = {
+        'extensions': [
+            'jinja2.ext.do',
+            'jinja2.ext.with_',
+            'jinja2.ext.loopcontrols'
+        ],
+        'finalize': lambda x: x if x is not None else ''
+    }
+    #config = funfactory_JINJA_CONFIG()
+    #config['extensions'].remove('tower.template.i18n')
+    return config
+
+
+def COMPRESS_JINJA2_GET_ENVIRONMENT():
+    from jingo import env
+    from compressor.contrib.jinja2ext import CompressorExtension
+    env.add_extension(CompressorExtension)
+
+    return env
+
 # Remove localization middleware
 MIDDLEWARE_CLASSES = (
     'airmozilla.locale_middleware.LocaleURLMiddleware',
