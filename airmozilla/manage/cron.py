@@ -10,6 +10,7 @@ from . import pestering
 from . import event_hit_stats
 from . import archiver
 from . import videoinfo
+from . import vidly_synchronization
 
 
 @cronjobs.register
@@ -72,3 +73,9 @@ def fetch_screencaptures():
         import_=False,
         save_locally=True,
     )
+
+
+@cronjobs.register
+@capture
+def synchronize_vidly_submissions():
+    vidly_synchronization.synchronize_all(verbose=True)
