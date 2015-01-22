@@ -18,7 +18,9 @@ def get_custom_XML(**kwargs):
         '<BatchID>{batch_id}</BatchID>'
         '<Status>{status}</Status>'
         '<Private>{private}</Private>'
-        '<PrivateCDN>{private_cdn}</PrivateCDN><Created>{created}</Created>'
+        '<PrivateCDN>{private_cdn}</PrivateCDN>'
+        '<IsHD>{hd}</IsHD>'
+        '<Created>{created}</Created>'
         '<Updated>{updated}</Updated>'
         '<UserEmail>{user_email}</UserEmail>'
         '</Task></Success></Response>'
@@ -32,6 +34,7 @@ def get_custom_XML(**kwargs):
              status=kwargs.get('status', 'Finished'),
              private=kwargs.get('private', 'false'),
              private_cdn=kwargs.get('private_cdn', 'false'),
+             hd=kwargs.get('hd', 'false'),
              created=kwargs.get('created', '2012-08-23 19:30:58'),
              updated=kwargs.get('updated', '2012-08-23 20:44:22'),
              user_email=kwargs.get('user_email', 'airmozilla@mozilla.com'))
