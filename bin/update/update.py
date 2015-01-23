@@ -87,7 +87,7 @@ def install_cron(ctx):
 
     with ctx.lcd(settings.SRC_DIR):
         ctx.local(
-            '%S/bin/python ./bin/crontab/gen-crons.py -p '
+            '%s/bin/python ./bin/crontab/gen-crons.py -p '
             '%s/python -w %s -u apache > /etc/cron.d/%s_generated' % (
                 venv_path,
                 venv_path,
