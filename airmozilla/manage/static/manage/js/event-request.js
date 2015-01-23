@@ -12,7 +12,7 @@ $(function() {
 
     // all the things we're going to do select2 on,
     // explicitely make sure they're 100%
-    $('#id_tags, #id_participants, #id_location,  #id_channels, #id_curated_groups').css('width', '100%');
+    $('#id_tags, #id_location,  #id_channels, #id_curated_groups').css('width', '100%');
 
     // Autocomplete tags - uses the select2 library
     $('#id_tags').select2({
@@ -57,22 +57,6 @@ $(function() {
             }
         });
     }
-
-    // Autocomplete participants (select2)
-    $('#id_participants').select2({
-        tags: [],
-        ajax: {
-            url: '/manage/participant-autocomplete',
-            dataType: 'json',
-            data: function (term, page) {
-                return {q: term};
-            },
-            results: function(data, page) {
-                return {results: data.participants};
-            }
-        },
-        initSelection: process_tags
-    });
 
     // Fill in the timezone from the selected location
     $('#id_location').select2();

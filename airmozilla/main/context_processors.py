@@ -216,7 +216,6 @@ def faux_i18n(request):
     all the hard work on using `_('English')` in templates because
     maybe one day we'll start doing I18N and then it might be good
     to keep these annotations in the templates."""
-    
     def _(*args, **kwargs):
         return args[0]
 

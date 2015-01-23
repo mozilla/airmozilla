@@ -21,8 +21,7 @@ from .views import (
     flatpages,
     url_transforms,
     cronlogger,
-    participants,
-    permissions
+    permissions,
 )
 
 
@@ -117,17 +116,6 @@ urlpatterns = patterns(
         name='comment_edit'),
     url(r'^events-autocomplete/$', events.event_autocomplete,
         name='event_autocomplete'),
-    url(r'^participant-autocomplete/$', participants.participant_autocomplete,
-        name='participant_autocomplete'),
-    url(r'^participants/new/$', participants.participant_new,
-        name='participant_new'),
-    url(r'^participants/(?P<id>\d+)/$', participants.participant_edit,
-        name='participant_edit'),
-    url(r'^participants/remove/(?P<id>\d+)/$', participants.participant_remove,
-        name='participant_remove'),
-    url(r'^participants/email/(?P<id>\d+)/$', participants.participant_email,
-        name='participant_email'),
-    url(r'^participants/$', participants.participants, name='participants'),
     url(r'^channels/new/$', channels.channel_new, name='channel_new'),
     url(r'^channels/(?P<id>\d+)/$', channels.channel_edit,
         name='channel_edit'),

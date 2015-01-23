@@ -24,7 +24,6 @@ class TweeterTestCase(TestCase):
     event_base_data = {
         'status': Event.STATUS_SCHEDULED,
         'description': '...',
-        'participants': 'Tim Mickel',
         'privacy': 'public',
         'location': '1',
         'channels': '1',

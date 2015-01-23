@@ -82,15 +82,6 @@
       </h2>
       {% endif %}
       <p>
-        {% if participants %}
-          {{ _('Featuring ') }}
-          {% for participant in participants %}
-            <a href="{{ url('main:participant', participant.slug) }}">
-              {{ participant.name }}</a>
-            {%- if not loop.last %}, {% endif -%}
-          {% endfor %}
-          &bull;
-        {% endif %}
         {% if event.location and not event.location.name.startswith('Cyberspace') %}
           {{ _('Location') }}: {{ event.location.name }}
         {% endif %}

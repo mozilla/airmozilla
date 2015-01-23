@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Event, Participant
+from airmozilla.main.models import Event
 from .base import ManageTestCase
 
 
@@ -29,17 +29,11 @@ class TestManagementRoles(ManageTestCase):
         response_events = self.client.get(reverse('manage:events_data'))
         eq_(response_events.status_code, 200)
         ok_('Test event' in response_events.content)
-        response_participants = self.client.get(reverse('manage:participants'))
-        ok_(response_participants.status_code, 200)
-        response_participant_edit = self.client.get(
-            reverse('manage:participant_edit', kwargs={'id': 1})
-        )
-        eq_(response_participant_edit.status_code, 200)
 
     def _unprivileged_event_manager_tests(self, form_contains,
                                           form_not_contains):
         """Common tests for organizers/experienced organizers to ensure
-           basic event/participant permissions are not violated."""
+           basic event permissions are not violated."""
         response_event_request = self.client.get(
             reverse('manage:event_request')
         )
@@ -60,20 +54,6 @@ class TestManagementRoles(ManageTestCase):
                                                       kwargs={'id': event.id}))
         ok_(form_contains in response_event_edit.content)
         ok_(form_not_contains not in response_event_edit.content)
-        response_participants = self.client.get(reverse('manage:participants'))
-        ok_(response_participants.status_code, 200)
-        participant = Participant.objects.get(id=1)
-        participant_edit_url = reverse('manage:participant_edit',
-                                       kwargs={'id': participant.id})
-        response_participant_edit_fail = self.client.get(participant_edit_url)
-        self.assertRedirects(
-            response_participant_edit_fail,
-            reverse('manage:participants')
-        )
-        participant.creator = self.user
-        participant.save()
-        response_participant_edit_ok = self.client.get(participant_edit_url)
-        eq_(response_participant_edit_ok.status_code, 200)
 
     def _unprivileged_page_tests(self, additional_pages=[]):
         """Common tests to ensure unprivileged admins do not have access to
@@ -93,7 +73,7 @@ class TestManagementRoles(ManageTestCase):
 
     def test_event_organizer(self):
         """Event organizer: ER with unprivileged form, can only edit own
-           participants, can only see own events."""
+           and can only see own events."""
         self._add_client_group('Event Organizer')
         self._unprivileged_event_manager_tests(
             form_contains='Start time',  # EventRequestForm
@@ -103,7 +83,7 @@ class TestManagementRoles(ManageTestCase):
 
     def test_experienced_event_organizer(self):
         """Experienced event organizer: ER with semi-privileged form,
-           can only edit own participants, can only see own events."""
+           can only edit own, can only see own events."""
         self._add_client_group('Experienced Event Organizer')
         self._unprivileged_event_manager_tests(
             form_contains='Approvals',  # EventExperiencedRequestForm
@@ -115,8 +95,7 @@ class TestManagementRoles(ManageTestCase):
         """Approver (in this case, PR), can access the approval pages."""
         self._add_client_group('PR')
         self._unprivileged_page_tests(
-            additional_pages=['manage:event_request', 'manage:events',
-                              'manage:participants']
+            additional_pages=['manage:event_request', 'manage:events']
         )
         response_approvals = self.client.get(reverse('manage:approvals'))
         eq_(response_approvals.status_code, 200)

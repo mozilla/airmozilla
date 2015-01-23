@@ -10,17 +10,13 @@ from airmozilla.suggest.helpers import (
     state_description,
     truncate_url
 )
-from airmozilla.main.models import SuggestedEvent, Event, Location, Participant
+from airmozilla.main.models import SuggestedEvent, Event, Location
 
 
 class TestStateHelpers(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user('nigel', 'n@live.in', 'secret')
-        self.participant = Participant.objects.create(
-            name='Bill Gates',
-            cleared=Participant.CLEARED_SUGGESTED,
-        )
 
     def test_get_getting_state(self):
         event = SuggestedEvent.objects.create(
