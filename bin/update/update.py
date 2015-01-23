@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from commander.deploy import task, hostgroups
 import commander_settings as settings
 
-venv_path = os.path.abspath('../venv')
+venv_path = '../venv'
 
 
 @task
@@ -27,7 +27,9 @@ def update_code(ctx, tag):
         ctx.local('virtualenv %s' % venv_path)
 
         # Activate virtualenv to append to path.
-        activate_env = os.path.join(venv_path, 'bin', 'activate_this.py')
+        activate_env = os.path.join(
+            settings.SRC_DIR, venv_path, 'bin', 'activate_this.py'
+        )
         execfile(activate_env, dict(__file__=activate_env))
 
         ctx.local('%s/bin/pip install bin/peep-2.1.1.tar.gz' % venv_path)
