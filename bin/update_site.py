@@ -12,6 +12,8 @@ Options:
   -v, --verbose         Echo actions before taking them.
 """
 
+raise NotImplementedError("This file is deprecated and can be removed")
+
 import os
 import sys
 from textwrap import dedent
@@ -29,8 +31,8 @@ ENV_BRANCH = {
     'prod':  ['prod',   'master'],
 }
 
-# The URL of the SVN repository with the localization files (*.po). If you set 
-# it to a non-empty value, remember to `git rm --cached -r locale` in the root 
+# The URL of the SVN repository with the localization files (*.po). If you set
+# it to a non-empty value, remember to `git rm --cached -r locale` in the root
 # of the project.  Example:
 # LOCALE_REPO_URL = 'https://svn.mozilla.org/projects/l10n-misc/trunk/playdoh/locale'
 LOCALE_REPO_URL = ''
