@@ -268,9 +268,12 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
     response = requests.head(video_url)
     assert response.status_code == 200, response.status_code
     if verbose:  # pragma: no cover
-        if response.headers['Content-Length']:
-            print "Content-Length:",
-            print filesizeformat(int(response.headers['Content-Length']))
+        if response.headers.get('Content-Length'):
+            print (
+                "Content-Length: %s" % (
+                    filesizeformat(int(response.headers['Content-Length'])),
+                )
+            )
 
     if not use_https:
         video_url = video_url.replace('https://', 'http://')
