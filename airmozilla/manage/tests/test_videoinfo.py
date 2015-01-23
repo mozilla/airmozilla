@@ -572,6 +572,116 @@ class TestVideoinfo(DjangoTestCase):
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
     @mock.patch('requests.head')
+    @mock.patch('requests.get')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_duration_save_locally_some_by_vidly_submission(
+        self, mock_popen, rget, rhead, p_urllib2, p_logging
+    ):
+        """This time we're going to have two events to ponder.
+        One is public and one is staff only.
+        With passing `save_locally_some` it should do
+        `ffmpeg -i http://url...` on the public one and
+        `wget https://...; ffmpeg -i /local/file.mpg` on the private one.
+        """
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>xxx999</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        def mocked_head(url, **options):
+            # print "HEAD URL", url
+            if 'file.mp4' in url:
+                return _Response(
+                    '',
+                    200
+                )
+            return _Response(
+                '',
+                302,
+                headers={
+                    'Location': 'https://otherplace.com/file.mp4'
+                }
+            )
+
+        rhead.side_effect = mocked_head
+
+        def mocked_get(url, **options):
+            # print "GET URL", url
+            return _Response(
+                '0' * 100000,
+                200,
+                headers={
+                    'Content-Length': 100000
+                }
+            )
+
+        rget.side_effect = mocked_get
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+
+            url = command[2]
+            ffmpeged_urls.append(url)
+
+            class Inner:
+                def communicate(self):
+                    out = ''
+                    if 'abc123.mp4' in url and url.startswith('/'):
+                        err = """
+            Duration: 01:05:00.47, start: 0.000000, bitrate: 1076 kb/s
+                        """
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.template_environment = {'tag': 'abc123'}
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        event.save()
+
+        # The event is public but the relevant vidly submission
+        # for it says it requires a token.
+        VidlySubmission.objects.create(
+            event=event,
+            tag='somethingelse',
+        )
+        VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+            token_protection=True,
+        )
+
+        videoinfo.fetch_durations(save_locally_some=True)
+        event = Event.objects.get(id=event.id)
+        eq_(event.duration, 3900)
+        ok_('http://otherplace.com/file.mp4' not in ffmpeged_urls)
+        filename, = ffmpeged_urls
+        ok_(filename.endswith('abc123.mp4'))
+
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
     @mock.patch('subprocess.Popen')
     def test_fetch_duration_ogg_videos(
         self, mock_popen, rhead, p_urllib2, p_logging
