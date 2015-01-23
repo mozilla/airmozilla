@@ -10,7 +10,7 @@ Function InitCategoryFeedConnection() As Object
 
     conn = CreateObject("roAssociativeArray")
 
-    'conn.UrlPrefix   = "http://10.252.27.62:8000/roku"
+    ' conn.UrlPrefix   = "http://10.252.28.123:8000/roku"
     'conn.UrlPrefix   = "https://air-dev.allizom.org/roku"
     conn.UrlPrefix   = "https://air.mozilla.org/roku"
     conn.UrlCategoryFeed = conn.UrlPrefix + "/categories.xml"

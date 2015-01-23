@@ -34,7 +34,11 @@ Function showVideoScreen(episode As Object)
 
         if type(msg) = "roVideoScreenEvent" then
             print "showHomeScreen | msg = "; msg.getMessage() " | index = "; msg.GetIndex()
-            if msg.isScreenClosed()
+            if msg.isfullresult()
+                print "Video Completed Playback Normally"
+                RegDelete(episode.ContentId)
+                print "deleted bookmark for playback position"
+            elseif msg.isScreenClosed()
                 print "Screen closed"
                 exit while
             elseif msg.isRequestFailed()
