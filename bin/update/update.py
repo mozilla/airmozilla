@@ -14,6 +14,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from commander.deploy import task, hostgroups
 import commander_settings as settings
 
+venv_path = os.path.abspath('../venv')
+
 
 @task
 def update_code(ctx, tag):
@@ -22,16 +24,23 @@ def update_code(ctx, tag):
         ctx.local('git checkout %s' % tag)
         ctx.local('git pull -f')
         ctx.local("find . -type f -name '*.pyc' -delete")
-        ctx.local('virtualenv ../venv')
-        ctx.local('../venv/bin/pip install bin/peep-2.1.1.tar.gz')
-        ctx.local('../venv/bin/peep install -r requirements.txt')
-        ctx.local('virtualenv --relocatable ../venv')
+        ctx.local('virtualenv %s' % venv_path)
+
+        # Activate virtualenv to append to path.
+        activate_env = os.path.join(venv_path, 'bin', 'activate_this.py')
+        execfile(activate_env, dict(__file__=activate_env))
+
+        ctx.local('%s/bin/pip install bin/peep-2.1.1.tar.gz' % venv_path)
+        ctx.local('%s/bin/peep install -r requirements.txt' % venv_path)
+        ctx.local('virtualenv --relocatable %s' % venv_path)
 
 
 @task
 def update_assets(ctx):
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local("../venv/bin/python manage.py collectstatic --noinput")
+        ctx.local(
+            '%s/bin/python manage.py collectstatic --noinput' % venv_path
+        )
 
 
 @task
@@ -39,14 +48,31 @@ def update_db(ctx):
     """Update the database schema, if necessary."""
 
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local('../venv/bin/python manage.py syncdb')
-        ctx.local('../venv/bin/python manage.py migrate --delete-ghost-migrations --noinput airmozilla.main')
-        ctx.local('../venv/bin/python manage.py migrate airmozilla.comments')
-        ctx.local('../venv/bin/python manage.py migrate airmozilla.uploads')
-        ctx.local('../venv/bin/python manage.py migrate airmozilla.subtitles')
-        ctx.local('../venv/bin/python manage.py migrate airmozilla.search')
-        ctx.local('../venv/bin/python manage.py migrate airmozilla.surveys')
-        ctx.local('../venv/bin/python manage.py migrate airmozilla.cronlogger')
+        ctx.local(
+            '%s/bin/python manage.py syncdb' % venv_path
+        )
+        ctx.local(
+            '%s/bin/python manage.py migrate --delete-ghost-migrations '
+            '--noinput airmozilla.main' % venv_path
+        )
+        ctx.local(
+            '%s/bin/python manage.py migrate airmozilla.comments' % venv_path
+        )
+        ctx.local(
+            '%s/bin/python manage.py migrate airmozilla.uploads' % venv_path
+        )
+        ctx.local(
+            '%s/bin/python manage.py migrate airmozilla.subtitles' % venv_path
+        )
+        ctx.local(
+            '%s/bin/python manage.py migrate airmozilla.search' % venv_path
+        )
+        ctx.local(
+            '%s/bin/python manage.py migrate airmozilla.surveys' % venv_path
+        )
+        ctx.local(
+            '%s/bin/python manage.py migrate airmozilla.cronlogger' % venv_path
+        )
 
 
 @task
@@ -54,7 +80,15 @@ def install_cron(ctx):
     """Use gen-crons.py method to install new crontab."""
 
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local('../venv/bin/python ./bin/crontab/gen-crons.py -p ../venv/bin/python -w %s -u apache > /etc/cron.d/%s_generated' % (settings.SRC_DIR, settings.REMOTE_HOSTNAME))
+        ctx.local(
+            '%S/bin/python ./bin/crontab/gen-crons.py -p '
+            '%s/python -w %s -u apache > /etc/cron.d/%s_generated' % (
+                venv_path,
+                venv_path,
+                settings.SRC_DIR,
+                settings.REMOTE_HOSTNAME,
+            )
+        )
 
 
 @task
@@ -63,14 +97,20 @@ def checkin_changes(ctx):
     ctx.local(settings.DEPLOY_SCRIPT)
 
 
-@hostgroups(settings.WEB_HOSTGROUP, remote_kwargs={'ssh_key': settings.SSH_KEY})
+@hostgroups(
+    settings.WEB_HOSTGROUP,
+    remote_kwargs={'ssh_key': settings.SSH_KEY}
+)
 def deploy_app(ctx):
     """Call the remote update script to push changes to webheads."""
     ctx.remote(settings.REMOTE_UPDATE_SCRIPT)
     ctx.remote('/etc/init.d/httpd graceful')
 
 
-@hostgroups(settings.CELERY_HOSTGROUP, remote_kwargs={'ssh_key': settings.SSH_KEY})
+@hostgroups(
+    settings.CELERY_HOSTGROUP,
+    remote_kwargs={'ssh_key': settings.SSH_KEY}
+)
 def update_celery(ctx):
     """Update and restart Celery."""
     ctx.remote(settings.REMOTE_UPDATE_SCRIPT)
@@ -107,7 +147,7 @@ def deploy(ctx):
     install_cron()
     checkin_changes()
     deploy_app()
-    #update_celery()
+    # update_celery()
     update_info()
 
 
