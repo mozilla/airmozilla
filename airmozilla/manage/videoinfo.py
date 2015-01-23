@@ -189,7 +189,12 @@ def fetch_screencapture(
 
         files = _get_files(save_dir)
         if verbose:  # pragma: no cover
-            print "Took", t1 - t0, "seconds to extract", len(files), "pictures"
+            print (
+                "Took %.2f seconds to extract %d pictures" % (
+                    t1 - t0,
+                    len(files)
+                )
+            )
 
         if import_:
             if verbose and not files:  # pragma: no cover
@@ -383,6 +388,19 @@ def _fetch(
             if save_locally_some:
                 # override save_locally based on the type of event
                 save_locally = event.privacy != Event.PRIVACY_PUBLIC
+                # A more accurate way of finding out if this is
+                # protected, is to look for a VidlySubmission on it
+                if event.template_environment.get('tag'):
+                    submissions = (
+                        VidlySubmission.objects
+                        .filter(event=event)
+                        .filter(tag=event.template_environment.get('tag'))
+                        .order_by('-submission_time')
+                    )
+                    for submission in submissions.values('token_protection'):
+                        save_locally = submission['token_protection']
+                        break
+
                 # then this is not necessary
                 use_https = save_locally
 
