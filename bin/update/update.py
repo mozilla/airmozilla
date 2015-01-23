@@ -24,6 +24,10 @@ def update_code(ctx, tag):
         ctx.local('git checkout %s' % tag)
         ctx.local('git pull -f')
         ctx.local("find . -type f -name '*.pyc' -delete")
+        # Creating a virtualenv tries to open virtualenv/bin/python for
+        # writing, but because virtualenv is using it, it fails.
+        # So we delete it and let virtualenv create a new one.
+        ctx.local('rm -f %s/bin/python' % venv_path)
         ctx.local('virtualenv %s' % venv_path)
 
         # Activate virtualenv to append to path.
