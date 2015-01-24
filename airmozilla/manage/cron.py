@@ -70,7 +70,7 @@ def fetch_screencaptures():
     videoinfo.fetch_screencaptures(
         max_=2,
         verbose=True,
-        import_=False,
+        import_if_possible=True,
         save_locally_some=True,
     )
 

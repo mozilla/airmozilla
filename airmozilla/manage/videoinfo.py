@@ -112,9 +112,20 @@ def fetch_duration(
 
 def fetch_screencapture(
     event, save=False, save_locally=False, verbose=False, use_https=True,
-    import_=True,
+    import_=True, import_if_possible=False,
 ):
     assert event.duration, "no duration"
+    # When you set `import_` to False, it creates the JPEGs and leaves
+    # them there in a predictable location (so they can be swept up
+    # by import_screencaptures later).
+    # However, if you want to continue doing that plus at least
+    # try to import the created pictures, then set
+    # `import_if_possible=True`.
+    # Then, if the import fails, the pictures are still there to be
+    # picked up by the import_screencaptures() later.
+    if import_if_possible:
+        import_ = False
+
     video_url, filepath = _get_video_url(
         event,
         use_https,
@@ -144,6 +155,11 @@ def fetch_screencapture(
         h = m / 60
         m = m % 60
         return '%02d:%02d:%02d' % (h, m, s)
+
+    # First, assume we will delete the temporary save_dir.
+    # This is toggled if an exception happens in importing
+    # the pictures.
+    delete_save_dir = True
 
     try:
         if verbose:  # pragma: no cover
@@ -196,11 +212,15 @@ def fetch_screencapture(
                 )
             )
 
-        if import_:
+        if import_ or import_if_possible:
             if verbose and not files:  # pragma: no cover
                 print "No output. Error:"
                 print '\n'.join(all_err)
-            created = _import_files(event, files)
+            try:
+                created = _import_files(event, files)
+            except Exception:
+                delete_save_dir = False
+                raise
             if verbose:  # pragma: no cover
                 print "Created", created, "pictures"
                 # end of this section, so add some margin
@@ -215,7 +235,14 @@ def fetch_screencapture(
         if save_locally:
             if os.path.isfile(filepath):
                 shutil.rmtree(os.path.dirname(filepath))
-        if os.path.isdir(save_dir) and import_:
+        if (
+            delete_save_dir and
+            os.path.isdir(save_dir) and
+            (import_ or import_if_possible)
+        ):
+            if verbose:  # pragma: no cover
+                print "Deleting temporary directory"
+                print save_dir
             shutil.rmtree(save_dir)
 
 
