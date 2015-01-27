@@ -252,9 +252,6 @@ body .entry-comments a { background-image: url(img/icn-comment.png); }
 
 legend { color: #b4b4b4; } /* For IE */
 
-/* Participant clearing form */
-form.publish-form { display: block; clear: both; text-align: center; }
-
 /* @Sidebar *********/
 .widget h2 { margin-bottom: 20px; }
 #content-sub { background: #2d373b; padding: 24px 24px 4em; }
@@ -342,11 +339,6 @@ label .note { color: #afb6bb; }
 .entry-posted .posted-date { display: inline; font-size: 1em; line-height: normal; }
 .entry-posted .posted-year { display: inline; font-size: 1em; }
 
-/*** Featuring text for Participants */
-.featuring {
-    font-style: italic;
-}
-
 /*** Timeago dotted underline */
 time.timeago {
     border-bottom: 1px dotted #b4b4b4;
@@ -387,16 +379,10 @@ span.tag {
 .entry-header .vcard { margin-left: 0; border: 0; background: #2d373b; }
 .entry-header .vcard img { border-color: #324248; }
 
-/*** Participant profile */
 .entry-content img {
     float: left;
     margin-right: 15px;
 }
-
-.participant-profile p {
-    margin: 0 0 .4em;
-}
-
 
 /*** Comment Count */
 .entry-comments { background-color: #2d373b; }

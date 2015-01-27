@@ -49,8 +49,8 @@
 
 {% block site_js %}
   {{ super() }}
+  <script>var VIDLY_URL_TO_SHORTCUT = '{{ url('manage:vidly_url_to_shortcode', event.pk) }}';</script>
   {% compress js %}
-    <script>var VIDLY_URL_TO_SHORTCUT = '{{ url('manage:vidly_url_to_shortcode', event.pk) }}';</script>
     <script src="{{ static('manage/js/event-archive.js') }}"></script>
   {% endcompress %}
 {% endblock %}

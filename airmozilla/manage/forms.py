@@ -18,7 +18,6 @@ from airmozilla.main.models import (
     EventTweet,
     Location,
     Region,
-    Participant,
     Tag,
     Template,
     Channel,
@@ -90,7 +89,6 @@ class UserFindForm(BaseForm):
 
 class EventRequestForm(BaseModelForm):
     tags = forms.CharField(required=False)
-    participants = forms.CharField(required=False)
 
     class Meta:
         model = Event
@@ -111,18 +109,13 @@ class EventRequestForm(BaseModelForm):
             'title', 'placeholder_img', 'picture',
             'description',
             'short_description', 'location', 'start_time',
-            'participants', 'channels', 'tags', 'call_info',
+            'channels', 'tags', 'call_info',
             'remote_presenters',
             'additional_links', 'privacy', 'popcorn_url'
         )
 
     def __init__(self, *args, **kwargs):
         super(EventRequestForm, self).__init__(*args, **kwargs)
-        self.fields['participants'].help_text = (
-            '<a href="%s" class="btn btn-default" target="_blank">'
-            '<i class="glyphicon glyphicon-plus-sign"></i>'
-            'New Participant'
-            '</a>' % reverse('manage:participant_new'))
         self.fields['location'].help_text = (
             '<a href="%s" class="btn btn-default" target="_blank">'
             '<i class="glyphicon glyphicon-plus-sign"></i>'
@@ -147,10 +140,8 @@ class EventRequestForm(BaseModelForm):
 
             if event.pk:
                 tag_format = lambda objects: ','.join(map(unicode, objects))
-                participants_formatted = tag_format(event.participants.all())
                 tags_formatted = tag_format(event.tags.all())
                 self.initial['tags'] = tags_formatted
-                self.initial['participants'] = participants_formatted
 
     def clean_tags(self):
         tags = self.cleaned_data['tags']
@@ -166,16 +157,6 @@ class EventRequestForm(BaseModelForm):
                     t = Tag.objects.create(name=tag_name)
             final_tags.append(t)
         return final_tags
-
-    def clean_participants(self):
-        participants = self.cleaned_data['participants']
-        split_participants = [p.strip() for p in participants.split(',')
-                              if p.strip()]
-        final_participants = []
-        for participant_name in split_participants:
-            p = Participant.objects.get(name=participant_name)
-            final_participants.append(p)
-        return final_participants
 
     def clean_slug(self):
         """Enforce unique slug across current slugs and old slugs."""
@@ -228,7 +209,7 @@ class EventEditForm(EventRequestForm):
             'template_environment', 'placeholder_img', 'picture',
             'location',
             'description', 'short_description', 'start_time', 'archive_time',
-            'participants', 'channels', 'tags',
+            'channels', 'tags',
             'call_info', 'additional_links', 'remote_presenters',
             'approvals',
             'popcorn_url',
@@ -296,7 +277,7 @@ class EventExperiencedRequestForm(EventEditForm):
             'template_environment', 'placeholder_img', 'picture',
             'description',
             'short_description', 'location', 'start_time',
-            'participants', 'channels', 'tags', 'call_info',
+            'channels', 'tags', 'call_info',
             'additional_links', 'remote_presenters',
             'approvals', 'pin', 'popcorn_url', 'recruitmentmessage'
         )
@@ -380,24 +361,6 @@ class EventTweetForm(BaseModelForm):
             self.fields['send_date'].help_text = (
                 'Timezone is %s' % event.location.timezone
             )
-
-
-class ParticipantEditForm(BaseModelForm):
-    class Meta:
-        model = Participant
-        exclude = ('creator', 'clear_token')
-
-
-class ParticipantFindForm(BaseModelForm):
-    class Meta:
-        model = Participant
-        fields = ('name',)
-
-    def clean_name(self):
-        name = self.cleaned_data['name']
-        if not Participant.objects.filter(name__icontains=name):
-            raise forms.ValidationError('No participant with this name found.')
-        return name
 
 
 class ChannelForm(BaseModelForm):

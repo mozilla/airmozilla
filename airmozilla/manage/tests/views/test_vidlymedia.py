@@ -26,10 +26,6 @@ from .base import ManageTestCase
 
 class TestVidlyMedia(ManageTestCase):
 
-    def tearDown(self):
-        super(TestVidlyMedia, self).tearDown()
-        cache.clear()
-
     def test_vidly_media(self):
         url = reverse('manage:vidly_media')
         response = self.client.get(url)
@@ -288,13 +284,13 @@ class TestVidlyMedia(ManageTestCase):
             name='Vid.ly Something',
             content='<iframe>'
         )
-        event.template_environment = {'tag': 'abc123'}
+        event.template_environment = {'tag': 'bbb1234'}
         event.save()
 
         response = self.client.get(url, {'id': event.pk})
         eq_(response.status_code, 200)
         data = json.loads(response.content)
-        eq_(data['ERRORS'], ['Tag (abc123) not found in Vid.ly'])
+        eq_(data['ERRORS'], ['Tag (bbb1234) not found in Vid.ly'])
 
     @mock.patch('urllib2.urlopen')
     def test_vidly_media_info_with_past_submission_info(self, p_urlopen):
@@ -367,7 +363,7 @@ class TestVidlyMedia(ManageTestCase):
 
         def mocked_urlopen(request):
             sent_queries.append(True)
-            return StringIO(SAMPLE_XML.strip())
+            return StringIO(get_custom_XML(tag='aaa1234'))
 
         p_urlopen.side_effect = mocked_urlopen
 
@@ -387,7 +383,7 @@ class TestVidlyMedia(ManageTestCase):
         eq_(data, {})
         eq_(len(sent_queries), 0)
 
-        event.template_environment = {'tag': 'abc123'}
+        event.template_environment = {'tag': 'aaa1234'}
         event.save()
 
         response = self.client.get(url, {'id': event.pk})

@@ -9,8 +9,6 @@ class Command(BaseCommand):
             'change_event',
             'add_location',
             'change_location',
-            'add_participant',
-            'change_participant',
             'add_tag'
         ]
         perms_pr = [
@@ -23,8 +21,6 @@ class Command(BaseCommand):
         ]
         perms_producer = perms_experienced_event_organizer + [
             'change_event_others',
-            'change_participant_others',
-            'delete_participant',
             'add_template',
             'change_template',
             'delete_template'

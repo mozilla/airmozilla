@@ -72,59 +72,6 @@ def _upload_path(tag):
     return _upload_path_tagged
 
 
-class Participant(models.Model):
-    """ Participants - speakers at events. """
-    name = models.CharField(max_length=50)
-    slug = models.SlugField(blank=True, max_length=65, unique=True,
-                            db_index=True)
-    photo = ImageField(upload_to=_upload_path('participant-photo'), blank=True)
-    email = models.EmailField(blank=True)
-    department = models.CharField(max_length=50, blank=True)
-    team = models.CharField(max_length=50, blank=True)
-    irc = models.CharField(max_length=50, blank=True)
-    topic_url = models.URLField(blank=True)
-    blog_url = models.URLField(blank=True)
-    twitter = models.CharField(max_length=50, blank=True)
-    ROLE_EVENT_COORDINATOR = 'event-coordinator'
-    ROLE_PRINCIPAL_PRESENTER = 'principal-presenter'
-    ROLE_PRESENTER = 'presenter'
-    ROLE_CHOICES = (
-        (ROLE_EVENT_COORDINATOR, 'Event Coordinator'),
-        (ROLE_PRINCIPAL_PRESENTER, 'Principal Presenter'),
-        (ROLE_PRESENTER, 'Presenter'),
-    )
-    role = models.CharField(max_length=25, choices=ROLE_CHOICES)
-    CLEARED_YES = 'yes'
-    CLEARED_NO = 'no'
-    CLEARED_FINAL_CUT = 'final-cut'
-    CLEARED_SUGGESTED = 'suggested'
-    CLEARED_CHOICES = (
-        (CLEARED_YES, 'Yes'),
-        (CLEARED_NO, 'No'),
-        (CLEARED_FINAL_CUT, 'Final Cut'),
-        (CLEARED_SUGGESTED, 'Suggested'),
-    )
-    cleared = models.CharField(max_length=15,
-                               choices=CLEARED_CHOICES, default=CLEARED_NO,
-                               db_index=True)
-    clear_token = models.CharField(max_length=36, blank=True)
-    creator = models.ForeignKey(User, related_name='participant_creator',
-                                blank=True, null=True,
-                                on_delete=models.SET_NULL)
-
-    class Meta:
-        permissions = (
-            ('change_participant_others', 'Can edit participants created by'
-                                          ' other users'),
-        )
-
-    def is_clear(self):
-        return self.cleared == Participant.CLEARED_YES
-
-    def __unicode__(self):
-        return self.name
-
-
 class Channel(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=100, unique=True,
@@ -331,10 +278,6 @@ class Event(models.Model):
     )
     start_time = models.DateTimeField(db_index=True)
     archive_time = models.DateTimeField(blank=True, null=True, db_index=True)
-    participants = models.ManyToManyField(
-        Participant,
-        help_text='Speakers or presenters for this event.'
-    )
     location = models.ForeignKey(Location, blank=True, null=True,
                                  on_delete=models.SET_NULL)
     tags = models.ManyToManyField(Tag, blank=True)
@@ -537,11 +480,6 @@ class SuggestedEvent(models.Model):
     created = models.DateTimeField(default=_get_now)
     modified = models.DateTimeField(auto_now=True)
 
-    participants = models.ManyToManyField(
-        Participant,
-        help_text='Speakers or presenters for this event.'
-    )
-
     first_submitted = models.DateTimeField(blank=True, null=True)
     submitted = models.DateTimeField(blank=True, null=True)
     accepted = models.ForeignKey(Event, blank=True, null=True)
@@ -676,12 +614,6 @@ def event_consistent_times(sender, instance, raw, *arg, **kwargs):
         return
     if instance.archive_time and instance.start_time > instance.archive_time:
         instance.archive_time = None
-
-
-@receiver(models.signals.pre_save, sender=Participant)
-def participant_update_slug(sender, instance, raw, *args, **kwargs):
-    if not raw and not instance.slug:
-        instance.slug = unique_slugify(instance.name, [Participant])
 
 
 class URLMatch(models.Model):

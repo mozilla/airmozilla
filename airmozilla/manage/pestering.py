@@ -75,10 +75,6 @@ def pester(dry_run=False, force_run=False):
                     )
                 else:
                     time_left = 'overdue!'
-                participants = []
-                for participant in approval.event.participants.all():
-                    participants.append(participant.name)
-                participants = ' and '.join(participants)
                 text = render_to_string(
                     'manage/_pester_approval_event.html',
                     {

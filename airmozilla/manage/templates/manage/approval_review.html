@@ -74,14 +74,6 @@
         <td>{{ approval.event.created|js_date }}</td>
       </tr>
       <tr>
-        <td>Participants</td>
-        <td>
-          {% for participant in approval.event.participants.all() %}
-            &bull; {{ participant.name }}
-          {% endfor %}
-        </td>
-      </tr>
-      <tr>
         <td>Tags</td>
         <td>
           {% for tag in approval.event.tags.all() %}

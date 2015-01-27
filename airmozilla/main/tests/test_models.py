@@ -265,15 +265,6 @@ class ForeignKeyTests(TestCase):
         self._successful_delete(approval)
         self._refresh_ok(event)
 
-    def test_participants_remove(self):
-        """Deleting all Participants does not delete associated Event."""
-        event = Event.objects.get(id=22)
-        participants = event.participants.all()
-        ok_(participants.exists())
-        for participant in participants:
-            self._successful_delete(participant)
-        self._refresh_ok(event)
-
     def test_tags_remove(self):
         """Deleting all Tags does not delete associated Event."""
         event = Event.objects.get(id=22)

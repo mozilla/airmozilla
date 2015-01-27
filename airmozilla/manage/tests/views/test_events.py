@@ -56,7 +56,6 @@ class TestEvents(ManageTestCase):
     event_base_data = {
         'status': Event.STATUS_SCHEDULED,
         'description': '...',
-        'participants': 'Tim Mickel',
         'privacy': 'public',
         'location': '1',
         'channels': '1',
@@ -172,40 +171,6 @@ class TestEvents(ManageTestCase):
         # it's impossible to un-set approvals
         # see https://bugzilla.mozilla.org/show_bug.cgi?id=839024
         eq_(approvals.count(), 2)
-
-    def test_participant_autocomplete(self):
-        """Autocomplete makes JSON pages and correct results for fixtures."""
-        response = self.client.get(
-            reverse('manage:participant_autocomplete'),
-            {
-                'q': 'Ti'
-            }
-        )
-        eq_(response.status_code, 200)
-        parsed = json.loads(response.content)
-        ok_('participants' in parsed)
-        participants = [p['text'] for p in parsed['participants']
-                        if 'text' in p]
-        eq_(len(participants), 1)
-        ok_('Tim Mickel' in participants)
-        response_fail = self.client.get(
-            reverse('manage:participant_autocomplete'),
-            {
-                'q': 'ickel'
-            }
-        )
-        eq_(response_fail.status_code, 200)
-        parsed_fail = json.loads(response_fail.content)
-        eq_(parsed_fail, {'participants': []})
-        response_blank = self.client.get(
-            reverse('manage:participant_autocomplete'),
-            {
-                'q': ''
-            }
-        )
-        eq_(response_blank.status_code, 200)
-        parsed_blank = json.loads(response_blank.content)
-        eq_(parsed_blank, {'participants': []})
 
     def test_events(self):
         """The events page responds successfully."""

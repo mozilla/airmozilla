@@ -64,5 +64,8 @@ class GallerySelect(forms.widgets.Widget):
         return mark_safe(render_to_response('gallery.html', context).content)
 
     class Media:
+        # NOTE! At the moment, these are replicated manually wherever
+        # this form widget is used. That's because jinja offline compression
+        # with {{ form.media.js }} doesn't work.
         css = {'all': ('css/gallery_select.css',)}
         js = ('js/gallery_select.js',)
