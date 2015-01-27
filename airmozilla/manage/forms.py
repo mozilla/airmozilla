@@ -17,6 +17,7 @@ from airmozilla.main.models import (
     Event,
     EventTweet,
     Location,
+    Region,
     Participant,
     Tag,
     Template,
@@ -478,6 +479,12 @@ class LocationDefaultEnvironmentForm(BaseModelForm):
     class Meta:
         model = LocationDefaultEnvironment
         fields = ('privacy', 'template', 'template_environment')
+
+
+class RegionEditForm(BaseModelForm):
+
+    class Meta:
+        model = Region
 
 
 class ApprovalForm(BaseModelForm):

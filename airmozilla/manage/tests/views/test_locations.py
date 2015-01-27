@@ -6,6 +6,7 @@ from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Location,
+    Region,
     Template,
     Event,
     LocationDefaultEnvironment
@@ -18,6 +19,24 @@ class TestLocations(ManageTestCase):
         """Location management pages return successfully."""
         response = self.client.get(reverse('manage:locations'))
         eq_(response.status_code, 200)
+
+        location = Location.objects.create(name='SomeLocation')
+        response = self.client.get(reverse('manage:locations'))
+        eq_(response.status_code, 200)
+        eq_(location.name, 'SomeLocation')
+
+    def test_locations_regions(self):
+        """Location management pages with regions return successfully."""
+        response = self.client.get(reverse('manage:locations'))
+        eq_(response.status_code, 200)
+
+        location = Location.objects.create(name='SomeLocation')
+        region = Region.objects.create(name='SomeRegion')
+        location.regions.add(region)
+        response = self.client.get(reverse('manage:locations'))
+        eq_(response.status_code, 200)
+        ok_('SomeLocation' in response.content)
+        ok_('SomeRegion' in response.content)
 
     def test_location_new(self):
         """Adding new location works correctly."""
