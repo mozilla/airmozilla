@@ -530,7 +530,11 @@ class TestPages(DjangoTestCase):
 
     def test_old_slug(self):
         """An old slug will redirect properly to the current event page."""
-        old_event_slug = EventOldSlug.objects.get(slug='test-old-slug')
+        event = Event.objects.get(title='Test event')
+        old_event_slug = EventOldSlug.objects.create(
+            event=event,
+            slug='test-old-slug',
+        )
         response = self.client.get(
             reverse('main:event', kwargs={'slug': old_event_slug.slug})
         )
@@ -1611,13 +1615,20 @@ class TestPages(DjangoTestCase):
         )
 
         response = self.client.get('/')
+        eq_(response.status_code, 200)
         ok_('<p>Sidebar Top Main</p>' in response.content)
         ok_('<p>Sidebar Bottom Main</p>' in response.content)
         ok_('<p>Sidebar Top Testing</p>' not in response.content)
         ok_('<p>Sidebar Bottom Testing</p>' not in response.content)
 
+        Channel.objects.create(
+            name='Testing',
+            slug='testing',
+            description='Anything'
+        )
         url = reverse('main:home_channels', args=('testing',))
         response = self.client.get(url)
+        eq_(response.status_code, 200)
         ok_('<p>Sidebar Top Main</p>' not in response.content)
         ok_('<p>Sidebar Bottom Main</p>' not in response.content)
         ok_('<p>Sidebar Top Testing</p>' in response.content)
@@ -1630,10 +1641,17 @@ class TestPages(DjangoTestCase):
             content='<p>Sidebar Top All</p>'
         )
         response = self.client.get('/')
+        eq_(response.status_code, 200)
         ok_('<p>Sidebar Top All</p>' in response.content)
 
+        Channel.objects.create(
+            name='Testing',
+            slug='testing',
+            description='Anything'
+        )
         url = reverse('main:home_channels', args=('testing',))
         response = self.client.get(url)
+        eq_(response.status_code, 200)
         ok_('<p>Sidebar Top All</p>' in response.content)
 
     def test_sidebar_static_content_almost_all_channels(self):
@@ -1647,11 +1665,18 @@ class TestPages(DjangoTestCase):
             content='<p>Sidebar Top Testing</p>'
         )
         response = self.client.get('/')
+        eq_(response.status_code, 200)
         ok_('<p>Sidebar Top All</p>' in response.content)
         ok_('<p>Sidebar Top Testing</p>' not in response.content)
 
+        Channel.objects.create(
+            name='Testing',
+            slug='testing',
+            description='Anything'
+        )
         url = reverse('main:home_channels', args=('testing',))
         response = self.client.get(url)
+        eq_(response.status_code, 200)
         ok_('<p>Sidebar Top All</p>' not in response.content)
         ok_('<p>Sidebar Top Testing</p>' in response.content)
 

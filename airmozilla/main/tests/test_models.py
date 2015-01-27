@@ -232,10 +232,11 @@ class ForeignKeyTests(TestCase):
 
     def test_eventoldslug_remove(self):
         """Deleting an EventOldSlug does not delete associated Event."""
-        event = Event.objects.get(id=22)
-        oldslug = EventOldSlug.objects.get(id=1)
-        ok_(oldslug)
-        eq_(oldslug.event, event)
+        event = Event.objects.get(title='Test event')
+        oldslug = EventOldSlug.objects.create(
+            event=event,
+            slug='test-old-slug'
+        )
         self._successful_delete(oldslug)
         self._refresh_ok(event)
 
@@ -284,8 +285,11 @@ class ForeignKeyTests(TestCase):
 
     def test_event_remove_eventoldslug(self):
         """Deleting an Event DOES remove associated EventOldSlug."""
-        event = Event.objects.get(id=22)
-        oldslug = EventOldSlug.objects.get(id=1)
+        event = Event.objects.get(title='Test event')
+        oldslug = EventOldSlug.objects.create(
+            event=event,
+            slug='test-old-slug'
+        )
         eq_(oldslug.event, event)
         self._successful_delete(event)
         self._refresh_ok(oldslug, exists=False)

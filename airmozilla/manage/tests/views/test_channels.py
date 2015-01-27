@@ -8,6 +8,14 @@ from .base import ManageTestCase
 
 
 class TestChannels(ManageTestCase):
+    def setUp(self):
+        super(TestChannels, self).setUp()
+        Channel.objects.create(
+            name='Testing',
+            slug='testing',
+            description='Anything'
+        )
+
     def test_channels(self):
         """ Channels listing responds OK. """
         response = self.client.get(reverse('manage:channels'))

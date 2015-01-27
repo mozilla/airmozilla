@@ -1,6 +1,7 @@
 from nose.tools import eq_, ok_
 
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.contrib.flatpages.models import FlatPage
 
 from funfactory.urlresolvers import reverse
@@ -10,6 +11,15 @@ from .base import ManageTestCase
 
 
 class TestFlatPages(ManageTestCase):
+
+    def setUp(self):
+        super(TestFlatPages, self).setUp()
+        FlatPage.objects.create(
+            url='/my-page',
+            title='Test page',
+            content='<p>Test content</p>',
+        ).sites.add(Site.objects.get(id=1))
+
     def test_flatpages(self):
         response = self.client.get(reverse('manage:flatpages'))
         eq_(response.status_code, 200)

@@ -19,7 +19,11 @@ class TestEventsToChannels(DjangoTestCase):
         assert len(channels[event]) == 1
         eq_(channels[event], list(event.channels.all()))
 
-        testing = Channel.objects.get(slug='testing')
+        testing = Channel.objects.create(
+            name='Testing',
+            slug='testing',
+            description='<p>Stuff!</p>'
+        )
         event.channels.add(testing)
 
         channels = get_event_channels(events)

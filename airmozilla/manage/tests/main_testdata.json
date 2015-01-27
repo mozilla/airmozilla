@@ -16,33 +16,10 @@
         }
     },
     {
-        "pk": 2,
-        "model": "main.channel",
-        "fields": {
-            "name": "Testing",
-            "slug": "testing",
-            "description": "<p>Stuff!</p>"
-        }
-    },
-   {
         "pk": 1,
         "model": "main.tag",
         "fields": {
             "name": "testing"
-        }
-   },
-    {
-        "pk": 2,
-        "model": "main.tag",
-        "fields": {
-            "name": "airmozilla"
-        }
-    },
-    {
-        "pk": 3,
-        "model": "main.tag",
-        "fields": {
-            "name": "test"
         }
     },
     {
@@ -75,14 +52,6 @@
     },
     {
         "pk": 1,
-        "model": "main.eventoldslug",
-        "fields": {
-            "event": 22,
-            "slug": "test-old-slug"
-        }
-    },
-    {
-        "pk": 1,
         "model": "main.template",
         "fields": {
             "name": "test template",
@@ -102,16 +71,6 @@
         "model": "auth.group",
         "fields": {
             "name": "testapprover"
-        }
-    },
-    {
-        "pk": 1,
-        "model": "flatpages.flatpage",
-        "fields": {
-            "url": "/my-page",
-            "title": "Test page",
-            "content": "<p>Test content</p>",
-            "sites": [1]
         }
     }
 ]
