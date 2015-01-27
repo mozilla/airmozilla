@@ -208,7 +208,8 @@ UPCOMING_SIDEBAR_COUNT = 5
 FEATURED_SIDEBAR_COUNT = 5
 
 # Use memcached for session storage
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
 
 # Always use secure cookies
 COOKIES_SECURE = True
