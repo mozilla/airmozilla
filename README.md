@@ -535,7 +535,7 @@ Let's create the Video template:
  * Fill the `Content` with
 
     ```html
-    <iframe frameborder="0" allowfullscreen width="640" height="360" name="vidly-frame"
+    <iframe frameborder="0" allowfullscreen width="896" height="504" name="vidly-frame"
      src="https://vid.ly/embeded.html?link={{ tag }}&amp;new=1&amp;autoplay={{autoplay}}&amp;hd=yes"></iframe>
     ```
  * Save changes
