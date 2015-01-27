@@ -189,11 +189,24 @@ class Template(models.Model):
         return self.name
 
 
+class Region(models.Model):
+    """Region of a video/stream/presentation/etc."""
+    name = models.CharField(max_length=300)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __unicode__(self):
+        return self.name
+
+
 class Location(models.Model):
     """Venue/location of a video/stream/presentation/etc."""
     name = models.CharField(max_length=300)
     timezone = models.CharField(max_length=250)
     is_active = models.BooleanField(default=True)
+    regions = models.ManyToManyField(Region, blank=True)
 
     class Meta:
         ordering = ['name']
