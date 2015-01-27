@@ -29,7 +29,6 @@ from jsonview.decorators import json_view
 from airmozilla.main.models import (
     Event,
     EventOldSlug,
-    Participant,
     Tag,
     get_profile_safely,
     Channel,
@@ -387,10 +386,6 @@ class EventView(View):
 
         request.channels = event.channels.all()
 
-        participants = (
-            event.participants.filter(cleared=Participant.CLEARED_YES)
-        )
-
         # needed for the open graph stuff
         event.url = reverse('main:event', args=(event.slug,))
 
@@ -408,7 +403,6 @@ class EventView(View):
             'event': event,
             'pending': event.status == Event.STATUS_PENDING,
             'video': template_tagged,
-            'participants': participants,
             'warning': warning,
             'can_manage_edit_event': can_manage_edit_event,
             'can_edit_event': can_edit_event,
@@ -839,27 +833,6 @@ class EventEditView(EventView):
 def all_tags(request):
     tags = list(Tag.objects.all().values_list('name', flat=True))
     return {'tags': tags}
-
-
-def participant(request, slug):
-    """Individual participant/speaker profile."""
-    participant = get_object_or_404(Participant, slug=slug)
-    return render(request, 'main/participant.html', {
-        'participant': participant,
-    })
-
-
-def participant_clear(request, clear_token):
-    participant = get_object_or_404(Participant, clear_token=clear_token)
-    if request.method == 'POST':
-        participant.cleared = Participant.CLEARED_YES
-        participant.clear_token = ''
-        participant.save()
-        return render(request, 'main/participant_clear_done.html')
-    else:
-        return render(request, 'main/participant_clear.html', {
-            'participant': participant
-        })
 
 
 def events_calendar_ical(request, privacy=None):

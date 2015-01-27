@@ -7,7 +7,8 @@ Editing {{ event.title }} | Air Mozilla
 {% block site_css %}
   {{ super() }}
   {% compress css %}
-  {{ form.media.css }}
+  {# this needs to match what base.forms.GallerySelect sets in Meta #}
+  <link href="{{ static('css/gallery_select.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
   {% compress css %}
   <link href="{{ static('select2/select2.css') }}" rel="stylesheet" type="text/css">
@@ -20,7 +21,8 @@ Editing {{ event.title }} | Air Mozilla
   {{ super() }}
   <script src="{{ static('select2/select2.min.js') }}"></script>
   {% compress js %}
-  {{ form.media.js }}
+  {# this needs to match what base.forms.GallerySelect sets in Meta #}
+  <script src="{{ static('js/gallery_select.js') }}"></script>
   {% endcompress %}
   {% compress js %}
   <script src="{{ static('main/js/edit.js') }}"></script>

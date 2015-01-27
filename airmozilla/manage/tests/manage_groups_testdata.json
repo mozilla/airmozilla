@@ -1,245 +1,205 @@
 [
     {
-        "pk": 2, 
-        "model": "auth.group", 
+        "pk": 2,
+        "model": "auth.group",
         "fields": {
-            "name": "Event Organizer", 
+            "name": "Event Organizer",
             "permissions": [
                 [
-                    "add_event", 
-                    "main", 
+                    "add_event",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "change_event", 
-                    "main", 
+                    "change_event",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "add_location", 
-                    "main", 
+                    "add_location",
+                    "main",
                     "location"
-                ], 
+                ],
                 [
-                    "add_participant", 
-                    "main", 
-                    "participant"
-                ], 
-                [
-                    "change_participant", 
-                    "main", 
-                    "participant"
-                ], 
-                [
-                    "add_tag", 
-                    "main", 
+                    "add_tag",
+                    "main",
                     "tag"
                 ]
             ]
         }
-    }, 
+    },
     {
-        "pk": 6, 
-        "model": "auth.group", 
+        "pk": 6,
+        "model": "auth.group",
         "fields": {
-            "name": "Experienced Event Organizer", 
+            "name": "Experienced Event Organizer",
             "permissions": [
                 [
-                    "add_approval", 
-                    "main", 
+                    "add_approval",
+                    "main",
                     "approval"
-                ], 
+                ],
                 [
-                    "delete_approval", 
-                    "main", 
+                    "delete_approval",
+                    "main",
                     "approval"
-                ], 
+                ],
                 [
-                    "add_event", 
-                    "main", 
+                    "add_event",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "add_event_scheduled", 
-                    "main", 
+                    "add_event_scheduled",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "change_event", 
-                    "main", 
+                    "change_event",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "add_location", 
-                    "main", 
+                    "add_location",
+                    "main",
                     "location"
-                ], 
+                ],
                 [
-                    "add_participant", 
-                    "main", 
-                    "participant"
-                ], 
-                [
-                    "change_participant", 
-                    "main", 
-                    "participant"
-                ], 
-                [
-                    "add_tag", 
-                    "main", 
+                    "add_tag",
+                    "main",
                     "tag"
                 ]
             ]
         }
-    }, 
+    },
     {
-        "pk": 4, 
-        "model": "auth.group", 
+        "pk": 4,
+        "model": "auth.group",
         "fields": {
-            "name": "PR", 
+            "name": "PR",
             "permissions": [
                 [
-                    "add_approval", 
-                    "main", 
+                    "add_approval",
+                    "main",
                     "approval"
-                ], 
+                ],
                 [
-                    "change_approval", 
-                    "main", 
+                    "change_approval",
+                    "main",
                     "approval"
                 ]
             ]
         }
-    }, 
+    },
     {
-        "pk": 1, 
-        "model": "auth.group", 
+        "pk": 1,
+        "model": "auth.group",
         "fields": {
-            "name": "Producer", 
+            "name": "Producer",
             "permissions": [
                 [
-                    "change_user", 
-                    "auth", 
+                    "change_user",
+                    "auth",
                     "user"
-                ], 
+                ],
                 [
-                    "add_approval", 
-                    "main", 
+                    "add_approval",
+                    "main",
                     "approval"
-                ], 
+                ],
                 [
-                    "change_approval", 
-                    "main", 
+                    "change_approval",
+                    "main",
                     "approval"
-                ], 
+                ],
                 [
-                    "delete_approval", 
-                    "main", 
+                    "delete_approval",
+                    "main",
                     "approval"
-                ], 
+                ],
                 [
-                    "add_event", 
-                    "main", 
+                    "add_event",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "add_event_scheduled", 
-                    "main", 
+                    "add_event_scheduled",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "change_event", 
-                    "main", 
+                    "change_event",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "change_event_others", 
-                    "main", 
+                    "change_event_others",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "delete_event", 
-                    "main", 
+                    "delete_event",
+                    "main",
                     "event"
-                ], 
+                ],
                 [
-                    "add_eventoldslug", 
-                    "main", 
+                    "add_eventoldslug",
+                    "main",
                     "eventoldslug"
-                ], 
+                ],
                 [
-                    "change_eventoldslug", 
-                    "main", 
+                    "change_eventoldslug",
+                    "main",
                     "eventoldslug"
-                ], 
+                ],
                 [
-                    "delete_eventoldslug", 
-                    "main", 
+                    "delete_eventoldslug",
+                    "main",
                     "eventoldslug"
-                ], 
+                ],
                 [
-                    "add_location", 
-                    "main", 
+                    "add_location",
+                    "main",
                     "location"
-                ], 
+                ],
                 [
-                    "change_location", 
-                    "main", 
+                    "change_location",
+                    "main",
                     "location"
-                ], 
+                ],
                 [
-                    "delete_location", 
-                    "main", 
+                    "delete_location",
+                    "main",
                     "location"
-                ], 
+                ],
                 [
-                    "add_participant", 
-                    "main", 
-                    "participant"
-                ], 
-                [
-                    "change_participant", 
-                    "main", 
-                    "participant"
-                ], 
-                [
-                    "change_participant_others", 
-                    "main", 
-                    "participant"
-                ], 
-                [
-                    "delete_participant", 
-                    "main", 
-                    "participant"
-                ], 
-                [
-                    "add_tag", 
-                    "main", 
+                    "add_tag",
+                    "main",
                     "tag"
-                ], 
+                ],
                 [
-                    "change_tag", 
-                    "main", 
+                    "change_tag",
+                    "main",
                     "tag"
-                ], 
+                ],
                 [
-                    "delete_tag", 
-                    "main", 
+                    "delete_tag",
+                    "main",
                     "tag"
-                ], 
+                ],
                 [
-                    "add_template", 
-                    "main", 
+                    "add_template",
+                    "main",
                     "template"
-                ], 
+                ],
                 [
-                    "change_template", 
-                    "main", 
+                    "change_template",
+                    "main",
                     "template"
-                ], 
+                ],
                 [
-                    "delete_template", 
-                    "main", 
+                    "delete_template",
+                    "main",
                     "template"
                 ]
             ]

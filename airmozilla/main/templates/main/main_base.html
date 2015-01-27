@@ -24,13 +24,9 @@ Air Mozilla | Mozilla, in Video
   {% compress css %}
     <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/main.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ static('browserid/persona-buttons.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 
-  {% compress css %}
-  {% if not request.user.is_authenticated() %}
-  <link href="{{ static('browserid/persona-buttons.css') }}" rel="stylesheet" type="text/css">
-  {% endif %}
-  {% endcompress %}
 
   <link href="https://mozorg.cdn.mozilla.net/media/css/tabzilla-min.css" rel="stylesheet">
 {% endblock %}

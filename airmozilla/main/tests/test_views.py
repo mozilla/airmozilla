@@ -2,7 +2,6 @@ import os
 import datetime
 import httplib
 import json
-import uuid
 import urllib2
 import urllib
 import re
@@ -27,7 +26,6 @@ from airmozilla.main.models import (
     Approval,
     Event,
     EventOldSlug,
-    Participant,
     Tag,
     UserProfile,
     Channel,
@@ -540,35 +538,6 @@ class TestPages(DjangoTestCase):
             response,
             reverse('main:event', kwargs={'slug': old_event_slug.event.slug})
         )
-
-    def test_participant(self):
-        """Participant pages always respond successfully."""
-        participant = Participant.objects.get(name='Tim Mickel')
-        participant_page = reverse('main:participant',
-                                   kwargs={'slug': participant.slug})
-        response_ok = self.client.get(participant_page)
-        eq_(response_ok.status_code, 200)
-        participant.cleared = Participant.CLEARED_NO
-        participant.save()
-        response_ok = self.client.get(participant_page)
-        eq_(response_ok.status_code, 200)
-
-    def test_participant_clear(self):
-        """Visiting a participant clear token page changes the Participant
-           status as expected."""
-        participant = Participant.objects.get(name='Tim Mickel')
-        participant.cleared = Participant.CLEARED_NO
-        token = str(uuid.uuid4())
-        participant.clear_token = token
-        participant.save()
-        url = reverse('main:participant_clear', kwargs={'clear_token': token})
-        response_ok = self.client.get(url)
-        eq_(response_ok.status_code, 200)
-        response_changed = self.client.post(url)
-        eq_(response_changed.status_code, 200)
-        participant = Participant.objects.get(name='Tim Mickel')
-        eq_(participant.clear_token, '')
-        eq_(participant.cleared, Participant.CLEARED_YES)
 
     def test_calendar_ical(self):
         url = self._calendar_url('public')
