@@ -219,7 +219,7 @@ def event_data_latest(request, id):
             discussion.event_id,
             include_posted=include_posted,
         )
-        cache.set(cache_key, latest_comment, 60 * 60)
+        cache.set(cache_key, latest_comment, 24 * 60 * 60)
     return {'latest_comment': latest_comment}
 
 
