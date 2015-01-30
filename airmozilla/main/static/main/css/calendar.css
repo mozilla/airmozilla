@@ -30,3 +30,7 @@ button {
 button:hover {
     box-shadow: none;
 }
+
+label {
+  display: inline;
+}

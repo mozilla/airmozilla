@@ -19,6 +19,7 @@ Calendar | {{ super() }}
   {{ super() }}
   {% compress js %}
   <script src="{{ static('main/fullcalendar/fullcalendar.min.js') }}"></script>
+  <script src="{{ static('main/jstz/jstz-1.0.4.min.js') }}"></script>
   <script src="{{ static('main/js/calendar.js') }}"></script>
   {% endcompress %}
 {% endblock %}
@@ -28,6 +29,11 @@ Calendar | {{ super() }}
 {% block content_main %}
   <h2 class="section-title">Calendar</h2>
   <div id="calendar" data-events-url="{{ url('main:calendar_data') }}"></div>
+
+  <p>
+    <input type="checkbox" id="startsOnMonday">
+    <label for="startsOnMonday">Week starts on a Monday</label>
+  </p>
 
   <p>All times are in your local timezone</p>
   <p>For iCal feeds for all locations visit the <a href="{{ url('main:calendars') }}">Calendars page</a>.</p>
