@@ -15,8 +15,8 @@ HOME=/tmp
 # Daily
 7 0 * * * {{ cron }} pester_approvals 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
-# Daily
-8 0 * * * {{ cron }} synchronize_vidly_submissions 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+# Every 2 hours (10 minutes past)
+10 */2 * * * {{ cron }} synchronize_vidly_submissions 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
 
 # Every hour
 0 */1 * * * {{ cron }} cron_ping 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
