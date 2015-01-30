@@ -1497,6 +1497,35 @@ class TestEvents(ManageTestCase):
         ok_(VidlySubmission.objects.filter(tag='abc123'))
         ok_(not VidlySubmission.objects.filter(tag='xyz987'))
 
+    def test_delete_event_vidly_submissions_wo_tag(self):
+
+        event = Event.objects.get(title='Test event')
+        template = event.template
+        template.name = 'Vid.ly Fun'
+        template.save()
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        submission = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url.file',
+            hd=True,
+            token_protection=False,
+            tag=None,
+        )
+        url = reverse('manage:event_vidly_submissions', args=(event.pk,))
+        response = self.client.post(url, {'id': [submission.id]})
+        eq_(response.status_code, 302)
+        # but it wouldn't be deleted
+        ok_(VidlySubmission.objects.get(id=submission.id))
+
+        response = self.client.post(
+            url,
+            {'id': [submission.id], 'forced': True}
+        )
+        eq_(response.status_code, 302)
+        ok_(not VidlySubmission.objects.filter(id=submission.id))
+
     def test_event_vidly_submission(self):
         event = Event.objects.get(title='Test event')
         submission = VidlySubmission.objects.create(

@@ -41,13 +41,15 @@ $(function() {
 
     $('span.status').each(function() {
         var self = $(this);
-        qAjax({
-            url: '/manage/vidly/status/',
-            data: {tag: self.data('tag')},
-            success: function(response) {
-                process_vidly_status_response(response, self);
-            }
-        });
+        if (self.data('tag')) {
+            qAjax({
+                url: '/manage/vidly/status/',
+                data: {tag: self.data('tag')},
+                success: function(response) {
+                    process_vidly_status_response(response, self);
+                }
+            });
+        }
     });
     qNext();
 
