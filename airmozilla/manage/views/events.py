@@ -694,22 +694,27 @@ def event_vidly_submissions(request, id):
     if request.method == 'POST':
         ids = request.POST.getlist('id')
         forced = request.POST.get('forced')
-        submissions = submissions.filter(id__in=ids, tag__isnull=False)
+        submissions = submissions.filter(id__in=ids)
+        if not forced:
+            submissions = submissions.filter(tag__isnull=False)
         # if any of those have tag that we're currently using, raise a 400
         current_tag = event.template_environment.get('tag')
         if current_tag and submissions.filter(tag=current_tag):
             return http.HttpResponseBadRequest(
-                "not not delete because it's in use"
+                "Can not delete because it's in use"
             )
         deletions = failures = 0
         for submission in submissions:
-            results = vidly.delete_media(submission.tag)
-            if submission.tag in results or forced:
+            if submission.tag:
+                results = vidly.delete_media(submission.tag)
+            else:
+                assert forced
+                results = ''
+            if forced or submission.tag in results:
                 submission.delete()
                 deletions += 1
             else:
                 failures += 1
-
         messages.success(
             request,
             "%s vidly submissions deleted. %s failures" % (
