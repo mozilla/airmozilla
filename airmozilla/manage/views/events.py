@@ -320,6 +320,9 @@ def events_data(request):
         if event.popcorn_url and not is_upcoming:
             row['popcorn_url'] = event.popcorn_url
 
+        if not row.get('picture') and not event.placeholder_img:
+            row['nopicture'] = True
+
         if _can_change_event_others:
             row['can'].append('duplicate')
             row['can'].append('archive')
