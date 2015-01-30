@@ -124,9 +124,9 @@
         <td class="event-thumbnail">
           <img ng-if="event.thumbnail"
                ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}">
-          <img ng-if="!event.thumbnail"
+          <img ng-if="!event.thumbnail && !event.nopicture"
                ng-src="{{ url('manage:redirect_event_thumbnail', event.id) }}?geometry=50x28">
-          <a ng-if="event.pictures"
+          <a ng-if="event.pictures && !event.nopicture"
              href="{{ url('manage:picturegallery') }}?event={{ event.id }}"
              title="Number of pictures belonging to this event">
             <span class="badge picture-gallery-count"

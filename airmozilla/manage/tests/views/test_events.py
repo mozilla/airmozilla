@@ -358,6 +358,16 @@ class TestEvents(ManageTestCase):
         result = json.loads(response.content)
         assert result['events'][0]['title'] == event.title
 
+    def test_events_data_without_any_picture(self):
+        event = Event.objects.get(title='Test event')
+        event.placeholder_img = None
+        event.save()
+        url = reverse('manage:events_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        result = json.loads(response.content)
+        ok_(result['events'][0]['nopicture'])
+
     def test_events_data_pending_with_has_vidly_template(self):
         event = Event.objects.get(title='Test event')
         event.status = Event.STATUS_PENDING
