@@ -58,3 +58,6 @@ EDGECAST_SECURE_KEY = 'anythingheretoo'
 ALLOWED_BID = (
     'mozilla.com',
 )
+
+# Use memcached only for session storage
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'

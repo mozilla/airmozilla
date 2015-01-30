@@ -207,9 +207,8 @@ UPCOMING_SIDEBAR_COUNT = 5
 # Number of featured/trending events to display in the sidebar
 FEATURED_SIDEBAR_COUNT = 5
 
-# Use memcached for session storage
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-
+# Use memcached for session storage with fallback on the database
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 # Always use secure cookies
 COOKIES_SECURE = True
