@@ -1,5 +1,3 @@
-import datetime
-
 from django import forms
 
 from airmozilla.base.forms import BaseModelForm, BaseForm, GallerySelect
@@ -8,24 +6,8 @@ from airmozilla.main.models import EventRevision, RecruitmentMessage, Event
 
 class CalendarDataForm(BaseForm):
 
-    start = forms.IntegerField()
-    end = forms.IntegerField()
-
-    def clean_start(self):
-        try:
-            return datetime.datetime.fromtimestamp(
-                self.cleaned_data['start']
-            )
-        except ValueError as x:
-            raise forms.ValidationError(x)
-
-    def clean_end(self):
-        try:
-            return datetime.datetime.fromtimestamp(
-                self.cleaned_data['end']
-            )
-        except ValueError as x:
-            raise forms.ValidationError(x)
+    start = forms.DateTimeField()
+    end = forms.DateTimeField()
 
     def clean(self):
         cleaned_data = super(CalendarDataForm, self).clean()
