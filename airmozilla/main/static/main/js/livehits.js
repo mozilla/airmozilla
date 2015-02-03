@@ -14,27 +14,38 @@ $(function() {
         return x1 + x2;
     }
 
-    var submitted = false;
-    var loop = setInterval(function() {
-        var req, url = $('.islive').data('url');
-        if (submitted) {
-            req = $.getJSON(url);
-        } else {
-            var data = {
-                csrfmiddlewaretoken:
-                $('.islive input[name="csrfmiddlewaretoken"]').val()
-            };
-            req = $.post(url, data);
-            submitted = true;
+    function update(response) {
+        // Doing this if because we don't want to display 0 views
+        // when you're the first one to view and your own view hasn't
+        // counted yet.
+        if (response.hits) {
+            $('.islive b').text(addCommas(response.hits));
+            $('.islive').show();
         }
-        req.then(function(response) {
-            if (response.hits) {
-                $('.islive b').text(addCommas(response.hits));
-                $('.islive').show();
-            }
-        })
-        .fail(function() {
-            clearInterval(loop);
-        });
+    }
+    var url = $('.islive').data('url');
+    // send a POST after some time to count this as a view
+    setTimeout(function() {
+        var data = {
+            csrfmiddlewaretoken:
+            $('.islive input[name="csrfmiddlewaretoken"]').val()
+        };
+        $.post(url, data).then(update);
     }, 10 * 1000);
+
+    var loop = null;
+    function fetch() {
+        $.getJSON(url)
+        .then(update)
+        .fail(function() {
+            if (loop !== null) {
+                clearInterval(loop);
+            }
+        });
+    }
+    // first do an immediate AJAX get to get the number
+    fetch();
+    // then set up a loop
+    setInterval(fetch, 10 * 1000);
+
 });
