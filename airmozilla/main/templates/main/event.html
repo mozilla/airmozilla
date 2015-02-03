@@ -43,6 +43,7 @@
 <script src="{{ static('main/js/tearout.js') }}"></script>
 <script src="{{ static('comments/js/comments.js') }}"></script>
 <script src="{{ static('surveys/js/survey.js') }}"></script>
+<script src="{{ static('main/js/livehits.js') }}"></script>
 {% endcompress %}
 {% endblock %}
 
@@ -94,15 +95,22 @@
         </p>
       {% else %}
         {% if video %}
-           {{ video|safe }}
-           <p class="tearout">
-             <span class="warning-about-time">
-               <b>Note!</b> When you tear out the video window it will start from the beginning.
-             </span>
-             <a class="open"
-                title="Click to open up just the video in a pop-up"></a>
-             <span class="problem"></span>
-           </p>
+          {{ video|safe }}
+          <p class="tearout">
+            <span class="warning-about-time">
+              <b>Note!</b> When you tear out the video window it will start from the beginning.
+            </span>
+            <a class="open"
+               title="Click to open up just the video in a pop-up"></a>
+            <span class="problem"></span>
+          </p>
+          {% if event.is_live() %}
+          <p class="islive" data-url="{{ url('main:event_livehits', event.id) }}">
+            {{ csrf() }}
+            Number of live views: <b></b>
+          </p>
+          {% endif %}
+
         {% else %}
           {{ show_thumbnail(event, '121x68') }}
         {% endif %}

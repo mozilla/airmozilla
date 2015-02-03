@@ -16,7 +16,7 @@ from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
 from django.contrib.flatpages.views import flatpage
 from django.views.generic.base import View
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 from django.db import transaction
 
 from slugify import slugify
@@ -38,6 +38,7 @@ from airmozilla.main.models import (
     EventRevision,
     Picture,
     VidlySubmission,
+    EventLiveHits,
 )
 from airmozilla.base.utils import (
     paginate,
@@ -1332,3 +1333,43 @@ def executive_summary(request):
         'next_start': next_start,
     }
     return render(request, 'main/executive_summary.html', context)
+
+
+@json_view
+def event_livehits(request, id):
+    event = get_object_or_404(Event, id=id)
+    if request.method == 'POST' and event.is_live():
+        live_hits, _ = EventLiveHits.objects.get_or_create(event=event)
+
+        if request.user.is_authenticated():
+            cache_key = 'event_livehits-%d' % request.user.id
+        else:
+            cache_key = ''
+            for thing in (
+                'HTTP_USER_AGENT',
+                'HTTP_ACCEPT_LANGUAGE',
+                'REMOVE_ADDR',
+            ):
+                value = request.META.get(thing)
+                if value:
+                    cache_key += value
+            cache_key = 'event_livehits' + hashlib.md5(cache_key).hexdigest()
+            cache_key = cache_key[:30]
+        counted = cache.get(cache_key)
+        total_hits = live_hits.total_hits
+        if not counted:
+            # let's assume the longest possible time it's live is 12 hours
+            cache.set(cache_key, True, 60 * 60 * 12)
+            # we need to increment!
+            (
+                EventLiveHits.objects.filter(event=event)
+                .update(total_hits=F('total_hits') + 1)
+            )
+            total_hits += 1
+    else:
+        try:
+            total_hits = EventLiveHits.objects.get(event=event).total_hits
+        except EventLiveHits.DoesNotExist:
+            total_hits = 0
+
+    return {'hits': total_hits}

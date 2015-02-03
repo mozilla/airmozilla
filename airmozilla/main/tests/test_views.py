@@ -37,6 +37,7 @@ from airmozilla.main.models import (
     RecruitmentMessage,
     Picture,
     VidlySubmission,
+    EventLiveHits,
 )
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -2849,6 +2850,47 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url, {'start': '2015-01-04'})
         # a valid date but not a Monday
         eq_(response.status_code, 400)
+
+    def test_event_livehits(self):
+
+        def get_hits(resp):
+            eq_(resp.status_code, 200)
+            return json.loads(resp.content)['hits']
+
+        event = Event.objects.get(title='Test event')
+        assert event.is_live()
+        url = reverse('main:event_livehits', args=(event.id,))
+        response = self.client.get(url)
+        eq_(get_hits(response), 0)
+        # post to it it once
+        response = self.client.post(url)
+        eq_(get_hits(response), 1)
+        eq_(EventLiveHits.objects.get(event=event).total_hits, 1)
+
+        # another get
+        response = self.client.get(url)
+        eq_(get_hits(response), 1)
+
+        # another push
+        response = self.client.post(url)
+        eq_(get_hits(response), 1)
+        eq_(EventLiveHits.objects.get(event=event).total_hits, 1)
+
+        # change something about our request
+        response = self.client.post(url, HTTP_USER_AGENT='Mozilla/Django')
+        eq_(get_hits(response), 2)
+        eq_(EventLiveHits.objects.get(event=event).total_hits, 2)
+
+        # be signed in
+        self._login()
+        response = self.client.post(url)
+        eq_(get_hits(response), 3)
+        eq_(EventLiveHits.objects.get(event=event).total_hits, 3)
+
+        # and a second time as signed in
+        response = self.client.post(url)
+        eq_(get_hits(response), 3)
+        eq_(EventLiveHits.objects.get(event=event).total_hits, 3)
 
 
 class TestEventEdit(DjangoTestCase):

@@ -47,7 +47,8 @@ urlpatterns = patterns(
         name='channel_feed_format_type'),
     url(r'^tagcloud/$', views.tag_cloud, name='tag_cloud'),
     url(r'^videoredirector/$', views.videoredirector, name='videoredirector'),
-
+    url(r'^livehits/(?P<id>\d+)/$',
+        views.event_livehits, name='event_livehits'),
     url(r'^unpicked-pictures/$', views.unpicked_pictures,
         name='unpicked_pictures'),
     url(r'^contributors/$',

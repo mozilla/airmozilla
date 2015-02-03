@@ -653,6 +653,12 @@ def update_modified(sender, instance, raw, *args, **kwargs):
     instance.modified = _get_now()
 
 
+class EventLiveHits(models.Model):
+    event = models.ForeignKey(Event, unique=True, db_index=True)
+    total_hits = models.IntegerField(default=0)
+    modified = models.DateTimeField(auto_now=True)
+
+
 class LocationDefaultEnvironment(models.Model):
     location = models.ForeignKey(Location)
     privacy = models.CharField(max_length=40, choices=Event.PRIVACY_CHOICES,
