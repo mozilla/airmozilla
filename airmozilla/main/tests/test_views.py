@@ -5,7 +5,6 @@ import json
 import urllib2
 import urllib
 import re
-import time
 import copy
 
 from django.contrib.flatpages.models import FlatPage
@@ -1951,14 +1950,14 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 400)
 
         response = self.client.get(url, {
-            'start': '123',
+            'start': '2015-02-02',
             'end': 'not a number'
         })
         eq_(response.status_code, 400)
 
         response = self.client.get(url, {
             'start': 'not a number',
-            'end': '123'
+            'end': '2015-02-02'
         })
         eq_(response.status_code, 400)
 
@@ -1970,19 +1969,19 @@ class TestPages(DjangoTestCase):
         while last.month == first.month:
             last += datetime.timedelta(days=1)
 
-        first_ts = int(time.mktime(first.timetuple()))
-        last_ts = int(time.mktime(last.timetuple()))
+        first_date = first.strftime('%Y-%m-%d')
+        last_date = last.strftime('%Y-%m-%d')
 
         # start > end
         response = self.client.get(url, {
-            'start': last_ts,
-            'end': first_ts
+            'start': last_date,
+            'end': first_date
         })
         eq_(response.status_code, 400)
 
         response = self.client.get(url, {
-            'start': first_ts,
-            'end': last_ts
+            'start': first_date,
+            'end': last_date
         })
         eq_(response.status_code, 200)
         structure = json.loads(response.content)
@@ -2007,12 +2006,12 @@ class TestPages(DjangoTestCase):
         while last.month == first.month:
             last += datetime.timedelta(days=1)
 
-        first_ts = int(time.mktime(first.timetuple()))
-        last_ts = int(time.mktime(last.timetuple()))
+        first_date = first.strftime('%Y-%m-%d')
+        last_date = last.strftime('%Y-%m-%d')
 
         params = {
-            'start': first_ts,
-            'end': last_ts
+            'start': first_date,
+            'end': last_date
         }
         response = self.client.get(url, params)
         eq_(response.status_code, 200)

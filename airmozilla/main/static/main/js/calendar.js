@@ -12,17 +12,16 @@ $(function() {
     }
     var container = $('#calendar');
     container.fullCalendar({
-        events: container.data('events-url'),
-        cache: true,
+        events: {
+            url: container.data('events-url'),
+            cache: true
+        },
+        timezone: 'local',
         weekends: weekends,
         firstDay: firstDay,
         allDaySlot: false,
-        defaultEventMinutes: 60,
-        ignoreTimezone: false,
-        timeFormat: {
-            'agenda': 'H:mm',
-            '': 'H:mm'
-        },
+        defaultTimedEventDuration: '01:00:00',
+        timeFormat: 'h:mm a',
         header: {
             left: 'prev,next today',
             center: 'title',
