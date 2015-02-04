@@ -1,5 +1,9 @@
 $(function() {
     if (!$('.islive').length) return;
+    if (typeof jwplayer("player").id === 'undefined') {
+        console.warn('No jwplayer("player") to hook events to');
+        return;
+    }
 
     // http://stackoverflow.com/a/2646441/205832
     function addCommas(nStr) {
@@ -25,13 +29,13 @@ $(function() {
     }
     var url = $('.islive').data('url');
     // send a POST after some time to count this as a view
-    setTimeout(function() {
+    jwplayer("player").onPlay(function() {
         var data = {
             csrfmiddlewaretoken:
             $('.islive input[name="csrfmiddlewaretoken"]').val()
         };
         $.post(url, data).then(update);
-    }, 10 * 1000);
+    });
 
     var loop = null;
     function fetch() {
