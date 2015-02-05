@@ -82,7 +82,7 @@ def get_media_info(event):
         return {
             # 'url': 'http://vid.ly/%s?content=video&format=webm' % tag,
             # 'format': 'webm'
-            # NOTE that it's deliberately set to the HTTP URL. Not HTTPS
+            # NOTE that it's deliberately set to the HTTP URL. Not HTTPS :(
             'url': 'http://vid.ly/%s?content=video&format=mp4' % tag,
             'format': 'mp4'
         }
@@ -90,8 +90,21 @@ def get_media_info(event):
         try:
             file = event.template_environment['file']
             return {
-                # it's important to use HTTP here
+                # it's important to use HTTP here :(
                 'url': 'http://hls.cdn.mozilla.net/%s.m3u8' % file,
+                'format': 'hls',
+            }
+        except KeyError:
+            pass
+    elif event.template and 'wowza hls' in event.template.name.lower():
+        try:
+            file = event.template_environment['file']
+            return {
+                # it's important to use HTTP here :(
+                'url': (
+                    'http://wowza1.scl3.mozilla.com/live/ngrp:%s_all'
+                    '/playlist.m3u8' % file
+                ),
                 'format': 'hls',
             }
         except KeyError:

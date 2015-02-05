@@ -27,7 +27,7 @@
 	<!-- EVENT LIVE -->
 	{% set media_info = get_media_info(event) %}
 	{% if media_info %}
-	{% if media_info.format == 'hls' or 1 %}
+	{% if media_info.format == 'hls' %}
 		{% if event.picture %}
 			{% set thumb_hd = thumbnail(event.picture.file, '304x237', crop='center') %}
 			{% set thumb_sd = thumbnail(event.picture.file, '224x158', crop='center') %}
