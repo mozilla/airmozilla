@@ -41,12 +41,12 @@ def sidebar(request):
     feed_privacy = _get_feed_privacy(request.user)
 
     if settings.DEFAULT_CHANNEL_SLUG in [x.slug for x in channels]:
-        feed_title = 'AirMozilla RSS'
+        feed_title = 'Air Mozilla RSS'
         feed_url = reverse('main:feed', args=(feed_privacy,))
         sidebar_channel = settings.DEFAULT_CHANNEL_SLUG
     else:
         _channel = channels[0]
-        feed_title = 'AirMozilla - %s - RSS' % _channel.name
+        feed_title = 'Air Mozilla - %s - RSS' % _channel.name
         feed_url = reverse('main:channel_feed',
                            args=(_channel.slug, feed_privacy))
         sidebar_channel = _channel.slug

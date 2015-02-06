@@ -918,7 +918,12 @@ def events_calendar_ical(request, privacy=None):
 
 
 class EventsFeed(Feed):
-    title = "AirMozilla"
+    title = "Air Mozilla"
+    description = (
+        "Air Mozilla is the Internet multimedia presence of Mozilla, "
+        "with live and pre-recorded shows, interviews, news snippets, "
+        "tutorial videos, and features about the Mozilla community. "
+    )
 
     description_template = 'main/feeds/event_description.html'
 
@@ -939,6 +944,13 @@ class EventsFeed(Feed):
 
     def feed_url(self):
         return self.link()
+
+    def feed_copyright(self):
+        return (
+            "Except where otherwise noted, content on this site is "
+            "licensed under the Creative Commons Attribution Share-Alike "
+            "License v3.0 or any later version."
+        )
 
     def items(self):
         now = timezone.now()
@@ -962,6 +974,9 @@ class EventsFeed(Feed):
             if event.template and 'vid.ly' in event.template.name.lower():
                 return self._get_webm_link(event)
         return self._root_url + reverse('main:event', args=(event.slug,))
+
+    def item_author_name(self, event):
+        return self.title
 
     def _get_webm_link(self, event):
         tag = event.template_environment['tag']
