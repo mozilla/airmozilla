@@ -27,10 +27,11 @@ button {
     border-radius: 0;
 }
 
-button:hover {
+button:hover, button:focus {
     box-shadow: none;
+    outline: none;
 }
 
 label {
-  display: inline;
+    display: inline;
 }
