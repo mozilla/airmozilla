@@ -4,8 +4,7 @@ set -e
 
 echo "Install Python dependencies"
 pip install -r requirements.txt
-pip install coverage
-pip install flake8
+pip install -r dev-requirements.txt
 
 echo "Creating a test database"
 psql -c 'create database airmozilla;' -U postgres

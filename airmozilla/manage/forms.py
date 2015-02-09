@@ -139,8 +139,7 @@ class EventRequestForm(BaseModelForm):
                 )
 
             if event.pk:
-                tag_format = lambda objects: ','.join(map(unicode, objects))
-                tags_formatted = tag_format(event.tags.all())
+                tags_formatted = ','.join(x.name for x in event.tags.all())
                 self.initial['tags'] = tags_formatted
 
     def clean_tags(self):
