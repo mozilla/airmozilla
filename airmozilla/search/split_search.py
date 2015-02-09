@@ -7,28 +7,23 @@
 #
 # Taken from http://www.peterbe.com/plog/split_search
 
-__version__ = '1.4'
-
-"""
-
-  split_search(searchstring [str or unicode],
-               keywords [list or tuple])
-
-  Splits the search string into a free text part and a dictionary of keyword
-  pairs. For example, if you search for 'Something from: Peter to: Lukasz'
-  this function will return
-  'Something', {'from':'Peter', 'to':'Lukasz'}
-
-  It works equally well with unicode strings.
-
-  Any keywords in the search string that isn't recognized is considered text.
-
-"""
-
 import re
+
+__version__ = '1.4'
 
 
 def split_search(q, keywords):
+    """
+    Splits the search string into a free text part and a dictionary of keyword
+    pairs. For example, if you search for 'Something from: Peter to: Lukasz'
+    this function will return
+    'Something', {'from':'Peter', 'to':'Lukasz'}
+
+    It works equally well with unicode strings.
+
+    Any keywords in the search string that isn't recognized is considered text.
+    """
+
     params = {}
     s = []
     if re.findall('[^\w]', ''.join(keywords)):

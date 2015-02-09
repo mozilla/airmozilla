@@ -282,7 +282,7 @@ def install_python_dependencies(repo_root, virtualenv_name):
     print
     print (
         "Now we're going to attempt to install all the\n"
-        "dependencies. Let's hope it works. If not you might\n"
+        "dependencies. Let's hope it works. If not, you might\n"
         "have to attempt this manually. The command we're going"
         " to use is:\n"
         'pip install -r %s/requirements.txt' % (
@@ -297,6 +297,29 @@ def install_python_dependencies(repo_root, virtualenv_name):
         )
     )
     print "Great! Python dependencies installed."
+    _proceed()
+
+
+def install_python_dev_dependencies(repo_root, virtualenv_name):
+    # then virtualenv_name is a path
+    print
+    print (
+        "Now we're going to attempt to install all the\n"
+        "dev dependencies. Let's hope it works. If not, you might\n"
+        "have to attempt this manually. The command we're going"
+        " to use is:\n"
+        'pip install -r %s/dev-requirements.txt' % (
+            repo_root,
+        )
+    )
+
+    _process_streamed(
+        '%s/bin/pip install -r %s/dev-requirements.txt' % (
+            virtualenv_name,
+            repo_root
+        )
+    )
+    print "Great! Python dev dependencies installed."
     _proceed()
 
 
@@ -406,6 +429,7 @@ def run():
 
     venv_path = create_virtualenv(repo_root)
     install_python_dependencies(repo_root, venv_path)
+    install_python_dev_dependencies(repo_root, venv_path)
 
     about_first_migration(repo_root, venv_path)
 

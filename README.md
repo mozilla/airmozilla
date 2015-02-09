@@ -57,6 +57,14 @@ need to install XCode and on Linux you'll need to install `python-dev`.
 [This article on pyladies.com](http://www.pyladies.com/blog/Get-Your-Mac-Ready-for-Python-Programming/)
 has a lot of useful information.
 
+Once you have a virtualenv you want to use, you need to install all the
+dependencies. You do this with:
+
+    pip install -r requirements.txt
+    pip install -r dev-requirements.txt
+
+The second file is necessary so you can
+
 **Step 2 - Get the code**
 
 Note: We're assuming you have already activated a `virtualenv` which will
