@@ -58,6 +58,7 @@ def debugger__(request):
     r = http.HttpResponse()
     r.write('BROWSERID_AUDIENCES=%r\n' % settings.BROWSERID_AUDIENCES)
     r.write('Todays date: 2014-05-21 14:02 PST\n')
+    r.write('Request secure? %s\n' % request.is_secure())
     r['Content-Type'] = 'text/plain'
     return r
 
