@@ -25,3 +25,4 @@ vidlyserver/foo.json
 mysql2postgres/mysql2pgsql.yml
 roku/dist/
 roku/airmozilla.zip
+ghostdriver.log

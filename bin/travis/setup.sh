@@ -23,4 +23,6 @@ CACHES = {
         'LOCATION': 'unique-snowflake'
     }
 }
+
+RUN_SELENIUM_TESTS = True
 SETTINGS

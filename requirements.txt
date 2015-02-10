@@ -126,3 +126,5 @@ readability-api==0.2.4
 django-jsonfield==0.9.13
 # sha256: vPcTcdmXu0ajFop7Y6rma1bMyswCWvkxDbQxVoHviGg
 python-memcached==1.53
+# sha256: BYpoit1Ha8YkNi6MkT_xNyJp0dthoMaoXzUi9Di-4FA
+selenium==2.44.0

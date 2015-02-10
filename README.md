@@ -365,6 +365,10 @@ Tests and test coverage
 Included is a set of comprehensive tests, which you can run by:
 ``./manage.py test``
 
+If you want to run selenium tests don't forget to add
+`RUN_SELENIUM_TESTS = True` in your `airmozilla/settings/local.py` file
+also you need to install [PhantomJS](http://phantomjs.org/).
+
 To see the tests' code coverage, use:
 ``./manage.py test --with-coverage --cover-erase --cover-html --cover-package=airmozilla``
 
