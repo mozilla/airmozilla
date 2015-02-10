@@ -162,7 +162,11 @@
           {% endif %}
         </p>
         <div class="embed hidden">
-          <textarea rows="1" cols="80">{{ embed_code }}</textarea>
+          <a href="#" class="current">Small (640x380)</a>
+          <a href="#">Big (896x504)</a>
+          <br>
+          <textarea rows="1" cols="80" class="small-embed-code">{{ embed_code }}</textarea>
+          <textarea rows="1" cols="80" class="big-embed-code hidden">{{ embed_code_big }}</textarea>
         </div>
         {% if vidly_tag %}
         <div class="download hidden">

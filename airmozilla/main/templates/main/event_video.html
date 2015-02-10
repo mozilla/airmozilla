@@ -30,26 +30,30 @@
   </head>
   <body>
 
-{% if error %}
-  <h3 class="error">ERROR: {{ error }}</h3>
-{% else %}
-  {% if warning %}
-    <div class="warning">Warning: {{ warning }}</div>
-  {% endif %}
+  {% if error %}
+    <h3 class="error">ERROR: {{ error }}</h3>
+  {% else %}
+    {% if warning %}
+      <div class="warning">Warning: {{ warning }}</div>
+    {% endif %}
 
-  {% if event %}
-    {% if pending %}
-      <p class="pending">
-      Event is currently in a pending state meaning it will soon be made available.
-      </p>
-    {% else %}
-      {{ video | safe }}
-      {% if embedded %}
-        <p class="footer"><a href="{{ absolute_url }}" target="_blank">View on Air Mozilla</a></p>
+    {% if event %}
+      {% if pending %}
+        <p class="pending">
+        Event is currently in a pending state meaning it will soon be made available.
+        </p>
+      {% else %}
+        {{ video | safe }}
+        {% if embedded %}
+          <p class="footer"><a href="{{ absolute_url }}" target="_blank">View on Air Mozilla</a></p>
+        {% endif %}
       {% endif %}
     {% endif %}
   {% endif %}
-{% endif %}
 
+  {% compress js %}
+  <script src="{{ static('main/js/event_video.js') }}"></script>
+  {% endcompress %}
+  
   </body>
 </html>

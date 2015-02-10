@@ -17,6 +17,10 @@ p.pending {
 .embed textarea {
     max-width: 100%;
 }
+.embed a.current {
+    text-decoration: none;
+    color: white;
+}
 
 .islive {
     display: none;

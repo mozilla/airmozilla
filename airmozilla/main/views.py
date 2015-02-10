@@ -307,6 +307,12 @@ class EventView(View):
             '</iframe>'
             % absolute_url
         )
+        context['embed_code_big'] = (
+            '<iframe src="%s" '
+            'width="896" height="524" frameborder="0" allowfullscreen>'
+            '</iframe>'
+            % absolute_url
+        )
         return context
 
     def get_event(self, slug, request):

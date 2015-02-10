@@ -1,3 +1,7 @@
+// This global variable is available so the popup window can access
+// (and write to) `windown.opener.popup_position`.
+var popup_position = 0;
+
 $(function() {
     var iframe_clone = null;
     var popup = null;
@@ -12,11 +16,13 @@ $(function() {
     });
 
     var player_width = null, player_height = null;
+    var jwplayer_player = null;
 
     $('.tearout').on('click', 'a.open', function(event) {
         event.preventDefault();
         var iframe = $('.entry-content iframe');
         var player_wrapper = $('.entry-content #player_wrapper');
+        var jwplayer_container = $('.entry-content div.jwplayer');
 
         var video_url = location.href + 'video/?embedded=false&autoplay=true';
         var video_name = '_blank';
@@ -30,15 +36,30 @@ $(function() {
                 // probably a live event using jwplayer
                 player_width = parseInt(player_wrapper.css('width'), 10);
                 player_height = parseInt(player_wrapper.css('height'), 10);
+            } else if (jwplayer_container.length) {
+                // archived video using jwplayer
+                player_width = parseInt(jwplayer_container.css('width'), 10);
+                player_height = parseInt(jwplayer_container.css('height'), 10);
+                jwplayer_player = jwplayer();
             } else {
                 console.warn('No iframe, so hard to guess the width and height of popup');
                 // some sensible defaults
-                player_width = 640;
-                player_height = 360;
+                player_width = 896;
+                player_height = 504;
             }
         }
         features += ',width=' + player_width;
         features += ',height=' + player_height;
+        if (jwplayer_player !== null && jwplayer_player.getPosition()) {
+            var position = jwplayer_player.getPosition();
+            if (position > 1) {
+                // go back 1 second
+                position--;
+            }
+            jwplayer_player.pause();
+            // set the global variable so the pop-up window can reach it
+            popup_position = position;
+        }
 
         popup = window.open(video_url, video_url, features);
         if (popup === null) {
@@ -57,6 +78,9 @@ $(function() {
             $('.tearout a.restore').fadeIn(400);
             if (iframe.length) {
                 iframe_clone = iframe.detach();
+            } else if (jwplayer_container.length) {
+                // jwplayer_container.detach();
+                jwplayer_container.hide();
             } else {
                 player_wrapper = player_wrapper.detach();
             }
@@ -79,6 +103,13 @@ $(function() {
                     placeholder = placeholder.detach();
                     if (iframe.length) {
                         iframe_clone.insertBefore($('.tearout'));
+                    } else if (jwplayer_container.length) {
+                        console.log("RESTORED", popup_position);
+                        if (popup_position) {
+                            jwplayer_player.seek(popup_position);
+                        }
+                        jwplayer_container.show();
+
                     } else {
                         player_wrapper.insertBefore($('.tearout'));
                     }

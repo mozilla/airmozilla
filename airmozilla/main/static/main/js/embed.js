@@ -15,4 +15,9 @@ $(function() {
         this.select();
     });
 
+    $('.embed a').on('click', function() {
+        $('.embed a').toggleClass('current');
+        $('.embed textarea').toggleClass('hidden');
+        return false;
+    });
 });
