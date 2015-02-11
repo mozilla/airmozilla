@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.db import transaction
+from django.db.models import Count
 
 from jsonview.decorators import json_view
 
@@ -34,10 +35,28 @@ def templates(request):
     context = {}
     context['templates'] = Template.objects.all()
 
-    def count_events_with_template(template):
-        return Event.objects.filter(template=template).count()
+    counts = {}
 
-    context['count_events_with_template'] = count_events_with_template
+    events = Event.objects.all()
+    for each in events.values('template').annotate(Count('template')):
+        counts[each['template']] = each['template__count']
+
+    counts_removed = {}
+    events = events.filter(status=Event.STATUS_REMOVED)
+    for each in events.values('template').annotate(Count('template')):
+        counts_removed[each['template']] = each['template__count']
+
+    # def count_events_with_template(template):
+    #     return Event.objects.filter(template=template).count()
+    #
+    # def count_removed_events_with_template(template):
+    #     return Event.objects.filter(
+    #         template=template,
+    #         status=Event.STATUS_REMOVED
+    #     ).count()
+
+    context['counts'] = counts
+    context['counts_removed'] = counts_removed
     return render(request, 'manage/templates.html', context)
 
 
@@ -72,8 +91,15 @@ def template_edit(request, id):
             return redirect('manage:templates')
     else:
         form = forms.TemplateEditForm(instance=template)
-    return render(request, 'manage/template_edit.html', {'form': form,
-                                                         'template': template})
+
+    events = Event.objects.filter(template=template).order_by('modified')
+    context = {
+        'form': form,
+        'template': template,
+        'events_count': events.count(),
+        'events': events[:100],  # cap it so it doesn't get too big
+    }
+    return render(request, 'manage/template_edit.html', context)
 
 
 @staff_required

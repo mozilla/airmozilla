@@ -121,3 +121,16 @@ def comment_status_to_css_label(status):
     elif status == Comment.STATUS_REMOVED:
         return 'label-danger'
     return 'label-info'
+
+
+@register.function
+def event_status_to_css_label(status):
+    if status == Event.STATUS_INITIATED:
+        return 'label-default'
+    if status == Event.STATUS_PENDING:
+        return 'label-primary'
+    if status == Event.STATUS_SCHEDULED:
+        return 'label-success'
+    if status == Event.STATUS_REMOVED:
+        return 'label-danger'
+    raise NotImplementedError(status)

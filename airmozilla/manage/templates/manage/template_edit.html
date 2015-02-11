@@ -6,4 +6,40 @@
 
 {% block manage_content %}
     {% include 'manage/_default_form.html' %}
+
+
+    <h3>Events using this template ({{ events_count }})</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Start time</th>
+          <th>Status</th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in events %}
+        <tr>
+          <td>
+            <a href="{{ url('main:event', event.slug) }}">{{ event.title }}</a>
+          </td>
+          <td>
+            {{ event.start_time |js_date }}
+          </td>
+          <td>
+            <span class="label {{ event_status_to_css_label(event.status) }}">
+              {{ event.get_status_display() }}
+            </span>
+          </td>
+          <td>
+            <a href="{{ url('manage:event_edit', event.id) }}" class="btn btn-default btn-xs">
+              <i class="glyphicon glyphicon-edit"></i> Edit
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
 {% endblock %}
