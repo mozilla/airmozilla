@@ -4,7 +4,7 @@ from nose.tools import eq_, ok_
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Template
+from airmozilla.main.models import Template, Event
 from .base import ManageTestCase
 
 
@@ -46,6 +46,15 @@ class TestTemplates(ManageTestCase):
             'name': 'no content'
         })
         eq_(response_fail.status_code, 200)
+
+    def test_template_edit_list_events(self):
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.get(name='test template')
+        url = reverse('manage:template_edit', kwargs={'id': template.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+        ok_(event.get_status_display() in response.content)
 
     def test_template_edit_default_popcorn_template(self):
         """Editing a template and setting `default_popcorn_template` should

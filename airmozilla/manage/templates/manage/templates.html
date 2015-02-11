@@ -2,7 +2,7 @@
 {% set page='templates' %}
 
 {% block manage_title %}
-  Video templates
+  Video templates ({{ templates.count() }})
 {% endblock %}
 
 {% block manage_content %}
@@ -10,37 +10,45 @@
     <thead>
       <tr>
         <th>Name</th>
-        <th># Events using this</th>
+        <th>
+          # Events using this
+          <span style="color:#666">(Removed)</span>
+        </th>
         <th></th>
       </tr>
     </thead>
     <tbody>
     {% for template in templates %}
     <tr>
-        <td>{{ template.name }}
-            {% if template.default_popcorn_template %}
-            <span class="label label-info" title="Default Popcorn template">Popcorn</span>
-            {% endif %}
-            {% if template.default_archive_template %}
-            <span class="label label-info" title="Default archive template">Default archive</span>
-            {% endif %}
-        </td>
-	    <td>{{ count_events_with_template(template) }}</td>
-        <td>
-          <a class="btn btn-default btn-sm" href="{{ url('manage:template_edit', template.id) }}">
-            <i class="glyphicon glyphicon-edit"></i>
-            Edit
-          </a>
-          <form method="post" class="confirm"
-                action="{{ url('manage:template_remove', template.id) }}">
-            {{ csrf() }}
-            <button class="btn btn-danger btn-sm" type="submit">
-              <i class="glyphicon glyphicon-trash"></i>
-              Delete
-            </button>
-          </form>
-        </td>
-      </tr>
+      <td>{{ template.name }}
+        {% if template.default_popcorn_template %}
+        <span class="label label-info" title="Default Popcorn template">Popcorn</span>
+        {% endif %}
+        {% if template.default_archive_template %}
+        <span class="label label-info" title="Default archive template">Default archive</span>
+        {% endif %}
+      </td>
+      <td>
+        <span title="Total number of events">{{ counts.get(template.id, 0) }}</span>
+        {% if counts.get(template.id) %}
+        <span title="Events that are removed" style="color:#666">({{ counts_removed.get(template.id, 0) }})</span>
+        {% endif %}
+      </td>
+      <td>
+        <a class="btn btn-default btn-sm" href="{{ url('manage:template_edit', template.id) }}">
+          <i class="glyphicon glyphicon-edit"></i>
+          Edit
+        </a>
+        <form method="post" class="confirm"
+              action="{{ url('manage:template_remove', template.id) }}">
+          {{ csrf() }}
+          <button class="btn btn-danger btn-sm" type="submit">
+            <i class="glyphicon glyphicon-trash"></i>
+            Delete
+          </button>
+        </form>
+      </td>
+    </tr>
     {% endfor %}
     </tbody>
   </table>
