@@ -29,7 +29,7 @@ def _get_live_time():
 
 
 class UserProfile(models.Model):
-    user = models.ForeignKey(User)
+    user = models.OneToOneField(User, related_name='profile')
     contributor = models.BooleanField(default=False)
 
 
@@ -47,7 +47,7 @@ def user_profile_clear_cache(sender, instance, **kwargs):
 
 def get_profile_safely(user, create_if_necessary=False):
     try:
-        return user.get_profile()
+        return user.profile
     except (UserProfile.DoesNotExist, AttributeError):
         # AttributeErrors happen if user is instance of AnonymousUser
         if create_if_necessary:

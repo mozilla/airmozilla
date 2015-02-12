@@ -50,6 +50,10 @@ INSTALLED_APPS = (
     'django_nose',  # deliberately making this the last one
 )
 
+# Necessary so that test-utils doesn't try to execute some deprecated
+# functionality on the database connection.
+SQL_RESET_SEQUENCES = False
+
 # We can use the simplest hasher because we never store usable passwords
 # thanks to Persona.
 PASSWORD_HASHERS = ('django.contrib.auth.hashers.UnsaltedMD5PasswordHasher',)
@@ -79,8 +83,6 @@ AUTHENTICATION_BACKENDS = [
     # whose backend cookie points to this class path
     'django_browserid.auth.BrowserIDBackend',
 ]
-
-AUTH_PROFILE_MODULE = 'main.UserProfile'
 
 # Domains allowed for log in
 ALLOWED_BID = (

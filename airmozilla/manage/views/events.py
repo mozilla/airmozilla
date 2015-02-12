@@ -824,7 +824,7 @@ def event_tweets(request, id):
                 EventTweet,
                 pk=request.POST.get('error')
             )
-            return http.HttpResponse(tweet.error, mimetype='text/plain')
+            return http.HttpResponse(tweet.error, content_type='text/plain')
         else:
             raise NotImplementedError
         url = reverse('manage:event_tweets', args=(event.pk,))
@@ -1275,9 +1275,9 @@ def event_assignments_ical(request):
         )
     icalstream = cal.serialize()
     # response = http.HttpResponse(icalstream,
-    #                          mimetype='text/plain; charset=utf-8')
+    #                              content_type='text/plain; charset=utf-8')
     response = http.HttpResponse(icalstream,
-                                 mimetype='text/calendar; charset=utf-8')
+                                 content_type='text/calendar; charset=utf-8')
     filename = 'AirMozillaEventAssignments'
     filename += '.ics'
     response['Content-Disposition'] = (
