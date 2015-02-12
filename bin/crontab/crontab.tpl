@@ -7,31 +7,31 @@ MAILTO=peterbe@mozilla.com
 HOME=/tmp
 
 # Every 1 hour
-0 */1 * * * {{ cron }} send_unsent_tweets 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+0 */1 * * * {{ cron }} send_unsent_tweets 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every 2 minutes
-*/2 * * * * {{ cron }} auto_archive 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+*/2 * * * * {{ cron }} auto_archive 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Daily
-7 0 * * * {{ cron }} pester_approvals 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+7 0 * * * {{ cron }} pester_approvals 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every 2 hours (10 minutes past)
-10 */2 * * * {{ cron }} synchronize_vidly_submissions 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+10 */2 * * * {{ cron }} synchronize_vidly_submissions 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every hour
-0 */1 * * * {{ cron }} cron_ping 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+0 */1 * * * {{ cron }} cron_ping 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every 30 minutes
-*/30 * * * * {{ cron }} update_event_hit_stats 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+*/30 * * * * {{ cron }} update_event_hit_stats 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every 15 minutes
-*/15 * * * * {{ cron }} fetch_durations 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+*/15 * * * * {{ cron }} fetch_durations 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every 10 minutes
-*/10 * * * * {{ cron }} fetch_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+*/10 * * * * {{ cron }} fetch_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every 10 minutes
-*/10 * * * * {{ cron }} import_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|from pkg_resources)'
+*/10 * * * * {{ cron }} import_screencaptures 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 
 MAILTO=root
