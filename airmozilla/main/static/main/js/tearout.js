@@ -104,7 +104,6 @@ $(function() {
                     if (iframe.length) {
                         iframe_clone.insertBefore($('.tearout'));
                     } else if (jwplayer_container.length) {
-                        console.log("RESTORED", popup_position);
                         if (popup_position) {
                             jwplayer_player.seek(popup_position);
                         }
