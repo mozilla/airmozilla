@@ -164,11 +164,11 @@ class PesteringTestCase(TestCase):
                 ok_('1 event to approve' in subject)
                 ok_(event.title in message)
                 ok_(event2.title not in message)
-                ok_('Time left: 1 hour' in message)
+                ok_(u'Time left: 1\xa0hour' in message)
             elif email == steve.email:
                 ok_('2 events to approve' in subject)
                 ok_(event.title in message)
                 ok_(event2.title in message)
-                ok_('Time left: 1 day' in message)
+                ok_(u'Time left: 1\xa0day' in message)
             else:
                 raise AssertionError(email)

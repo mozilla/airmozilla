@@ -33,7 +33,9 @@ class CustomBrowserIDVerify(Verify):
                 # with new domains and people with those domains logged
                 # in before.
                 try:
-                    profile = self.user.get_profile()
+                    # This works because of the OneToOneField and
+                    # related_name='profile' on the UserProfile class.
+                    profile = self.user.profile
                     # if you were a contributor before, undo that now
                     if profile.contributor:
                         profile.contributor = False
@@ -43,7 +45,7 @@ class CustomBrowserIDVerify(Verify):
 
             elif is_vouched(self.user.email):
                 try:
-                    profile = self.user.get_profile()
+                    profile = self.user.profile
                     if not profile.contributor:
                         profile.contributor = True
                         profile.save()

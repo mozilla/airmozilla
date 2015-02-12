@@ -194,4 +194,4 @@ class TestUploads(TestCase):
         eq_(response.status_code, 200)
         structure = json.loads(response.content)
         eq_(structure['size'], 123456)
-        eq_(structure['size_human'], '120.6 KB')
+        eq_(structure['size_human'], u'120.6\xa0KB')

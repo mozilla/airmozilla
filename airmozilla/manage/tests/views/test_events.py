@@ -1572,7 +1572,7 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 200)
 
         # 101 / 365 days ~= 0.3
-        ok_('1 year' in response.content)
+        ok_(u'1\xa0year' in unicode(response.content, 'utf-8'))
         ok_('101' in response.content)
         ok_('0.3' in response.content)
 
@@ -1602,7 +1602,7 @@ class TestEvents(ManageTestCase):
 
         response = self.client.get(url, {'include_excluded': True})
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        ok_(event.title in unicode(response.content, 'utf-8'))
 
     def test_event_hit_stats_archived_today(self):
         event = Event.objects.get(title='Test event')

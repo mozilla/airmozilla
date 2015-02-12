@@ -904,11 +904,14 @@ def events_calendar_ical(request, privacy=None):
             vevent.add('location').value = event.location.name
         vevent.add('url').value = base_url + event.slug + '/'
     icalstream = cal.serialize()
-    # response = http.HttpResponse(icalstream,
-    #                           mimetype='text/plain; charset=utf-8')
-
-    response = http.HttpResponse(icalstream,
-                                 mimetype='text/calendar; charset=utf-8')
+    # response = http.HttpResponse(
+    #     icalstream,
+    #     content_type='text/plain; charset=utf-8'
+    # )
+    response = http.HttpResponse(
+        icalstream,
+        content_type='text/calendar; charset=utf-8'
+    )
     filename = 'AirMozillaEvents%s' % (privacy and privacy or '')
     if location:
         filename += '_%s' % slugify(location.name)
@@ -1175,7 +1178,7 @@ def edgecast_smil(request):
 
 
 def crossdomain_xml(request):
-    response = http.HttpResponse(mimetype='text/xml')
+    response = http.HttpResponse(content_type='text/xml')
     response.write(
         '<?xml version="1.0"?>\n'
         '<!DOCTYPE cross-domain-policy SYSTEM '
