@@ -1,10 +1,24 @@
 import os
 import shutil
+import functools
+
+from nose.plugins.skip import SkipTest
 
 from django.test import TestCase
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files import File
+
+
+def optional_selenium(test):
+
+    @functools.wraps(test)
+    def inner(*a, **k):
+        if not settings.RUN_SELENIUM_TESTS:
+            raise SkipTest("Test %s is skipped" % test.__name__)
+        return test(*a, **k)
+
+    return inner
 
 
 class DjangoTestCase(TestCase):

@@ -301,3 +301,6 @@ CONTRIBUTORS = (
     'KrystalYu',
     'anuragchaudhury',
 )
+
+# Override this if you want to run the selenium based tests
+RUN_SELENIUM_TESTS = False
