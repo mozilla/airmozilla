@@ -1,5 +1,5 @@
 window.onload = function() {
-    if (window.opener && window.opener.popup_position) {
+    if (window.opener && typeof window.opener.popup_position !== 'undefined') {
         var position = window.opener.popup_position;
         // now we need to wait for jwplayer to be added to the global scope
         var attempts = 0;

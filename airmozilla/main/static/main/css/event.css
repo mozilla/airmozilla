@@ -59,12 +59,6 @@ p.pending {
     color: #FF9EC5;
     font-size: 80%;
 }
-.tearout .warning-about-time {
-    display: none;
-    position: absolute;
-    right: 30px;
-    font-size:80%;
-}
 .tearout a.open {
     float: right;
     display: block;

@@ -7,14 +7,6 @@ $(function() {
     var popup = null;
     var placeholder = null;
 
-    $('.tearout').on('mouseover', 'a.open', function(event) {
-        if (!$('.tearout .problem:visible').length) {
-            $('.tearout .warning-about-time').fadeIn(100);
-        }
-    }).on('mouseout', 'a.open', function(event) {
-        $('.tearout .warning-about-time').fadeOut(300);
-    });
-
     var player_width = null, player_height = null;
     var jwplayer_player = null;
 
@@ -79,7 +71,6 @@ $(function() {
             if (iframe.length) {
                 iframe_clone = iframe.detach();
             } else if (jwplayer_container.length) {
-                // jwplayer_container.detach();
                 jwplayer_container.hide();
             } else {
                 player_wrapper = player_wrapper.detach();
