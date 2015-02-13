@@ -27,6 +27,13 @@
         <td><a href="{{ url('manage:event_assignments_ical') }}?assignee={{ assigned_user.user.email }}">Feed</a></td>
       </tr>
       {% endfor %}
+      <tr>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>
+          <a href="{{ url('manage:event_assignments_ical') }}">Feed for ALL users</a>
+        </td>
+      </tr>
     </tbody>
   </table>
 

@@ -88,10 +88,8 @@ class TestEventAssignment(ManageTestCase):
         ok_('Other title' in response.content)
         ok_('Barcelona' in response.content)
 
-    def test_event_assignments_ical(self):
+    def test_event_assignments_ical_for_assignee(self):
         url = reverse('manage:event_assignments_ical')
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
 
         event = Event.objects.get(title='Test event')
         now = timezone.now()
@@ -140,3 +138,40 @@ class TestEventAssignment(ManageTestCase):
             'AirMozillaEventAssignments.ics'
             in response['Content-Disposition']
         )
+
+    def test_event_assignments_ical_for_all(self):
+        url = reverse('manage:event_assignments_ical')
+
+        event = Event.objects.get(title='Test event')
+        now = timezone.now()
+        tomorrow = now + datetime.timedelta(days=1)
+        event.start_time = tomorrow
+        event.save()
+        clarissa = User.objects.create(
+            username='clarissa',
+            email='csorensen@muzilla.com',
+        )
+        assignment = EventAssignment.objects.create(event=event)
+        assignment.users.add(clarissa)
+        jlin = User.objects.create(
+            username='jlin',
+            email='jlin@muzilla.com'
+        )
+        assignment.users.add(jlin)
+        location = Location.objects.create(
+            name='Space'
+        )
+        assignment.locations.add(location)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('CALNAME:Airmo for crew assignments')
+        ok_(event.title in response.content)
+        emails = ['Assigned to:', clarissa.email, jlin.email]
+        line = 'DESCRIPTION:%s' % '\\n'.join(emails)
+        ok_(line in response.content)
+        # The event belongs to "two" locations. That of the event and the
+        # extra one on the assignment.
+        location_names = [event.location.name, location.name]
+        line = 'LOCATION:%s' % '\\n'.join(location_names)
+        ok_(line in response.content)
