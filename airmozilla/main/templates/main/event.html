@@ -41,6 +41,7 @@
 <script src="{{ static('main/js/embed.js') }}"></script>
 <script src="{{ static('main/js/download.js') }}"></script>
 <script src="{{ static('main/js/tearout.js') }}"></script>
+<script src="{{ static('main/js/playbackrate.js') }}"></script>
 <script src="{{ static('comments/js/comments.js') }}"></script>
 <script src="{{ static('surveys/js/survey.js') }}"></script>
 <script src="{{ static('main/js/livehits.js') }}"></script>
@@ -96,10 +97,23 @@
       {% else %}
         {% if video %}
           {{ video|safe }}
-          <p class="tearout">
-            <a class="open"
-               title="Click to open up just the video in a pop-up"></a>
-            <span class="problem"></span>
+          <p class="play-options">
+            <span class="tearout">
+              <a class="open"
+                 title="Click to open up just the video in a pop-up"></a>
+              <span class="problem"></span>
+            </span>
+            <span class="playbackrate">
+              <a class="open inactive"
+                 title="Click to see playback rate options"></a>
+              <span class="options">
+                <a data-rate="0.5" title="Half the speed">0.5&times;</a>
+                <a data-rate="1" title="Normal speed">1&times;</a>
+                <a data-rate="1.5" title="One and a half the speed">1.5&times;</a>
+                <a data-rate="2" title="Double speed">2&times;</a>
+              </span>
+              <span class="problem"></span>
+            </span>
           </p>
           {% if event.is_live() %}
           <p class="islive" data-url="{{ url('main:event_livehits', event.id) }}">
@@ -142,7 +156,7 @@
       {% endif %}
       {% if event.additional_links %}
         <p>{{ _('Additional links') }}:<br>
-	         {{ event.additional_links | urlize|nl2br }}</p>
+          {{ event.additional_links | urlize|nl2br }}</p>
       {% endif %}
 
       {% if hits %}

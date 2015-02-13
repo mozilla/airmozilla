@@ -48,8 +48,13 @@ p.pending {
     left: 50%;
     margin-left: -135px;
 }
+
+.play-options {
+    display: none;
+}
 .tearout-placeholder a,
-.tearout a {
+.tearout a,
+.playbackrate a {
     cursor: pointer;
 }
 .tearout {
@@ -65,4 +70,28 @@ p.pending {
     background: url('../img/new_window.png') no-repeat;
     width: 20px;
     height: 20px;
+}
+
+.playbackrate a.open {
+    float: right;
+    display: block;
+    background: url('../img/playbackrate.png') no-repeat;
+    width: 20px;
+    height: 20px;
+}
+.playbackrate a.inactive {
+    opacity: 0.5;
+}
+
+.playbackrate .options {
+    float: right;
+    font-size: 80%;
+    display: none;
+    color: #979797;
+}
+.playbackrate .options a {
+    margin-right: 4px;
+}
+.playbackrate .options a.current {
+    color: white;
 }
