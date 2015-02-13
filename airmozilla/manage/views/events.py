@@ -1243,6 +1243,9 @@ def event_assignments_ical(request):
     title = 'Airmo'
     if assignee:
         title += ' for %s' % assignee.email
+    else:
+        title += ' crew assignments'
+
     cal.add('X-WR-CALNAME').value = title
     assignments = list(
         base_qs
@@ -1257,10 +1260,12 @@ def event_assignments_ical(request):
         request.is_secure() and 'https' or 'http',
         RequestSite(request).domain
     )
+
     for assignment in assignments:
         event = assignment.event
         vevent = cal.add('vevent')
         vevent.add('summary').value = "[AirMo crew] %s" % event.title
+
         # Adjusted start times for Event Assignment iCal feeds
         # to allow staff sufficient time for event set-up.
         vevent.add('dtstart').value = (
@@ -1269,13 +1274,23 @@ def event_assignments_ical(request):
         vevent.add('dtend').value = (
             event.start_time + datetime.timedelta(hours=1)
         )
-        vevent.add('description').value = unhtml(short_desc(event))
+        emails = [u.email for u in assignment.users.all().order_by('email')]
+        vevent.add('description').value = 'Assigned to:\n' + '\n'.join(emails)
+
+        locations = []
+        if event.location:
+            locations.append(event.location.name)
+        locations.extend([
+            x.name for x in assignment.locations.all().order_by('name')
+        ])
+        locations.sort()
+        vevent.add('location').value = '\n'.join(locations)
         vevent.add('url').value = (
             base_url + reverse('main:event', args=(event.slug,))
         )
     icalstream = cal.serialize()
-    # response = http.HttpResponse(icalstream,
-    #                              content_type='text/plain; charset=utf-8')
+    # return http.HttpResponse(icalstream,
+    #                          content_type='text/plain; charset=utf-8')
     response = http.HttpResponse(icalstream,
                                  content_type='text/calendar; charset=utf-8')
     filename = 'AirMozillaEventAssignments'
