@@ -48,7 +48,12 @@ def get_var_templates(template):
     env = Environment()
     ast = env.parse(template.content)
 
-    exceptions = ('vidly_tokenize', 'edgecast_tokenize', 'popcorn_url')
+    exceptions = (
+        'vidly_tokenize',
+        'edgecast_tokenize',
+        'popcorn_url',
+        'event',
+    )
     undeclared_variables = [x for x in meta.find_undeclared_variables(ast)
                             if x not in exceptions]
     return ["%s=" % v for v in undeclared_variables]
