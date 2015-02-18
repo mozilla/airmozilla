@@ -1275,7 +1275,7 @@ def event_assignments_ical(request):
             event.start_time + datetime.timedelta(hours=1)
         )
         emails = [u.email for u in assignment.users.all().order_by('email')]
-        vevent.add('description').value = 'Assigned to:\n' + '\n'.join(emails)
+        vevent.add('description').value = 'Assigned to: ' + ', '.join(emails)
 
         locations = []
         if event.location:
@@ -1284,7 +1284,7 @@ def event_assignments_ical(request):
             x.name for x in assignment.locations.all().order_by('name')
         ])
         locations.sort()
-        vevent.add('location').value = '\n'.join(locations)
+        vevent.add('location').value = ', '.join(locations)
         vevent.add('url').value = (
             base_url + reverse('main:event', args=(event.slug,))
         )
