@@ -167,11 +167,11 @@ class TestEventAssignment(ManageTestCase):
         eq_(response.status_code, 200)
         ok_('CALNAME:Airmo for crew assignments')
         ok_(event.title in response.content)
-        emails = ['Assigned to:', clarissa.email, jlin.email]
-        line = 'DESCRIPTION:%s' % '\\n'.join(emails)
+        emails = [clarissa.email, jlin.email]
+        line = 'DESCRIPTION:Assigned to: ' + '\\, '.join(emails)
         ok_(line in response.content)
         # The event belongs to "two" locations. That of the event and the
         # extra one on the assignment.
         location_names = [event.location.name, location.name]
-        line = 'LOCATION:%s' % '\\n'.join(location_names)
+        line = 'LOCATION:%s' % '\\, '.join(location_names)
         ok_(line in response.content)
