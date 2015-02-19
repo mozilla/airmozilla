@@ -24,12 +24,5 @@ CACHES = {
     }
 }
 
-# RUN_SELENIUM_TESTS = True
+RUN_SELENIUM_TESTS = True
 SETTINGS
-
-# The reason the `RUN_SELENIUM_TESTS=True` piece is commented out is because
-# the selenium tests have become unpredictably broken in Travis and causing
-# many test builds to stall or error out due to the addition of running
-# the selenium tests.
-# But we don't want to entirely abandon this effort. We just need to figure
-# out how to make it more stable. 

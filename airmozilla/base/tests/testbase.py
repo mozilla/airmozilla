@@ -1,24 +1,13 @@
 import os
 import shutil
-import functools
 
 from nose.plugins.skip import SkipTest
+from selenium import webdriver
 
-from django.test import TestCase
+from django.test import TestCase, LiveServerTestCase
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files import File
-
-
-def optional_selenium(test):
-
-    @functools.wraps(test)
-    def inner(*a, **k):
-        if not settings.RUN_SELENIUM_TESTS:
-            raise SkipTest("Test %s is skipped" % test.__name__)
-        return test(*a, **k)
-
-    return inner
 
 
 class DjangoTestCase(TestCase):
@@ -54,3 +43,26 @@ class DjangoTestCase(TestCase):
             image_path,
             settings.MEDIA_ROOT
         )
+
+
+class DjangoLiveServerTestCase(LiveServerTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        if settings.RUN_SELENIUM_TESTS:
+            cls.driver = webdriver.Firefox()
+            cls.driver.implicitly_wait(30)
+            cls.base_url = cls.live_server_url
+            cls.driver.set_window_size(1120, 550)
+        super(DjangoLiveServerTestCase, cls).setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        if settings.RUN_SELENIUM_TESTS:
+            cls.driver.quit()
+        super(DjangoLiveServerTestCase, cls).tearDownClass()
+
+    def setUp(self):
+        if not settings.RUN_SELENIUM_TESTS:
+            raise SkipTest("settings.RUN_SELENIUM_TESTS is set to False")
+        super(DjangoLiveServerTestCase, self).setUp()

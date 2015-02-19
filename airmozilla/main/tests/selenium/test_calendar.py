@@ -1,31 +1,13 @@
 import re
 
 from nose.tools import eq_, ok_
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
-from django.test import LiveServerTestCase
-
-from airmozilla.base.tests.testbase import optional_selenium
+from airmozilla.base.tests.testbase import DjangoLiveServerTestCase
 
 
-class CalendarLiveServerTestCase(LiveServerTestCase):
-
-    @optional_selenium
-    def setUp(self):
-        super(CalendarLiveServerTestCase, self).setUp()
-        self.driver = webdriver.PhantomJS()
-        self.driver.implicitly_wait(30)
-        self.base_url = self.live_server_url
-        self.driver.set_window_size(1120, 550)
-        # ugly hack necessary to clear localStorage
-        self.driver.get(self.base_url)
-        self.driver.execute_script('localStorage.clear()')
-
-    def tearDown(self):
-        self.driver.quit()
-        super(CalendarLiveServerTestCase, self).tearDown()
+class CalendarLiveServerTestCase(DjangoLiveServerTestCase):
 
     def is_element_present(self, how, what):
         try:
