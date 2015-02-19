@@ -86,7 +86,7 @@ def tokenize(tag, seconds):
 
 def add_media(url, email=None, token_protection=None, hd=False):
     root = ET.Element('Query')
-    ET.SubElement(root, 'Action').text = 'AddMedia'
+    ET.SubElement(root, 'Action').text = 'AddMediaLite'
     ET.SubElement(root, 'UserID').text = settings.VIDLY_USER_ID
     ET.SubElement(root, 'UserKey').text = settings.VIDLY_USER_KEY
     if email:
