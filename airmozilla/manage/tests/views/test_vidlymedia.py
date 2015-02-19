@@ -412,7 +412,7 @@ class TestVidlyMedia(ManageTestCase):
 
         def mocked_urlopen(request):
             sent_queries.append(True)
-            if 'AddMedia' in request.data:
+            if 'AddMediaLite' in request.data:
                 return StringIO("""
                 <?xml version="1.0"?>
                 <Response>
@@ -497,7 +497,7 @@ class TestVidlyMedia(ManageTestCase):
     def test_vidly_media_resubmit_with_error(self, p_urlopen):
 
         def mocked_urlopen(request):
-            if 'AddMedia' in request.data:
+            if 'AddMediaLite' in request.data:
                 return StringIO("""
                 <?xml version="1.0"?>
             <Response>

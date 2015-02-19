@@ -179,7 +179,7 @@ class MainHandler(web.RequestHandler):
         elif '<Action>GetMediaList</Action>' in xml_incoming:
             status = STATUS_REGEX.findall(xml_incoming)[0]
             xml_outgoing = self._get_medialist(status)
-        elif '<Action>AddMedia</Action>' in xml_incoming:
+        elif '<Action>AddMediaLite</Action>' in xml_incoming:
             source_file = SOURCE_FILE_REGEX.findall(xml_incoming)[0]
             xml_outgoing = self._add_media(source_file)
         elif '<Action>DeleteMedia</Action>' in xml_incoming:
