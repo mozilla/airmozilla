@@ -19,6 +19,7 @@
 /* clever indentation */
 #comments .comment .comment {
     margin-left: 40px;
+    padding-bottom: 0;
 }
 
 #comments p.actions {
