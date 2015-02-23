@@ -69,6 +69,13 @@ def start(request):
                 upcoming=upcoming,
                 slug=slug,
             )
+            # Enable discussion on by default.
+            # https://bugzilla.mozilla.org/show_bug.cgi?id=1135822
+            SuggestedDiscussion.objects.create(
+                event=event,
+                enabled=True,
+                notify_all=True,
+            )
             if not event.upcoming:
                 location, __ = Location.objects.get_or_create(
                     name=settings.DEFAULT_PRERECORDED_LOCATION[0],
@@ -81,6 +88,7 @@ def start(request):
             event.channels.add(
                 Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
             )
+
             # XXX use next_url() instead?
             if event.upcoming:
                 url = reverse('suggest:description', args=(event.pk,))
@@ -325,7 +333,7 @@ def details(request, id):
                         event=event,
                         enabled=True,
                         notify_all=True,
-                        moderate_all=event.privacy != Event.PRIVACY_COMPANY
+                        # moderate_all=event.privacy != Event.PRIVACY_COMPANY
                     )
                 if request.user not in discussion.moderators.all():
                     discussion.moderators.add(request.user)
