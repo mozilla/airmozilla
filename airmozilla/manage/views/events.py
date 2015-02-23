@@ -14,7 +14,6 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q, Sum, Count
-from django.contrib.sites.models import RequestSite
 from django.core.exceptions import ImproperlyConfigured
 from django.views.decorators.cache import cache_page
 
@@ -30,7 +29,8 @@ from airmozilla.base.utils import (
     paginate,
     tz_apply,
     unhtml,
-    shorten_url
+    shorten_url,
+    get_base_url,
 )
 from airmozilla.main.models import (
     Approval,
@@ -864,10 +864,7 @@ def new_event_tweet(request, id):
     else:
         initial = {}
         event_url = reverse('main:event', args=(event.slug,))
-        base_url = (
-            '%s://%s' % (request.is_secure() and 'https' or 'http',
-                         RequestSite(request).domain)
-        )
+        base_url = get_base_url(request)
         abs_url = urlparse.urljoin(base_url, event_url)
         try:
             abs_url = shorten_url(abs_url)
@@ -947,10 +944,8 @@ def event_archive(request, id):
             return redirect('manage:events')
     else:
         form = forms.EventArchiveForm(instance=event)
-    initial = dict(
-        email=request.user.email,
-        hd=True
-    )
+
+    initial = {'hd': True}
     if event.privacy != Event.PRIVACY_PUBLIC:
         initial['token_protection'] = True
     if event.upload:
@@ -1259,10 +1254,7 @@ def event_assignments_ical(request):
         base_qs
         .filter(event__start_time__gte=now)
     )
-    base_url = '%s://%s' % (
-        request.is_secure() and 'https' or 'http',
-        RequestSite(request).domain
-    )
+    base_url = get_base_url(request)
 
     for assignment in assignments:
         event = assignment.event
@@ -1364,23 +1356,25 @@ def vidly_url_to_shortcode(request, id):
     form = forms.VidlyURLForm(data=request.POST)
     if form.is_valid():
         url = form.cleaned_data['url']
-        email = form.cleaned_data['email']
         if event.privacy != Event.PRIVACY_PUBLIC:
             # forced
             token_protection = True
         else:
             token_protection = form.cleaned_data['token_protection']
         hd = form.cleaned_data['hd']
+
+        base_url = get_base_url(request)
+        webhook_url = base_url + reverse('manage:vidly_media_webhook')
+
         shortcode, error = vidly.add_media(
             url,
-            email=email,
             token_protection=token_protection,
             hd=hd,
+            notify_url=webhook_url,
         )
         VidlySubmission.objects.create(
             event=event,
             url=url,
-            email=email,
             token_protection=token_protection,
             hd=hd,
             tag=shortcode,

@@ -50,6 +50,7 @@ from airmozilla.surveys.models import Survey
 from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
 from airmozilla.base import mozillians
+from airmozilla.base.utils import get_base_url
 from . import cloud
 from . import forms
 
@@ -889,8 +890,7 @@ def events_calendar_ical(request, privacy=None):
     events += list(base_qs
                    .filter(start_time__gte=now)
                    .order_by('start_time'))
-    base_url = '%s://%s/' % (request.is_secure() and 'https' or 'http',
-                             RequestSite(request).domain)
+    base_url = get_base_url(request)
     for event in events:
         vevent = cal.add('vevent')
         vevent.add('summary').value = event.title

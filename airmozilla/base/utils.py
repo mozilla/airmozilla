@@ -202,3 +202,12 @@ class _DotDict(dict):
 
 def dot_dict(d):
     return _DotDict(d)
+
+
+def get_base_url(request):
+    return (
+        '%s://%s' % (
+            request.is_secure() and 'https' or 'http',
+            RequestSite(request).domain
+        )
+    )

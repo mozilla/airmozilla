@@ -1,5 +1,7 @@
+import urllib
 from cStringIO import StringIO
-from nose.tools import eq_, ok_
+
+from nose.tools import eq_, ok_, assert_raises
 import mock
 
 from django.test import TestCase
@@ -188,7 +190,7 @@ class TestVidlyAddMedia(TestCase):
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
-    def test_add_media(self, p_urllib2, p_logging):
+    def test_add_media_with_email(self, p_urllib2, p_logging):
         def mocked_urlopen(request):
             return StringIO("""
             <?xml version="1.0"?>
@@ -221,6 +223,54 @@ class TestVidlyAddMedia(TestCase):
         )
         eq_(shortcode, '8oxv6x')
         ok_(not error)
+
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_add_media_with_notify_url(self, p_urllib2, p_logging):
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>All medias have been added.</Message>
+              <MessageCode>2.1</MessageCode>
+              <BatchID>47520</BatchID>
+              <Success>
+                <MediaShortLink>
+                  <SourceFile>http://www.com/file.flv</SourceFile>
+                  <ShortLink>8oxv6x</ShortLink>
+                  <MediaID>13969839</MediaID>
+                  <QRCode>http://vid.ly/8oxv6x/qrcodeimg</QRCode>
+                  <HtmlEmbed>code code</HtmlEmbed>
+                  <EmailEmbed>more code code</EmailEmbed>
+                </MediaShortLink>
+              </Success>
+            </Response>
+            """)
+
+        def mocked_Request(url, query_string):
+            ok_(
+                '<Notify>https://mywebhook.example.com</Notify>' in
+                urllib.unquote(query_string)
+            )
+            return mock.MagicMock()
+
+        p_urllib2.Request = mocked_Request
+        p_urllib2.urlopen = mocked_urlopen
+        shortcode, error = vidly.add_media(
+            'http//www.com',
+            notify_url='https://mywebhook.example.com',
+        )
+        eq_(shortcode, '8oxv6x')
+        ok_(not error)
+
+    def test_add_media_with_notify_url_and_email(self):
+        assert_raises(
+            TypeError,
+            vidly.add_media,
+            'http://example.com',
+            email='peterbe@example.com',
+            notify_url='http://example.com/hook',
+        )
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
