@@ -947,7 +947,10 @@ def event_archive(request, id):
             return redirect('manage:events')
     else:
         form = forms.EventArchiveForm(instance=event)
-    initial = dict(email=request.user.email)
+    initial = dict(
+        email=request.user.email,
+        hd=True
+    )
     if event.privacy != Event.PRIVACY_PUBLIC:
         initial['token_protection'] = True
     if event.upload:
