@@ -23,6 +23,107 @@ from airmozilla.manage.tests.test_vidly import (
 )
 from .base import ManageTestCase
 
+SAMPLE_MEDIA_SUBMITTED_XML = """
+<?xml version="1.0"?>
+<Response>
+<Message>All medias have been added.</Message>
+<MessageCode>2.1</MessageCode>
+<BatchID>661742</BatchID>
+<Success>
+<MediaShortLink>
+<SourceFile>http://d1ac1bzf3lrf3c.cloudfront.net/file.mov</SourceFile>
+<ShortLink>i3b3kx</ShortLink>
+<MediaID>34848570</MediaID>
+<QRCode>http://vid.ly/i3b3kx/qrcodeimg</QRCode>
+<HtmlEmbed>code code code</HtmlEmbed>
+<ResponsiveEmbed>code code code</ResponsiveEmbed>
+<EmailEmbed>code code code</EmailEmbed>
+</MediaShortLink>
+</Success>
+</Response>
+""".strip()
+
+SAMPLE_MEDIA_RESULT_FAILED = """
+<?xml version="1.0"?>
+<Response>
+  <Result>
+    <Task>
+      <UserID>1559</UserID>
+      <MediaShortLink>i3b3ky</MediaShortLink>
+      <SourceFile>http://d1ac1bzf3lrf3c.cloudfront.net/file.jpg</SourceFile>
+      <BatchID>661742</BatchID>
+      <Status>Error</Status>
+      <Private>false</Private>
+      <PrivateCDN>false</PrivateCDN>
+      <Created>2015-02-23 16:17:56</Created>
+      <Updated>2015-02-23 16:55:14</Updated>
+      <UserEmail>airmozilla@muzilla.com</UserEmail>
+      <MediaInfo/>
+      <Formats>
+        <Format>
+          <FormatName>mp4</FormatName>
+          <Location>http://cf.cdn.vid.ly/i3b3ky/mp4.mp4</Location>
+          <FileSize>0</FileSize>
+          <Status>Error</Status>
+          <Error>Encoding was not completed:</Error>
+        </Format>
+        <Format>
+          <FormatName>webm</FormatName>
+          <Location>http://cf.cdn.vid.ly/i3b3ky/webm.webm</Location>
+          <FileSize>0</FileSize>
+          <Status>Error</Status>
+          <Error>Encoding was not completed:</Error>
+        </Format>
+      </Formats>
+    </Task>
+  </Result>
+</Response>
+"""
+
+SAMPLE_MEDIA_RESULT_SUCCESS = """
+<?xml version="1.0"?>
+<Response>
+    <Result>
+        <Task>
+            <UserID>1559</UserID>
+            <MediaShortLink>c9v8gx</MediaShortLink>
+            <SourceFile>https://uploads.s3.amazonaws.com/20555.mov</SourceFile>
+            <BatchID>661728</BatchID>
+            <Status>Finished</Status>
+            <Private>false</Private>
+            <PrivateCDN>false</PrivateCDN>
+            <Created>2015-02-23 15:58:27</Created>
+            <Updated>2015-02-23 16:11:53</Updated>
+            <UserEmail>airmozilla@mozilla.com</UserEmail>
+            <MediaInfo>
+                <bitrate>11136k</bitrate>
+                <duration>9.84</duration>
+                <audio_bitrate>64.0k</audio_bitrate>
+                <audio_duration>9.838</audio_duration>
+                <video_duration>9.84</video_duration>
+                <video_codec>h264 (High)</video_codec>
+                <size>1920x1080</size>
+                <video_bitrate>11066k</video_bitrate>
+                <audio_codec>aac</audio_codec>
+                <audio_sample_rate>44100</audio_sample_rate>
+                <audio_channels>1</audio_channels>
+                <filesize>13697959</filesize>
+                <frame_rate>29.98</frame_rate>
+                <format>mpeg-4</format>
+            </MediaInfo>
+            <Formats>
+            <Format>
+                <FormatName>mp4</FormatName>
+                <Location>http://cf.cdn.vid.ly/c9v8gx/mp4.mp4</Location>
+                <FileSize>1063533</FileSize>
+                <Status>Finished</Status>
+                </Format>
+            </Formats>
+        </Task>
+    </Result>
+</Response>
+"""
+
 
 class TestVidlyMedia(ManageTestCase):
 
@@ -342,7 +443,6 @@ class TestVidlyMedia(ManageTestCase):
             url='http://something.com',
             hd=True,
             token_protection=True,
-            email='test@example.com'
         )
         response = self.client.get(url, {
             'id': event.pk,
@@ -352,7 +452,6 @@ class TestVidlyMedia(ManageTestCase):
         data = json.loads(response.content)
         past = data['past_submission']
         eq_(past['url'], submission.url)
-        eq_(past['email'], submission.email)
         ok_(submission.hd)
         ok_(submission.token_protection)
 
@@ -477,7 +576,6 @@ class TestVidlyMedia(ManageTestCase):
         response = self.client.post(url, {
             'id': event.pk,
             'url': 'http://better.com',
-            'email': 'peter@example.com',
             'hd': True,
             'token_protection': False,  # observe!
         })
@@ -485,7 +583,6 @@ class TestVidlyMedia(ManageTestCase):
 
         submission, = VidlySubmission.objects.filter(event=event)
         ok_(submission.url, 'http://better.com')
-        ok_(submission.email, 'peter@example.com')
         ok_(submission.hd)
         # this gets forced on since the event is not public
         ok_(submission.token_protection)
@@ -538,7 +635,6 @@ class TestVidlyMedia(ManageTestCase):
 
         submission, = VidlySubmission.objects.filter(event=event)
         ok_(submission.url, 'http://better.com')
-        ok_(submission.email, 'peter@example.com')
         ok_(submission.hd)
         ok_(not submission.token_protection)
         ok_(submission.submission_error)
@@ -546,3 +642,27 @@ class TestVidlyMedia(ManageTestCase):
 
         event = Event.objects.get(pk=event.pk)
         eq_(event.template_environment['tag'], 'abc123')  # the old one
+
+    def test_vidly_media_webhook_gibberish(self):
+        url = reverse('manage:vidly_media_webhook')
+        eq_(self.client.get(url).status_code, 405)
+        eq_(self.client.post(url).status_code, 400)
+        eq_(self.client.post(url, {'xml': 'Not XML!'}).status_code, 400)
+
+    def test_vidly_media_webhook_media_submitted(self):
+        url = reverse('manage:vidly_media_webhook')
+        response = self.client.post(url, {'xml': SAMPLE_MEDIA_SUBMITTED_XML})
+        eq_(response.status_code, 200)
+        eq_('OK\n', response.content)
+
+    def test_vidly_media_webhook_media_failed(self):
+        url = reverse('manage:vidly_media_webhook')
+        response = self.client.post(url, {'xml': SAMPLE_MEDIA_RESULT_FAILED})
+        eq_(response.status_code, 200)
+        eq_('OK\n', response.content)
+
+    def test_vidly_media_webhook_media_successful(self):
+        url = reverse('manage:vidly_media_webhook')
+        response = self.client.post(url, {'xml': SAMPLE_MEDIA_RESULT_SUCCESS})
+        eq_(response.status_code, 200)
+        eq_('OK\n', response.content)

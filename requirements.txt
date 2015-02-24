@@ -129,3 +129,5 @@ django-jsonfield==0.9.13
 python-memcached==1.53
 # sha256: BYpoit1Ha8YkNi6MkT_xNyJp0dthoMaoXzUi9Di-4FA
 selenium==2.44.0
+# sha256: J10eaMlc1-PucD3cPqcnjoKB92FoDWvdY3vNAKXFmQE
+xmltodict==0.9.2

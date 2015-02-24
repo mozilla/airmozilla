@@ -54,7 +54,6 @@
         <th>URL</th>
         <th>Submission Time</th>
         <th>Shortcode</th>
-        <th>Email</th>
         <th>Token</th>
         <th>HD</th>
         <th>Error</th>
@@ -76,7 +75,6 @@
         <td>
           {% if submission.tag %}<code>{{ submission.tag }}</code>{% endif %}
         </td>
-        <td>{{ submission.email }}</td>
         <td>
           {% if submission.token_protection %}
           <i class="glyphicon glyphicon-ok icon-positive"></i>

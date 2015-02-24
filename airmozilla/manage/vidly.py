@@ -84,12 +84,18 @@ def tokenize(tag, seconds):
     return token
 
 
-def add_media(url, email=None, token_protection=None, hd=False):
+def add_media(
+    url, email=None, token_protection=None, hd=False, notify_url=None
+):
     root = ET.Element('Query')
     ET.SubElement(root, 'Action').text = 'AddMediaLite'
     ET.SubElement(root, 'UserID').text = settings.VIDLY_USER_ID
     ET.SubElement(root, 'UserKey').text = settings.VIDLY_USER_KEY
-    if email:
+    if notify_url and email:
+        raise TypeError("Can't have both notify_url and email")
+    if notify_url:
+        ET.SubElement(root, 'Notify').text = notify_url
+    elif email:
         ET.SubElement(root, 'Notify').text = email
     source = ET.SubElement(root, 'Source')
     ET.SubElement(source, 'SourceFile').text = url
@@ -215,6 +221,12 @@ def statistics(shortcode):
         # great!
         return {'total_hits': int(total_hits.text)}
     logging.error(response_content)
+
+
+def get_results_from_xml(xml_string):
+    dom = xml.dom.minidom.parseString(xml_string)
+    results = _unpack_dom(dom, "Result")
+    return results
 
 
 def _download(xml_string):

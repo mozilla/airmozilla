@@ -1,5 +1,6 @@
 import hashlib
 import logging
+from xml.parsers.expat import ExpatError
 
 from django import http
 from django.core.cache import cache
@@ -10,11 +11,13 @@ from django.db.models import Q, Count
 
 from funfactory.urlresolvers import reverse
 from jsonview.decorators import json_view
+import xmltodict
 
-from airmozilla.base.utils import paginate
+from airmozilla.base.utils import paginate, get_base_url
 from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.manage import forms
 from airmozilla.manage import vidly
+from airmozilla.manage import archiver
 
 from .decorators import superuser_required
 
@@ -230,17 +233,19 @@ def vidly_media_resubmit(request):
     else:
         token_protection = form.cleaned_data['token_protection']
 
+    base_url = get_base_url(request)
+    webhook_url = base_url + reverse('manage:vidly_media_webhook')
+
     old_tag = environment['tag']
     shortcode, error = vidly.add_media(
         url=form.cleaned_data['url'],
-        email=form.cleaned_data['email'],
         hd=form.cleaned_data['hd'],
-        token_protection=token_protection
+        token_protection=token_protection,
+        notify_url=webhook_url,
     )
     VidlySubmission.objects.create(
         event=event,
         url=form.cleaned_data['url'],
-        email=form.cleaned_data['email'],
         token_protection=token_protection,
         hd=form.cleaned_data['hd'],
         tag=shortcode,
@@ -257,10 +262,7 @@ def vidly_media_resubmit(request):
             request,
             "Event re-submitted to use tag '%s'" % shortcode
         )
-        vidly.delete_media(
-            old_tag,
-            email=form.cleaned_data['email']
-        )
+        vidly.delete_media(old_tag)
         event.template_environment['tag'] = shortcode
         event.save()
 
@@ -268,3 +270,39 @@ def vidly_media_resubmit(request):
         cache.delete(cache_key)
 
     return redirect(reverse('manage:vidly_media') + '?status=Error')
+
+
+# Note that this view is publically available.
+# That means we can't trust the content but we can take it as a hint.
+@require_POST
+def vidly_media_webhook(request):
+    if not request.POST.get('xml'):
+        return http.HttpResponseBadRequest("no 'xml'")
+
+    # We can expect three pieces of XML.
+    # 1) That the media was submitted
+    # https://bug1135808.bugzilla.mozilla.org/attachment.cgi?id=8568143
+    # 2) That the media failed processing
+    # https://bug1135808.bugzilla.mozilla.org/attachment.cgi?id=8568190
+    # 3) That the media succeeded processing
+    # https://bug1135808.bugzilla.mozilla.org/attachment.cgi?id=8568149
+    #
+    # If it's case number 1, just ignore it and do nothing.
+    # If it's case number 2 or number 3, take it as a hint you can't trust
+    # and kick off the auto-archive procedure.
+    xml_string = request.POST['xml'].strip()
+
+    try:
+        struct = xmltodict.parse(xml_string)
+    except ExpatError:
+        return http.HttpResponseBadRequest("Bad 'xml'")
+
+    try:
+        struct['Response']['Result']['Task']
+        archiver.auto_archive()
+    except KeyError:
+        # If it doesn't have a "Result" or "Task", it was just a notification
+        # that the media was added.
+        pass
+
+    return http.HttpResponse('OK\n')

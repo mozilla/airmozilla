@@ -165,6 +165,8 @@ urlpatterns = patterns(
         name='suggestion_review'),
     url(r'^vidly/$', vidly_media.vidly_media,
         name='vidly_media'),
+    url(r'^vidly/webhook/$', vidly_media.vidly_media_webhook,
+        name='vidly_media_webhook'),
     url(r'^vidly/status/$', vidly_media.vidly_media_status,
         name='vidly_media_status'),
     url(r'^vidly/info/$', vidly_media.vidly_media_info,

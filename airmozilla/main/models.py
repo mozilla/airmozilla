@@ -573,6 +573,7 @@ class VidlySubmission(models.Model):
     url = models.URLField()
     submission_time = models.DateTimeField(default=_get_now)
     tag = models.CharField(max_length=100, null=True, blank=True)
+    # only used for synchronization, no longer something you can set
     email = models.EmailField(blank=True, null=True)
     token_protection = models.BooleanField(default=False)
     hd = models.BooleanField(default=False)

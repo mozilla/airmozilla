@@ -493,10 +493,6 @@ class VidlyURLForm(forms.Form):
             'class': 'input-xxlarge',
         })
     )
-    email = forms.EmailField(
-        required=False,
-        help_text="To send you a notification when it's complete"
-    )
     token_protection = forms.BooleanField(required=False)
     hd = forms.BooleanField(required=False, label='HD')
 
