@@ -9,6 +9,8 @@
   <script src="{{ static('manage/js/bootstrap-datepicker.js') }}"></script>
   <script src="{{ static('manage/js/events.js') }}"></script>
   <script src="{{ static('manage/js/eventmanager.js') }}"></script>
+  <script src="{{ static('manage/js/localforage.min.js') }}"></script>
+  <script src="{{ static('manage/js/angular-localForage.min.js') }}"></script>
   {% endcompress %}
 {% endblock %}
 
@@ -37,6 +39,9 @@
   </p>
   <p ng-if="second_loading && !first_loading" class="second-loading">
     <img src="{{ static('img/spinner.gif') }}">
+    <span ng-if="reading_from_cache" class="blinking">
+        Currently using cached data.
+    </span>
     <span class="blinking">Loading all remaining events...</span>
   </p>
 
@@ -45,7 +50,9 @@
   <table class="table table-striped table-bordered" ng-class="{hidden: loading}">
     <thead>
       <tr>
-        <th style="width: 50px" title="Number of events found">{{ filtered_items.length }}</th>
+        <th style="width: 50px" title="Number of events found">
+            {{ filtered_items.length }}
+        </th>
         <th>
           <a ng-click="setSorting('title')">Title</a>
           <a class="reverse-toggle"
