@@ -2,6 +2,7 @@ import re
 import cgi
 import datetime
 import json
+import urllib
 from cStringIO import StringIO
 
 from nose.tools import eq_, ok_
@@ -42,7 +43,13 @@ from airmozilla.base.tests.test_mozillians import (
 )
 from airmozilla.uploads.models import Upload
 from airmozilla.comments.models import Discussion
-from airmozilla.manage.tests.test_vidly import SAMPLE_XML, get_custom_XML
+from airmozilla.manage.tests.test_vidly import (
+    SAMPLE_XML,
+    get_custom_XML,
+    SAMPLE_MEDIA_UPDATE_FAILED_XML,
+    SAMPLE_MEDIA_UPDATED_XML,
+)
+from airmozilla.manage.views.events import is_privacy_vidly_mismatch
 from .base import ManageTestCase
 
 
@@ -2048,3 +2055,134 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 200)
         ok_('Total Hits:' in response.content)
         ok_('1,234' in response.content)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_is_privacy_vidly_mismatch(self, p_urllib2):
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(tag='abc123')
+            assert '<Private>false</Private>'
+            return StringIO(xml_string)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        event.template = None
+        event.template_environment = {}
+        event.save()
+        # no template associated with event
+        ok_(not is_privacy_vidly_mismatch(event))
+
+        event.template = Template.objects.create(name='Nothing', content='x')
+        event.save()
+        # template not named Vid.ly something
+        ok_(not is_privacy_vidly_mismatch(event))
+
+        event.template.name = 'Vid.LY Something'
+        event.template.save()
+        # no template_environment['tag']
+        ok_(not is_privacy_vidly_mismatch(event))
+
+        event.template_environment['tag'] = 'abc123'
+        event.save()
+        assert event.privacy == Event.PRIVACY_PUBLIC, event.privacy
+        # doesn't mismatch fixture
+        ok_(not is_privacy_vidly_mismatch(event))
+
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        # finally a mismatch!
+        ok_(is_privacy_vidly_mismatch(event))
+
+    @mock.patch('airmozilla.manage.vidly.urllib2.urlopen')
+    def test_event_edit_with_privacy_vidly_mismatch(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            xml_sent = urllib.unquote_plus(request.data)
+            if 'UpdateMedia' in xml_sent:
+                xml_string = SAMPLE_MEDIA_UPDATED_XML
+            else:
+                xml_string = get_custom_XML(tag='abc123')
+                # it's just a query
+                assert '<Private>false</Private>'
+            return StringIO(xml_string)
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        vidly_template = Template.objects.create(
+            name='Vid.ly Something',
+            content=''
+        )
+        event = Event.objects.get(title='Test event')
+        assert event.privacy == Event.PRIVACY_PUBLIC
+
+        # let's make sure there is a VidlySubmission of this too
+        submission = VidlySubmission.objects.create(
+            tag='abc123',
+            event=event,
+            url='https://s3.com',
+            token_protection=False
+        )
+
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_edit', args=(event.pk,)),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title=event.title,
+                     template=vidly_template.id,
+                     template_environment="tag=abc123",
+                     privacy=Event.PRIVACY_COMPANY)
+            )
+            eq_(response.status_code, 302)
+
+        # reload the submission
+        submission = VidlySubmission.objects.get(id=submission.id)
+        ok_(submission.token_protection)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2.urlopen')
+    def test_event_edit_with_privacy_vidly_mismatch_error(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            xml_sent = urllib.unquote_plus(request.data)
+            if 'UpdateMedia' in xml_sent:
+                xml_string = SAMPLE_MEDIA_UPDATE_FAILED_XML
+            else:
+                xml_string = get_custom_XML(tag='abc123')
+                # it's just a query
+                assert '<Private>false</Private>'
+            return StringIO(xml_string)
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        vidly_template = Template.objects.create(
+            name='Vid.ly Something',
+            content=''
+        )
+        event = Event.objects.get(title='Test event')
+        assert event.privacy == Event.PRIVACY_PUBLIC
+
+        # let's make sure there is a VidlySubmission of this too
+        submission = VidlySubmission.objects.create(
+            tag='abc123',
+            event=event,
+            url='https://s3.com',
+            token_protection=False
+        )
+
+        with open(self.placeholder) as fp:
+            response = self.client.post(
+                reverse('manage:event_edit', args=(event.pk,)),
+                dict(self.event_base_data, placeholder_img=fp,
+                     title=event.title,
+                     template=vidly_template.id,
+                     template_environment="tag=abc123",
+                     privacy=Event.PRIVACY_COMPANY)
+            )
+            # Note that even though the UpdateMedia failed,
+            # it still goes ahead with the redirect.
+            eq_(response.status_code, 302)
+
+        # reload the submission
+        submission = VidlySubmission.objects.get(id=submission.id)
+        # it should not have changed
+        ok_(not submission.token_protection)

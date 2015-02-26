@@ -108,6 +108,30 @@ SAMPLE_INVALID_LINKS_XML = (
     '</Errors></Response>'
 )
 
+SAMPLE_MEDIA_UPDATED_XML = (
+    '<?xml version="1.0"?>'
+    '<Response><Message>All medias have been updated.</Message>'
+    '<MessageCode>2.5</MessageCode>'
+    '</Response>'
+)
+
+SAMPLE_MEDIA_UPDATE_FAILED_XML = (
+    '<?xml version="1.0"?>'
+    '<Response>'
+    '<Message>Action failed: none of media short link were updated.</Message>'
+    '<MessageCode>2.6</MessageCode>'
+    '<Errors>'
+    '<Error>'
+    '<ErrorCode>8.4</ErrorCode>'
+    '<ErrorName>Media invalidation in progress</ErrorName>'
+    '<Description>Media invalidation in progress</Description>'
+    '<Suggestion></Suggestion>'
+    '<SourceFile>9b8a4b</SourceFile>'
+    '</Error>'
+    '</Errors>'
+    '</Response>'
+)
+
 
 class TestVidlyTokenize(TestCase):
 
@@ -406,3 +430,47 @@ class VidlyTestCase(TestCase):
 
         results = vidly.statistics('abc123')
         eq_(results, None)
+
+    @mock.patch('urllib2.urlopen')
+    def test_update_media_protection_protect(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            xml_string = urllib.unquote_plus(request.data)
+            ok_('<Protect><Token /></Protect>' in xml_string)
+            return StringIO(SAMPLE_MEDIA_UPDATED_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        # This doesn't return anything but we're only interested in if it
+        # can execute at all without errors.
+        vidly.update_media_protection('abc123', True)
+
+    @mock.patch('urllib2.urlopen')
+    def test_update_media_protection_unprotect(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            xml_string = urllib.unquote_plus(request.data)
+            ok_('<Protect />' in xml_string)
+            return StringIO(SAMPLE_MEDIA_UPDATED_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        # This doesn't return anything but we're only interested in if it
+        # can execute at all without errors.
+        vidly.update_media_protection('abc123', False)
+
+    @mock.patch('urllib2.urlopen')
+    def test_update_media_protection_error(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_MEDIA_UPDATE_FAILED_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        # This doesn't return anything but we're only interested in if it
+        # can execute at all without errors.
+        assert_raises(
+            vidly.VidlyUpdateError,
+            vidly.update_media_protection,
+            'abc123', True
+        )

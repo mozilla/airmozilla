@@ -1,6 +1,7 @@
 import datetime
 import time
 
+import jinja2
 from nose.tools import ok_, eq_
 
 from django.test import TestCase
@@ -9,6 +10,7 @@ from airmozilla.main.models import Event
 from airmozilla.manage.helpers import (
     almost_equal,
     event_status_to_css_label,
+    format_message,
 )
 
 
@@ -46,3 +48,30 @@ class MiscTests(TestCase):
         eq_(label, 'label-success')
         label = event_status_to_css_label(Event.STATUS_PENDING)
         eq_(label, 'label-primary')
+
+    def test_format_message(self):
+        result = format_message('bla')
+        eq_(result, 'bla')
+        ok_(not isinstance(result, jinja2.Markup))
+
+        # or it's an object
+        class M(object):
+            message = 'ble'
+        m = M()
+        eq_(format_message(m), 'ble')
+
+        # or a message containing a markdown style relative
+        result = format_message("Go [to](/page.html)")
+        eq_(
+            result,
+            'Go <a href="/page.html" class="message-inline">to</a>'
+        )
+        ok_(isinstance(result, jinja2.Markup))
+
+        # or if it contains a balance <code> tag
+        result = format_message("<code>Code</code>")
+        eq_(
+            result,
+            '<code>Code</code>'
+        )
+        ok_(isinstance(result, jinja2.Markup))

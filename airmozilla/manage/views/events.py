@@ -440,6 +440,30 @@ def event_edit(request, id):
             event.save()
             form.save_m2m()
             edit_url = reverse('manage:event_edit', args=(event.pk,))
+            if is_privacy_vidly_mismatch(event):
+                # We'll need to update the status of token protection
+                # on Vid.ly for this event.
+                try:
+                    vidly.update_media_protection(
+                        event.template_environment['tag'],
+                        event.privacy != Event.PRIVACY_PUBLIC,
+                    )
+                    submissions = VidlySubmission.objects.filter(
+                        event=event,
+                        tag=event.template_environment['tag'],
+                    ).order_by('-submission_time')
+                    for submission in submissions[:1]:
+                        submission.token_protection = (
+                            event.privacy != Event.PRIVACY_PUBLIC
+                        )
+                        submission.save()
+                        break
+                except vidly.VidlyUpdateError as x:
+                    messages.error(
+                        request,
+                        'Video protect status could not be updated on '
+                        'Vid.ly\n<code>%s</code>' % x
+                    )
             messages.info(
                 request,
                 'Event "<a href=\"%s\">%s</a>" saved. [Edit again](%s)' % (
@@ -539,6 +563,33 @@ def event_edit(request, id):
         context['total_hits'] += each['total_hits']
 
     return render(request, 'manage/event_edit.html', context)
+
+
+def is_privacy_vidly_mismatch(event):
+    if (
+        event.template and
+        'vid.ly' in event.template.name.lower() and
+        event.template_environment and
+        event.template_environment.get('tag')
+    ):
+        tag = event.template_environment.get('tag')
+        statuses = vidly.query(tag)
+        if tag in statuses:
+            status = statuses[tag]
+            public_event = event.privacy == Event.PRIVACY_PUBLIC
+            public_video = status['Private'] == 'false'
+            return public_event != public_video
+
+    return False
+
+
+@json_view
+@staff_required
+@permission_required('main.change_event')
+def event_privacy_vidly_mismatch(request, id):
+    event = get_object_or_404(Event, id=id)
+    # first of all, the video template must be a vid.ly one
+    return is_privacy_vidly_mismatch(event)
 
 
 @cache_page(60)

@@ -71,5 +71,11 @@ $(function() {
     $('#id_curated_groups').css('width', '100%');
     $('#id_recruitmentmessage').css('width', '100%');
 
-
+    var url = $('#privacy-vidly-mismatch').data('url');
+    $.getJSON(url)
+    .then(function(response) {
+        if (response) {
+            $('#privacy-vidly-mismatch').show();
+        }
+    });
 });
