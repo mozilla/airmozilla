@@ -284,6 +284,18 @@
 
 {% block manage_content %}
 
+  <!-- this is hidden by default but possibly made visible by the result of an AJAX call -->
+  <div id="privacy-vidly-mismatch" data-url="{{ url('manage:event_privacy_vidly_mismatch', event.id) }}"
+       class="alert alert-warning alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <p>
+      <b>Note!</b><br>
+      This event's <b>privacy does not match the token protection of its Vid.ly</b>
+      video.<br>
+      Simply pressing the <b>"Save changes"</b> button will correct this.
+    </p>
+  </div>
+
   {% if event.mozillian %}
   <div class="alert alert-warning alert-dismissible" role="alert">
     <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>

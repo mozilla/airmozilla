@@ -17,6 +17,10 @@ class VidlyStatisticsError(Exception):
     pass
 
 
+class VidlyUpdateError(Exception):
+    pass
+
+
 def tokenize(tag, seconds):
     cache_key = 'vidly_tokenize:%s' % tag
     token = cache.get(cache_key)
@@ -122,7 +126,7 @@ def add_media(
     return None, response_content
 
 
-def query(tags):
+def query(shortcodes):
     template = """
     <?xml version="1.0"?>
     <Query>
@@ -132,12 +136,12 @@ def query(tags):
         %(media_links)s
     </Query>
     """
-    if isinstance(tags, basestring):
-        tags = [tags]
+    if isinstance(shortcodes, basestring):
+        shortcodes = [shortcodes]
 
     media_links = [
         '<MediaShortLink>%s</MediaShortLink>' % x
-        for x in tags
+        for x in shortcodes
     ]
 
     xml_string = template % {
@@ -221,6 +225,68 @@ def statistics(shortcode):
         # great!
         return {'total_hits': int(total_hits.text)}
     logging.error(response_content)
+
+
+def update_media_protection(shortcode, protect, notify_url=None):
+    """
+    <?xml version="1.0"?>
+    <Query>
+        <Action>UpdateMedia</Action>
+        <userid>[userid]</userid>
+        <userkey>[userkey]</userkey>
+        <Notify>[URL_or_email]</Notify>
+        <Source>
+            <MediaShortLink>[shortlink]</MediaShortLink>
+            <Protect>
+            </Protect>
+        </Source>
+    </Query>
+    """
+    assert shortcode
+    root = ET.Element('Query')
+    ET.SubElement(root, 'Action').text = 'UpdateMedia'
+    ET.SubElement(root, 'UserID').text = settings.VIDLY_USER_ID
+    ET.SubElement(root, 'UserKey').text = settings.VIDLY_USER_KEY
+    if notify_url:
+        ET.SubElement(root, 'Notify').text = notify_url
+    source = ET.SubElement(root, 'Source')
+    ET.SubElement(source, 'MediaShortLink').text = shortcode
+    if protect:
+        node = ET.SubElement(source, 'Protect')
+        ET.SubElement(node, 'Token')
+    else:
+        ET.SubElement(source, 'Protect').text = ""
+    xml_string = ET.tostring(root)
+    response_content = _download(xml_string)
+    root = ET.fromstring(response_content)
+    errors = root.find('Errors')
+    if errors:
+        # For example...
+        """
+        <?xml version="1.0"?>
+        <Response>
+            <Message>Action failed: none of media short link w...</Message>
+            <MessageCode>2.6</MessageCode>
+            <Errors>
+                <Error>
+                    <ErrorCode>8.4</ErrorCode>
+                    <ErrorName>Media invalidation in progress</ErrorName>
+                    <Description>Media invalidation in progress</Description>
+                    <Suggestion></Suggestion>
+                    <SourceFile>8q8e5h</SourceFile>
+                </Error>
+            </Errors>
+        </Response>
+        """
+        error = errors.find('Error')
+        error_code = error.find('ErrorCode').text
+        error_name = error.find('ErrorName').text
+        raise VidlyUpdateError(
+            "%s: %s" % (
+                error_code,
+                error_name,
+            )
+        )
 
 
 def get_results_from_xml(xml_string):

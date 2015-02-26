@@ -102,6 +102,9 @@ def format_message(message):
         )
         message = jinja2.Markup(message)
 
+    if '<code>' in message and '</code>' in message:
+        message = jinja2.Markup(message)
+
     return message
 
 

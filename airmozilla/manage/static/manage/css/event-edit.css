@@ -23,3 +23,7 @@ table.suggested-event-upload th {
 table.suggested-event-upload .file-name {
     font-size: 80%;
 }
+
+#privacy-vidly-mismatch {
+    display: none;
+}
