@@ -103,6 +103,7 @@
                  title="Click to open up just the video in a pop-up"></a>
               <span class="problem"></span>
             </span>
+            {% if not event.is_live() %}
             <span class="playbackrate">
               <a class="open inactive"
                  title="Click to see playback rate options"></a>
@@ -114,6 +115,7 @@
               </span>
               <span class="problem"></span>
             </span>
+            {% endif %}
           </p>
           {% if event.is_live() %}
           <p class="islive" data-url="{{ url('main:event_livehits', event.id) }}">
