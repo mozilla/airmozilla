@@ -5,7 +5,7 @@ import time
 from django.shortcuts import render
 from django import http
 from django.db.utils import DatabaseError
-from django.db import connection
+from django.db import transaction
 from django.conf import settings
 
 from funfactory.urlresolvers import reverse
@@ -21,6 +21,7 @@ from .models import LoggedSearch
 from .split_search import split_search
 
 
+@transaction.atomic
 def home(request):
     context = {
         'q': None,
@@ -157,19 +158,11 @@ def home(request):
         # instance so we can avoid calling `events.count()` for the
         # header of the page where it says "XX events found"
         try:
-            pager, events_paged = paginator(events, page, 10)
+            with transaction.atomic():
+                pager, events_paged = paginator(events, page, 10)
             _database_error_happened = False
         except DatabaseError:
             _database_error_happened = True
-            # If the fulltext SQL causes a low-level Postgres error,
-            # Django re-wraps the exception as a django.db.utils.DatabaseError
-            # exception and then unfortunately you can't simply do
-            # django.db.transaction.rollback() because the connection is dirty
-            # deeper down.
-            # Thanks http://stackoverflow.com/a/7753748/205832
-            # This is supposedly fixed in Django 1.6
-            connection._rollback()
-
             # don't feed the trolls, just return nothing found
             pager, events_paged = paginator(Event.objects.none(), 1, 10)
 
