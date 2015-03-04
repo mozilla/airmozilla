@@ -208,13 +208,14 @@ And last but not least:
 
 Now you should be able to open `http://localhost:8000`.
 
-How to get it running with Fig
----------------------------------
+How to get it running with Docker Compose
+-----------------------------------------
 
-You need to install [Docker](https://docs.docker.com/installation/#installation)
-and [Fig](http://www.fig.sh/install.html) in your machine and then you can
-build the image, but first you have to modify your `airmozilla/settings/local.py`
-file so it can connect to the database and memcached.
+You need to install [Docker](http://docs.docker.com/compose/install/#install-docker)
+and [Docker Compose](http://docs.docker.com/compose/install/#install-compose)
+in your machine and then you can build the image, but first you have to modify
+your `airmozilla/settings/local.py` file so it can connect to the database and
+memcached.
 
 ```
 DATABASES = {
@@ -240,7 +241,7 @@ CACHES = {
 After this you can run the app by doing:
 
 ```
-fig up
+docker-compose up
 ```
 
 With this the Django test server will we running, so if your are on Linux you
@@ -252,7 +253,7 @@ at some point, to know the exact ip address you can execute `boot2docker ip`.
 If you want to run regular tests you can execute:
 
 ```
-fig run web ./manage.py test
+docker-compose run web ./manage.py test
 ```
 
 If you want to run all included selenium tests, don't forget to add
