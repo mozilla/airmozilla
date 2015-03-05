@@ -220,3 +220,25 @@ def faux_i18n(request):
         return args[0]
 
     return {'_': _}
+
+
+def autocompeter(request):
+    """We need to tell the Autocompeter service which groups the current
+    user should be able to view."""
+    key = getattr(settings, 'AUTOCOMPETER_KEY', None)
+    if not key:
+        return {}
+
+    groups = []
+    if request.user and request.user.is_active:
+        groups.append(Event.PRIVACY_CONTRIBUTORS)
+        if not is_contributor(request.user):
+            groups.append(Event.PRIVACY_COMPANY)
+    url = getattr(settings, 'AUTOCOMPETER_URL', '')
+    domain = getattr(settings, 'AUTOCOMPETER_DOMAIN', '')
+    return {
+        'include_autocompeter': True,
+        'autocompeter_domain': domain,
+        'autocompeter_groups': ','.join(groups),
+        'autocompeter_url': url,
+    }

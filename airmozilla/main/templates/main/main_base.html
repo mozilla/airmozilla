@@ -24,6 +24,8 @@ Air Mozilla | Mozilla, in Video
   {% compress css %}
     <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/main.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ static('main/autocompeter/autocompeter.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ static('main/css/autocompeter.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('browserid/persona-buttons.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 
@@ -143,6 +145,18 @@ Air Mozilla | Mozilla, in Video
   {# the day Air Mozilla uses L10n we can remove this /en-US/ here. For now it reduces redirects. #}
   {% if not DEV %}<script src="//mozorg.cdn.mozilla.net/en-US/tabzilla/tabzilla.js"></script>{% endif %}
 
+  {% if include_autocompeter %}
+  <autocompeter
+    data-groups="{{ autocompeter_groups }}"
+    data-domain="{{ autocompeter_domain }}"
+    data-url="{{ autocompeter_url }}"
+    ></autocompeter>
+  {% endif %}
+
+  {% compress js %}
+  <script src="{{ static('main/autocompeter/autocompeter.min.js') }}"></script>
+  <script src="{{ static('main/js/autocompeter.js') }}"></script>
+  {% endcompress %}
   {# Instead of using browser_js() we here include them manually. It'll make the page faster #}
   {% compress js %}
   <script src="{{ static('js/libs/include.js') }}"></script>

@@ -26,8 +26,8 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
 /* @Header *********/
 #masthead { background-image: none !important; }
 
-#site-title, #site-title a:link, #site-title a:visited { color: #c5ccd2; }
-#site-title a:hover, #site-title a:focus, #site-title a:active { color: #ffe400; }
+#site-title h1, #site-title h1 a:link, #site-title h1 a:visited { color: #c5ccd2; }
+/*#site-title a:hover, #site-title a:focus, #site-title a:active { color: #ffe400; }*/
 
 #site-title h1 { float: left; }
 #site-title form {

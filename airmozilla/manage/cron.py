@@ -11,6 +11,7 @@ from . import event_hit_stats
 from . import archiver
 from . import videoinfo
 from . import vidly_synchronization
+from . import autocompeter
 
 
 @cronjobs.register
@@ -79,3 +80,22 @@ def fetch_screencaptures():
 @capture
 def synchronize_vidly_submissions():
     vidly_synchronization.synchronize_all(verbose=True)
+
+
+@cronjobs.register
+@capture
+def autocompeter_reset():
+    autocompeter.update(
+        verbose=True,
+        all=True,
+        flush_first=True
+    )
+
+
+@cronjobs.register
+@capture
+def autocompeter_update():
+    autocompeter.update(
+        # this number is supposed to match that of the cronjob itself
+        since=datetime.timedelta(minutes=10)
+    )

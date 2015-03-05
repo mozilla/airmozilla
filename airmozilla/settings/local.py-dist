@@ -130,3 +130,19 @@ AWS_SECRET_ACCESS_KEY = ''
 #SCRAPE_CREDENTIALS = {
 #     ('username', 'password'): ['intranet.mozilla.org'],
 #}
+
+# To use Autocompeter to submit titles you need a key.
+# To generate your own visit https://autocompeter.com and sign in
+# with your GitHub account.
+# Also, this has to be non-empty or else the auto-complete is disabled.
+#AUTOCOMPETER_KEY = 'somesecurekey'
+
+# To override the default Autocompeter URL change this
+#AUTOCOMPETER_URL = 'https://autocompeter.com/v1'
+
+# By default the Autocompete integration will use the current
+# request domain as the domain for searches. If you need to override
+# this change this setting.
+# Setting this to 'air.mozilla.org' will mean it can use the production
+# domain even when you run it locally.
+#AUTOCOMPETER_DOMAIN = ''

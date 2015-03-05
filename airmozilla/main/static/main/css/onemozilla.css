@@ -90,8 +90,8 @@ h5 { font-size: 1.125em; }
 h6 { font-size: 1em; }
 
 /* @Links */
-a:link, a:visited { color: #af3232; text-decoration: none; }
-a:hover, a:focus, a:active { color: #962c2c; text-decoration: underline; }
+a:link, a:visited { text-decoration: none; }
+a:hover, a:focus, a:active { text-decoration: underline; }
 
 /* @Accessible @Skip links *********/
 #nav-access { position: absolute; top: -50em; }
@@ -116,8 +116,8 @@ px      68    160    252    344    436    528    620    712    804    896    */
 #masthead { position: relative; min-height: 120px; margin: 0; background-position: right top; background-repeat: no-repeat; }
 #masthead hgroup { padding-right: 340px; }
 #site-title h1 { font-size: 4.5em; letter-spacing: -3px; margin: 0 0 .15em -5px; -moz-transition: font-size, letter-spacing .5s linear; -webkit-transition: font-size, letter-spacing .5s linear; -o-transition: font-size, letter-spacing .5s linear; -ms-transition: font-size, letter-spacing .5s linear; transition: font-size, letter-spacing .5s linear; }
-#site-title a { color: #333; text-decoration: none; }
-#site-title a:hover, #site-title a:focus, #site-title a:active { color: #962c2c; text-decoration: none; }
+#site-title h1 a { color: #333; text-decoration: none; }
+#site-title h1 a:hover, #site-title h1 a:focus, #site-title h1 a:active { text-decoration: none; }
 #masthead #tabzilla { position: absolute; top: 0; right: 0; border: 0; }
 
 #content { clear: both; }
@@ -343,7 +343,7 @@ input[type=email], input[type=url], input[type=search], input[type=password], in
   font-size: .857em;
   border: 1px solid #dbdbdb;
   background: transparent;
-	background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.05);
   box-shadow: inset rgba(0,0,0,0.1) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
   padding: 6px 10px;
   -moz-transition: all .1s linear;

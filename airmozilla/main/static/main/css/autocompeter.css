@@ -1,0 +1,33 @@
+/* This file is all about overrides for the autocompeter.min.css
+   library. */
+
+._ac-wrap ._ac-hint {
+    background: none;
+    color: #2D373B;
+}
+._ac-wrap ._ac-results {
+    width: 290px;
+}
+@media only screen and (max-device-width : 320px) {
+    ._ac-wrap ._ac-results {
+        width: 230px;
+    }
+}
+._ac-results p {
+    background-color: #20272A;
+    color: #B4B4B4;
+}
+._ac-wrap ._ac-results {
+    border-color: #666;
+}
+._ac-wrap ._ac-results p {
+    border-bottom: 1px dotted #666;
+    font-size: .857em;
+}
+._ac-wrap ._ac-results p.selected {
+    background-color: #2D373B;
+}
+
+._ac-wrap input[type="text"]:focus {
+    background-color: transparent;
+}

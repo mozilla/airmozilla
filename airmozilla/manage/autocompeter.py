@@ -1,0 +1,122 @@
+import datetime
+import json
+import time
+
+import requests
+
+from django.conf import settings
+from django.utils import timezone
+
+from funfactory.urlresolvers import reverse
+
+from airmozilla.main.models import Event, EventHitStats
+
+
+def update(
+    verbose=False, all=False, flush_first=False, max_=1000,
+    since=datetime.timedelta(minutes=60)
+):
+    if not getattr(settings, 'AUTOCOMPETER_KEY', None):
+        if verbose:  # pragma: no cover
+            print "Unable to submit titles to autocompeter.com"
+            print "No settings.AUTOCOMPETER_KEY set up"
+        return
+
+    autocompeter_url = getattr(
+        settings,
+        'AUTOCOMPETER_URL',
+        'https://autocompeter.com/v1'
+    )
+    if flush_first:
+        assert all, "must be all if you're flushing"
+        t0 = time.time()
+        response = requests.delete(
+            autocompeter_url + '/flush',
+            headers={
+                'Auth-Key': settings.AUTOCOMPETER_KEY,
+            },
+            verify=not settings.DEBUG
+        )
+        t1 = time.time()
+        if verbose:  # pragma: no cover
+            print response
+            print "Took", t1 - t0, "seconds to flush"
+        assert response.status_code == 204, response.status_code
+
+    now = timezone.now()
+
+    if all:
+        hits_map = dict(
+            EventHitStats.objects.all().values_list('event', 'total_hits')
+        )
+        values = hits_map.values()
+        if values:
+            median_hits = sorted(values)[len(values) / 2]
+        else:
+            median_hits = 0
+        events = Event.objects.approved()
+    else:
+        events = (
+            Event.objects.approved()
+            .filter(modified__gte=now-since)[:max_]
+        )
+        if events:
+            # there are events, we'll need a hits_map and a median
+            hits_map = dict(
+                EventHitStats.objects.filter(event__in=events)
+                .values_list('event', 'total_hits')
+            )
+            values = (
+                EventHitStats.objects.all()
+                .values_list('total_hits', flat=True)
+            )
+            if values:
+                median_hits = sorted(values)[len(values) / 2]
+            else:
+                median_hits = 0
+
+    documents = []
+    for event in events:
+        url = reverse('main:event', args=(event.slug,))
+        title = event.title
+        if event.start_time > now:
+            # future events can be important too
+            popularity = median_hits
+        else:
+            hits = hits_map.get(event.id, 0)
+            popularity = hits
+        if event.privacy == Event.PRIVACY_PUBLIC:
+            group = ''
+        else:
+            group = event.privacy
+
+        documents.append({
+            'title': title,
+            'url': url,
+            'popularity': popularity,
+            'group': group,
+        })
+
+    if verbose:  # pragma: no cover
+        from pprint import pprint
+        pprint(documents)
+
+    if not documents:
+        if verbose:  # pragma: no cover
+            print "No documents."
+        return
+
+    t0 = time.time()
+    response = requests.post(
+        autocompeter_url + '/bulk',
+        data=json.dumps({'documents': documents}),
+        headers={
+            'Auth-Key': settings.AUTOCOMPETER_KEY,
+        },
+        verify=not settings.DEBUG
+    )
+    t1 = time.time()
+    assert response.status_code == 201, response.status_code
+    if verbose:  # pragma: no cover
+        print response
+        print "Took", t1 - t0, "seconds to bulk submit"
