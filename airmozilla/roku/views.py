@@ -86,23 +86,13 @@ def get_media_info(event):
             'url': 'http://vid.ly/%s?content=video&format=mp4' % tag,
             'format': 'mp4'
         }
-    elif event.template and 'edgecast hls' in event.template.name.lower():
-        try:
-            file = event.template_environment['file']
-            return {
-                # it's important to use HTTP here :(
-                'url': 'http://hls.cdn.mozilla.net/%s.m3u8' % file,
-                'format': 'hls',
-            }
-        except KeyError:
-            pass
-    elif event.template and 'wowza hls' in event.template.name.lower():
+    elif event.template and 'hls' in event.template.name.lower():
         try:
             file = event.template_environment['file']
             return {
                 # it's important to use HTTP here :(
                 'url': (
-                    'http://wowza1.scl3.mozilla.com/live/ngrp:%s_all'
+                    'http://wowza1.cdn.mozilla.net/live/ngrp:%s_all'
                     '/playlist.m3u8' % file
                 ),
                 'format': 'hls',
