@@ -54,7 +54,48 @@
     {% if warning %}
       <div class="warning">Warning: {{ warning }}</div>
     {% endif %}
-    <header class="entry-header">
+        <div class="entry-content">
+      {% if pending %}
+        <p class="pending">
+        Event is currently in a pending state meaning it will soon be made available.
+        </p>
+      {% else %}
+        {% if video %}
+          {{ video|safe }}
+          <p class="play-options">
+            <span class="tearout">
+              <a class="open"
+                 title="Click to open up just the video in a pop-up"></a>
+              <span class="problem"></span>
+            </span>
+            {% if not event.is_live() %}
+            <span class="playbackrate">
+              <a class="open inactive"
+                 title="Click to see playback rate options"></a>
+              <span class="options">
+                <a data-rate="0.5" title="Half the speed">0.5&times;</a>
+                <a data-rate="1" title="Normal speed">1&times;</a>
+                <a data-rate="1.5" title="One and a half the speed">1.5&times;</a>
+                <a data-rate="2" title="Double speed">2&times;</a>
+              </span>
+              <span class="problem"></span>
+            </span>
+            {% endif %}
+          </p>
+    
+          
+          {% if event.is_live() %}
+          <p class="islive" data-url="{{ url('main:event_livehits', event.id) }}">
+            {{ csrf() }}
+            Number of live views: <b></b>
+          </p>
+          {% endif %}
+
+        {% else %}
+          {{ show_thumbnail(event, '121x68') }}
+        {% endif %}
+      {% endif %}
+     <header class="entry-header">
       <h1 class="entry-title">
         {{ event.title }}
       </h1>
@@ -89,45 +130,8 @@
         {% endif %}
       </p>
     </header>
-    <div class="entry-content">
-      {% if pending %}
-        <p class="pending">
-        Event is currently in a pending state meaning it will soon be made available.
-        </p>
-      {% else %}
-        {% if video %}
-          {{ video|safe }}
-          <p class="play-options">
-            <span class="tearout">
-              <a class="open"
-                 title="Click to open up just the video in a pop-up"></a>
-              <span class="problem"></span>
-            </span>
-            {% if not event.is_live() %}
-            <span class="playbackrate">
-              <a class="open inactive"
-                 title="Click to see playback rate options"></a>
-              <span class="options">
-                <a data-rate="0.5" title="Half the speed">0.5&times;</a>
-                <a data-rate="1" title="Normal speed">1&times;</a>
-                <a data-rate="1.5" title="One and a half the speed">1.5&times;</a>
-                <a data-rate="2" title="Double speed">2&times;</a>
-              </span>
-              <span class="problem"></span>
-            </span>
-            {% endif %}
-          </p>
-          {% if event.is_live() %}
-          <p class="islive" data-url="{{ url('main:event_livehits', event.id) }}">
-            {{ csrf() }}
-            Number of live views: <b></b>
-          </p>
-          {% endif %}
 
-        {% else %}
-          {{ show_thumbnail(event, '121x68') }}
-        {% endif %}
-      {% endif %}
+
       {% if event.duration %}
         <p>
           Duration: {{ show_duration(event.duration) }}
@@ -152,6 +156,7 @@
         {% endfor %}
       </p>
       {% endif %}
+
 
       {% if event.call_info %}
         <p>{{ _('Call info') }}: {{ event.call_info }}</p>
