@@ -24,8 +24,17 @@ def dev(request):
 
 def sidebar(request):
     # none of this is relevant if you're in certain URLs
+
     if '/manage/' in request.path_info:
         return {}
+    if '/roku/' in request.path_info:
+        # Special circumstance here.
+        # We have a static page with URL "/roku" (which django redirects
+        # to "/roku/"). On that page we want sidebar stuff.
+        # But on all XML related roku views we don't want sidebar stuff.
+        if not request.path_info.endswith('/roku/'):
+            return {}
+
     data = {
         # used for things like {% if event.attr == Event.ATTR1 %}
         'Event': Event,
@@ -113,8 +122,11 @@ def _get_upcoming_events(channels, anonymous, contributor):
     return upcoming
 
 
-def get_featured_events(channels, user,
-                        length=settings.FEATURED_SIDEBAR_COUNT):
+def get_featured_events(
+    channels,
+    user,
+    length=settings.FEATURED_SIDEBAR_COUNT
+):
     """return a list of events that are sorted by their score"""
     anonymous = True
     contributor = False
@@ -124,7 +136,8 @@ def get_featured_events(channels, user,
             contributor = True
 
     cache_key = 'featured_events_%s_%s' % (int(anonymous), int(contributor))
-    cache_key += ','.join(str(x.id) for x in channels)
+    if channels:
+        cache_key += ','.join(str(x.id) for x in channels)
     event = most_recent_event()
     if event:
         cache_key += str(event.modified.microsecond)
@@ -146,7 +159,7 @@ def _get_featured_events(channels, anonymous, contributor):
         EventHitStats.objects
         .exclude(event__archive_time__isnull=True)
         .filter(event__archive_time__lt=yesterday)
-        .filter(event__channels__in=channels)
+
         .exclude(event__channels__exclude_from_trending=True)
         .extra(
             select={
@@ -159,6 +172,9 @@ def _get_featured_events(channels, anonymous, contributor):
         .select_related('event')
         .order_by('-score')
     )
+    if channels:
+        featured = featured.filter(event__channels__in=channels)
+
     if anonymous:
         featured = featured.filter(event__privacy=Event.PRIVACY_PUBLIC)
     elif contributor:
