@@ -1,19 +1,58 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
-    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta charset="utf-8">
     <title>Something went wrong!</title>
     <style type="text/css">
       body {
-        font-family: "Open Sans Light","Lucida Sans","Lucida Grande","Lucida Sans Unicode",Verdana,sans-serif;
-        background-color: rgb(32, 39, 42);
-        color: rgb(255, 255, 255);
+        background-color: #20272A;
+        background-image: url("https://air.cdn.mozilla.net/static/main/img/bg-midnight.png");
+        text-align: center;
+        position: relative;
+        padding: 0px 0px 84px;
+        background-position: center top;
+        background-repeat: repeat-x;
+        min-height: 550px;
       }
+      h1 {
+        font-family: Verdana, sans-serif;
+        color: #B4B4B4;
+        background: none repeat scroll 0% 0%;
+      }
+      p {
+        color: #B4B4B4;
+        background: none repeat scroll 0% 0%;
+      }
+      #bugzilla {
+        position: absolute;
+        width: 100%;
+        bottom: 15%;
+        text-align: center;
+      }
+      #irc {
+        position: absolute;
+        width: 100%;
+        bottom: 5%;
+        text-align: center;
+        color: #73BAE8;
+      }
+      a {
+        color: #73BAE8;
+      } 
     </style>
   </head>
   <body>
+    <a href="https://air.mozilla.org/">
+      <img src="https://air.cdn.mozilla.net/static/img/logo-airmo-md.png">
+    </a>
     <h1>Server Error</h1>
     <p>Sorry, Air Mozilla is currently experiencing an error.</p>
     <p>We've been notified about the problem and we'll fix it soon!</p>
+    <p id="bugzilla">
+      <a href="https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes%7CAir+Mozilla%7COther">File a bug on Bugzilla</a>
+    </p>
+    <p id="irc">
+      IRC on <code>irc://irc.mozilla.org/#airmozilla-dev</code>
+    </p>
   </body>
 </html>
