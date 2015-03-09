@@ -92,7 +92,7 @@ def get_media_info(event):
             return {
                 # it's important to use HTTP here :(
                 'url': (
-                    'http://wowza1.cdn.mozilla.net/live/ngrp:%s_all'
+                    'http://wowza1.cdn.mozilla.net/Edgecast/ngrp:%s_all'
                     '/playlist.m3u8' % file
                 ),
                 'format': 'hls',
