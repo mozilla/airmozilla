@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.db.models import Count
 
@@ -65,7 +65,7 @@ def templates(request):
 @cancel_redirect('manage:templates')
 @transaction.commit_on_success
 def template_edit(request, id):
-    template = Template.objects.get(id=id)
+    template = get_object_or_404(Template.objects, id=id)
     if request.method == 'POST':
         form = forms.TemplateEditForm(request.POST, instance=template)
         if form.is_valid():
