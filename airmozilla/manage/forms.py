@@ -289,21 +289,6 @@ class EventArchiveForm(BaseModelForm):
         fields = ('template', 'template_environment')
 
 
-class EventFindForm(BaseModelForm):
-    class Meta:
-        model = Event
-        fields = ('title',)
-        widgets = {
-            'title': forms.TextInput(attrs={'autocomplete': 'off'})
-        }
-
-    def clean_title(self):
-        title = self.cleaned_data['title']
-        if not Event.objects.filter(title__icontains=title):
-            raise forms.ValidationError('No event with this title found.')
-        return title
-
-
 class EventTweetForm(BaseModelForm):
     class Meta:
         model = EventTweet
