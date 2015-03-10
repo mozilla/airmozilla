@@ -10,6 +10,7 @@ from airmozilla.main.views import is_contributor
 from airmozilla.base.utils import (
     paginate
 )
+from airmozilla.main.context_processors import get_featured_events
 
 
 def categories_feed(request):
@@ -117,14 +118,13 @@ def event_feed(request, id):
 
 
 def channel_feed(request, slug):
-    context = {}
-
     # this slug might be the slug of a parent
     channels = Channel.objects.filter(
         Q(slug=slug) |
         Q(parent__slug=slug)
     )
-
+    events = Event.objects.archived()
+    events = events.filter(channels__in=channels)
     privacy_filter = {}
     privacy_exclude = {}
     if request.user.is_active:
@@ -133,18 +133,28 @@ def channel_feed(request, slug):
     else:
         privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
 
-    archived_events = Event.objects.archived()
     if privacy_filter:
-        archived_events = archived_events.filter(**privacy_filter)
+        events = events.filter(**privacy_filter)
     elif privacy_exclude:
-        archived_events = archived_events.exclude(**privacy_exclude)
-    archived_events = archived_events.order_by('-start_time')
-    archived_events = archived_events.filter(channels__in=channels)
-    page = 1
-    archived_paged = paginate(archived_events, page, 100)
+        events = events.exclude(**privacy_exclude)
+    events = events.order_by('-start_time')
 
-    context['events'] = archived_paged
+    paged = paginate(events, 1, 100)
+    return render_channel_events(paged, request)
 
+
+def trending_feed(request):
+    events = get_featured_events(
+        None,  # across all channels
+        request.user,
+        length=settings.TRENDING_ROKU_COUNT,
+    )
+    return render_channel_events(events, request)
+
+
+def render_channel_events(events, request):
+    context = {}
+    context['events'] = events
     context['get_media_info'] = get_media_info
 
     response = render(request, 'roku/channel.xml', context)

@@ -210,6 +210,9 @@ UPCOMING_SIDEBAR_COUNT = 5
 # Number of featured/trending events to display in the sidebar
 FEATURED_SIDEBAR_COUNT = 5
 
+# Number of trending events to display in the Roku feed
+TRENDING_ROKU_COUNT = 20
+
 # Use memcached for session storage with fallback on the database
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 

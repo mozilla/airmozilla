@@ -15,6 +15,7 @@ Function InitCategoryFeedConnection() As Object
     ' conn.UrlPrefix = "https://modern-rat.usefinch.us/roku"
     'conn.UrlPrefix   = "https://air-dev.allizom.org/roku"
     conn.UrlPrefix   = "https://air.mozilla.org/roku"
+
     conn.UrlCategoryFeed = conn.UrlPrefix + "/categories.xml"
 
     conn.Timer = CreateObject("roTimespan")
@@ -38,7 +39,7 @@ Function get_category_names(categories As Object) As Dynamic
     categoryNames = CreateObject("roArray", 100, true)
 
     for each category in categories.kids
-        'print category.Title
+        ' print category.Title
         categoryNames.Push(category.Title)
     next
 
