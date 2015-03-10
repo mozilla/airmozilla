@@ -86,18 +86,6 @@ def tz_apply(dt, tz):
     return tz.normalize(tz.localize(dt))
 
 
-def _json_clean(value):
-    """JSON-encodes the given Python object."""
-    # JSON permits but does not require forward slashes to be escaped.
-    # This is useful when json data is emitted in a <script> tag
-    # in HTML, as it prevents </script> tags from prematurely terminating
-    # the javscript. Some json libraries do this escaping by default,
-    # although python's standard library does not, so we do it here.
-    # http://stackoverflow.com/questions/1580647/json-why-are-forward\
-    # -slashes-escaped
-    return value.replace("</", "<\\/")
-
-
 def paginate(objects, page, count):
     """Returns a set of paginated objects, count per page (on #page)"""
     __, objects_paged = paginator(objects, page, count)
