@@ -73,30 +73,30 @@
       <tbody>
         <tr class="counts">
           <td title="Starting at midnight of UTC">
-            {{ group.counts.today }}
+            {{ group.counts.today | number}}
             <span class="prior-count" title="Count for yesterday">
               {{ group.counts.yesterday }}
             </span>
           </td>
           <td title="Starting on the Monday">
-            {{ group.counts.this_week }}
+            {{ group.counts.this_week | number}}
             <span class="prior-count" title="Count for last week">
-              {{ group.counts.last_week }}
+              {{ group.counts.last_week | number}}
             </span>
           </td>
           <td title="Starting the 1st of this month">
-            {{ group.counts.this_month }}
+            {{ group.counts.this_month | number}}
             <span class="prior-count" title="Count for last month">
-              {{ group.counts.last_month }}
+              {{ group.counts.last_month | number}}
             </span>
           </td>
           <td title="Starting the 1st of January">
-            {{ group.counts.this_year }}
+            {{ group.counts.this_year | number}}
             <span class="prior-count" title="Count for last year">
-              {{ group.counts.last_year }}
+              {{ group.counts.last_year | number}}
             </span>
           </td>
-          <td>{{ group.counts.ever }}</td>
+          <td>{{ group.counts.ever | number}}</td>
         </tr>
       </tbody>
     </table>
