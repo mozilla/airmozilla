@@ -1,32 +1,40 @@
 import datetime
 import json
 import time
+import sys
+from pprint import pprint
 
 import requests
 
 from django.conf import settings
 from django.utils import timezone
+from django.core.exceptions import ImproperlyConfigured
 
 from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import Event, EventHitStats
 
 
-def update(
-    verbose=False, all=False, flush_first=False, max_=1000,
-    since=datetime.timedelta(minutes=60)
-):
-    if not getattr(settings, 'AUTOCOMPETER_KEY', None):
-        if verbose:  # pragma: no cover
-            print "Unable to submit titles to autocompeter.com"
-            print "No settings.AUTOCOMPETER_KEY set up"
-        return
-
-    autocompeter_url = getattr(
+def _get_url():
+    return getattr(
         settings,
         'AUTOCOMPETER_URL',
         'https://autocompeter.com/v1'
     )
+
+
+def update(
+    verbose=False, all=False, flush_first=False, max_=1000,
+    since=datetime.timedelta(minutes=60),
+    out=sys.stdout,
+):
+    if not getattr(settings, 'AUTOCOMPETER_KEY', None):
+        if verbose:  # pragma: no cover
+            print >>out, "Unable to submit titles to autocompeter.com"
+            print >>out, "No settings.AUTOCOMPETER_KEY set up"
+        return
+
+    autocompeter_url = _get_url()
     if flush_first:
         assert all, "must be all if you're flushing"
         t0 = time.time()
@@ -39,8 +47,8 @@ def update(
         )
         t1 = time.time()
         if verbose:  # pragma: no cover
-            print response
-            print "Took", t1 - t0, "seconds to flush"
+            print >>out, response
+            print >>out, "Took", t1 - t0, "seconds to flush"
         assert response.status_code == 204, response.status_code
 
     now = timezone.now()
@@ -98,12 +106,11 @@ def update(
         })
 
     if verbose:  # pragma: no cover
-        from pprint import pprint
-        pprint(documents)
+        pprint(documents, stream=out)
 
     if not documents:
         if verbose:  # pragma: no cover
-            print "No documents."
+            print >>out, "No documents."
         return
 
     t0 = time.time()
@@ -118,5 +125,34 @@ def update(
     t1 = time.time()
     assert response.status_code == 201, response.status_code
     if verbose:  # pragma: no cover
-        print response
-        print "Took", t1 - t0, "seconds to bulk submit"
+        print >>out, response
+        print >>out, "Took", t1 - t0, "seconds to bulk submit"
+
+
+def stats():
+    if not getattr(settings, 'AUTOCOMPETER_KEY', None):
+        raise ImproperlyConfigured("No settings.AUTOCOMPETER_KEY set up")
+    autocompeter_url = _get_url()
+    response = requests.get(
+        autocompeter_url + '/stats',
+        headers={
+            'Auth-Key': settings.AUTOCOMPETER_KEY,
+        },
+        verify=not settings.DEBUG
+    )
+    assert response.status_code == 200, response.status_code
+    return response.json()
+
+
+def test(term):
+    autocompeter_url = _get_url()
+    response = requests.get(
+        autocompeter_url,
+        params={
+            'd': settings.AUTOCOMPETER_DOMAIN,
+            'q': term,
+        },
+        verify=not settings.DEBUG
+    )
+    assert response.status_code == 200, response.status_code
+    return response.json()
