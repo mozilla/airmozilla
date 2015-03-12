@@ -39,9 +39,7 @@ def users(request):
             User.objects.filter(_mozilla_email_filter).count()
         ),
     }
-    form = forms.UserFindForm()
     context = {
-        'form': form,
         'users_stats': users_stats,
     }
     return render(request, 'manage/users.html', context)

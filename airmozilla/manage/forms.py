@@ -78,17 +78,6 @@ class GroupEditForm(BaseModelForm):
         model = Group
 
 
-class UserFindForm(BaseForm):
-
-    email = forms.CharField(max_length=200)
-
-    def clean_email(self):
-        email = self.cleaned_data['email']
-        if not User.objects.filter(email__icontains=email):
-            raise forms.ValidationError('No users found')
-        return email
-
-
 class EventRequestForm(BaseModelForm):
     tags = forms.CharField(required=False)
 
