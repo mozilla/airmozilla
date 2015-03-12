@@ -22,6 +22,7 @@ from .views import (
     url_transforms,
     cronlogger,
     permissions,
+    autocompeter,
 )
 
 
@@ -250,4 +251,13 @@ urlpatterns = patterns(
     url(r'^cronlogger/data/$',
         cronlogger.cronlogger_data,
         name='cronlogger_data'),
+    url(r'^autocompeter/$',
+        autocompeter.autocompeter_home,
+        name='autocompeter'),
+    url(r'^autocompeter/stats/$',
+        autocompeter.autocompeter_stats,
+        name='autocompeter_stats'),
+    url(r'^autocompeter/test/$',
+        autocompeter.autocompeter_test,
+        name='autocompeter_test'),
 )

@@ -1,4 +1,6 @@
 import re
+import datetime
+
 import pytz
 
 from django import forms
@@ -711,3 +713,21 @@ class PictureForm(BaseModelForm):
     class Meta:
         model = Picture
         fields = ('file', 'notes')
+
+
+class AutocompeterUpdateForm(BaseForm):
+    verbose = forms.BooleanField(required=False)
+    max_ = forms.IntegerField(required=False)
+    all = forms.BooleanField(required=False)
+    flush_first = forms.BooleanField(required=False)
+    since = forms.IntegerField(
+        required=False,
+        help_text="Minutes since last modified"
+    )
+
+    def clean_since(self):
+        value = self.cleaned_data['since']
+        if value:
+            print "Minutes", int(value)
+            value = datetime.timedelta(minutes=int(value))
+        return value

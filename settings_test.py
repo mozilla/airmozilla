@@ -64,3 +64,4 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 # deliberately set so tests never actually accidentally use it
 AUTOCOMPETER_URL = 'https://autocompeter.example/v1'
+AUTOCOMPETER_DOMAIN = ''
