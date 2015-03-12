@@ -144,12 +144,12 @@ def stats():
     return response.json()
 
 
-def test(term):
+def test(term, domain=None):
     autocompeter_url = _get_url()
     response = requests.get(
         autocompeter_url,
         params={
-            'd': settings.AUTOCOMPETER_DOMAIN,
+            'd': domain or settings.AUTOCOMPETER_DOMAIN,
             'q': term,
         },
         verify=not settings.DEBUG
