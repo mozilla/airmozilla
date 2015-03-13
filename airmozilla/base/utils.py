@@ -6,7 +6,6 @@ import json
 import subprocess
 import os
 
-import html2text
 import pytz
 from slugify import slugify
 
@@ -149,15 +148,6 @@ def edgecast_tokenize(seconds=None, **kwargs):
         raise EdgecastEncryptionError(err)
 
     return out.strip()
-
-
-def html_to_text(html):
-    # in case the HTML doesn't already do all its newlines by
-    # paragraphs or <br> tags, then convert newlines to <br>
-    # tags
-    if not ('<p' in html or '<br' in html):
-        html = html.replace('\n\n', '<br>')
-    return html2text.html2text(html)
 
 
 def fix_base_url(base_url):
