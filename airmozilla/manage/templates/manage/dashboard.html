@@ -75,7 +75,7 @@
           <td title="Starting at midnight of UTC">
             {{ group.counts.today | number}}
             <span class="prior-count" title="Count for yesterday">
-              {{ group.counts.yesterday }}
+              {{ group.counts.yesterday | number }}
             </span>
           </td>
           <td title="Starting on the Monday">
