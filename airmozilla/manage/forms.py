@@ -107,11 +107,6 @@ class EventRequestForm(BaseModelForm):
 
     def __init__(self, *args, **kwargs):
         super(EventRequestForm, self).__init__(*args, **kwargs)
-        self.fields['location'].help_text = (
-            '<a href="%s" class="btn btn-default" target="_blank">'
-            '<i class="glyphicon glyphicon-plus-sign"></i>'
-            'New location'
-            '</a>' % reverse('manage:location_new'))
         self.fields['channels'].help_text = (
             '<a href="%s" class="btn btn-default" target="_blank">'
             '<i class="glyphicon glyphicon-plus-sign"></i>'
