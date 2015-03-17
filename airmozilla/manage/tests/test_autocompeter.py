@@ -99,6 +99,54 @@ class TestAutocompeter(DjangoTestCase):
         eq_(document['group'], Event.PRIVACY_CONTRIBUTORS)
 
     @mock.patch('requests.post')
+    def test_basic_update_with_repeated_titles(self, rpost):
+
+        posts = []
+
+        def mocked_post(url, **options):
+            assert settings.AUTOCOMPETER_URL in url
+            data = json.loads(options['data'])
+            posts.append(data)
+            return Response(
+                'OK',
+                201
+            )
+
+        rpost.side_effect = mocked_post
+
+        event = Event.objects.get(title='Test event')
+        # also change to a non-public privacy setting
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+        EventHitStats.objects.create(
+            event=event,
+            total_hits=100
+        )
+        event2 = Event.objects.create(
+            slug='something-else',
+            title=event.title,
+            status=event.status,
+            privacy=event.privacy,
+            start_time=event.start_time + datetime.timedelta(days=40),
+            description=event.description,
+            placeholder_img=event.placeholder_img,
+            archive_time=event.archive_time,
+        )
+        EventHitStats.objects.create(
+            event=event2,
+            total_hits=100
+        )
+        assert Event.objects.approved().count() == 2
+        autocompeter.update()
+
+        documents = posts[0]['documents']
+        titles = [x['title'] for x in documents]
+        titles.sort()
+        title1 = event.start_time.strftime('Test event %d %b %Y')
+        title2 = event2.start_time.strftime('Test event %d %b %Y')
+        eq_(titles, [title1, title2])
+
+    @mock.patch('requests.post')
     def test_basic_update_upcoming_event(self, rpost):
 
         posts = []
