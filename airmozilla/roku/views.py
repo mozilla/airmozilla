@@ -90,11 +90,12 @@ def get_media_info(event):
     elif event.template and 'hls' in event.template.name.lower():
         try:
             file = event.template_environment['file']
+            wowzaapp = event.template_environment.get('wowzaapp') or 'Edgecast'
             return {
                 # it's important to use HTTP here :(
                 'url': (
-                    'http://wowza1.cdn.mozilla.net/Edgecast/ngrp:%s_all'
-                    '/playlist.m3u8' % file
+                    'http://wowza1.cdn.mozilla.net/%s/ngrp:%s_all'
+                    '/playlist.m3u8' % (wowzaapp, file)
                 ),
                 'format': 'hls',
             }
