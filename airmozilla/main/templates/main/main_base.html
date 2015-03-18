@@ -30,7 +30,7 @@ Air Mozilla | Mozilla, in Video
   {% endcompress %}
 
 
-  <link href="https://mozorg.cdn.mozilla.net/media/css/tabzilla-min.css" rel="stylesheet">
+  <link href="//mozorg.cdn.mozilla.net/media/css/tabzilla-min.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -143,7 +143,7 @@ Air Mozilla | Mozilla, in Video
 {% block site_js %}
   {{ super() }}
   {# the day Air Mozilla uses L10n we can remove this /en-US/ here. For now it reduces redirects. #}
-  {% if not DEV %}<script src="//mozorg.cdn.mozilla.net/en-US/tabzilla/tabzilla.js"></script>{% endif %}
+  {% if not DEV %}<script src="//mozorg.cdn.mozilla.net/en-US/tabzilla/tabzilla.js" defer></script>{% endif %}
 
   {% if include_autocompeter %}
   <autocompeter
