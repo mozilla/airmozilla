@@ -23,9 +23,9 @@ nose==1.3.4
 # sha256: uDndLZwRfHAUMMFJlWkYpCOphjtIsJyQ4wpgE-fS9E8
 # sha256: j4MIDaoknQNsvM-4rlzG_wB7iNbZN1ITca-r57Gbrbw
 mock==1.0.1
-# sha256: zu6D_0xPoUYSif4HpYeehEAIn63eFQ1AdTaRzdjJQsE
-# sha256: VOtZznhUAcfR_e7SRe_OWX6Q-BHWog9rXGkxwASdY6Y
-Django==1.6.10
+# sha256: byzISLK3Kt9TpvPyG-BJxHfoLECLznzttX7-sJhL3iQ
+# sha256: flDlc-SEQ1hzs1FdeYLYAJOyaVq6F_0P8CQwdFTcOlY
+Django==1.6.11
 # sha256: UvCV-GFHuwtfYjva-VJVLReOu8XqyI2RsvWR09IsO4A
 funfactory==2.3.0
 # sha256: w5d9_m_Rug1AkfhZYzBkiLPp4jbP5g2IIRWM5af8thk
