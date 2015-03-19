@@ -6,7 +6,6 @@ import pytz
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User, Group
-from django.contrib.flatpages.models import FlatPage
 from django.utils.timezone import utc
 from funfactory.urlresolvers import reverse
 
@@ -33,6 +32,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
+from airmozilla.staticpages.models import StaticPage
 
 from .widgets import PictureWidget
 
@@ -151,8 +151,8 @@ class EventRequestForm(BaseModelForm):
         return slug
 
     @staticmethod
-    def _check_flatpage_slug(slug):
-        if FlatPage.objects.filter(url__startswith='/%s' % slug).count():
+    def _check_staticpage_slug(slug):
+        if StaticPage.objects.filter(url__startswith='/%s' % slug).count():
             raise forms.ValidationError(
                 "The default slug for event would clash with an existing "
                 "static page with the same URL. It might destroy existing "
@@ -164,12 +164,12 @@ class EventRequestForm(BaseModelForm):
         if data.get('title') and not data.get('slug'):
             # this means you have submitted a form without being explicit
             # about what the slug will be
-            self._check_flatpage_slug(slugify(data.get('title')).lower())
+            self._check_staticpage_slug(slugify(data.get('title')).lower())
         elif data.get('slug'):
             # are you trying to change it?
             if self.instance.slug != data['slug']:
                 # apparently, you want to change to a new slug
-                self._check_flatpage_slug(data['slug'])
+                self._check_staticpage_slug(data['slug'])
         return data
 
 
@@ -429,10 +429,14 @@ class ApprovalForm(BaseModelForm):
         }
 
 
-class FlatPageEditForm(BaseModelForm):
+class StaticPageEditForm(BaseModelForm):
     class Meta:
-        model = FlatPage
-        fields = ('url', 'title', 'content')
+        model = StaticPage
+        fields = ('url', 'title', 'content')  # MORE TO COME
+
+    def __init__(self, *args, **kwargs):
+        super(StaticPageEditForm, self).__init__(*args, **kwargs)
+        self.fields['url'].label = 'URL'
 
     def clean_url(self):
         value = self.cleaned_data['url']

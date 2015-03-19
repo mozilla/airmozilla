@@ -11,7 +11,6 @@ import pyquery
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
-from django.contrib.flatpages.models import FlatPage
 from django.core import mail
 from django.utils import timezone
 from django.utils.timezone import utc
@@ -49,6 +48,7 @@ from airmozilla.manage.tests.test_vidly import (
     SAMPLE_MEDIA_UPDATE_FAILED_XML,
     SAMPLE_MEDIA_UPDATED_XML,
 )
+from airmozilla.staticpages.models import StaticPage
 from airmozilla.manage.views.events import is_privacy_vidly_mismatch
 from .base import ManageTestCase
 
@@ -1234,8 +1234,8 @@ class TestEvents(ManageTestCase):
         count_tags_after = Tag.objects.all().count()
         eq_(count_tags_before, count_tags_after)
 
-    def test_event_request_with_clashing_flatpage(self):
-        FlatPage.objects.create(
+    def test_event_request_with_clashing_staticpage(self):
+        StaticPage.objects.create(
             url='/egg-plants/',
             title='Egg Plants',
         )
@@ -1248,9 +1248,9 @@ class TestEvents(ManageTestCase):
             eq_(response.status_code, 200)
             ok_('Form errors' in response.content)
 
-    def test_event_edit_with_clashing_flatpage(self):
+    def test_event_edit_with_clashing_staticpage(self):
         # if you edit the event and its slug already clashes with a
-        # FlatPage, there's little we can do, the FlatPage was added
+        # StaticPage, there's little we can do, the StaticPage was added
         # after
         with open(self.placeholder) as fp:
             response = self.client.post(
@@ -1260,7 +1260,7 @@ class TestEvents(ManageTestCase):
             )
             eq_(response.status_code, 302)
 
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='/egg-plants/',
             title='Egg Plants',
         )

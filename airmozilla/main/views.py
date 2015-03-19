@@ -14,7 +14,6 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
-from django.contrib.flatpages.views import flatpage
 from django.views.generic.base import View
 from django.db.models import Count, Q, F
 from django.db import transaction
@@ -51,6 +50,7 @@ from airmozilla.manage import vidly
 from airmozilla.main.helpers import short_desc
 from airmozilla.base import mozillians
 from airmozilla.base.utils import get_base_url
+from airmozilla.staticpages.views import staticpage
 from . import cloud
 from . import forms
 
@@ -290,7 +290,7 @@ class EventView(View):
 
     def cant_find_event(self, request, slug):
         """return an appropriate response if no event can be found"""
-        return flatpage(request, slug)
+        return staticpage(request, slug)
 
     def can_view_event(self, event, request):
         """wrapper on the utility function can_view_event()"""

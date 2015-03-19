@@ -1,31 +1,28 @@
 from nose.tools import eq_, ok_
 
-from django.conf import settings
-from django.contrib.sites.models import Site
-from django.contrib.flatpages.models import FlatPage
-
 from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Channel
+from airmozilla.staticpages.models import StaticPage
 from .base import ManageTestCase
 
 
-class TestFlatPages(ManageTestCase):
+class TestStaticPages(ManageTestCase):
 
     def setUp(self):
-        super(TestFlatPages, self).setUp()
-        FlatPage.objects.create(
+        super(TestStaticPages, self).setUp()
+        StaticPage.objects.create(
             url='/my-page',
             title='Test page',
             content='<p>Test content</p>',
-        ).sites.add(Site.objects.get(id=1))
+        )
 
-    def test_flatpages(self):
-        response = self.client.get(reverse('manage:flatpages'))
+    def test_staticpages(self):
+        response = self.client.get(reverse('manage:staticpages'))
         eq_(response.status_code, 200)
 
-    def test_flatpage_new(self):
-        url = reverse('manage:flatpage_new')
+    def test_staticpage_new(self):
+        url = reverse('manage:staticpage_new')
         response = self.client.get(url)
         eq_(response.status_code, 200)
         response_ok = self.client.post(url, {
@@ -33,45 +30,43 @@ class TestFlatPages(ManageTestCase):
             'title': 'Cool title',
             'content': '<h4>Hello</h4>'
         })
-        self.assertRedirects(response_ok, reverse('manage:flatpages'))
-        flatpage = FlatPage.objects.get(url='/cool-page')
-        ok_(flatpage)
-        site, = flatpage.sites.all()
-        eq_(site.pk, settings.SITE_ID)
+        self.assertRedirects(response_ok, reverse('manage:staticpages'))
+        staticpage = StaticPage.objects.get(url='/cool-page')
+        ok_(staticpage)
         response_fail = self.client.post(url)
         eq_(response_fail.status_code, 200)
 
-    def test_flatpage_edit(self):
-        flatpage = FlatPage.objects.get(title='Test page')
-        url = reverse('manage:flatpage_edit', kwargs={'id': flatpage.id})
+    def test_staticpage_edit(self):
+        staticpage = StaticPage.objects.get(title='Test page')
+        url = reverse('manage:staticpage_edit', kwargs={'id': staticpage.id})
         response = self.client.get(url)
         eq_(response.status_code, 200)
         response_ok = self.client.post(url, {
-            'url': flatpage.url,
+            'url': staticpage.url,
             'title': 'New test page',
             'content': '<p>New content</p>'
         })
-        self.assertRedirects(response_ok, reverse('manage:flatpages'))
-        flatpage = FlatPage.objects.get(id=flatpage.id)
-        eq_(flatpage.content, '<p>New content</p>')
+        self.assertRedirects(response_ok, reverse('manage:staticpages'))
+        staticpage = StaticPage.objects.get(id=staticpage.id)
+        eq_(staticpage.content, '<p>New content</p>')
         response_fail = self.client.post(url, {
             'url': 'no title',
         })
         eq_(response_fail.status_code, 200)
 
-    def test_flatpage_remove(self):
-        flatpage = FlatPage.objects.get(title='Test page')
-        self._delete_test(flatpage, 'manage:flatpage_remove',
-                          'manage:flatpages')
+    def test_staticpage_remove(self):
+        staticpage = StaticPage.objects.get(title='Test page')
+        self._delete_test(staticpage, 'manage:staticpage_remove',
+                          'manage:staticpages')
 
-    def test_view_flatpage(self):
-        flatpage = FlatPage.objects.get(title='Test page')
-        response = self.client.get('/pages%s' % flatpage.url)
+    def test_view_staticpage(self):
+        staticpage = StaticPage.objects.get(title='Test page')
+        response = self.client.get('/pages%s' % staticpage.url)
         eq_(response.status_code, 200)
         ok_('Test page' in response.content)
 
-    def test_flatpage_new_with_sidebar(self):
-        url = reverse('manage:flatpage_new')
+    def test_staticpage_new_with_sidebar(self):
+        url = reverse('manage:staticpage_new')
         # not split by at least 2 `_`
         response_fail = self.client.post(url, {
             'url': 'sidebar_incorrectformat',
@@ -101,17 +96,17 @@ class TestFlatPages(ManageTestCase):
             'title': 'whatever',
             'content': '<h4>Hello</h4>'
         })
-        self.assertRedirects(response_ok, reverse('manage:flatpages'))
+        self.assertRedirects(response_ok, reverse('manage:staticpages'))
 
-        flatpage = FlatPage.objects.get(
+        staticpage = StaticPage.objects.get(
             url='sidebar_east_heard_of'
         )
         # the title would automatically become auto generated
-        ok_('Heard Of' in flatpage.title)
+        ok_('Heard Of' in staticpage.title)
 
-    def test_flatpage_edit_with_sidebar(self):
-        flatpage = FlatPage.objects.get(title='Test page')
-        url = reverse('manage:flatpage_edit', kwargs={'id': flatpage.id})
+    def test_staticpage_edit_with_sidebar(self):
+        staticpage = StaticPage.objects.get(title='Test page')
+        url = reverse('manage:staticpage_edit', kwargs={'id': staticpage.id})
         response = self.client.get(url)
         eq_(response.status_code, 200)
         response_ok = self.client.post(url, {
@@ -119,18 +114,18 @@ class TestFlatPages(ManageTestCase):
             'title': 'New test page',
             'content': '<p>New content</p>'
         })
-        self.assertRedirects(response_ok, reverse('manage:flatpages'))
-        flatpage = FlatPage.objects.get(id=flatpage.id)
-        eq_(flatpage.content, '<p>New content</p>')
-        eq_('Sidebar (bottom) Main', flatpage.title)
+        self.assertRedirects(response_ok, reverse('manage:staticpages'))
+        staticpage = StaticPage.objects.get(id=staticpage.id)
+        eq_(staticpage.content, '<p>New content</p>')
+        eq_('Sidebar (bottom) Main', staticpage.title)
 
-    def test_flatpage_with_url_that_clashes(self):
+    def test_staticpage_with_url_that_clashes(self):
         event = Event.objects.get(slug='test-event')
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='/' + event.slug,
             title='Some Page',
         )
-        response = self.client.get(reverse('manage:flatpages'))
+        response = self.client.get(reverse('manage:staticpages'))
         eq_(response.status_code, 200)
         # there should now be a link to event it clashes with
         ok_('/pages/%s' % event.slug in response.content)

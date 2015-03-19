@@ -7,9 +7,7 @@ import urllib
 import re
 import copy
 
-from django.contrib.flatpages.models import FlatPage
 from django.contrib.auth.models import Group, User, AnonymousUser, Permission
-from django.contrib.sites.models import Site
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.conf import settings
@@ -38,6 +36,7 @@ from airmozilla.main.models import (
     VidlySubmission,
     EventLiveHits,
 )
+from airmozilla.staticpages.models import StaticPage
 from airmozilla.base.tests.test_mozillians import (
     Response,
     GROUPS1,
@@ -1598,19 +1597,19 @@ class TestPages(DjangoTestCase):
 
     def test_sidebar_static_content(self):
         # create some flat pages
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='sidebar_top_main',
             content='<p>Sidebar Top Main</p>'
         )
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='sidebar_bottom_main',
             content='<p>Sidebar Bottom Main</p>'
         )
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='sidebar_top_testing',
             content='<p>Sidebar Top Testing</p>'
         )
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='sidebar_bottom_testing',
             content='<p>Sidebar Bottom Testing</p>'
         )
@@ -1637,7 +1636,7 @@ class TestPages(DjangoTestCase):
 
     def test_sidebar_static_content_all_channels(self):
         # create some flat pages
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='sidebar_top_*',
             content='<p>Sidebar Top All</p>'
         )
@@ -1657,11 +1656,11 @@ class TestPages(DjangoTestCase):
 
     def test_sidebar_static_content_almost_all_channels(self):
         # create some flat pages
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='sidebar_top_*',
             content='<p>Sidebar Top All</p>'
         )
-        FlatPage.objects.create(
+        StaticPage.objects.create(
             url='sidebar_top_testing',
             content='<p>Sidebar Top Testing</p>'
         )
@@ -1693,16 +1692,14 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
-    def test_event_flatpage_fallback(self):
-        flatpage = FlatPage.objects.create(
+    def test_event_staticpage_fallback(self):
+        StaticPage.objects.create(
             url='/test-page',
             title='Flat Test page',
             content='<p>Hi</p>'
         )
-        this_site = Site.objects.get(id=settings.SITE_ID)
-        flatpage.sites.add(this_site)
 
-        # you can always reach the flatpage by the long URL
+        # you can always reach the staticpage by the long URL
         response = self.client.get('/pages/test-page')
         eq_(response.status_code, 200)
 
@@ -1724,7 +1721,7 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
 
         # but if the event takes on a slug that clashes with the
-        # flatpage, the flatpage will have to step aside
+        # staticpage, the staticpage will have to step aside
         event.slug = 'test-page'
         event.save()
         response = self.client.get('/test-page/')

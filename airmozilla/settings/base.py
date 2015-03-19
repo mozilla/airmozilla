@@ -38,13 +38,14 @@ INSTALLED_APPS = (
     '%s.roku' % PROJECT_MODULE,
     '%s.cronlogger' % PROJECT_MODULE,
     '%s.webrtc' % PROJECT_MODULE,
+    '%s.staticpages' % PROJECT_MODULE,
 
     'bootstrapform',
     'sorl.thumbnail',
     'south',
     'django.contrib.messages',
     'django.contrib.sites',
-    'django.contrib.flatpages',
+    'django.contrib.flatpages',  # this can be deleted later
     'cronjobs',
     'raven.contrib.django.raven_compat',
     'django_nose',  # deliberately making this the last one
@@ -178,7 +179,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'commonware.middleware.FrameOptionsHeader',
     'airmozilla.manage.middleware.CacheBustingMiddleware',
-    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware'
+    'airmozilla.staticpages.middleware.StaticPageFallbackMiddleware',
 )
 
 # Enable timezone support for Django TZ-aware datetime objects
