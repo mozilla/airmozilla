@@ -19,6 +19,12 @@ Air Mozilla | Mozilla, in Video
 
 {% block extra_head %}
 <link rel="alternate" title="{{ feed_title }}" href="{{ feed_url }}" type="application/rss+xml">
+<meta property="og:title" content="{{ self.page_title() }}">
+<meta property="og:url" content="{{ request.build_absolute_uri() }}">
+<meta property="og:description" content="Air Mozilla is the Internet multimedia presence of Mozilla, with live and pre-recorded shows, interviews, news snippets, tutorial videos, and features about the Mozilla community.">
+<meta property="og:image" content="{{ abs_static('img/logo-airmo-og.png') }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 {% endblock %}
 
 {% block site_css %}

@@ -15,7 +15,6 @@
 {% endblock %}
 
 {% block extra_head %}
-{{ super() }}
 <meta name="keywords" content="{{ ','.join(tags) }}">
 <meta property="og:title" content="{{ event.title }}">
 <meta property="og:url" content="{{ make_absolute(url('main:event', event.slug)) }}">
