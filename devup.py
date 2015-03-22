@@ -3,6 +3,7 @@
 import os
 import sys
 import subprocess
+import re
 
 
 def _proceed(msg="Ready to proceed?"):
@@ -131,7 +132,7 @@ def check_git():
 def _get_psql_version():
     try:
         output, error = _process(['psql', '--version'])
-        return output.strip().split()[-1]
+        return re.search(r"[0-9.].*", output.strip()).group()
     except OSError:
         return None
 
