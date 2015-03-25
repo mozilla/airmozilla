@@ -1,7 +1,6 @@
 import datetime
 
 from django.conf import settings
-from django.contrib.flatpages.models import FlatPage
 from django.db.models import Q
 from django.utils import timezone
 from django.core.cache import cache
@@ -16,6 +15,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.main.views import is_contributor
 from airmozilla.search.forms import SearchForm
+from airmozilla.staticpages.models import StaticPage
 
 
 def dev(request):
@@ -75,7 +75,7 @@ def sidebar(request):
     )
     # to avoid having to do 2 queries, make a combined one
     # set it up with an iterator
-    for page in FlatPage.objects.filter(sidebar_urls_q):
+    for page in StaticPage.objects.filter(sidebar_urls_q):
         if page.url.startswith('sidebar_top_'):
             data['sidebar_top'] = page
         elif page.url.startswith('sidebar_bottom_'):

@@ -25,7 +25,8 @@ urlpatterns = patterns(
      {'document_root': settings.ROOT + '/airmozilla/base/static/img'}),
     (r'', include('django_browserid.urls')),
     (r'', include('airmozilla.main.urls', namespace='main')),
-    ('^pages/', include('django.contrib.flatpages.urls')),
+    ('^pages/', include('airmozilla.staticpages.urls',
+     namespace='staticpages')),
 )
 
 # In DEBUG mode, serve media files through Django.
