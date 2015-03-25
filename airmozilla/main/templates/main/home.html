@@ -32,8 +32,8 @@ p.feed { float: right; }
       <div class="entry-summary">
         <a href="{{ href }}">
           {{ show_thumbnail(live, '160x90') }}
-        <a class="star live" data-id="{{ event.id }}" title="Save as a starred event"></a>
         </a>
+        <a class="star live" data-id="{{ event.id }}" title="Save as a starred event"></a>
         <p>{{ short_desc(live, 16) | safe_html }}
         <a class="go" href="{{ href }}">{{_('See more') }}</a></p>
         <p class="watch"><a class="button" href="{{ href }}">
