@@ -644,9 +644,13 @@ class EventEditView(EventView):
             data['recruitmentmessage'] = event.recruitmentmessage_id
         if event.placeholder_img:
             data['placeholder_img'] = event.placeholder_img.url
+            if event.picture:
+                file = event.picture.file
+            else:
+                file = event.placeholder_img
             data['thumbnail_url'] = (
                 get_thumbnail(
-                    event.placeholder_img,
+                    file,
                     '121x68',
                     crop='center'
                 ).url
