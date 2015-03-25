@@ -28,7 +28,8 @@ class TestStaticPages(ManageTestCase):
         response_ok = self.client.post(url, {
             'url': '/cool-page',
             'title': 'Cool title',
-            'content': '<h4>Hello</h4>'
+            'content': '<h4>Hello</h4>',
+            'privacy': Event.PRIVACY_PUBLIC,
         })
         self.assertRedirects(response_ok, reverse('manage:staticpages'))
         staticpage = StaticPage.objects.get(url='/cool-page')
@@ -44,11 +45,13 @@ class TestStaticPages(ManageTestCase):
         response_ok = self.client.post(url, {
             'url': staticpage.url,
             'title': 'New test page',
-            'content': '<p>New content</p>'
+            'content': '<p>New content</p>',
+            'privacy': Event.PRIVACY_CONTRIBUTORS,
         })
         self.assertRedirects(response_ok, reverse('manage:staticpages'))
         staticpage = StaticPage.objects.get(id=staticpage.id)
         eq_(staticpage.content, '<p>New content</p>')
+        eq_(staticpage.privacy, Event.PRIVACY_CONTRIBUTORS)
         response_fail = self.client.post(url, {
             'url': 'no title',
         })
@@ -71,7 +74,8 @@ class TestStaticPages(ManageTestCase):
         response_fail = self.client.post(url, {
             'url': 'sidebar_incorrectformat',
             'title': 'whatever',
-            'content': '<h4>Hello</h4>'
+            'content': '<h4>Hello</h4>',
+            'privacy': Event.PRIVACY_PUBLIC,
         })
         eq_(response_fail.status_code, 200)
         ok_('Form errors!' in response_fail.content)
@@ -80,7 +84,8 @@ class TestStaticPages(ManageTestCase):
         response_fail = self.client.post(url, {
             'url': 'sidebar_east_never_heard_of',
             'title': 'whatever',
-            'content': '<h4>Hello</h4>'
+            'content': '<h4>Hello</h4>',
+            'privacy': Event.PRIVACY_PUBLIC,
         })
         eq_(response_fail.status_code, 200)
         ok_('Form errors!' in response_fail.content)
@@ -94,7 +99,8 @@ class TestStaticPages(ManageTestCase):
         response_ok = self.client.post(url, {
             'url': 'sidebar_east_heard_of',
             'title': 'whatever',
-            'content': '<h4>Hello</h4>'
+            'content': '<h4>Hello</h4>',
+            'privacy': Event.PRIVACY_PUBLIC,
         })
         self.assertRedirects(response_ok, reverse('manage:staticpages'))
 
@@ -109,10 +115,19 @@ class TestStaticPages(ManageTestCase):
         url = reverse('manage:staticpage_edit', kwargs={'id': staticpage.id})
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        response_fail = self.client.post(url, {
+            'url': 'sidebar_bottom_main',
+            'title': 'New test page',
+            'content': '<p>New content</p>',
+            'privacy': Event.PRIVACY_CONTRIBUTORS,
+        })
+        eq_(response_fail.status_code, 200)
+
         response_ok = self.client.post(url, {
             'url': 'sidebar_bottom_main',
             'title': 'New test page',
-            'content': '<p>New content</p>'
+            'content': '<p>New content</p>',
+            'privacy': Event.PRIVACY_PUBLIC,
         })
         self.assertRedirects(response_ok, reverse('manage:staticpages'))
         staticpage = StaticPage.objects.get(id=staticpage.id)
