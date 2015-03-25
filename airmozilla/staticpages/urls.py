@@ -5,5 +5,5 @@ from . import views
 
 urlpatterns = patterns(
     '',
-    url(r'^(?P<url>.*)$', views.staticpage),
+    url(r'^(?P<url>.*)$', views.staticpage, name='staticpage'),
 )

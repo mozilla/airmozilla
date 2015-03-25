@@ -1,0 +1,24 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+Insufficient Privileges
+{% endblock %}
+
+{% block banner %}
+  {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block content_main %}
+
+  <h3>
+    Insufficient Privileges
+  </h3>
+
+  <p>
+    You do not have access to view this page (<i>{{ staticpage.title}}</i>).
+  </p>
+  <p>
+    It is set to privacy level <b>{{ staticpage.get_privacy_display() }}</b>.
+  </p>
+
+{% endblock %}

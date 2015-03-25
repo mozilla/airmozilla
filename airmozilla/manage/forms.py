@@ -432,7 +432,7 @@ class ApprovalForm(BaseModelForm):
 class StaticPageEditForm(BaseModelForm):
     class Meta:
         model = StaticPage
-        fields = ('url', 'title', 'content')  # MORE TO COME
+        fields = ('url', 'title', 'content', 'privacy')
 
     def __init__(self, *args, **kwargs):
         super(StaticPageEditForm, self).__init__(*args, **kwargs)
@@ -457,6 +457,16 @@ class StaticPageEditForm(BaseModelForm):
                 )
 
         return value
+
+    def clean(self):
+        cleaned_data = super(StaticPageEditForm, self).clean()
+        if 'url' in cleaned_data and 'privacy' in cleaned_data:
+            if cleaned_data['url'].startswith('sidebar_'):
+                if cleaned_data['privacy'] != Event.PRIVACY_PUBLIC:
+                    raise forms.ValidationError(
+                        "If a sidebar the privacy must be public"
+                    )
+        return cleaned_data
 
 
 class VidlyURLForm(forms.Form):

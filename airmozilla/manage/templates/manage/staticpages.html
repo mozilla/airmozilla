@@ -12,6 +12,7 @@
         <th>URL</th>
         <th>Title</th>
         <th>Content</th>
+        <th>Privacy</th>
         <th>&nbsp;</th>
     </tr>
     </thead>
@@ -28,17 +29,17 @@
                     <small>clashes with
                     <a href="{{ url('main:event', event.slug) }}"
                        title="{{ event.title }}"
-                       >{{ event.title|truncate(20, killwords=True) }}</a></small>
+                       >{{ event.title|truncate(17, killwords=True) }}</a></small>
                   {% else %}
                     <a href="{{ p.url }}">{{ p.url }}</a>
                   {% endif %}
                 {% endwith %}
               {% endif %}
             </td>
-            <td>{{ p.title }}
-            </td>
+            <td>{{ p.title }}</td>
             <td>{{ p.content | striptags | truncate(length=70) }}
             </td>
+            <td>{{ p.get_privacy_display() }}</td>
             <td><a href="{{ url('manage:staticpage_edit', p.id) }} " class="btn btn-default btn-sm">
                 <i class="glyphicon glyphicon-edit"></i>
                 Edit
