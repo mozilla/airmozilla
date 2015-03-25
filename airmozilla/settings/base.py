@@ -33,6 +33,7 @@ INSTALLED_APPS = (
     '%s.search' % PROJECT_MODULE,
     '%s.comments' % PROJECT_MODULE,
     '%s.uploads' % PROJECT_MODULE,
+    '%s.starred' % PROJECT_MODULE,
     '%s.subtitles' % PROJECT_MODULE,
     '%s.surveys' % PROJECT_MODULE,
     '%s.roku' % PROJECT_MODULE,
@@ -107,6 +108,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
     'airmozilla.main.context_processors.browserid',
     'airmozilla.main.context_processors.faux_i18n',
     'airmozilla.main.context_processors.autocompeter',
+    'airmozilla.starred.context_processors.stars',
 )
 
 # Always generate a CSRF token for anonymous users.

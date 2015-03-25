@@ -1,0 +1,20 @@
+{% if next_page_url or prev_page_url %}
+<nav class="nav-paging">
+    <ul>
+        {% if next_page_url %}
+            <li class="prev">
+                <a href="{{ next_page_url }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
+                    {{ _('Older videos') }}
+                </a>
+            </li>
+        {% endif %}
+        {% if prev_page_url %}
+            <li class="next">
+                <a href="{{ prev_page_url }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
+                    {{ _('Newer videos') }}
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

@@ -12,7 +12,6 @@ p.feed { float: right; }
 {% endblock %}
 
 
-
 {% block content_main %}
   {% if front_page %}
     {% for live in live_events %}
@@ -33,6 +32,7 @@ p.feed { float: right; }
       <div class="entry-summary">
         <a href="{{ href }}">
           {{ show_thumbnail(live, '160x90') }}
+        <a class="star live" data-id="{{ event.id }}" title="Save as a starred event"></a>
         </a>
         <p>{{ short_desc(live, 16) | safe_html }}
         <a class="go" href="{{ href }}">{{_('See more') }}</a></p>
@@ -89,47 +89,7 @@ p.feed { float: right; }
   </h2>
   {% endif %}
 
-  {% for event in events %}
-    {% set href = url('main:event', slug=event.slug) %}
-    <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry">
-      <header class="entry-header">
-        <h2 class="entry-title">
-          <a href="{{ href }}">{{ event.title }}</a>
-        </h2>
-        {% set curated_groups = get_curated_groups(event) %}
-        {% include 'main/_event_privacy.html' %}
-      </header>
-      <div class="entry-summary">
-        <p class="event-date">{{ event.start_time|js_date }}</p>
-        <a href="{{ href }}">
-          {{ show_thumbnail(event) }}
-        </a>
-        <p>
-          {{ short_desc(event) | safe_html }}
-          <a class="go" href="{{ href }}">{{ _('See more') }}</a>
-        </p>
-      </div>
-    </article>
-  {% endfor %}
+  {% include 'main/_events.html' %}
+  {% include 'main/_paginate.html' %}
 
-  {% if next_page_url or prev_page_url %}
-  <nav class="nav-paging">
-    <ul>
-      {% if next_page_url %}
-        <li class="prev">
-          <a href="{{ next_page_url }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
-            {{ _('Older videos') }}
-          </a>
-        </li>
-      {% endif %}
-      {% if prev_page_url %}
-        <li class="next">
-          <a href="{{ prev_page_url }}{% if tags %}?{{ tags_query_string(tags) }}{% endif %}">
-            {{ _('Newer videos') }}
-          </a>
-        </li>
-      {% endif %}
-    </ul>
-  </nav>
-  {% endif %}
 {% endblock %}

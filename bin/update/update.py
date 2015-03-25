@@ -81,6 +81,7 @@ def update_db(ctx):
         )
         ctx.local(
             '%s/bin/python manage.py migrate airmozilla.staticpages' % venv_path
+            '%s/bin/python manage.py migrate airmozilla.starred' % venv_path
         )
 
 

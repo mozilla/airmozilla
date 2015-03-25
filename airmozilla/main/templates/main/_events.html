@@ -1,0 +1,23 @@
+{% for event in events %}
+{% set href = url('main:event', slug=event.slug) %}
+<article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry">
+  <header class="entry-header">
+    <h2 class="entry-title">
+      <a href="{{ href }}">{{ event.title }}</a>
+    </h2>
+    {% set curated_groups = get_curated_groups(event) %}
+    {% include 'main/_event_privacy.html' %}
+  </header>
+  <div class="entry-summary">
+    <p class="event-date">{{ event.start_time|js_date }}</p>
+    <a href="{{ href }}">
+      {{ show_thumbnail(event) }}
+    </a>
+    <a class="star{% if star_on %} star-on{% endif %}" data-id="{{ event.id }}" title="Save as a starred event"></a>
+    <p>
+      {{ short_desc(event) | safe_html }}
+      <a class="go" href="{{ href }}">{{ _('See more') }}</a>
+    </p>
+  </div>
+</article>
+{% endfor %}
