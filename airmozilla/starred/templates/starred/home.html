@@ -1,0 +1,24 @@
+{% extends 'main/home.html' %}
+{% set page = page|default('starred') -%}
+
+{% block page_title %}
+Starred Events | {{ super() }}
+{% endblock %}
+
+{% block content_main %}
+<h2 class="section-title">Starred Events</h2>
+
+<div id="events">
+{% if events %}
+    {% include 'starred/events.html' %}
+{% else %}
+    <p class="has-stars">Please wait. Loading your starred events...</p>
+{% endif %}
+</div>
+    <p class="no-stars" style="display:none">You have no starred events. Yet.</p>
+{% endblock %}
+
+{% block site_js %}
+{{ super() }}
+<script src="{{ static('starred/js/starredevents.js') }}"></script>
+{% endblock %}

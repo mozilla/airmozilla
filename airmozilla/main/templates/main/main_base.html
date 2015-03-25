@@ -5,7 +5,8 @@
     ('About', '/about/', 'about', True, ''),
     ('Channels', 'main:channels', 'channels', True, ''),
     ('Calendar', 'main:calendar', 'calendar', True, ''),
-    ('Tag Cloud', 'main:tag_cloud', 'tag_cloud', True, ''),
+    ('Tag Cloud', 'main:tag_cloud', 'tag_cloud', not request.user.is_staff, ''),
+    ('Starred', 'starred:home', 'starred', True, ''),
     ('Requests', 'suggest:start', 'suggest', request.user.is_active, ''),
     ('Management', 'manage:events', '', request.user.is_staff, ''),
     ('Sign out', '/browserid/logout/', '', request.user.is_active, 'browserid-logout'),
@@ -23,6 +24,7 @@ Air Mozilla | Mozilla, in Video
 {% block site_css %}
   {% compress css %}
     <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ static('starred/css/star_event.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/main.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/autocompeter/autocompeter.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/autocompeter.css') }}" rel="stylesheet" type="text/css">
@@ -58,6 +60,11 @@ Air Mozilla | Mozilla, in Video
           {% endif %}
       </ul>
     </nav>
+    {% if request.user.is_authenticated() %}
+      <starred-event data-post="{{ url('starred:sync') }}"
+        data-ids="{{ star_ids }}">{{ csrf() }}
+      </starred-event>
+    {% endif %}
     {% block banner %}
       {% include 'main/_banner_small.html' %}
     {% endblock %}
@@ -162,6 +169,7 @@ Air Mozilla | Mozilla, in Video
   <script src="{{ static('js/libs/include.js') }}"></script>
   <script src="{{ static('browserid/api.js') }}"></script>
   <script src="{{ static('browserid/browserid.js') }}"></script>
+  <script src="{{ static('starred/js/star_event.js') }}"></script>
   {% endcompress %}
 
 {% endblock %}

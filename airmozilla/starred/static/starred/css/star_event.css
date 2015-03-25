@@ -1,0 +1,30 @@
+a.star {
+    background: url('../img/Star20YellowTransparent.png') no-repeat;
+    height: 20px;
+    width: 20px;
+    position: absolute;
+    background-position: -20px 0px;
+    left: 145px;
+    top: 75px;
+    opacity: 0.9;
+    cursor: pointer;
+}
+a.star.event {
+    left: 130px;
+    top: 64px;
+}
+a.star.live {
+    left: 190px;
+    top: 130px;
+}
+a.star.sidebar {
+    left: 138px;
+    top: 68px;
+}
+a.star-on {
+    background-position: 0 0;
+}
+
+.entry-summary {
+    position: relative;
+}
