@@ -15,7 +15,8 @@
     "bugs": {
         "list": "https://bugzilla.mozilla.org/buglist.cgi?product=Webtools&component=Air%20Mozilla&resolution=---",
         "report": "https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes%7CAir+Mozilla%7COther",
-        "goodfirstbugs": "https://bugzilla.mozilla.org/buglist.cgi?resolution=---&status_whiteboard_type=allwordssubstr&query_format=advanced&status_whiteboard=%5Bgood%20first%20bug%5D&bug_status=NEW&component=Air%20Mozilla&product=Webtools"
+        "goodfirstbugs": "https://bugzilla.mozilla.org/buglist.cgi?resolution=---&status_whiteboard_type=allwordssubstr&query_format=advanced&status_whiteboard=%5Bgood%20first%20bug%5D&bug_status=NEW&component=Air%20Mozilla&product=Webtools",
+        "priorities": "https://bugzilla.mozilla.org/report.cgi?x_axis_field=priority&y_axis_field=assigned_to&z_axis_field=&query_format=report-table&classification=Server+Software&product=Webtools&component=Air%20Mozilla&resolution=---&format=table&action=wrap"
     },
     "urls": {
         "prod": "https://air.mozilla.org/",
