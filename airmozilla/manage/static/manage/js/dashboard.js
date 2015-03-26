@@ -1,6 +1,16 @@
-var app = angular.module('app', []);
+angular.module('app', [])
 
-app.controller('DashboardController', ['$scope', '$http',
+.filter('customNumber', function($filter) {
+    return function(input, fractionSize) {
+        if (angular.isNumber(input)) {
+            return $filter('number')(input, fractionSize);
+        } else {
+            return input;
+        }
+    };
+})
+
+.controller('DashboardController', ['$scope', '$http',
 function($scope, $http) {
     'use strict';
 
@@ -10,4 +20,6 @@ function($scope, $http) {
     }).error(function() {
         console.log(arguments);
     });
-}]);
+}])
+
+;
