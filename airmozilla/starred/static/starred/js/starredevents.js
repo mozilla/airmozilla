@@ -7,7 +7,7 @@ var EventLoader = (function() {
                 container.html($( '.no-stars' ).clone().toggleClass('no-stars').show());
             }
             else {
-                var url = window.location + '';
+                var url = window.location.pathname;
                 if (!Stars.isSignedIn()) {
                     url = url + '?ids=' + stars.join(',');
                 }
