@@ -60,7 +60,7 @@ var Stars = (function() {
             if (signedIn) {
                 // then the <starred-event> tag would have the list of ids
                 var serverStars = [];
-                var ids = $('starred-event').data('ids');
+                var ids = $('starred-event').data('ids').toString();
                 if (ids.length) {
                     ids.split(',').forEach(function(id) {
                         serverStars.push(parseInt(id, 10));
