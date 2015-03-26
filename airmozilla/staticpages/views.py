@@ -1,9 +1,9 @@
-# Quite blatantly copied from django.contrib.flatpages.middleware
+# Adapted from django.contrib.flatpages.middleware
 
 from django.conf import settings
 from django.http import Http404, HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
-from django.template import loader, RequestContext
+from django.template import loader, RequestContext, Template
 from django.utils.safestring import mark_safe
 
 from airmozilla.main.models import Event
@@ -47,16 +47,33 @@ def render_staticpage(request, staticpage):
     else:
         t = loader.get_template(DEFAULT_TEMPLATE)
 
-    # To avoid having to always use the "|safe" filter in flatpage templates,
-    # mark the title and content as already safe (since they are raw HTML
-    # content in the first place).
-    staticpage.title = mark_safe(staticpage.title)
-    staticpage.content = mark_safe(staticpage.content)
+    if staticpage.allow_querystring_variables:
+        title_t = Template(staticpage.title)
+        content_t = Template(staticpage.content)
+        params = {}
+        for key, value in request.REQUEST.items():
+            if key.startswith('request'):
+                continue
+            params[key] = value
+        context = RequestContext(request, params)
+        staticpage.title = title_t.render(context)
+        staticpage.content = content_t.render(context)
+    else:
+        # To avoid having to always use the "|safe" filter in flatpage
+        # templates, mark the title and content as already safe (since
+        # they are raw HTML content in the first place).
+        staticpage.title = mark_safe(staticpage.title)
+        staticpage.content = mark_safe(staticpage.content)
 
     c = RequestContext(request, {
         'staticpage': staticpage,
     })
     response = HttpResponse(t.render(c))
+    for key, value in staticpage.headers.items():
+        response[key] = value
+    # print repr(staticpage.headers)
+    # if staticpage.cors_header:
+    #     response['Access-Control-Allow-Origin'] = staticpage.cors_header
     return response
 
 

@@ -1,5 +1,7 @@
 from django.db import models
 
+from jsonfield.fields import JSONField
+
 from airmozilla.main.models import Event
 
 
@@ -8,17 +10,14 @@ class StaticPage(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField(blank=True)
     template_name = models.CharField(max_length=100, blank=True)
-    # privacy =
-    # privacy = Event.privacy
     privacy = models.CharField(
         max_length=40,
         choices=Event.PRIVACY_CHOICES,
         default=Event.PRIVACY_PUBLIC,
         db_index=True
     )
-    cors_header = models.CharField(max_length=100, blank=True)
-    content_type = models.CharField(max_length=100, blank=True)
     page_name = models.CharField(max_length=100, blank=True)
+    headers = JSONField()
     allow_querystring_variables = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

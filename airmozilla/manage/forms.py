@@ -7,8 +7,9 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.utils.timezone import utc
-from funfactory.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 
+from funfactory.urlresolvers import reverse
 from slugify import slugify
 
 from airmozilla.base.forms import BaseModelForm, BaseForm
@@ -429,14 +430,71 @@ class ApprovalForm(BaseModelForm):
         }
 
 
+class HeadersField(forms.CharField):
+    widget = forms.widgets.Textarea
+
+    def __init__(self, *args, **kwargs):
+        super(HeadersField, self).__init__(*args, **kwargs)
+        self.help_text = self.help_text or mark_safe(
+            "For example <code>Content-Type: text/xml</code>"
+        )
+
+    def to_python(self, value):
+        if not value:
+            return {}
+        headers = {}
+        for line in [x.strip() for x in value.splitlines() if x.strip()]:
+            try:
+                key, value = line.split(':', 1)
+            except ValueError:
+                raise forms.ValidationError(line)
+            headers[key.strip()] = value.strip()
+        return headers
+
+    def prepare_value(self, value):
+        if isinstance(value, basestring):
+            # already prepared
+            return value
+        elif value is None:
+            return ''
+        out = []
+        for key in sorted(value):
+            out.append('%s: %s' % (key, value[key]))
+        return '\n'.join(out)
+
+    def widget_attrs(self, widget):
+        attrs = super(HeadersField, self).widget_attrs(widget)
+        if 'rows' not in attrs:
+            attrs['rows'] = 3
+        return attrs
+
+
 class StaticPageEditForm(BaseModelForm):
+    headers = HeadersField(required=False)
+
     class Meta:
         model = StaticPage
-        fields = ('url', 'title', 'content', 'privacy')
+        fields = (
+            'url',
+            'title',
+            'content',
+            'privacy',
+            'template_name',
+            'allow_querystring_variables',
+            'headers',
+        )
 
     def __init__(self, *args, **kwargs):
         super(StaticPageEditForm, self).__init__(*args, **kwargs)
         self.fields['url'].label = 'URL'
+        self.fields['template_name'].label = 'Template'
+        choices = (
+            ('', 'Default'),
+            ('staticpages/blank.html', 'Blank (no template wrapping)'),
+        )
+        self.fields['template_name'].widget = forms.widgets.Select(
+            choices=choices
+        )
 
     def clean_url(self):
         value = self.cleaned_data['url']

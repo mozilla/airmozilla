@@ -5,6 +5,18 @@
     Edit static pages
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  <style>
+  .content-preview {
+      max-width: 250px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+  }
+  </style>
+{% endblock %}
+
 {% block manage_content %}
     <table id="current_pages" class="table table-striped table-bordered">
     <thead>
@@ -37,7 +49,8 @@
               {% endif %}
             </td>
             <td>{{ p.title }}</td>
-            <td>{{ p.content | striptags | truncate(length=70) }}
+            <td class="content-preview">
+              {{ p.content | truncate(length=170, killwords=True) }}
             </td>
             <td>{{ p.get_privacy_display() }}</td>
             <td><a href="{{ url('manage:staticpage_edit', p.id) }} " class="btn btn-default btn-sm">
