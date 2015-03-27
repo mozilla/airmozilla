@@ -33,6 +33,8 @@ class UserProfile(models.Model):
     contributor = models.BooleanField(default=False)
 
 
+@receiver(models.signals.post_delete, sender=UserProfile)
+@receiver(models.signals.post_delete, sender=User)
 @receiver(models.signals.post_save, sender=UserProfile)
 @receiver(models.signals.post_save, sender=User)
 def user_profile_clear_cache(sender, instance, **kwargs):

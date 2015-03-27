@@ -34,8 +34,43 @@ class TestStaticPages(ManageTestCase):
         self.assertRedirects(response_ok, reverse('manage:staticpages'))
         staticpage = StaticPage.objects.get(url='/cool-page')
         ok_(staticpage)
+        eq_(staticpage.headers, {})
         response_fail = self.client.post(url)
         eq_(response_fail.status_code, 200)
+
+    def test_staticpage_new_custom_headers(self):
+        url = reverse('manage:staticpage_new')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        data = {
+            'url': '/cool-page',
+            'title': 'Cool title',
+            'content': '<h4>Hello</h4>',
+            'privacy': Event.PRIVACY_PUBLIC,
+        }
+        response = self.client.post(url, dict(
+            data,
+            headers="""
+            Key: Value
+            Singleword
+            """
+        ))
+        eq_(response.status_code, 200)
+        ok_('Form errors' in response.content)
+        response = self.client.post(url, dict(
+            data,
+            headers="""
+            Key: Value
+
+            Other: thing
+            """
+        ))
+        eq_(response.status_code, 302)
+        staticpage = StaticPage.objects.get(url='/cool-page')
+        eq_(staticpage.headers, {
+            'Key': 'Value',
+            'Other': 'thing'
+        })
 
     def test_staticpage_edit(self):
         staticpage = StaticPage.objects.get(title='Test page')
@@ -47,6 +82,7 @@ class TestStaticPages(ManageTestCase):
             'title': 'New test page',
             'content': '<p>New content</p>',
             'privacy': Event.PRIVACY_CONTRIBUTORS,
+            # 'headers': '',
         })
         self.assertRedirects(response_ok, reverse('manage:staticpages'))
         staticpage = StaticPage.objects.get(id=staticpage.id)
@@ -54,8 +90,41 @@ class TestStaticPages(ManageTestCase):
         eq_(staticpage.privacy, Event.PRIVACY_CONTRIBUTORS)
         response_fail = self.client.post(url, {
             'url': 'no title',
+            # 'headers': ''
         })
         eq_(response_fail.status_code, 200)
+
+    def test_staticpage_edit_custom_headers(self):
+        staticpage = StaticPage.objects.get(title='Test page')
+        staticpage.headers = {
+            'Key': 'Value',
+        }
+        staticpage.save()
+        url = reverse('manage:staticpage_edit', kwargs={'id': staticpage.id})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Key: Value' in response.content)
+
+        data = {
+            'url': staticpage.url,
+            'title': 'New test page',
+            'content': '<p>New content</p>',
+            'privacy': Event.PRIVACY_CONTRIBUTORS,
+        }
+        response = self.client.post(url, dict(
+            data,
+            headers=" Singleword ",
+        ))
+        eq_(response.status_code, 200)
+        ok_('Form errors' in response.content)
+
+        response = self.client.post(url, dict(
+            data,
+            headers=" Custom: Value ",
+        ))
+        self.assertRedirects(response, reverse('manage:staticpages'))
+        staticpage = StaticPage.objects.get(id=staticpage.id)
+        eq_(staticpage.headers, {'Custom': 'Value'})
 
     def test_staticpage_remove(self):
         staticpage = StaticPage.objects.get(title='Test page')
@@ -120,6 +189,7 @@ class TestStaticPages(ManageTestCase):
             'title': 'New test page',
             'content': '<p>New content</p>',
             'privacy': Event.PRIVACY_CONTRIBUTORS,
+            'headers': '',
         })
         eq_(response_fail.status_code, 200)
 
@@ -128,6 +198,7 @@ class TestStaticPages(ManageTestCase):
             'title': 'New test page',
             'content': '<p>New content</p>',
             'privacy': Event.PRIVACY_PUBLIC,
+            'headers': '',
         })
         self.assertRedirects(response_ok, reverse('manage:staticpages'))
         staticpage = StaticPage.objects.get(id=staticpage.id)

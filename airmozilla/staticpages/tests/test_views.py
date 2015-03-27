@@ -92,3 +92,61 @@ class TestStaticPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_(page.title in response.content)
         ok_(page.content in response.content)
+
+    def test_cors_header(self):
+        StaticPage.objects.create(
+            title='My Private Title',
+            url='/myurl',
+            content='Bla bla bla',
+            headers={
+                'access-control-allow-origin': '*'
+            }
+        )
+        url = reverse('staticpages:staticpage', kwargs={
+            'url': 'myurl'
+        })
+        response = self.client.get(url)
+        eq_(response['Access-Control-Allow-Origin'], '*')
+
+    def test_allow_querystring_variables(self):
+        page = StaticPage.objects.create(
+            title='My Private {{world}}',
+            url='/myurl',
+            content='Hello {{ world }}!',
+        )
+        url = reverse('staticpages:staticpage', kwargs={
+            'url': 'myurl'
+        })
+        response = self.client.get(url)
+        ok_('My Private {{world}}' in response.content)
+        ok_('Hello {{ world }}!' in response.content)
+
+        page.allow_querystring_variables = True
+        page.save()
+        response = self.client.get(url)
+        ok_('My Private ' in response.content)
+        ok_('Hello !' in response.content)
+
+        response = self.client.get(url, {'world': 'WORLD'})
+        ok_('My Private WORLD' in response.content)
+        ok_('Hello WORLD!' in response.content)
+
+        # But anything to do with request is not allowed because that's
+        # where 'request.user' is
+        page.content = "User is: {{ request.user }}"
+        page.save()
+        response = self.client.get(url, {'request.user': 'Devil'})
+        ok_('User is: AnonymousUser' in response.content)
+
+    def test_blank_template(self):
+        StaticPage.objects.create(
+            title='My Private Title',
+            url='/myurl',
+            content='Bla bla bla',
+            template_name='staticpages/blank.html'
+        )
+        url = reverse('staticpages:staticpage', kwargs={
+            'url': 'myurl'
+        })
+        response = self.client.get(url)
+        eq_(response.content, 'Bla bla bla')
