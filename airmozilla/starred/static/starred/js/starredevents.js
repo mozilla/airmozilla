@@ -18,6 +18,8 @@ var EventLoader = (function() {
 }());
 
 $(function() {
-    EventLoader.load();
+    if (!Stars.isSignedIn()) {
+        EventLoader.load();
+    }
     Stars.registerPostSync(EventLoader.load);
 });
