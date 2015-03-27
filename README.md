@@ -208,6 +208,29 @@ And last but not least:
 
 Now you should be able to open `http://localhost:8000`.
 
+Random/Sample data
+------------------
+
+Now that you have a working version running you'll find that it has nothing
+in it. This will make it harder to get a feel for certain features
+and it definitely makes it hard to optimize things where there's so little
+there.
+
+There is a command that is under active development and creates the bare
+minimum. If you find it's not creating certain type of data that you
+need then feel free to send in a patch on the `fakedata.py` code.
+
+You can run this command repeatedly and it should not break.
+
+```
+./manage.py generate-fake-data 1000
+```
+
+The number at the end is how many events you want to generate.
+
+This will also create various other things like random Regions, Locations,
+VideoTemplates, Pictures, Users etc.
+
 How to get it running with Docker Compose
 -----------------------------------------
 
