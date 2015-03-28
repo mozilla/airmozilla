@@ -1,2 +1,6 @@
-{% include 'main/_events.html' %}
-{% include 'main/_paginate.html' %}
+{% if events %}
+    {% include 'main/_events.html' %}
+    {% include 'main/_paginate.html' %}
+{% else %}
+    You have no starred events. Yet.
+{% endif %}
