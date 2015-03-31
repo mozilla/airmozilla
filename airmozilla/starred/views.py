@@ -57,7 +57,6 @@ def home(request, page=1):
 
     elif ids:
         ids = [int(x) for x in ids.split(',')]
-        # how do we order_by the order in ids?
         events = Event.objects.filter(id__in=ids)
         events = sorted(events, key=lambda e: ids.index(e.id))
     else:
