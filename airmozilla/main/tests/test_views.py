@@ -375,6 +375,12 @@ class TestPages(DjangoTestCase):
 
         event.privacy = Event.PRIVACY_CONTRIBUTORS
         event.save()
+        # Due to a Heisenbug in the test client, *SOMETIMES* the client
+        # loses its sessionstore upon the second request. It only happens
+        # some rare times. By doing a fresh new login() again, we
+        # drastically reduce the chance of that bug biting us.
+        # https://groups.google.com/d/msg/django-users/MRCaRGxRRCQ/mGVcswl7eN4J
+        assert self.client.login(username='nigel', password='secret')
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
 
