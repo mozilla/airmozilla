@@ -26,8 +26,8 @@ app.filter('startFrom', function() {
 });
 
 
-UserManagerController.$inject = ['$scope', '$http'];
-
+app.controller('UserManagerController',
+['$scope', '$http',
 function UserManagerController($scope, $http) {
     'use strict';
 
@@ -187,4 +187,4 @@ function UserManagerController($scope, $http) {
           });
     }
     loadAll();
-}
+}]);

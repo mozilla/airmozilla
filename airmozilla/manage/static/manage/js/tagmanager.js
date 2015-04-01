@@ -25,9 +25,8 @@ app.filter('startFrom', function() {
     };
 });
 
-
-TagManagerController.$inject = ['$scope', '$http', '$timeout'];
-
+app.controller('TagManagerController',
+['$scope', '$http', '$timeout',
 function TagManagerController($scope, $http, $timeout) {
     'use strict';
 
@@ -169,4 +168,4 @@ function TagManagerController($scope, $http, $timeout) {
           });
     }
     loadAll();
-}
+}]);
