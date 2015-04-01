@@ -962,7 +962,7 @@ def all_event_tweets(request):
 @transaction.commit_on_success
 def event_archive(request, id):
     """Dedicated page for setting page template (archive) and archive time."""
-    event = Event.objects.get(id=id)
+    event = get_object_or_404(Event, id=id)
     if request.method == 'POST':
         form = forms.EventArchiveForm(request.POST, instance=event)
         if form.is_valid():
@@ -1027,6 +1027,26 @@ def event_archive(request, id):
         'default_archive_template': default_archive_template,
     }
     return render(request, 'manage/event_archive.html', context)
+
+
+@superuser_required
+@cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
+@transaction.commit_on_success
+def event_archive_time(request, id):
+    event = get_object_or_404(Event, id=id)
+    if request.method == 'POST':
+        form = forms.EventArchiveTimeForm(request.POST, instance=event)
+        if form.is_valid():
+            form.save()
+            messages.info(request, 'Event archive time saved.')
+            return redirect('manage:event_edit', event.id)
+    else:
+        form = forms.EventArchiveTimeForm(instance=event)
+    context = {
+        'form': form,
+        'event': event,
+    }
+    return render(request, 'manage/event_archive_time.html', context)
 
 
 @staff_required

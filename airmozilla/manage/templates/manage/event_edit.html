@@ -278,6 +278,21 @@
       {% endif %}
     </p>
 
+    {% if is_superuser %}
+    <p style="margin-top:25px"><strong>Archive Time</strong></p>
+    <p>
+      {% if event.archive_time %}
+      {{ event.archive_time | js_date }}
+      {% else %}
+      Not archived
+      {% endif %}
+      <br>
+      <a href="{{ url('manage:event_archive_time', event.id) }}"
+         class="btn btn-xs btn-primary"
+      >Change</a>
+    </p>
+    {% endif %}
+
   </div>
 </div>
 {% endblock %}

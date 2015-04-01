@@ -1,0 +1,22 @@
+{% extends "manage/event_request.html" %}
+{% set page = "events" %}
+
+{% block manage_title %}
+  Archive Time "{{ event.title }}"
+{% endblock %}
+
+
+{% block manage_content %}
+
+  {% include 'manage/_default_form.html' %}
+  
+  <p>
+    <b>Note</b> The event is currently in the state of
+    <b>{{ event.get_status_display() }}</b>.
+  </p>
+
+  <p>
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}
