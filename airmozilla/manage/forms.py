@@ -93,7 +93,6 @@ class EventRequestForm(BaseModelForm):
             'additional_links': forms.Textarea(attrs={'rows': 3}),
             'remote_presenters': forms.Textarea(attrs={'rows': 3}),
             'start_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
-            'archive_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
         }
         exclude = ('featured', 'status', 'archive_time', 'slug')
         # Fields specified to enforce order
@@ -274,6 +273,32 @@ class EventArchiveForm(BaseModelForm):
     class Meta(EventRequestForm.Meta):
         exclude = ()
         fields = ('template', 'template_environment')
+
+
+class EventArchiveTimeForm(BaseModelForm):
+
+    class Meta(EventRequestForm.Meta):
+        exclude = ()
+        fields = ('archive_time',)
+
+    def __init__(self, *args, **kwargs):
+        super(EventArchiveTimeForm, self).__init__(*args, **kwargs)
+        self.fields['archive_time'].help_text = (
+            "Input timezone is <b>UTC</b>"
+        )
+        if self.initial['archive_time']:
+            # Force it to a UTC string so Django doesn't convert it
+            # to a timezone-less string in the settings.TIME_ZONE timezone.
+            self.initial['archive_time'] = (
+                self.initial['archive_time'].strftime('%Y-%m-%d %H:%M:%S')
+            )
+
+    def clean_archive_time(self):
+        value = self.cleaned_data['archive_time']
+        # force it back to UTC
+        if value:
+            value = value.replace(tzinfo=utc)
+        return value
 
 
 class EventTweetForm(BaseModelForm):

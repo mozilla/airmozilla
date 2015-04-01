@@ -80,6 +80,8 @@ urlpatterns = patterns(
     url(r'^events/archive/(?P<id>\d+)/auto/$',
         events.event_archive_auto,
         name='event_archive_auto'),
+    url(r'^events/(?P<id>\d+)/archive-time/$', events.event_archive_time,
+        name='event_archive_time'),
     url(r'^events/duplicate/(?P<duplicate_id>\d+)/$', events.event_request,
         name='event_duplicate'),
     url(r'^events/vidlyurltoshortcode/(?P<id>\d+)/',

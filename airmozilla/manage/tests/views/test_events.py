@@ -2186,3 +2186,31 @@ class TestEvents(ManageTestCase):
         submission = VidlySubmission.objects.get(id=submission.id)
         # it should not have changed
         ok_(not submission.token_protection)
+
+    def test_edit_event_archive_time(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_archive_time', args=(event.id,))
+        assert event.archive_time
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(event.get_status_display() in response.content)
+        # the input converts the time to the local timezone of
+        ok_(
+            event.archive_time.strftime('%Y-%m-%d %H:%M:%S') in
+            response.content
+        )
+        response = self.client.post(url, {
+            'archive_time': ''
+        })
+        eq_(response.status_code, 302)
+        event = Event.objects.get(id=event.id)
+        eq_(event.archive_time, None)
+
+        response = self.client.post(url, {
+            'archive_time': '2015-04-01 12:00:00'
+        })
+        eq_(response.status_code, 302)
+        event = Event.objects.get(id=event.id)
+        dt = datetime.datetime(2015, 4, 1, 12, 0, 0)
+        dt = dt.replace(tzinfo=utc)
+        eq_(event.archive_time, dt)
