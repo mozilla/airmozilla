@@ -2,7 +2,6 @@ a.star {
     background: url('../img/Star20YellowTransparent.png') no-repeat;
     height: 20px;
     width: 20px;
-    position: absolute;
     background-position: -20px 0px;
     left: 145px;
     top: 75px;
@@ -10,6 +9,7 @@ a.star {
     cursor: pointer;
 }
 a.star.event {
+    position: absolute;
     left: 130px;
     top: 64px;
 }
@@ -27,4 +27,9 @@ a.star-on {
 
 .entry-summary {
     position: relative;
+}
+
+.entry-title a.star,
+.entry-summary a.star {
+    position: absolute;
 }
