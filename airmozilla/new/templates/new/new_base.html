@@ -1,0 +1,57 @@
+{% extends "main/main_base.html" %}
+{% set page='new' %}
+
+{% block site_css %}
+  {{ super() }}
+  {% compress css %}
+  <link href="{{ static('new/jquery-textcomplete/jquery.textcomplete.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ static('new/css/new.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular-sanitize.min.js') }}"></script>
+  <script src="{{ static('angular/angular-animate.min.js') }}"></script>
+  <script src="{{ static('angular/angular-ui-router.min.js') }}"></script>
+  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
+  <script src="{{ static('uploads/js/s3upload.js') }}"></script>
+  <script src="{{ static('new/jquery-textcomplete/jquery.textcomplete.min.js') }}"></script>
+  {% endcompress %}
+  {% compress js %}
+  <script src="{{ static('new/js/app.js') }}"></script>
+  <script src="{{ static('new/js/services.js') }}"></script>
+  <script src="{{ static('new/js/controllers.js') }}"></script>
+  {% endcompress %}
+{% endblock %}
+
+{% block extra_head %}
+{{ super() }}
+<base href="/new/">
+{% endblock %}
+
+{% block banner %}
+    {% include 'main/_banner_small.html' %}
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block content_tag %}
+  ng-app="new"
+  data-sign-upload-url="{{ url('uploads:sign') }}"
+  data-verify-size-url="{{ url('uploads:verify_size') }}"
+  data-yours-url="{{ url('new:your_events') }}"
+  data-save-url="{{ url('new:save_upload') }}"
+  data-event-url="{{ url('new:edit', 0) }}"
+  data-archive-url="{{ url('new:archive', 0) }}"
+  data-screencaptures-url="{{ url('new:screencaptures', 0) }}"
+  data-picture-url="{{ url('new:picture', 0) }}"
+  data-summary-url="{{ url('new:summary', 0) }}"
+  data-publish-url="{{ url('new:publish', 0) }}"
+  data-delete-url="{{ url('new:delete', 0) }}"
+  data-video-url="{{ url('new:video', 0) }}"
+  data-iframe-url="{{ url('main:event_video', 'slug') }}"
+{% endblock %}

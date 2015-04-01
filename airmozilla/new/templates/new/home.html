@@ -1,0 +1,29 @@
+{% extends "new/new_base.html" %}
+
+{% block content_main %}
+
+<ui-view></ui-view>
+
+<script type="text/ng-template" id="start.html">
+{% include "new/partials/start.html" %}
+</script>
+
+
+<!-- this is update by a piece of jQuery -->
+<div id="progress" style="display:none">
+  <div class="progress-bar" id="progressbar">
+    <div class="progress-bar-wrapper">
+      <progress value="0" max="100"></progress>
+      <span class="progress-size"></span>
+      <span class="progress-value">%</span>
+    </div>
+  </div>
+</div>
+
+{% raw %}
+<div ng-controller="StatusController" id="status" ng-show="status.get()">
+  <p><b>Status:</b> {{ status.get() }}</p>
+</div>
+{% endraw %}
+
+{% endblock %}

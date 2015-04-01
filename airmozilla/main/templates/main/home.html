@@ -60,9 +60,11 @@ p.feed { float: right; }
           {% endif %}
             <h2 class="section-title">{{ channel.name }}</h2>
         {% endif %}
+        {% if channel.description %}
         <div class="channel-description">
         {{ channel.description|safe }}
         </div>
+        {% endif %}
         {% for child, count in channel_children %}
           {% if loop.first %}
           <h3 class="section-title">Sub channels:</h3>

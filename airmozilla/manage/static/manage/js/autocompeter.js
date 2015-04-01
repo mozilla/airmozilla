@@ -7,7 +7,7 @@ $(function() {
             $('form.stats pre').text(JSON.stringify(response, undefined, 4));
         })
         .fail(function() {
-            console.error(arguments);
+            console.error.apply(console, arguments);
             $('form.stats pre').text('Error downloading.');
         });
         return false;
@@ -23,7 +23,7 @@ $(function() {
             $('form.test pre').text(JSON.stringify(response, undefined, 4));
         })
         .fail(function() {
-            console.error(arguments);
+            console.error.apply(console, arguments);
             $('form.test pre').text('Error testing.');
         });
         return false;

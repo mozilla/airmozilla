@@ -7,7 +7,7 @@
     ('Calendar', 'main:calendar', 'calendar', True, ''),
     ('Tag Cloud', 'main:tag_cloud', 'tag_cloud', not request.user.is_staff, ''),
     ('Starred', 'starred:home', 'starred', True, ''),
-    ('Requests', 'suggest:start', 'suggest', request.user.is_active, ''),
+    ('New/Upload', 'new:home', 'new', request.user.is_active, ''),
     ('Management', 'manage:events', '', request.user.is_staff, ''),
     ('Sign out', '/browserid/logout/', '', request.user.is_active, 'browserid-logout'),
 ] -%}
@@ -50,11 +50,22 @@ Air Mozilla | Mozilla, in Video
       <ul>
         {% for title, view, id, show, class in nav_main %}
           {% if show %}
-          <li>
+          <li id="nav-{{ id }}">
             <a href="{% if '/' in view %}{{ view }}{% else %}{{ url(view) }}{% endif %}"
               class="{{ class }}{% if id == page %} current{% endif %}">
             {{ title }}
             </a>
+            {% if id == 'new' %}
+            <div class="sub-options">
+              <ul>
+                <li><a class="close">close</a></li>
+                <li><a href="{{ url('new:home') }}">Webcamera Video</a></li>
+                <li><a href="{{ url('new:home') }}/upload">Upload Video</a></li>
+                <li><a href="{{ url('suggest:start') }}#new-upcoming">Upcoming Event</a></li>
+                <li><a href="{{ url('suggest:start') }}#new-popcorn">Popcorn Video</a></li>
+              </ul>
+            </div>
+            {% endif %}
           </li>
           {% endif %}
         {% endfor %}
@@ -77,7 +88,7 @@ Air Mozilla | Mozilla, in Video
     <a href="//www.mozilla.org/" id="tabzilla" data-infobar="update">mozilla</a>
   </header>
 
-  <div id="content">
+  <div id="content" {% block content_tag %}{% endblock %}>
     <div id="content-main" class="main" role="main">
       {% if messages %}
           {% for message in messages %}
@@ -118,7 +129,6 @@ Air Mozilla | Mozilla, in Video
       {{ sidebar_bottom.content|safe }}
       </div>
       {% endif %}
-
     </div>
     {% endblock %}
   </div>
@@ -176,11 +186,14 @@ Air Mozilla | Mozilla, in Video
   <script src="{{ static('browserid/api.js') }}"></script>
   <script src="{{ static('browserid/browserid.js') }}"></script>
   <script src="{{ static('starred/js/star_event.js') }}"></script>
+  <script src="{{ static('main/js/nav.js') }}"></script>
   {% endcompress %}
 
+  {% if include_autocompeter %}
   <script src="//cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js"></script>
   {% compress js %}
   <script src="{{ static('main/js/autocompeter.js') }}"></script>
   {% endcompress %}
+  {% endif %}
 
 {% endblock %}

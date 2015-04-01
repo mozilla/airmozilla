@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     '%s.cronlogger' % PROJECT_MODULE,
     '%s.webrtc' % PROJECT_MODULE,
     '%s.staticpages' % PROJECT_MODULE,
+    '%s.new' % PROJECT_MODULE,
 
     'bootstrapform',
     'sorl.thumbnail',
@@ -226,11 +227,16 @@ COOKIES_SECURE = True
 MOZILLIANS_API_BASE = 'https://mozillians.org'
 
 # API base URL
+VIDLY_BASE_URL = 'https://vid.ly'
 VIDLY_API_URL = 'http://m.vid.ly/api/'
 
 # Name of the default Channel
 DEFAULT_CHANNEL_SLUG = 'main'
 DEFAULT_CHANNEL_NAME = 'Main'
+
+# Name of the default MozShortz channel
+MOZSHORTZ_CHANNEL_SLUG = 'mozshortz'
+MOZSHORTZ_CHANNEL_NAME = 'MozShortz'
 
 # Default Location for events that are not upcoming
 DEFAULT_PRERECORDED_LOCATION = (

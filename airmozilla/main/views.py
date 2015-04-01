@@ -604,10 +604,14 @@ class EventVideoView(EventView):
         url = reverse('main:event', kwargs={'slug': event.slug})
         context['absolute_url'] = root_url + url
         context['embedded'] = self.embedded
+        context['embedded'] = self.embedded
+        context['no_warning'] = request.GET.get('no-warning')
+        context['no_footer'] = request.GET.get('no-footer')
         return context
 
     def get(self, request, slug):
         self.embedded = request.GET.get('embedded', 'true') == 'true'
+
         response = super(EventVideoView, self).get(request, slug)
         # ALLOWALL is what YouTube uses for sharing
         if self.embedded:

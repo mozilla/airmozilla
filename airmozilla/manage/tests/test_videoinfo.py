@@ -292,8 +292,8 @@ class TestVideoinfo(DjangoTestCase):
         eq_(event.duration, None)  # because it failed
         output = buffer.getvalue()
         ok_(
-            'https://vid.ly/abc123?content=video&format=mp4 is a '
-            'text/html document' in output
+            '{0}/abc123?content=video&format=mp4 is a '
+            'text/html document'.format(settings.VIDLY_BASE_URL) in output
         )
 
     @mock.patch('airmozilla.manage.vidly.logging')
@@ -335,8 +335,8 @@ class TestVideoinfo(DjangoTestCase):
         eq_(event.duration, None)  # because it failed
         output = buffer.getvalue()
         ok_(
-            'https://vid.ly/abc123?content=video&format=mp4 has a 0 byte '
-            'Content-Length' in output
+            '{0}/abc123?content=video&format=mp4 has a 0 byte '
+            'Content-Length'.format(settings.VIDLY_BASE_URL) in output
         )
 
     @mock.patch('airmozilla.manage.vidly.logging')

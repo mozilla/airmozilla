@@ -1,0 +1,58 @@
+<h4>Published!</h4>
+
+{% raw %}
+
+<loading on="loading" message="Loading video information..." size="medium"></loading>
+
+<div class="show-hide" ng-if="!loading">
+
+  <h4 class="event-summary">
+    <a ng-href="{{ event.url }}" target="_self" class="event-title"
+       ng-if="event.picture">
+       <img ng-src="{{ event.picture.url }}"
+            width="{{ event.picture.width }}"
+            height="{{ event.picture.height }}">
+    </a>
+    <a ng-href="{{ event.url }}" target="_self" class="event-title">
+      {{ event.title }}
+    </a>
+
+    <br>
+    <br>
+    <a ng-href="{{ event._abs_url }}" target="_self" class="event-url">
+      {{ event._abs_url }}
+    </a>
+  </h4>
+
+  <p>
+    <b>The event is published under the following channel:</b>
+    <a ng-repeat="channel in event.channels_full"
+      ng-href="{{ channel.url }}" target="_self">
+      {{ channel.name }}
+    </a>
+  </p>
+  <p>
+    Privacy level:
+    <b>{{ event.privacy_display }}</b>
+  </p>
+  <p ng-if="!event.approvals.length">
+    No approval necessary.
+  </p>
+  <p ng-if="event.approvals.length">
+    Approval awaiting from:
+    <b ng-repeat="approval in event.approvals">
+      {{ approval.group_name }}
+    </b>
+  </p>
+
+  <p ng-if="video">
+    Video processing:
+    <b ng-if="video.finished">
+       Finished
+    </b>
+    <b ng-if="!video.finished">
+      Not yet finished
+    </b>
+  </p>
+</div>
+{% endraw %}

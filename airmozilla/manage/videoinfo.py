@@ -37,14 +37,19 @@ def _download_file(url, local_filename):
 
 def fetch_duration(
     event, save=False, save_locally=False, verbose=False, use_https=True,
+    video_url=None
 ):
-    # The 'filepath' is only not None if you passed 'save_locally' as true
-    video_url, filepath = _get_video_url(
-        event,
-        use_https,
-        save_locally,
-        verbose=verbose
-    )
+    """return number of seconds or None"""
+    if video_url:
+        assert not save_locally
+    else:
+        # The 'filepath' is only not None if 'save_locally' is true
+        video_url, filepath = _get_video_url(
+            event,
+            use_https,
+            save_locally,
+            verbose=verbose
+        )
 
     # Some videos might return a 200 OK on a HEAD but are corrupted
     # and contains nothing
@@ -96,8 +101,10 @@ def fetch_duration(
             seconds = int(found[2])
             seconds += minutes * 60
             if save:
-                event.duration = seconds
-                event.save()
+                # Because it's not safe to keep the event object open too
+                # long, as it might have been edited in another thread,
+                # just do an update here.
+                Event.objects.filter(id=event.id).update(duration=seconds)
             if verbose:  # pragma: no cover
                 print show_duration(seconds, include_seconds=True)
             return seconds
@@ -112,8 +119,9 @@ def fetch_duration(
 
 def fetch_screencapture(
     event, save=False, save_locally=False, verbose=False, use_https=True,
-    import_=True, import_if_possible=False,
+    import_=True, import_if_possible=False, video_url=None
 ):
+    """return number of files that were successfully created or None"""
     assert event.duration, "no duration"
     # When you set `import_` to False, it creates the JPEGs and leaves
     # them there in a predictable location (so they can be swept up
@@ -126,12 +134,15 @@ def fetch_screencapture(
     if import_if_possible:
         import_ = False
 
-    video_url, filepath = _get_video_url(
-        event,
-        use_https,
-        save_locally,
-        verbose=verbose,
-    )
+    if video_url:
+        assert not save_locally
+    else:
+        video_url, filepath = _get_video_url(
+            event,
+            use_https,
+            save_locally,
+            verbose=verbose,
+        )
 
     if import_:
         save_dir = tempfile.mkdtemp('screencaptures-%s' % event.id)
@@ -257,7 +268,7 @@ def _get_files(directory):
 
 
 def _get_video_url(event, use_https, save_locally, verbose=False):
-    if 'Vid.ly' in event.template.name:
+    if event.template and 'Vid.ly' in event.template.name:
         assert event.template_environment.get('tag'), "No Vid.ly tag value"
 
         token_protected = event.privacy != Event.PRIVACY_PUBLIC
@@ -273,7 +284,10 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
             token_protected = submission.token_protection
 
         tag = event.template_environment['tag']
-        video_url = 'https://vid.ly/%s?content=video&format=' % tag
+        video_url = '%s/%s?content=video&format=' % (
+            settings.VIDLY_BASE_URL,
+            tag,
+        )
         if hd:
             video_url += 'hd_mp4'
         else:
@@ -281,7 +295,7 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
 
         if token_protected:
             video_url += '&token=%s' % vidly.tokenize(tag, 60)
-    elif 'Ogg Video' in event.template.name:
+    elif event.template and 'Ogg Video' in event.template.name:
         assert event.template_environment.get('url'), "No Ogg Video url value"
         video_url = event.template_environment['url']
     else:

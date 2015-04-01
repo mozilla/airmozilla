@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Count
+from django.views.decorators.csrf import csrf_exempt
 
 from funfactory.urlresolvers import reverse
 from jsonview.decorators import json_view
@@ -274,6 +275,7 @@ def vidly_media_resubmit(request):
 
 # Note that this view is publically available.
 # That means we can't trust the content but we can take it as a hint.
+@csrf_exempt
 @require_POST
 def vidly_media_webhook(request):
     if not request.POST.get('xml'):

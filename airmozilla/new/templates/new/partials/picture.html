@@ -1,0 +1,53 @@
+<h4>Picture</h4>
+{% raw %}
+
+<loading on="loading" message="Loading pictures..."></loading>
+
+<p ng-if="stillLoading">
+  <b>Waiting for pictures to be generated from the upload.</b><br><br>
+  It if takes a while, don't worry about it. You can pick a picture after
+  this video has been published.
+</p>
+
+<div class="all-thumbnails show-hide" ng-show="!loading">
+  <div ng-repeat="thumbnail in thumbnails" class="thumbnail-outer"
+       ng-class="{'thumbnail-picked': thumbnail.picked}">
+    <a ng-click="pickThumbnail(thumbnail)"
+       title="Click to picture this picture">
+      <img ng-src="{{ thumbnail.url }}"
+         width="{{ thumbnail.width }}"
+         height="{{ thumbnail.height }}">
+    </a>
+  </div>
+</div>
+
+<div class="alert alert-danger show-hide" ng-show="durationError || picturesError">
+    <h4>Video Extraction Error!</h4>
+    <p ng-if="durationError">
+      It seems we are unable to extract information about the duration
+      of the video file you uploaded. Perhaps the video file is broken
+      or corrupt.
+    </p>
+    <p ng-if="picturesError">
+      It seems we are unable to extract screen captures from
+      the video file you uploaded. Perhaps the video file is broken
+      or corrupt.
+    </p>
+    <p>
+      <b>Upload Information:</b>
+      <a ng-href="{{ event.upload.url }}">{{ event.upload.url }}</a>
+      ({{ event.upload.mime_type }})
+      {{ event.upload.size | filesize }}
+    </p>
+    <p>
+      You might have to wait till the video has been transcoded.
+    </p>
+</div>
+
+<button ng-if="!loading || (loading && stillLoading)" ng-click="next()"
+        type="button" class="btn btn-primary submit show-hide" name="submit">
+  Next
+</button>
+
+
+{% endraw %}
