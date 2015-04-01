@@ -9,7 +9,6 @@ a.star {
     cursor: pointer;
 }
 a.star.event {
-    position: absolute;
     left: 130px;
     top: 64px;
 }

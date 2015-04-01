@@ -98,8 +98,8 @@
      <header class="entry-header">
       <h1 class="entry-title">
         {{ event.title }}
-      </h1>
       <a class="star event" data-id="{{ event.id }}" title="Save as a starred event"></a>
+      </h1>
       {% include 'main/_event_privacy.html' %}
       {% if can_manage_edit_event or can_edit_event %}
         <p class="entry-edit-shortcut">
