@@ -33,7 +33,7 @@ var Stars = (function() {
                 var $element = $(element);
                 var index = stars.indexOf($(element).data('id'));
                 if (index > -1) {
-                    $(element).addClass('star-on');
+                    $element.addClass('star-on');
                 }
             });
         }
