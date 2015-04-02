@@ -9,7 +9,6 @@ a.star {
     cursor: pointer;
 }
 a.star.event {
-    left: 130px;
     top: 64px;
 }
 a.star.live {
@@ -23,11 +22,6 @@ a.star.sidebar {
 a.star-on {
     background-position: 0 0;
 }
-
-.entry-summary {
-    position: relative;
-}
-
 .entry-title a.star,
 .entry-summary a.star {
     position: absolute;
