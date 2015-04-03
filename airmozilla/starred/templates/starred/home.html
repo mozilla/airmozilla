@@ -8,14 +8,18 @@ Starred Events | {{ super() }}
 {% block content_main %}
 <h2 class="section-title">Starred Events</h2>
 
+<p class="loading-stars" style="display:none">
+  Please wait. Loading your starred events...
+</p>
+
 <div id="events">
 {% if events %}
     {% include 'starred/events.html' %}
-{% else %}
-    <p class="has-stars">Please wait. Loading your starred events...</p>
 {% endif %}
 </div>
-    <p class="no-stars" style="display:none">You have no starred events. Yet.</p>
+<p class="no-stars" style="display:none">
+  You have no starred events. Yet.
+</p>
 {% endblock %}
 
 {% block site_js %}
