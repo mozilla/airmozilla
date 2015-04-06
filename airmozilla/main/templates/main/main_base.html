@@ -166,16 +166,17 @@ Air Mozilla | Mozilla, in Video
     ></autocompeter>
   {% endif %}
 
-  {% compress js %}
-  <script src="{{ static('main/autocompeter/autocompeter.min.js') }}"></script>
-  <script src="{{ static('main/js/autocompeter.js') }}"></script>
-  {% endcompress %}
   {# Instead of using browser_js() we here include them manually. It'll make the page faster #}
   {% compress js %}
   <script src="{{ static('js/libs/include.js') }}"></script>
   <script src="{{ static('browserid/api.js') }}"></script>
   <script src="{{ static('browserid/browserid.js') }}"></script>
   <script src="{{ static('starred/js/star_event.js') }}"></script>
+  {% endcompress %}
+
+  <script src="//cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js"></script>
+  {% compress js %}
+  <script src="{{ static('main/js/autocompeter.js') }}"></script>
   {% endcompress %}
 
 {% endblock %}
