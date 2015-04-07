@@ -1,6 +1,5 @@
 from django import forms
 
-from airmozilla.base.mozillians import fetch_user
 from airmozilla.base.forms import BaseModelForm, BaseForm
 from airmozilla.main.models import Event
 
@@ -8,23 +7,23 @@ from airmozilla.main.models import Event
 class StartForm(BaseForm):
 
     name = forms.CharField(
-        label='Username or Email on Mozillians.org',
+        label='Title',
     )
 
-    def clean_name(self):
-        value = self.cleaned_data['name'].strip()
-        if ' ' in value:
-            raise forms.ValidationError('Can not contain a space')
-        if not fetch_user(value, is_username='@' not in value):
-            if '@' in value:
-                raise forms.ValidationError(
-                    'No Mozillians account by that email'
-                )
-            else:
-                raise forms.ValidationError(
-                    'No Mozillians account by that username'
-                )
-        return value
+    # def clean_name(self):
+    #     value = self.cleaned_data['name'].strip()
+    #     if ' ' in value:
+    #         raise forms.ValidationError('Can not contain a space')
+    #     if not fetch_user(value, is_username='@' not in value):
+    #         if '@' in value:
+    #             raise forms.ValidationError(
+    #                 'No Mozillians account by that email'
+    #             )
+    #         else:
+    #             raise forms.ValidationError(
+    #                 'No Mozillians account by that username'
+    #             )
+    #     return value
 
 
 class DetailsForm(BaseModelForm):

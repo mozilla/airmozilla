@@ -24,6 +24,8 @@ Summary | {{ super() }}
   {% endcompress %}
 {% endblock %}
 
+{% block sidebar %}{% endblock %}
+
 {% block content_main %}
   {% include 'webrtc/_breadcrumb.html' %}
   <h2 class="section-title">Summary</h2>

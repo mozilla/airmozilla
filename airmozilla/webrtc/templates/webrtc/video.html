@@ -23,6 +23,7 @@ Video | {{ super() }}
   {% endcompress %}
 {% endblock %}
 
+{% block sidebar %}{% endblock %}
 
 {% block content_main %}
   <div class="flash"></div>
@@ -41,30 +42,6 @@ Video | {{ super() }}
     <h3>Camera loaded</h3>
     <video class="recorder"></video>
     <video class="playback"></video>
-
-    <div class="instructions">
-      <div class="quality">
-        <h4>For better video quality</h4>
-        <ul>
-          <li>Don't hold you camera/laptop with your hands</li>
-          <li>Look into the camera</li>
-          <li>Avoid...</li>
-          <li>Try to...</li>
-
-        </ul>
-      </div>
-      <div class="talk-about">
-        <h4>What to say</h4>
-        <ul>
-          <li>
-            Say your <b>name</b>, <b>where you're from</b>,
-            <b>what you'll be working on</b>
-          </li>
-          <li>Say something funny about yourself or your personal life or interest</li>
-          <li>Try to keep it <b>under 30 seconds</b></li>
-        </ul>
-      </div>
-    </div>
 
     <p class="video-meta-data">
       <span class="duration">

@@ -1,14 +1,14 @@
 import datetime
-import urllib2
-from urlparse import urlparse
+# import urllib2
+# from urlparse import urlparse
 
 from django import http
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.conf import settings
-from django.core.files import File
+# from django.core.files import File
 from django.utils import timezone
-from django.core.files.temp import NamedTemporaryFile
+# from django.core.files.temp import NamedTemporaryFile
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.functional import wraps
@@ -17,7 +17,7 @@ from jsonview.decorators import json_view
 from slugify import slugify
 from funfactory.urlresolvers import reverse
 
-from airmozilla.base.mozillians import fetch_user
+# from airmozilla.base.mozillians import fetch_user
 from airmozilla.main.models import (
     Channel,
     Event,
@@ -49,71 +49,71 @@ def start(request):
         form = forms.StartForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
-            information = fetch_user(name, is_username='@' not in name)
+            # information = fetch_user(name, is_username='@' not in name)
 
             # print "INFORMATION"
             # from pprint import pprint
             # pprint( information)
-            assert information  # must have something
-            description = []
-            if information.get('bio'):
-                description.append(information['bio'])
-            if information.get('city'):
-                description.append('City: %s' % information['city'])
-            if information.get('ircname'):
-                description.append('IRC nick: %s' % information['ircname'])
-            # lastly make it a string
-            description = '\n'.join(description)
+            # assert information  # must have something
+            # description = []
+            # if information.get('bio'):
+            #     description.append(information['bio'])
+            # if information.get('city'):
+            #     description.append('City: %s' % information['city'])
+            # if information.get('ircname'):
+            #     description.append('IRC nick: %s' % information['ircname'])
+            # # lastly make it a string
+            # description = '\n'.join(description)
 
-            additional_links = []
-            if information.get('url'):
-                additional_links.append(information['url'])
-            for each in information.get('accounts', []):
-                if '://' in each.get('identifier', ''):
-                    additional_links.append(each['identifier'])
-            # lastly make it a string
-            additional_links = '\n'.join(additional_links)
+            # additional_links = []
+            # if information.get('url'):
+            #     additional_links.append(information['url'])
+            # for each in information.get('accounts', []):
+            #     if '://' in each.get('identifier', ''):
+            #         additional_links.append(each['identifier'])
+            # # lastly make it a string
+            # additional_links = '\n'.join(additional_links)
 
             now = timezone.now()
 
-            title = (
-                information.get('full_name') or
-                information.get('username') or
-                name
-            )
+            title = name
             event = Event.objects.create(
                 status=Event.STATUS_INITIATED,
                 creator=request.user,
-                mozillian=information['username'],
-                slug=slugify('mozillian-%s' % information['username']),
+                mozillian=name,
+                slug=slugify(name),
                 title=title,
-                privacy=Event.PRIVACY_CONTRIBUTORS,
-                short_description="%s is a Mozillian!" % title,
-                description=description,
-                additional_links=additional_links,
+                privacy=Event.PRIVACY_COMPANY,
+                short_description='',
+                # description=description,
+                # additional_links=additional_links,
                 start_time=now,
             )
-            if information.get('photo'):
-                # download it locally and
-                photo_name = urlparse(information['photo']).path.split('/')[-1]
-                img_temp = NamedTemporaryFile(delete=True)
-                img_temp.write(urllib2.urlopen(information['photo']).read())
-                img_temp.flush()
-                event.placeholder_img.save(
-                    photo_name,
-                    File(img_temp),
-                    save=True
-                )
-            mozillians_channel, __ = Channel.objects.get_or_create(
-                name=settings.MOZILLIANS_CHANNEL_NAME,
-                slug=settings.MOZILLIANS_CHANNEL_SLUG,
+            # if information.get('photo'):
+            #     # download it locally and
+        #     photo_name = urlparse(information['photo']).path.split('/')[-1]
+            #     img_temp = NamedTemporaryFile(delete=True)
+            #     img_temp.write(urllib2.urlopen(information['photo']).read())
+            #     img_temp.flush()
+            #     event.placeholder_img.save(
+            #         photo_name,
+            #         File(img_temp),
+            #         save=True
+            #     )
+            # mozillians_channel, __ = Channel.objects.get_or_create(
+            #     name=settings.MOZILLIANS_CHANNEL_NAME,
+            #     slug=settings.MOZILLIANS_CHANNEL_SLUG,
+            # )
+            # event.channels.add(mozillians_channel)
+            channel, __ = Channel.objects.get_or_create(
+                name="Moz Shorts",
+                slug="moz-shorts",
             )
-            event.channels.add(mozillians_channel)
-            messages.info(
-                request,
-                "That's great! Now have a look and try to make your profile "
-                "more complete."
-            )
+            event.channels.add(channel)
+            # messages.info(
+            #     request,
+            #     "That's great!"
+            # )
             return redirect('webrtc:details', event.id)
     else:
         form = forms.StartForm()
@@ -231,7 +231,7 @@ def summary(request, event):
         event.save()
         messages.info(
             request,
-            "Excellent! Your video has been submission for being transcoded. "
+            "Excellent! Your video is being transcoded. "
             "Once it finishes, you'll receive an email."
         )
         return redirect('webrtc:summary', event.id)

@@ -7,6 +7,8 @@ h3 { margin-top: 60px; }
 </style>
 {% endblock %}
 
+{% block sidebar %}{% endblock %}
+
 {% block content_main %}
 
 <h2 class="section-title">Welcome!</h2>
@@ -26,6 +28,12 @@ h3 { margin-top: 60px; }
     <a href="{{ url('main:event', event.slug) }}">View it now</a>
   </p>
   {% endif %}
+
+  <p>
+    To create a new event...
+  </p>
+  {% include 'suggest/_default_form.html' %}
+
 {% else %}
 
   <h3>You're about to make a video about you.</h3>
