@@ -201,7 +201,6 @@ def event_data(request, id):
 
 
 @json_view
-@transaction.commit_on_success
 def event_data_latest(request, id):
     cache_key = 'latest_comment:%s' % (id,)
     include_posted = bool(request.GET.get(
