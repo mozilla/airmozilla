@@ -117,7 +117,7 @@
       {% if not pending %}
       <h2 class="event-date">
         {{ event.start_time | js_date }}
-	      {% if event.is_upcoming() %}
+        {% if event.is_upcoming() %}
           {% if event.location %}
             &mdash;
             {{ event.location_time.strftime("%I:%M%p") }} in {{ event.location.name }}
@@ -139,75 +139,108 @@
         </p>
       {% endif %}
       <p>{{ event.description | carefulnl2br | safe_html }}</p>
+      <div class="tabs">
 
+      {% if event.additional_links %}
+      <div class="tab">
+        <input type="radio" id="tab-1" name="tab-group-1" checked>
+        <label for="tab-1">Additional Links</label>
+        <div class="content">
+          {{ event.additional_links | urlize|nl2br }}
+        </div>
+      </div>
+      {% endif %} 
+
+      
       {% if tags %}
-      <p>
-        {{ _('Tags') }}:
-        {% for tag in tags %}
-          <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}" class="tag">{{ tag }}</a>{% if not loop.last %}, {% endif %}
-        {% endfor %}
-      </p>
+      <div class="tab">
+        <input type="radio" id="tab-2" name="tab-group-1">
+        <label for="tab-2">Tags</label>
+        <div class="content">
+          <p>
+            {% for tag in tags %}
+              <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}" class="tag">{{ tag }}</a>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+        </div>
+      </div>
       {% endif %}
 
       {% if channels %}
-      <p>
-        {{ _('Channels') }}:
-        {% for channel in channels %}
-          <a href="{{ url('main:home_channels', channel.slug) }}" class="channel">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
-        {% endfor %}
-      </p>
+      <div class="tab">
+        <input type="radio" id="tab-3" name="tab-group-1">
+        <label for="tab-3">Channels</label>
+        <div class="content">
+          <p>
+            {% for channel in channels %}
+              <a href="{{ url('main:home_channels', channel.slug) }}" class="channel">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
+            {% endfor %}
+          </p>
+        </div>
+      </div>
       {% endif %}
-
 
       {% if event.call_info %}
-        <p>{{ _('Call info') }}: {{ event.call_info }}</p>
-      {% endif %}
-      {% if event.additional_links %}
-        <p>{{ _('Additional links') }}:<br>
-          {{ event.additional_links | urlize|nl2br }}</p>
+      <div class="tab">
+        <input type="radio" id="tab-4" name="tab-group-1">
+        <label for="tab-4">Call Info</label>
+        <div class="content">
+          <p>{{ event.call_info }}</p>
+        </div>
+      </div>
       {% endif %}
 
       {% if hits %}
-        <p>{{ _('Views since archived') }}: {{ thousands(hits) }}</p>
+      <div class="tab">
+         <input type="radio" id="tab-5" name="tab-group-1">
+        <label for="tab-5">Views Since Archived</label>
+        <div class="content">
+          <p>{{ thousands(hits) }}</p>
+        </div>
+      </div>
       {% endif %}
 
       {% if not pending and video and event.is_public() %}
-        <p>
-          <button class="open-embed">Embed</button>
-          <button class="close-embed hidden">Close</button>
-          {% if vidly_tag %}
-          <button class="open-download">Download</button>
-          <button class="close-download hidden">Close</button>
-          {% endif %}
-        </p>
-        <div class="embed hidden">
-          <a href="#" class="current">Small (640x380)</a>
-          <a href="#">Big (896x504)</a>
-          <br>
-          <textarea rows="1" cols="80" class="small-embed-code">{{ embed_code }}</textarea>
-          <textarea rows="1" cols="80" class="big-embed-code hidden">{{ embed_code_big }}</textarea>
+        <div class="tab">
+          <input type="radio" id="tab-6" name="tab-group-1">
+          <label for="tab-6">Embed</label>
+          <div class="content embed">
+            <a href="#" class="current">Small (640x380)</a>
+            <br>
+            <textarea rows="1" cols="80" class="small-embed-code">{{ embed_code }}</textarea>
+            <br>
+            <a href="#">Big (896x504)</a>
+            <br>
+            <textarea rows="1" cols="80" class="big-embed-code hidden">{{ embed_code_big }}</textarea>
+            <br>
+          </div>
         </div>
         {% if vidly_tag %}
-        <div class="download hidden">
-          <p>
-            <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=webm"
-               download="{{ event.slug }}.webm">WebM</a>
-            {% if vidly_hd %}
-            (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_webm"
-               download="{{ event.slug }}-hd.webm">HD</a>)
-            {% endif %},
-            <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=mp4"
-               download="{{ event.slug }}.mp4">Mpeg4</a>
-            {% if vidly_hd %}
-            (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_mp4"
-               download="{{ event.slug }}-hd.mp4">HD</a>)
-            {% endif %}
-            <br>
-            To download, right-click and select &quot;Save Link As...&quot;
-          </p>
+        <div class="tab">
+          <input type="radio" id="tab-7" name="tab-group-1">
+          <label for="tab-7">Download</label>
+          <div class="content">
+            <p>
+              <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=webm"
+                 download="{{ event.slug }}.webm">WebM</a>
+              {% if vidly_hd %}
+              (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_webm"
+                 download="{{ event.slug }}-hd.webm">HD</a>)
+              {% endif %},
+              <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=mp4"
+                 download="{{ event.slug }}.mp4">Mpeg4</a>
+              {% if vidly_hd %}
+              (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_mp4"
+                 download="{{ event.slug }}-hd.mp4">HD</a>)
+              {% endif %}
+              <br>
+              To download, right-click and select &quot;Save Link As...&quot;
+            </p>
+          </div>
         </div>
         {% endif %}
       {% endif %}
+    </div>
 
       {% if not pending %}
 

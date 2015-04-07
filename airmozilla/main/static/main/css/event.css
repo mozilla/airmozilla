@@ -95,3 +95,58 @@ p.pending {
 .playbackrate .options a.current {
     color: white;
 }
+
+.tabs {
+    position: relative;
+    min-height: 200px;
+    clear: both;
+    margin: 25px 0;
+}
+.tab {
+    float: left;
+}
+.tab label {
+    background: #20272a;
+    padding: 8px;
+    border: none;
+    margin-right: 0.5em;
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
+    position: relative;
+    cursor:pointer;
+}
+.tab [type=radio] {
+    display: none;
+}
+.content {
+    position: absolute;
+    top: 32px;
+    left: 0;
+    background-color: #2d373b;
+    right: 0;
+    bottom: 0;
+    padding: 20px;
+    overflow: hidden;
+    min-height: 100px;
+}
+
+.content > * {
+    opacity: 0;
+
+}
+
+[type=radio]:checked ~ label {
+    background-color: #2d373b;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    z-index: 2;
+}
+
+[type=radio]:checked ~ label ~ .content {
+    z-index: 1;
+}
+
+[type=radio]:checked ~ label ~ .content > * {
+    opacity: 1;
+      
+}
