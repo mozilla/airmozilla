@@ -5,6 +5,20 @@ Picture | {{ super() }}
 {% endblock %}
 
 
+{% block extra_head %}
+{{ super() }}
+<style>
+.form-actions {
+  float: none;
+}
+#content h3 {
+  margin-top: 40px;
+}
+</style>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
 {% block content_main %}
   {% include 'webrtc/_breadcrumb.html' %}
   <h2 class="section-title">Picture</h2>
@@ -26,9 +40,13 @@ Picture | {{ super() }}
   {% include 'suggest/_default_form_upload.html' %}
 
   <h3>Or...</h3>
-  <p>You can take a picture with your built-in web camera.</p>
+
   <form action="{{ url('webrtc:photobooth', event.id) }}">
-    <button type="submit" class="btn btn-primary submit">Start the camera</button>
+
+    <p>
+      <button type="submit" class="btn btn-primary submit">Start the camera</button>
+      ...to take a picture with your web camera.
+      </p>
   </form>
 
 

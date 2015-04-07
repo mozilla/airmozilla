@@ -91,6 +91,7 @@ Air Mozilla | Mozilla, in Video
 
       {% block content_main %}{% endblock %}
     </div>
+    {% block sidebar %}
     <div id="content-sub" class="sub sidebar widgets" role="complementary">
       {% if sidebar_top %}
       <div class="sidebar-top sidebar-extra">
@@ -119,6 +120,7 @@ Air Mozilla | Mozilla, in Video
       {% endif %}
 
     </div>
+    {% endblock %}
   </div>
 
   </div>
