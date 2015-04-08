@@ -32,7 +32,6 @@ class DetailsForm(BaseModelForm):
         model = Event
         fields = (
             'privacy',
-            'short_description',
             'description',
             'additional_links',
         )

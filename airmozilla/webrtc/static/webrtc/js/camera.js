@@ -184,7 +184,20 @@ var Camera = (function() {
 
        // Ask the user for access to the camera
     //    navigator.getUserMedia({video: true}, successCallback, failureCallback);
-       navigator.getUserMedia({video: true}, function(stream) {
+    //    var conf = {
+    //        video: {
+    //            mandatory: {
+    //             //    minWidth: 640,
+    //                width: 640,
+    //             //    minHeight: 360
+    //                height: 360
+    //            }
+    //        }
+    //    };
+       conf = {
+           video: { width: 1280, height: 720 }
+       };
+       navigator.getUserMedia(conf, function(stream) {
            successCallback(stream, width);
            callback();
        }, failureCallback);

@@ -59,6 +59,10 @@ audio,
     display: none;
 }
 
+.started canvas {
+    width: 100%;
+}
+
 .started .preview img,
 canvas {
     /*width: 99%;*/

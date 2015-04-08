@@ -9,3 +9,7 @@ button.start,
 .started {
     display: none;
 }
+
+.started video {
+    width: 100%;
+}

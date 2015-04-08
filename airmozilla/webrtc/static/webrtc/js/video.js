@@ -26,13 +26,9 @@ $(function() {
         // we don't need the audio right now but we want the user
         // to approve that we can use it.
         var conf = {audio: true, video: true, muted: true, controls: false};
-
-        // conf.video = {
-        //     mandatory: {
-        //         minWidth: 1280,
-        //         minHeight: 720
-        //     }
-        // };
+        // override and be more specific
+        conf.video = { width: 1280, height: 720 };
+        // conf.video = { width: 640, aspectRatio: 16/9 };
         captureUserMedia(conf, function(stream) {
             // console.log('stream started');
             $('.starting').hide();
