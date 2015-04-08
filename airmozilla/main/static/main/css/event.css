@@ -15,7 +15,7 @@ p.pending {
     margin-bottom: 0;
 }
 .embed textarea {
-    max-width: 100%;
+    width: 95%;
 }
 .embed a.current {
     text-decoration: none;
@@ -118,7 +118,7 @@ p.pending {
 .tab [type=radio] {
     display: none;
 }
-.content {
+.tab .content {
     position: absolute;
     top: 32px;
     left: 0;
@@ -129,24 +129,22 @@ p.pending {
     overflow: hidden;
     min-height: 100px;
 }
-
-.content > * {
+.tab .content > * {
     opacity: 0;
 
 }
-
-[type=radio]:checked ~ label {
+.tab [type=radio]:checked ~ label {
     background-color: #2d373b;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
     z-index: 2;
 }
 
-[type=radio]:checked ~ label ~ .content {
+.tab [type=radio]:checked ~ label ~ .content {
     z-index: 1;
 }
 
-[type=radio]:checked ~ label ~ .content > * {
+.tab [type=radio]:checked ~ label ~ .content > * {
     opacity: 1;
-      
+
 }
