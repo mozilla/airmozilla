@@ -37,6 +37,6 @@ HOME=/tmp
 */10 * * * * {{ cron }} autocompeter_update 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every day
-7 30 * * * * {{ cron }} autocompeter_reset 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+30 7 * * * * {{ cron }} autocompeter_reset 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 MAILTO=root
