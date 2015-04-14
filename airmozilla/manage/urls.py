@@ -133,6 +133,8 @@ urlpatterns = patterns(
     url(r'^templates/new/$', templates.template_new, name='template_new'),
     url(r'^templates/(?P<id>\d+)/$', templates.template_edit,
         name='template_edit'),
+    url(r'^templates/(?P<id>\d+)/migrate/$', templates.template_migrate,
+        name='template_migrate'),
     url(r'^templates/remove/(?P<id>\d+)/$', templates.template_remove,
         name='template_remove'),
     url(r'^templates/$', templates.templates, name='templates'),

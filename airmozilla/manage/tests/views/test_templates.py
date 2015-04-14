@@ -137,8 +137,38 @@ class TestTemplates(ManageTestCase):
         <iframe src="{{ popcorn_url }}"></ifram>
         """
         template.save()
-        response = self.client.get(reverse('manage:template_env_autofill'),
-                                   {'template': template.id})
+        response = self.client.get(
+            reverse('manage:template_env_autofill'),
+            {'template': template.id}
+        )
         eq_(response.status_code, 200)
         template_parsed = json.loads(response.content)
         eq_(template_parsed, {'variables': ''})
+
+    def test_template_migrate(self):
+        t, = Template.objects.all()
+        assert Event.objects.filter(template=t)
+        template2 = Template.objects.create(
+            name='Template 2',
+            content='Ble ble',
+            default_archive_template=True
+        )
+
+        # on the edit template page there should be a link
+        url = reverse('manage:template_migrate', args=(t.id,))
+        edit_url = reverse('manage:template_edit', args=(t.id,))
+        response = self.client.get(edit_url)
+        ok_(url in response.content)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Template 2 (0 events, 0 removed)' in response.content)
+
+        response = self.client.post(url, {'template': template2.id})
+        eq_(response.status_code, 302)
+
+        ok_(not Event.objects.filter(template=t))
+        ok_(Event.objects.filter(template=template2))
+
+        response = self.client.get(edit_url)
+        ok_(url not in response.content)

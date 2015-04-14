@@ -8,7 +8,13 @@
     {% include 'manage/_default_form.html' %}
 
 
-    <h3>Events using this template ({{ events_count }})</h3>
+    <h3>
+      Events using this template ({{ events_count }})
+      {% if events_count %}
+      <a href="{{ url('manage:template_migrate', template.id) }}"
+         class="btn btn-default">Migrate these events</a>
+      {% endif %}
+    </h3>
     <table class="table">
       <thead>
         <tr>
