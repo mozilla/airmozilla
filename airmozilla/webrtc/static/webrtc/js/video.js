@@ -28,6 +28,11 @@ $(function() {
         var conf = {audio: true, video: true, muted: true, controls: false};
         // override and be more specific
         conf.video = { width: 1280, height: 720 };
+        if (navigator.userAgent.indexOf('Firefox/37') > -1) {
+            // Hack! If you're running an old Firefox we're not allowed to
+            // set the constraints.
+            conf.video = true;
+        }
         // conf.video = { width: 640, aspectRatio: 16/9 };
         captureUserMedia(conf, function(stream) {
             // console.log('stream started');

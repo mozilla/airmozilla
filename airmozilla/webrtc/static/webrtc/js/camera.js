@@ -194,9 +194,17 @@ var Camera = (function() {
     //            }
     //        }
     //    };
-       conf = {
+
+       var conf = {
            video: { width: 1280, height: 720 }
        };
+
+       if (navigator.userAgent.indexOf('Firefox/37') > -1) {
+           // Hack! If you're running an old Firefox we're not allowed to
+           // set the constraints.
+           conf.video = true;
+       }
+
        navigator.getUserMedia(conf, function(stream) {
            successCallback(stream, width);
            callback();
