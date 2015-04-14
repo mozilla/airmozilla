@@ -24,7 +24,7 @@ h3 { margin-top: 60px; }
   </p>
   {% if event.status == Event.STATUS_SCHEDULED %}
   <p>
-    Your Mozillians video is scheduled and ready:
+    Your video is scheduled and ready:
     <a href="{{ url('main:event', event.slug) }}">View it now</a>
   </p>
   {% endif %}
@@ -36,12 +36,12 @@ h3 { margin-top: 60px; }
 
 {% else %}
 
-  <h3>You're about to make a video about you.</h3>
-  <p>
+  <h3>You're about to make a video using your web camera.</h3>
+  <!-- <p>
     To start with, enter your <a href="https://mozillians.org">Mozillians.org</a>
     username and that will hopefully help us fill in some of the details
     about you.
-  </p>
+  </p> -->
 
   {% include 'suggest/_default_form.html' %}
 

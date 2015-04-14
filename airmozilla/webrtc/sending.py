@@ -27,7 +27,7 @@ def email_about_mozillian_video(event, swallow_errors=False):
 
 def _email_about_mozillian_video(event):
     assert event.mozillian, "not a mozillian event"
-    subject = '[Air Mozilla] Your Mozillians video is ready!'
+    subject = '[Air Mozilla] Your Mozshorts video is ready!'
 
     context = {
         'event': event,

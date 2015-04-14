@@ -44,7 +44,7 @@ class DetailsForm(BaseModelForm):
             (Event.PRIVACY_CONTRIBUTORS, 'Private (only Mozillians can view)'),
             (Event.PRIVACY_COMPANY, 'Private (only Mozilla staff can view)'),
         ]
-        self.fields['additional_links'].label = 'Links'
+        self.fields['additional_links'].label = 'Links (optional)'
 
         self.fields['additional_links'].help_text = (
             "If you have links to slides, the presenter's blog, or other "
