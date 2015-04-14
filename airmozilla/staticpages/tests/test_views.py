@@ -149,4 +149,25 @@ class TestStaticPages(DjangoTestCase):
             'url': 'myurl'
         })
         response = self.client.get(url)
+        eq_(response.status_code, 200)
         eq_(response.content, 'Bla bla bla')
+
+    def test_nosidebar_template(self):
+        page = StaticPage.objects.create(
+            title='My Private Title',
+            url='/myurl',
+            content='Bla bla bla',
+        )
+        url = reverse('staticpages:staticpage', kwargs={
+            'url': 'myurl'
+        })
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('id="content-sub"' in response.content)
+
+        page.template_name = 'staticpages/nosidebar.html'
+        page.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('id="content-sub"' not in response.content)
