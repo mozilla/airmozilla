@@ -553,6 +553,7 @@ class StaticPageEditForm(BaseModelForm):
         self.fields['template_name'].label = 'Template'
         choices = (
             ('', 'Default'),
+            ('staticpages/nosidebar.html', 'Default (but no sidebar)'),
             ('staticpages/blank.html', 'Blank (no template wrapping)'),
         )
         self.fields['template_name'].widget = forms.widgets.Select(
