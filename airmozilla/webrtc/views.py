@@ -75,13 +75,20 @@ def start(request):
             # additional_links = '\n'.join(additional_links)
 
             now = timezone.now()
+            slug = slug_start = slugify(name).lower()
+            increment = 1
+            while Event.objects.filter(slug=slug):
+                slug = slug_start + '-' + timezone.now().strftime('%Y%m%d')
+                if increment > 1:
+                    slug += '-%s' % increment
+                increment += 1
 
             title = name
             event = Event.objects.create(
                 status=Event.STATUS_INITIATED,
                 creator=request.user,
                 mozillian=name,
-                slug=slugify(name),
+                slug=slug,
                 title=title,
                 privacy=Event.PRIVACY_COMPANY,
                 short_description='',
