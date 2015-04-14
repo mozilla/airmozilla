@@ -42,10 +42,13 @@
         <form method="post" class="confirm"
               action="{{ url('manage:template_remove', template.id) }}">
           {{ csrf() }}
+
+          {% if not counts.get(template.id) %}
           <button class="btn btn-danger btn-sm" type="submit">
             <i class="glyphicon glyphicon-trash"></i>
             Delete
           </button>
+          {% endif %}
         </form>
       </td>
     </tr>

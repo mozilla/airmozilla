@@ -1,9 +1,11 @@
 import re
 import datetime
+from collections import defaultdict
 
 import pytz
 
 from django import forms
+from django.db.models import Count
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.utils.timezone import utc
@@ -381,6 +383,42 @@ class TemplateEditForm(BaseModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'rows': 20})
         }
+
+
+class TemplateMigrateForm(BaseForm):
+    template = forms.ModelChoiceField(
+        widget=forms.widgets.RadioSelect(),
+        queryset=Template.objects.all()
+
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.instance = kwargs.pop('instance')
+        super(TemplateMigrateForm, self).__init__(*args, **kwargs)
+
+        scheduled = defaultdict(int)
+        removed = defaultdict(int)
+
+        events = Event.objects.all()
+        for each in events.values('template').annotate(Count('template')):
+            scheduled[each['template']] = each['template__count']
+
+        events = events.filter(status=Event.STATUS_REMOVED)
+        for each in events.values('template').annotate(Count('template')):
+            removed[each['template']] = each['template__count']
+
+        choices = [('', '---------')]
+        other_templates = Template.objects.exclude(id=self.instance.id)
+        for template in other_templates.order_by('name'):
+            choices.append((
+                template.id,
+                '{0} ({1} events, {2} removed)'.format(
+                    template.name,
+                    scheduled[template.id],
+                    removed[template.id],
+                )
+            ))
+        self.fields['template'].choices = choices
 
 
 class RecruitmentMessageEditForm(BaseModelForm):
