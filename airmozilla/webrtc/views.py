@@ -35,7 +35,7 @@ def must_be_your_event(f):
         assert request.user.is_authenticated()
         event = get_object_or_404(Event, pk=id)
         if event.creator != request.user:
-            return http.HttpForbidden()
+            return http.HttpResponseForbidden("Not your event")
         return f(request, event, **kwargs)
 
     return inner
