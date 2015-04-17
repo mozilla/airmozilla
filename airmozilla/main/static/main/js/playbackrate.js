@@ -19,6 +19,16 @@ $(function() {
         }
     }
 
+    // expand the options into the page
+    var options = $('.playbackrate .options');
+    $.each(options.data('options'), function() {
+        $('<a>')
+            .data('rate', this[0])
+            .attr('title', this[1])
+            .html(this[0] + '&times')
+            .appendTo(options);
+    });
+
     $('.playbackrate').on('click', 'a.open', function(event) {
         event.preventDefault();
         $('.playbackrate .options').toggle();

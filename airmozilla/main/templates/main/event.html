@@ -72,11 +72,8 @@
             <span class="playbackrate">
               <a class="open inactive"
                  title="Click to see playback rate options"></a>
-              <span class="options">
-                <a data-rate="0.5" title="Half the speed">0.5&times;</a>
-                <a data-rate="1" title="Normal speed">1&times;</a>
-                <a data-rate="1.5" title="One and a half the speed">1.5&times;</a>
-                <a data-rate="2" title="Double speed">2&times;</a>
+              <span class="options"
+                data-options="[[0.5, &quot;Half the speed&quot;], [1, &quot;Normal speed&quot;], [1.5, &quot;One and a half the speed&quot;], [2, &quot;Double speed&quot;]]">
               </span>
               <span class="problem"></span>
             </span>
@@ -94,7 +91,6 @@
       </h1>
       {% include 'main/_event_privacy.html' %}
     </header>
-
 
       <p>{{ event.description | carefulnl2br | safe_html }}</p>
 
