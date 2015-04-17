@@ -13,6 +13,7 @@ from airmozilla.main.models import (
     Picture,
     EventRevision,
 )
+from airmozilla.starred.models import StarredEvent
 from airmozilla.comments.models import Comment
 
 from .decorators import staff_required
@@ -120,6 +121,13 @@ def dashboard_data(request):
     counts = get_counts(Picture.objects.all(), 'created')
     context['groups'].append({
         'name': 'Pictures',
+        'counts': counts
+    })
+
+    # Starred events
+    counts = get_counts(StarredEvent.objects.all(), 'created')
+    context['groups'].append({
+        'name': 'Starred events',
         'counts': counts
     })
 
