@@ -9,10 +9,12 @@ import jinja2
 from django.conf import settings
 from django.db.utils import IntegrityError
 from django.test.client import RequestFactory
+from django.core.files import File
 
 from funfactory.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase
+from airmozilla.main.models import Event, Picture
 from airmozilla.main.helpers import (
     thumbnail,
     get_thumbnail,
@@ -21,7 +23,9 @@ from airmozilla.main.helpers import (
     truncate_words,
     truncate_chars,
     safe_html,
-    make_absolute
+    make_absolute,
+    show_thumbnail,
+    show_lazyr_thumbnail,
 )
 
 
@@ -72,6 +76,48 @@ class TestThumbnailHelper(DjangoTestCase):
         eq_(nailed.width, 10)
         # we don't want these lying around in local install
         nailed.delete()
+
+
+class TestShowThumbnailHelper(DjangoTestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    main_image = 'airmozilla/manage/tests/firefox.png'
+
+    def test_show_thumbnail(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        html = show_thumbnail(event, geometry='111x99')
+        ok_('width="111"' in html)
+        ok_('height="99"' in html)
+        ok_('alt="%s"' % event.title in html)
+        # suppose the event has a picture now
+
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(file=File(fp))
+            event.picture = picture
+            event.save()
+
+        new_html = show_thumbnail(event, geometry='111x99')
+        ok_(new_html != html)
+        ok_('width="111"' in new_html)
+        ok_('height="99"' in new_html)
+        ok_('alt="%s"' % event.title in new_html)
+
+    def test_show_lazyr_thumbnail(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+
+        html = show_lazyr_thumbnail(event)
+        ok_('data-layzr=' not in html)
+        eq_(html, show_thumbnail(event))
+
+        with open(self.main_image) as fp:
+            Picture.objects.create(
+                file=File(fp),
+                default_placeholder=True
+            )
+
+        html = show_lazyr_thumbnail(event, geometry='111x99')
+        ok_('data-layzr=' in html)
 
 
 class TestPluralizer(DjangoTestCase):

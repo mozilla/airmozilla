@@ -2895,6 +2895,39 @@ class TestPages(DjangoTestCase):
         eq_(get_hits(response), 3)
         eq_(EventLiveHits.objects.get(event=event).total_hits, 3)
 
+    def test_home_with_some_placeholder_images(self):
+        e, = Event.objects.live()
+        e.archive_time = timezone.now()
+        e.save()
+        self._attach_file(e, self.main_image)
+
+        with open(self.main_image) as fp:
+            Picture.objects.create(
+                file=File(fp),
+                default_placeholder=True
+            )
+
+        # make some copies
+        for i in range(15):
+            event = Event.objects.create(
+                title="Sample Event {0}".format(i + 1),
+                slug='slug{0}'.format(i),
+                start_time=e.start_time - datetime.timedelta(days=i),
+                archive_time=e.start_time - datetime.timedelta(days=i),
+                placeholder_img=e.placeholder_img,
+                status=e.status,
+            )
+            for channel in e.channels.all():
+                event.channels.add(channel)
+        eq_(Event.objects.archived().count(), 15 + 1)
+
+        url = reverse('main:home')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # We show 10 events on the home page
+        # The first 4 gets their own picture, the rest get a placeholder
+        eq_(len(re.findall('data-layzr="(.*?)"', response.content)), 6)
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']

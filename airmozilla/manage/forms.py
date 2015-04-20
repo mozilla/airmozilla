@@ -832,7 +832,7 @@ class PictureForm(BaseModelForm):
 
     class Meta:
         model = Picture
-        fields = ('file', 'notes')
+        fields = ('file', 'notes', 'default_placeholder')
 
 
 class AutocompeterUpdateForm(BaseForm):

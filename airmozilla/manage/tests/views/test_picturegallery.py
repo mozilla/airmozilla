@@ -121,6 +121,34 @@ class TestPictureGallery(ManageTestCase):
         picture = Picture.objects.get(id=picture.id)
         eq_(picture.notes, 'Other notes')
 
+    def test_picture_edit_set_new_default_placeholder(self):
+        with open(self.main_image) as fp:
+            Picture.objects.create(
+                file=File(fp),
+                notes="Initial one",
+                default_placeholder=True
+            )
+
+        with open(self.main_image) as fp:
+            picture = Picture.objects.create(
+                file=File(fp),
+                notes="Some notes"
+            )
+
+        url = reverse('manage:picture_edit', args=(picture.id,))
+        with open(self.other_image) as fp:
+            response = self.client.post(url, {
+                'file': fp,
+                'notes': 'Other notes',
+                'default_placeholder': True,
+            })
+            eq_(response.status_code, 302)
+
+        picture = Picture.objects.get(id=picture.id)
+        eq_(picture.notes, 'Other notes')
+        ok_(picture.default_placeholder)
+        eq_(Picture.objects.filter(default_placeholder=True).count(), 1)
+
     def test_picture_delete(self):
         with open(self.main_image) as fp:
             picture = Picture.objects.create(

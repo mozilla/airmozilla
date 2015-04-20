@@ -170,6 +170,8 @@ Air Mozilla | Mozilla, in Video
 
   {# Instead of using browser_js() we here include them manually. It'll make the page faster #}
   {% compress js %}
+  <script src="{{ static('js/libs/layzr.min.js') }}"></script>
+  <script src="{{ static('js/layzr-images.js') }}"></script>
   <script src="{{ static('js/libs/include.js') }}"></script>
   <script src="{{ static('browserid/api.js') }}"></script>
   <script src="{{ static('browserid/browserid.js') }}"></script>

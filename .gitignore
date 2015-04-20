@@ -26,3 +26,4 @@ mysql2postgres/mysql2pgsql.yml
 roku/dist/
 roku/airmozilla.zip
 ghostdriver.log
+/node_modules/

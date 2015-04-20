@@ -129,6 +129,10 @@
             {{ picture.width }}x{{ picture.height }}
             {{ picture.size | filesize }}
           </span>
+          <span ng-if="picture.default_placeholder"
+                class="label label-success picture-default-placeholder">
+            Default placeholder
+          </span>
 
         </a>
         <div class="caption">
