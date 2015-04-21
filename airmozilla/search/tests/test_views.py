@@ -641,3 +641,23 @@ class TestSearch(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_(channel.slug in response.content)
         ok_(channel.name in response.content)
+
+    def test_searched_event_has_star(self):
+        Event.objects.all().delete()
+
+        today = timezone.now()
+        event = Event.objects.create(
+            title='Engagement Discussion',
+            slug=today.strftime('test-event-%Y%m%d'),
+            start_time=today,
+            placeholder_img=self.placeholder,
+            status=Event.STATUS_SCHEDULED,
+            description="These are my words."
+        )
+        assert event in Event.objects.approved()
+
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': 'discuss'})
+        eq_(response.status_code, 200)
+        ok_('Nothing found' not in response.content)
+        ok_('class="star"' in response.content)
