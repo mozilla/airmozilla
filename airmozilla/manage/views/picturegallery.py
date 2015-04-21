@@ -78,7 +78,8 @@ def _get_all_pictures(event=None):
         'id',
         'title',
         'placeholder_img',
-        'picture_id'
+        'picture_id',
+        # 'default_placeholder',
     )
     event_map = collections.defaultdict(list)
     cant_delete = collections.defaultdict(bool)
@@ -101,7 +102,8 @@ def _get_all_pictures(event=None):
         'created',
         'modified',
         'modified_user',
-        'event_id'
+        'event_id',
+        'default_placeholder',
     )
     qs = Picture.objects.all()
     if event:
@@ -120,7 +122,8 @@ def _get_all_pictures(event=None):
             'size': picture.size,
             'created': picture.created.isoformat(),
             'events': event_map[picture.id],
-            'event': picture.event_id
+            'event': picture.event_id,
+            'default_placeholder': picture.default_placeholder,
         }
         if cant_delete.get(picture.id):
             item['cant_delete'] = True
@@ -143,6 +146,16 @@ def picture_edit(request, id):
         form = forms.PictureForm(request.POST, request.FILES, instance=picture)
         if form.is_valid():
             picture = form.save()
+            if picture.default_placeholder:
+                # make all others NOT-default
+                qs = (
+                    Picture.objects
+                    .exclude(id=picture.id)
+                    .filter(default_placeholder=True)
+                )
+                for other in qs:
+                    other.default_placeholder = False
+                    other.save()
             return redirect('manage:picturegallery')
     else:
         form = forms.PictureForm(instance=picture)

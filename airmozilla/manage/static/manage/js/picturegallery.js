@@ -289,7 +289,6 @@ app.controller('PictureGalleryController', ['$scope', '$http',
                 .success(function(data) {
                     $scope.pictures = data.pictures;
                     $scope.stats = data.stats;
-                    console.log(data.stats);
                     $scope.urls = data.urls;
                 }).error(function(data, status) {
                     console.warn('Failed to fetch pictures', status);

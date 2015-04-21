@@ -12,11 +12,13 @@ from django.db.utils import IntegrityError
 from django.contrib.sites.models import RequestSite
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from django.core.cache import cache
 
 from jingo import register
 from sorl.thumbnail import get_thumbnail
 
 from airmozilla.base.utils import unhtml
+from airmozilla.main.models import Picture
 
 
 @register.filter
@@ -168,3 +170,59 @@ def show_thumbnail(
         }
     )
     return mark_safe(html)
+
+
+@register.function
+def show_lazyr_thumbnail(
+    event,
+    geometry='160x90',
+    crop='center',
+    alt=None,
+    image=None
+):
+    placeholder_url = get_default_placeholder_thumb_url(geometry, crop)
+    if placeholder_url is None:
+        return show_thumbnail(
+            event,
+            geometry=geometry,
+            crop=crop,
+            alt=alt,
+            image=image
+        )
+
+    alt = alt or event.title
+    if not image:
+        image = event.picture and event.picture.file or event.placeholder_img
+    thumb = thumbnail(image, geometry, crop=crop)
+    html = (
+        '<img src="%(placeholder)s" data-layzr="%(url)s" '
+        'width="%(width)s" height="%(height)s" '
+        'alt="%(alt)s" class="wp-post-image">' % {
+            'placeholder': placeholder_url,
+            'url': thumb.url,
+            'width': thumb.width,
+            'height': thumb.height,
+            'alt': escape(alt),
+        }
+    )
+    return mark_safe(html)
+
+
+def get_default_placeholder_thumb_url(geometry, crop):
+    cache_key = 'default-placeholder-thumb-{0}-{1}'.format(
+        geometry,
+        crop,
+    )
+    url = cache.get(cache_key)
+    if url is None:
+        qs = Picture.objects.filter(default_placeholder=True)
+        for picture in qs.order_by('-modified'):
+            thumb = thumbnail(
+                picture.file,
+                geometry,
+                crop=crop
+            )
+            cache.set(cache_key, thumb.url, 60 * 60)
+            url = thumb.url
+            break
+    return url
