@@ -30,6 +30,14 @@
 {% block manage_content %}
 <div ng-app="eventmanagerApp" ng-controller="EventManagerController">
   <div ng-class="{hidden: first_loading || second_loading}" class="table-options">
+    {% raw %}
+    <a class="btn btn-success btn-xs"
+       title="Click to reload the events have changed on the server since you loaded this page"
+       ng-if="modified_events.length"
+       ng-click="replaceModifiedEvents()">
+      Reload modified events ({{ modified_events.length }})
+    </a>
+    {% endraw %}
     {% include "manage/_angular_sorting.html" %}
     {% include "manage/_angular_pagesize.html" %}
   </div>

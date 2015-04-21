@@ -44,8 +44,9 @@ pyquery==1.2.8
 pytz==2014.10
 # sha256: BTWn4nAUh0snrjpNM-h0njRb36YnZhlSCLeZa_EQBoI
 cssselect==0.9.1
-# sha256: TETsP5_wV7jHtMeL7KX92HEGAOqaHfQvMb_Lri8Fne4
-python-dateutil==2.1
+# sha256: PpVEXB21AKNEB5pHsXHEXvGPV9GI3_2w5BZccb6o6z0
+# sha256: KuY89HXwvQSbci-sIIE9Yq7cFJV91aO_ANEg0rVARGA
+python-dateutil==2.4.2
 # sha256: MVg9nhJ2eR2EqgFv3IeR_RhSisV5fbrhGLMOMuApDE8
 django-jsonview==0.4.3
 # sha256: zuWf2ql6QKxQW7Bim9yLqbp5AS0JnvEdbTooS342nJw

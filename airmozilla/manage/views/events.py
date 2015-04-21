@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, Max
 from django.core.exceptions import ImproperlyConfigured
 from django.views.decorators.cache import cache_page
 
@@ -198,6 +198,19 @@ def events_data(request):
         Event.objects.all()
         .order_by('-modified')
     )
+    form = forms.EventsDataForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(str(form.errors))
+
+    if form.cleaned_data['since']:
+        qs = qs.filter(modified__gt=form.cleaned_data['since'])
+
+    max_modified = qs.aggregate(Max('modified'))
+    if max_modified['modified__max']:
+        max_modified = max_modified['modified__max'].isoformat()
+    else:
+        max_modified = None
+
     _can_change_event_others = (
         request.user.has_perm('main.change_event_others')
     )
@@ -350,7 +363,7 @@ def events_data(request):
         'manage:picturegallery': reverse('manage:picturegallery'),
     }
 
-    return {'events': events, 'urls': urls}
+    return {'events': events, 'urls': urls, 'max_modified': max_modified}
 
 
 def _event_process(request, form, event):

@@ -26,8 +26,8 @@ app.filter('startFrom', function() {
 
 
 app.controller('EventManagerController',
-['$scope', '$http', '$localForage',
-function EventManagerController($scope, $http, $localForage) {
+['$scope', '$http', '$interval', '$localForage',
+function EventManagerController($scope, $http, $interval, $localForage) {
     'use strict';
 
     $scope.first_loading = true;
@@ -274,12 +274,46 @@ function EventManagerController($scope, $http, $localForage) {
         return $scope.urls[viewname].replace('0', item);
     };
 
+
+    $scope.modified_events = [];
+
+    $scope.replaceModifiedEvents = function() {
+        var modified = {};
+        $scope.modified_events.forEach(function(event) {
+            modified[event.id] = event;
+        });
+        $scope.events.forEach(function(event, i) {
+            if (modified[event.id]) {
+                $scope.events[i] = modified[event.id];
+            }
+        });
+        $scope.max_modified = $scope.next_max_modified;
+        $scope.modified_events = [];
+    };
+
+    function lookForModifiedEvents() {
+        /* This function is repeatedly called in an interval timer */
+        fetchEvents({since: $scope.max_modified})
+        .success(function(response) {
+            if (response.max_modified) {
+                $scope.modified_events = response.events;
+                $scope.next_max_modified = response.max_modified;
+            }
+        })
+        .error(function() {
+            console.error.apply(console, arguments);
+        });
+    }
+
     function loadAll() {
         fetchEvents({})
           .success(function(data) {
               $localForage.setItem('eventmanager', data);
               $scope.events = data.events;
               $scope.reading_from_cache = false;
+              $scope.max_modified = data.max_modified;
+              // every 10 seconds, look for for changed events
+              $interval(lookForModifiedEvents, 10 * 1000);
           }).error(function(data, status) {
               console.warn('Failed to fetch ALL events', status);
           }).finally(function() {
@@ -301,7 +335,6 @@ function EventManagerController($scope, $http, $localForage) {
     }
     $localForage.getItem('eventmanager')
     .then(function(data) {
-        // console.log("DATA", data);
         if (data && data.urls && data.events) {
             $scope.reading_from_cache = true;
             $scope.first_loading = false;
