@@ -25,7 +25,7 @@ p.feed { float: right; }
           </h3>
           {% set event = live %}
           {% set curated_groups = get_curated_groups(event) %}
-          {% include 'main/_event_privacy.html' %}
+          {% include "main/_event_privacy.html" %}
         </hgroup>
         <p class="event-date">{{ _('Start time:') }} {{ live.start_time|js_date }}</p>
       </header>
@@ -89,7 +89,7 @@ p.feed { float: right; }
   </h2>
   {% endif %}
 
-  {% include 'main/_events.html' %}
-  {% include 'main/_paginate.html' %}
+  {% include "main/_events.html" %}
+  {% include "main/_paginate.html" %}
 
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends "manage/groups.html" %}
+{% extends 'manage/groups.html' %}
 
 {% block manage_title %}
     Editing group {{ group.name }}
@@ -7,5 +7,5 @@
 {% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
-    {% include 'manage/_default_form.html' %}
+    {% include "manage/_default_form.html" %}
 {% endblock %}

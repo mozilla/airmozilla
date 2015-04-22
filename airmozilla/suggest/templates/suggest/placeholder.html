@@ -5,7 +5,7 @@ Event picture | {{ super() }}
 {% endblock %}
 
 {% block banner %}
-    {% include 'main/_banner_small.html' %}
+    {% include "main/_banner_small.html" %}
     {% endblock %}
 
 {% block site_css %}
@@ -20,7 +20,7 @@ Event picture | {{ super() }}
 
 
 {% block content_main %}
-  {% include 'suggest/_breadcrumb.html' %}
+  {% include "suggest/_breadcrumb.html" %}
   <h2 class="section-title">Event picture</h2>
 
   {% if event.placeholder_img %}
@@ -35,5 +35,5 @@ Event picture | {{ super() }}
   </div>
   {% endif %}
 
-  {% include 'suggest/_default_form_upload.html' %}
+  {% include "suggest/_default_form_upload.html" %}
 {% endblock %}

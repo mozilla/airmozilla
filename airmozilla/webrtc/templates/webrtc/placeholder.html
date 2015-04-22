@@ -1,4 +1,4 @@
-{% extends "webrtc/webrtc_base.html" %}
+{% extends 'webrtc/webrtc_base.html' %}
 
 {% block page_title %}
 Picture | {{ super() }}
@@ -20,7 +20,7 @@ Picture | {{ super() }}
 {% block sidebar %}{% endblock %}
 
 {% block content_main %}
-  {% include 'webrtc/_breadcrumb.html' %}
+  {% include "webrtc/_breadcrumb.html" %}
   <h2 class="section-title">Picture</h2>
 
   {% if event.placeholder_img %}
@@ -37,7 +37,7 @@ Picture | {{ super() }}
   {% endif %}
 
   {% set submit_text='Upload and proceed' %}
-  {% include 'suggest/_default_form_upload.html' %}
+  {% include "suggest/_default_form_upload.html" %}
 
   <h3>Or...</h3>
 

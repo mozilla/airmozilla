@@ -46,7 +46,7 @@
   {% if not discussion %}
    {% set submit_text="Set up Discussion Configuration" %}
   {% endif %}
-  {% include 'manage/_default_form.html' %}
+  {% include "manage/_default_form.html" %}
   <p>
     <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
   </p>

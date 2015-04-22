@@ -1,4 +1,4 @@
-{% extends "webrtc/webrtc_base.html" %}
+{% extends 'webrtc/webrtc_base.html' %}
 
 {% block extra_head %}
 {{ super() }}
@@ -32,7 +32,7 @@ h3 { margin-top: 60px; }
   <p>
     To create a new event...
   </p>
-  {% include 'suggest/_default_form.html' %}
+  {% include "suggest/_default_form.html" %}
 
 {% else %}
 
@@ -43,7 +43,7 @@ h3 { margin-top: 60px; }
     about you.
   </p> -->
 
-  {% include 'suggest/_default_form.html' %}
+  {% include "suggest/_default_form.html" %}
 
 {% endif %}
 

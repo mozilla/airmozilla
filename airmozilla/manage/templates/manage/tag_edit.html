@@ -7,7 +7,7 @@
 {% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
-  {% include 'manage/_default_form.html' %}
+  {% include "manage/_default_form.html" %}
 
   {% if is_repeated %}
   <div id="repeated">
@@ -16,7 +16,7 @@
         {{ csrf() }}
         {{ bootstrapform_horizontal(repeated_form) }}
         {% set submit_text='Merge' %}
-        {% include 'manage/_form_buttons.html' %}
+        {% include "manage/_form_buttons.html" %}
     </form>
   </div>
   {% endif %}
