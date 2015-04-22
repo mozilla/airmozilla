@@ -110,7 +110,8 @@
               {% endif %}
               <br>
 
-              {% if event.location and not event.location.name.startswith('Cyberspace') %}
+              {% if event.location and not event.location.name.startswith('Cyberspace')
+                 and not event.location.name.startswith(settings.DEFAULT_PRERECORDED_LOCATION[0]) %}
                 {{ _('Location') }}: {{ event.location.name }}<br>
               {% endif %}
 
