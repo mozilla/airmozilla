@@ -87,13 +87,14 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
 
     privacy_filter = {}
     privacy_exclude = {}
+    archived_events = Event.objects.archived()
     if request.user.is_active:
         if is_contributor(request.user):
             privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
     else:
         privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+        archived_events = archived_events.approved()
 
-    archived_events = Event.objects.archived()
     if privacy_filter:
         archived_events = archived_events.filter(**privacy_filter)
     elif privacy_exclude:
@@ -876,17 +877,22 @@ def events_calendar_ical(request, privacy=None):
     cal = vobject.iCalendar()
 
     now = timezone.now()
-    base_qs = Event.objects.approved()
+    base_qs = Event.objects.all()
     if privacy == 'public':
-        base_qs = base_qs.filter(privacy=Event.PRIVACY_PUBLIC)
+        base_qs = base_qs.approved().filter(
+            privacy=Event.PRIVACY_PUBLIC
+        )
         title = 'Air Mozilla Public Events'
     elif privacy == 'private':
-        base_qs = base_qs.exclude(privacy=Event.PRIVACY_PUBLIC)
+        base_qs = base_qs.exclude(
+            privacy=Event.PRIVACY_PUBLIC
+        )
         title = 'Air Mozilla Private Events'
     else:
         title = 'Air Mozilla Events'
     if location:
         base_qs = base_qs.filter(location=location)
+
     cal.add('X-WR-CALNAME').value = title
     events = list(base_qs
                   .filter(start_time__lt=now)
@@ -969,12 +975,13 @@ class EventsFeed(Feed):
     def items(self):
         now = timezone.now()
         qs = (
-            Event.objects.approved()
+            Event.objects.scheduled()
             .filter(start_time__lt=now,
                     channels=self._channel)
             .order_by('-start_time')
         )
         if not self.private_or_public or self.private_or_public == 'public':
+            qs = qs.approved()
             qs = qs.filter(privacy=Event.PRIVACY_PUBLIC)
         elif self.private_or_public == 'contributors':
             qs = qs.exclude(privacy=Event.PRIVACY_COMPANY)
@@ -1118,15 +1125,15 @@ def calendar_data(request):
     start = start.replace(tzinfo=utc)
     end = end.replace(tzinfo=utc)
 
-    events = Event.objects.approved()
-
     privacy_filter = {}
     privacy_exclude = {}
+    events = Event.objects.all()
     if request.user.is_active:
         if is_contributor(request.user):
             privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
     else:
         privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+        events = events.approved()
 
     if privacy_filter:
         events = events.filter(**privacy_filter)
@@ -1318,7 +1325,7 @@ def executive_summary(request):
 
     rows = []
     for label, start, end in ranges:
-        events = Event.objects.approved().filter(
+        events = Event.objects.all().approved().filter(
             start_time__gte=start, start_time__lt=end
         )
         uploads_name = settings.DEFAULT_PRERECORDED_LOCATION[0]  # name

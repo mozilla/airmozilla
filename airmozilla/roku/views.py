@@ -27,8 +27,8 @@ def categories_feed(request):
     else:
         privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
         # feed_privacy = 'public'
-    events = Event.objects.filter(status=Event.STATUS_SCHEDULED)
-    live_events = Event.objects.live()
+    events = Event.objects.scheduled().approved()
+    live_events = Event.objects.live().approved()
     if privacy_filter:
         events = events.filter(**privacy_filter)
         live_events = live_events.filter(**privacy_filter)
@@ -124,7 +124,7 @@ def channel_feed(request, slug):
         Q(slug=slug) |
         Q(parent__slug=slug)
     )
-    events = Event.objects.archived()
+    events = Event.objects.archived().approved()
     events = events.filter(channels__in=channels)
     privacy_filter = {}
     privacy_exclude = {}
