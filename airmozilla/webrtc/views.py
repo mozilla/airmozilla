@@ -113,8 +113,8 @@ def start(request):
             # )
             # event.channels.add(mozillians_channel)
             channel, __ = Channel.objects.get_or_create(
-                name="Moz Shorts",
-                slug="moz-shorts",
+                name="MozShortz",
+                slug="mozshortz",
             )
             event.channels.add(channel)
             # messages.info(
