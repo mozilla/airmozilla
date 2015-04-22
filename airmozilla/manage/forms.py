@@ -2,6 +2,7 @@ import re
 import datetime
 from collections import defaultdict
 
+import dateutil.parser
 import pytz
 
 from django import forms
@@ -851,3 +852,14 @@ class AutocompeterUpdateForm(BaseForm):
             print "Minutes", int(value)
             value = datetime.timedelta(minutes=int(value))
         return value
+
+
+class ISODateTimeField(forms.DateTimeField):
+
+    def strptime(self, value, __):
+        return dateutil.parser.parse(value)
+
+
+class EventsDataForm(BaseForm):
+
+    since = ISODateTimeField(required=False)

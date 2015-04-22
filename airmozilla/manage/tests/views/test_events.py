@@ -216,6 +216,47 @@ class TestEvents(ManageTestCase):
         result = results['events'][0]
         eq_(result['popcorn_url'], event.popcorn_url)
 
+    def test_events_data_with_latest_modify_date(self):
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        ok_(results['events'])
+        eq_(results['max_modified'], event.modified.isoformat())
+        first, = results['events']
+        eq_(first['modified'], results['max_modified'])
+
+    def test_events_data_since(self):
+        url = reverse('manage:events_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        ok_(results['events'])
+
+        response = self.client.get(url, {
+            'since': 'junk'
+        })
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {
+            'since': results['max_modified']
+        })
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        ok_(not results['events'])
+        ok_(not results['max_modified'])
+
+        # go back a second in time
+        event = Event.objects.get(title='Test event')
+        max_modified = event.modified - datetime.timedelta(seconds=1)
+        response = self.client.get(url, {
+            'since': max_modified,
+        })
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        ok_(results['events'])
+        eq_(results['max_modified'], event.modified.isoformat())
+
     def test_events_data_with_pictures_count(self):
         event = Event.objects.get(title='Test event')
         response = self.client.get(reverse('manage:events_data'))
