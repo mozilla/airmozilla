@@ -58,8 +58,9 @@ oauth2==1.5.211
 raven==3.4.1
 # sha256: oFHwTujsMwUFWrNNh7NsmkSTdeB8fWoFvK-kgynKx8M
 oauthlib==0.7.2
-# sha256: jEIaWBAHBBSP2a0uOLBdVkb20xOawgnf2kyYDRJMdbo
-six==1.1.0
+# sha256: QYqTw5en7asj5ViNvAZ6x0pyPts9VBvUk295R252Rdo
+# sha256: 4kBSQR_E-9H2cmNVN8P8IzDZSBsYwDF2lbRiWVEskdU
+six==1.9.0
 # sha256: AW21Ktp2WXYb2l7gNy9g2H2-8F1S9GaqYZci526qA9E
 awesome-slugify==1.6
 # sha256: hPtZujVa8xIv8lqpikSYECSgI4S6d8fx0Fuevv5MCxQ
