@@ -1,4 +1,4 @@
-{% extends "webrtc/webrtc_base.html" %}
+{% extends 'webrtc/webrtc_base.html' %}
 
 {% block page_title %}
 Summary | {{ super() }}
@@ -27,7 +27,7 @@ Summary | {{ super() }}
 {% block sidebar %}{% endblock %}
 
 {% block content_main %}
-  {% include 'webrtc/_breadcrumb.html' %}
+  {% include "webrtc/_breadcrumb.html" %}
   <h2 class="section-title">Summary</h2>
 
 

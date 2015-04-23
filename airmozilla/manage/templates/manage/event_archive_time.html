@@ -1,4 +1,4 @@
-{% extends "manage/event_request.html" %}
+{% extends 'manage/event_request.html' %}
 {% set page = "events" %}
 
 {% block manage_title %}
@@ -8,7 +8,7 @@
 
 {% block manage_content %}
 
-  {% include 'manage/_default_form.html' %}
+  {% include "manage/_default_form.html" %}
   
   <p>
     <b>Note</b> The event is currently in the state of

@@ -31,7 +31,7 @@
         <td><a href="{{ url('manage:event_edit', tweet.event.pk) }}" title="{{ tweet.event.title }}">{{ truncate_words(tweet.event.title, 4) }}</a></td>
         <td class="text">{{ tweet.text|truncate(100) }}</td>
         <td>
-          {% include 'manage/_tweet_state.html' %}
+          {% include "manage/_tweet_state.html" %}
         </td>
         <td>
           <a class="btn btn-default btn-sm" href="{{ url('manage:event_tweets', tweet.event.pk) }}">Manage tweets</a>
@@ -40,7 +40,7 @@
       {% endfor %}
     </tbody>
   </table>
-  {% include 'manage/_paginate.html' %}
+  {% include "manage/_paginate.html" %}
   </form>
 
 {% endblock %}

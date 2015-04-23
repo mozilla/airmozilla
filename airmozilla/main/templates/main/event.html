@@ -89,7 +89,7 @@
         {{ event.title }}
       <a class="star event" data-id="{{ event.id }}" title="Save as a starred event"></a>
       </h1>
-      {% include 'main/_event_privacy.html' %}
+      {% include "main/_event_privacy.html" %}
     </header>
 
       <p>{{ event.description | carefulnl2br | safe_html }}</p>

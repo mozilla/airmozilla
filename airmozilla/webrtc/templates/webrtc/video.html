@@ -1,4 +1,4 @@
-{% extends "webrtc/webrtc_base.html" %}
+{% extends 'webrtc/webrtc_base.html' %}
 
 {% block page_title %}
 Video | {{ super() }}
@@ -29,7 +29,7 @@ Video | {{ super() }}
   <div class="flash"></div>
   <div class="countdown"></div>
 
-  {% include 'webrtc/_breadcrumb.html' %}
+  {% include "webrtc/_breadcrumb.html" %}
   <h2 class="section-title">Record your video - This is it!</h2>
 
   <div class="starting">

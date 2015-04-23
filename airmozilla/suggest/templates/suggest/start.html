@@ -6,7 +6,7 @@ Request | {{ super() }}
 {% endblock %}
 
 {% block banner %}
-    {% include 'main/_banner_small.html' %}
+    {% include "main/_banner_small.html" %}
 {% endblock %}
 
 {% block breadcrumb %}
@@ -96,7 +96,7 @@ Request | {{ super() }}
   <h2 class="section-title add-event">Add an Event</h2>
   <h3 class="section-sub-title">What are you going to call it?</h3>
 
-  {% include 'suggest/_default_form.html' %}
+  {% include "suggest/_default_form.html" %}
 
   <p class="start-tooltip">
   Your event's title will appear in public feeds.

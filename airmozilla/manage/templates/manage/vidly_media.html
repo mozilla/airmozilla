@@ -63,7 +63,7 @@
 
   {{ bootstrapform(vidly_resubmit_form) }}
   {% set submit_text = 'Re-submit' %}
-  {% include 'manage/_form_buttons.html' %}
+  {% include "manage/_form_buttons.html" %}
   </form>
 
   <form action="" method="post">
@@ -116,7 +116,7 @@
     </tbody>
   </table>
   {% if not status %}
-  {% include 'manage/_paginate.html' %}
+  {% include "manage/_paginate.html" %}
   {% endif %}
   </form>
 

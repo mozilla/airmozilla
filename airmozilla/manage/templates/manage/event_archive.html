@@ -33,12 +33,12 @@
         <img src="{{ static('img/spinner.gif') }}" alt="Loading..."> Please wait...
       </p>
       {% set submit_text = 'Fetch it' %}
-      {% include 'manage/_form_buttons.html' %}
+      {% include "manage/_form_buttons.html" %}
     </form>
   </div>
 
   {% set submit_text = 'Archive this event' %}
-  {% include 'manage/_default_form.html' %}
+  {% include "manage/_default_form.html" %}
 
   <p>
     <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>

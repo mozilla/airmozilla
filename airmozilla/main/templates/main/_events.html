@@ -6,7 +6,7 @@
       <a href="{{ href }}">{{ event.title }}</a>
     </h2>
     {% set curated_groups = get_curated_groups(event) %}
-    {% include 'main/_event_privacy.html' %}
+    {% include "main/_event_privacy.html" %}
   </header>
   <div class="entry-summary">
     <p class="event-date">{{ event.start_time|js_date }}</p>

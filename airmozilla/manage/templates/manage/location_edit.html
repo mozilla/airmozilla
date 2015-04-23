@@ -28,17 +28,17 @@
 {% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
-  {% include 'manage/_default_form.html' %}
+  {% include "manage/_default_form.html" %}
 
   <h3>Add another default template configuration</h3>
-  {% include 'manage/_alert_form_errors.html' %}
+  {% include "manage/_alert_form_errors.html" %}
   <form method="post" class="form-horizontal" role="form">
       <!-- trick so we can distinquish the two forms in submission -->
       <input type="hidden" name="default" value="1">
 
       {{ csrf() }}
       {{ bootstrapform_horizontal(default_environment_form) }}
-      {% include 'manage/_form_buttons.html' %}
+      {% include "manage/_form_buttons.html" %}
   </form>
 
   <h3>Existing default template configurations</h3>

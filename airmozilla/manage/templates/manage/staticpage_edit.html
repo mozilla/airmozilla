@@ -1,4 +1,4 @@
-{% extends "manage/staticpages.html" %}
+{% extends 'manage/staticpages.html' %}
 
 {% block manage_title %}
   Editing page '{{ staticpage.title }}'
@@ -7,8 +7,8 @@
 {% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
-  {% include 'manage/_default_form.html' %}
-  {% include 'manage/_about_sidebar_slugs.html' %}
+  {% include "manage/_default_form.html" %}
+  {% include "manage/_about_sidebar_slugs.html" %}
 {% endblock %}
 
 {% block site_js %}
