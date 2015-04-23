@@ -89,6 +89,23 @@
         {{ event.title }}
       <a class="star event" data-id="{{ event.id }}" title="Save as a starred event"></a>
       </h1>
+
+      {% if event.is_upcoming() %}
+      <h4>
+         <p>
+            {{ event.start_time | js_date }}
+            {% if event.location %}
+             &mdash;
+             {{ event.location_time.strftime("%I:%M%p") }}
+              {% if not event.location.name.startswith('Cyberspace') and not 
+                 event.location.name.startswith(settings.DEFAULT_PRERECORDED_LOCATION[0]) %}
+                 in {{ event.location.name }}
+              {% endif %}
+            {% endif %}
+          </p>
+       </h4>
+      {% endif %}
+
       {% include "main/_event_privacy.html" %}
     </header>
 
@@ -105,7 +122,7 @@
               {% if event.is_upcoming() %}
                 {% if event.location %}
                   &mdash;
-                  {{ event.location_time.strftime("%I:%M%p") }} in {{ event.location.name }}
+                  {{ event.location_time.strftime("%I:%M%p") }}
                 {% endif %}
               {% endif %}
               <br>
