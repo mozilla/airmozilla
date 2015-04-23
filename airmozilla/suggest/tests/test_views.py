@@ -4,7 +4,6 @@ import datetime
 import tempfile
 import shutil
 
-from django.test import TestCase
 from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
 from django.utils import timezone
@@ -28,7 +27,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.uploads.models import Upload
 from airmozilla.comments.models import SuggestedDiscussion
-
+from airmozilla.base.tests.testbase import DjangoTestCase
 
 _here = os.path.dirname(__file__)
 HAS_OPENGRAPH_FILE = os.path.join(_here, 'has_opengraph.html')
@@ -46,7 +45,7 @@ class Response(object):
         self.status_code = status_code
 
 
-class TestPages(TestCase):
+class TestPages(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
@@ -113,9 +112,11 @@ class TestPages(TestCase):
         return event
 
     def test_link_to_suggest(self):
-        start_url = reverse('suggest:start')
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.placeholder)
         response = self.client.get('/')
         eq_(response.status_code, 200)
+        start_url = reverse('suggest:start')
         ok_(start_url in response.content)
 
     def test_unauthorized(self):
