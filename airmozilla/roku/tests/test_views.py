@@ -13,6 +13,7 @@ from airmozilla.main.models import (
     Template,
     Picture,
     EventHitStats,
+    Approval,
 )
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -81,6 +82,24 @@ class TestRoku(DjangoTestCase):
         event.template = vidly
         event.template_environment = {'tag': 'xyz123'}
         event.save()
+        response = self.client.get(main_url)
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+        # if the *needs* approval, it shouldn't appear
+        app = Approval.objects.create(event=event)
+        response = self.client.get(main_url)
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
+
+        app.processed = True
+        app.save()
+        response = self.client.get(main_url)
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
+
+        app.approved = True
+        app.save()
         response = self.client.get(main_url)
         eq_(response.status_code, 200)
         ok_(event.title in response.content)

@@ -10,7 +10,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Event, EventHitStats
+from airmozilla.main.models import Event, EventHitStats, Approval
 from airmozilla.manage import autocompeter
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -233,6 +233,50 @@ class TestAutocompeter(DjangoTestCase):
         document = posts[0]['documents'][0]
         eq_(document['title'], 'Test event')
         eq_(document['popularity'], 200)
+
+    @mock.patch('requests.post')
+    def test_basic_update_all_with_unapproved(self, rpost):
+
+        posts = []
+
+        def mocked_post(url, **options):
+            assert settings.AUTOCOMPETER_URL in url
+            data = json.loads(options['data'])
+            posts.append(data)
+            return Response(
+                'OK',
+                201
+            )
+
+        rpost.side_effect = mocked_post
+        event = Event.objects.get(title='Test event')
+
+        EventHitStats.objects.create(
+            event=event,
+            total_hits=200
+        )
+
+        autocompeter.update(all=True)
+
+        assert len(posts[0]['documents']) == 1
+        document = posts[0]['documents'][0]
+        eq_(document['title'], 'Test event')
+        eq_(document['group'], '')
+
+        app = Approval.objects.create(event=event)
+        autocompeter.update(all=True)
+
+        document = posts[1]['documents'][0]
+        eq_(document['title'], 'Test event')
+        eq_(document['group'], 'contributors')
+
+        app.approved = True
+        app.save()
+        autocompeter.update(all=True)
+
+        document = posts[2]['documents'][0]
+        eq_(document['title'], 'Test event')
+        eq_(document['group'], '')
 
     @mock.patch('requests.delete')
     @mock.patch('requests.post')

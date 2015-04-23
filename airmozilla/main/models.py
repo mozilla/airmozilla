@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.core.cache import cache
 from django.db import models
-from django.db.models import Q
 from django.dispatch import receiver
 from django.utils import timezone
 
@@ -182,51 +181,48 @@ class RecruitmentMessage(models.Model):
         return self.text
 
 
-class EventManager(models.Manager):
-    def initiated(self):
-        return (self.get_query_set().filter(Q(status=Event.STATUS_INITIATED) |
-                                            Q(approval__approved=False) |
-                                            Q(approval__processed=False))
-                    .distinct())
+class ApprovableQuerySet(models.query.QuerySet):
 
     def approved(self):
-        return (self.get_query_set().exclude(approval__approved=False)
-                    .exclude(approval__processed=False)
-                    .filter(status=Event.STATUS_SCHEDULED))
+        return (
+            self._clone()
+            .exclude(approval__approved=False)
+            .exclude(approval__processed=False)
+        )
+
+
+class EventManager(models.Manager):
+
+    def get_queryset(self):
+        return ApprovableQuerySet(self.model, using=self._db)
+
+    def scheduled(self):
+        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED)
+
+    def approved(self):
+        return (
+            self.scheduled()
+            .exclude(approval__approved=False)
+            .exclude(approval__processed=False)
+        )
 
     def upcoming(self):
-        return self.approved().filter(
+        return self.scheduled().filter(
             archive_time=None,
             start_time__gt=_get_live_time()
         )
 
     def live(self):
-        return self.approved().filter(
+        return self.scheduled().filter(
             archive_time=None,
-            start_time__lt=_get_live_time()
-        )
-
-    def archiving(self):
-        return self.approved().filter(
-            archive_time__gt=_get_now(),
             start_time__lt=_get_live_time()
         )
 
     def archived(self):
         _now = _get_now()
-        return self.approved().filter(
+        return self.scheduled().filter(
             archive_time__lt=_now,
             start_time__lt=_now
-        )
-
-    def archived_and_removed(self):
-        _now = _get_now()
-        return self.get_query_set().filter(
-            (Q(archive_time__lt=_now, start_time__lt=_now)
-             & ~Q(approval__approved=False)
-             & ~Q(approval__processed=False)
-             & Q(status=Event.STATUS_SCHEDULED))
-            | Q(status=Event.STATUS_REMOVED)
         )
 
 

@@ -42,11 +42,13 @@ def home(request):
         context['q'] = form.cleaned_data['q']
         privacy_filter = {}
         privacy_exclude = {}
+        qs = Event.objects.scheduled()
         if request.user.is_active:
             if is_contributor(request.user):
                 privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
         else:
             privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+            qs = qs.approved()
 
         extra = {}
         rest, params = split_search(context['q'], ('tag', 'channel'))
@@ -132,6 +134,7 @@ def home(request):
             context['possible_channels'] = possible_channels
 
         events = _search(
+            qs,
             context['q'],
             privacy_filter=privacy_filter,
             privacy_exclude=privacy_exclude,
@@ -140,6 +143,7 @@ def home(request):
         )
         if not events.count() and utils.possible_to_or_query(context['q']):
             events = _search(
+                qs,
                 context['q'],
                 privacy_filter=privacy_filter,
                 privacy_exclude=privacy_exclude,
@@ -209,9 +213,8 @@ def home(request):
     return render(request, 'search/home.html', context)
 
 
-def _search(q, **options):
+def _search(qs, q, **options):
     # we only want to find upcoming or archived events
-    qs = Event.objects.approved()
 
     # some optional filtering
     if 'tags' in options:

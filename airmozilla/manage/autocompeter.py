@@ -13,7 +13,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Event, EventHitStats
+from airmozilla.main.models import Event, EventHitStats, Approval
 
 
 def _get_url():
@@ -63,10 +63,10 @@ def update(
             median_hits = sorted(values)[len(values) / 2]
         else:
             median_hits = 0
-        events = Event.objects.approved()
+        events = Event.objects.scheduled()
     else:
         events = (
-            Event.objects.approved()
+            Event.objects.scheduled()
             .filter(modified__gte=now-since)[:max_]
         )
         if events:
@@ -90,10 +90,15 @@ def update(
     # events and then the loop below ('for event in events:') will do nothing.
     if events:
         grouped_by_title = (
-            Event.objects.approved().values('title').annotate(Count('title'))
+            Event.objects.all().values('title').annotate(Count('title'))
         )
         for each in grouped_by_title:
             title_counts[each['title']] = each['title__count']
+
+    not_approved = Approval.objects.filter(
+        event__in=events,
+        approved=False,
+    ).values_list('event_id', flat=True)
 
     documents = []
     for event in events:
@@ -107,6 +112,8 @@ def update(
             popularity = hits
         if event.privacy == Event.PRIVACY_PUBLIC:
             group = ''
+            if event.id in not_approved:
+                group = Event.PRIVACY_CONTRIBUTORS
         else:
             group = event.privacy
 

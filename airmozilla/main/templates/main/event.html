@@ -52,9 +52,12 @@
   <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
 
     {% if warning %}
-      <div class="warning">Warning: {{ warning }}</div>
+    <div class="warning">
+      <p>Warning: {{ warning }}</p>
+    </div>
     {% endif %}
-        <div class="entry-content">
+
+    <div class="entry-content">
       {% if pending %}
         <p class="pending">
         Event is currently in a pending state meaning it will soon be made available.
@@ -139,7 +142,7 @@
         <label for="tab-2">Tags</label>
         <div class="content">
           <p>
-          {% if tags and request.user.is_active %}  
+          {% if tags and request.user.is_active %}
              {% for tag in tags %}
                <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
              {% endfor %}
@@ -196,7 +199,7 @@
         </div>
       {% endif %}
 
-      {% if not pending and video and event.is_public() %}
+      {% if not pending and video and event.is_public() and not event.needs_approval() %}
         <div class="tab">
           <input type="radio" id="tab-embed" name="tab-group-1">
           <label for="tab-embed">Embed</label>

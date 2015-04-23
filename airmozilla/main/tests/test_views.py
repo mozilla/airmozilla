@@ -909,7 +909,7 @@ class TestPages(DjangoTestCase):
         event1.start_time -= delay
         event1.archive_time = event1.start_time
         event1.save()
-        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().approved().count(), 1)
         eq_(Event.objects.archived().count(), 1)
 
         event = Event.objects.create(
@@ -923,7 +923,7 @@ class TestPages(DjangoTestCase):
         )
         event.channels.add(self.main_channel)
 
-        eq_(Event.objects.approved().count(), 2)
+        eq_(Event.objects.archived().approved().count(), 2)
         eq_(Event.objects.archived().count(), 2)
 
         url = reverse('main:feed', args=('public',))
@@ -943,6 +943,52 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
+
+    def test_feed_unapproved_events(self):
+        event = Event.objects.get(title='Test event')
+        assert event.is_public()
+        assert event in Event.objects.live()
+        assert event in Event.objects.live().approved()
+
+        public_url = reverse('main:feed', args=('public',))
+        private_url = reverse('main:feed', args=('private',))
+
+        response = self.client.get(public_url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        response = self.client.get(public_url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+
+        cache.clear()
+
+        app = Approval.objects.create(event=event)
+        response = self.client.get(public_url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+        response = self.client.get(private_url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+
+        app.processed = True
+        app.save()
+        response = self.client.get(public_url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+        response = self.client.get(private_url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+
+        cache.clear()
+
+        app.approved = True
+        app.save()
+        response = self.client.get(public_url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        response = self.client.get(private_url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
 
     def test_feed_with_webm_format(self):
         delay = datetime.timedelta(days=1)
@@ -978,7 +1024,7 @@ class TestPages(DjangoTestCase):
         event.save()
 
         url = reverse('main:feed')
-        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().approved().count(), 1)
         eq_(Event.objects.archived().count(), 1)
         response = self.client.get(url)
         ok_('Test event' in response.content)
@@ -1005,7 +1051,7 @@ class TestPages(DjangoTestCase):
         event1.channels.clear()
         event1.channels.add(channel)
 
-        eq_(Event.objects.approved().count(), 1)
+        eq_(Event.objects.archived().approved().count(), 1)
         eq_(Event.objects.archived().count(), 1)
 
         event = Event.objects.create(
@@ -1019,7 +1065,7 @@ class TestPages(DjangoTestCase):
         )
         event.channels.add(channel)
 
-        eq_(Event.objects.approved().count(), 2)
+        eq_(Event.objects.archived().approved().count(), 2)
         eq_(Event.objects.archived().count(), 2)
         eq_(Event.objects.filter(channels=channel).count(), 2)
 

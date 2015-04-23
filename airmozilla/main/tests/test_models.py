@@ -17,6 +17,10 @@ from airmozilla.main.models import (
     RecruitmentMessage,
     Picture
 )
+# This must be imported otherwise django-nose won't import
+# that foreign key reference when you run only the tests in this file.
+from airmozilla.uploads.models import Upload
+Upload = Upload  # shut up pyflakes
 
 
 class EventTests(TestCase):
@@ -70,105 +74,198 @@ class EventTests(TestCase):
 
 
 class EventStateTests(TestCase):
-    def test_event_state(self):
-        time_now = timezone.now()
-        time_soon = time_now + datetime.timedelta(hours=1)
-        time_before = time_now - datetime.timedelta(hours=1)
-        # initiated event
-        initiated = Event.objects.create(
-            status=Event.STATUS_INITIATED,
-            start_time=time_now,
-        )
-        ok_(initiated in Event.objects.initiated())
-        ok_(not initiated.needs_approval())
-        # scheduled event with pending approval
-        to_approve = Event.objects.create(
-            status=Event.STATUS_SCHEDULED,
-            start_time=time_now,
-        )
-        ok_(to_approve not in Event.objects.initiated())
-        ok_(to_approve in Event.objects.approved())
-        ok_(not to_approve.needs_approval())
+    # def test_event_state(self):
+    #     time_now = timezone.now()
+    #     time_soon = time_now + datetime.timedelta(hours=1)
+    #     time_before = time_now - datetime.timedelta(hours=1)
+    #     # initiated event
+    #     initiated = Event.objects.create(
+    #         status=Event.STATUS_INITIATED,
+    #         start_time=time_now,
+    #     )
+    #     # ok_(initiated in Event.objects.initiated())
+    #     ok_(not initiated.needs_approval())
+    #     # scheduled event with pending approval
+    #     to_approve = Event.objects.create(
+    #         status=Event.STATUS_SCHEDULED,
+    #         start_time=time_now,
+    #     )
+    #     # ok_(to_approve not in Event.objects.initiated())
+    #     ok_(to_approve in Event.approved_objects.all())
+    #     ok_(not to_approve.needs_approval())
+    #
+    #     app = Approval.objects.create(event=to_approve, group=None)
+    #     # attaching the Approval makes the event unapproved
+    #     ok_(to_approve not in Event.approved_objects.all())
+    #     # ok_(to_approve in Event.objects.initiated())
+    #     ok_(to_approve.needs_approval())
+    #
+    #     app.processed = True
+    #     app.approved = True
+    #     app.save()
+    #     ok_(to_approve in Event.approved_objects.all())
+    #     to_approve.status = Event.STATUS_REMOVED
+    #     to_approve.save()
+    #     # ok_(to_approve in Event.objects.archived_and_removed())
+    #     # ok_(to_approve not in Event.objects.initiated())
+    #     # upcoming event
+    #     upcoming = Event.objects.create(
+    #         status=Event.STATUS_SCHEDULED,
+    #         start_time=time_soon,
+    #         archive_time=None
+    #     )
+    #     ok_(upcoming in Event.approved_objects.upcoming())
+    #     ok_(upcoming in Event.objects.upcoming())
+    #     upcoming.status = Event.STATUS_REMOVED
+    #     upcoming.save()
+    #     # ok_(upcoming in Event.objects.archived_and_removed())
+    #     ok_(upcoming not in Event.objects.upcoming())
+    #     # live event
+    #     live = Event.objects.create(
+    #         status=Event.STATUS_SCHEDULED,
+    #         start_time=time_now,
+    #         archive_time=None
+    #     )
+    #     ok_(live in Event.approved_objects.live())
+    #     ok_(live in Event.objects.live())
+    #     live.status = Event.STATUS_REMOVED
+    #     live.save()
+    #     # ok_(live in Event.objects.archived_and_removed())
+    #     ok_(live not in Event.objects.live())
+    #     # archiving event
+    #     archiving = Event.objects.create(
+    #         status=Event.STATUS_SCHEDULED,
+    #         start_time=time_before,
+    #         archive_time=time_soon
+    #     )
+    #     ok_(archiving in Event.approved_objects.all())
+    #     # ok_(archiving in Event.objects.archiving())
+    #     ok_(archiving not in Event.objects.live())
+    #     archiving.status = Event.STATUS_REMOVED
+    #     archiving.save()
+    #     # ok_(archiving in Event.objects.archived_and_removed())
+    #     # ok_(archiving not in Event.objects.archiving())
+    #     # archived event
+    #     archived = Event.objects.create(
+    #         status=Event.STATUS_SCHEDULED,
+    #         start_time=time_before,
+    #         archive_time=time_before
+    #     )
+    #     ok_(archived in Event.approved_objects.archived())
+    #     ok_(archived in Event.objects.archived())
+    #     archived.status = Event.STATUS_REMOVED
+    #     archived.save()
+    #     # ok_(archived in Event.objects.archived_and_removed())
+    #     ok_(archived not in Event.objects.archived())
 
-        app = Approval.objects.create(event=to_approve, group=None)
-        # attaching the Approval makes the event unapproved
-        ok_(to_approve not in Event.objects.approved())
-        ok_(to_approve in Event.objects.initiated())
-        ok_(to_approve.needs_approval())
+    # def test_needs_approval_if_not_approved(self):
+    #     time_now = timezone.now()
+    #     to_approve = Event.objects.create(
+    #         status=Event.STATUS_SCHEDULED,
+    #         start_time=time_now,
+    #     )
+    #     app = Approval.objects.create(event=to_approve, group=None)
+    #     ok_(to_approve.needs_approval())
+    #     app.processed = True
+    #     app.save()
+    #     ok_(not to_approve.needs_approval())
+
+    def test_event_needs_approval(self):
+        event = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=timezone.now(),
+            archive_time=timezone.now()
+        )
+        ok_(not event.needs_approval())
+
+        app = Approval.objects.create(event=event)
+        ok_(event.needs_approval())
 
         app.processed = True
+        app.save()
+        ok_(not event.needs_approval())
+
         app.approved = True
         app.save()
-        ok_(to_approve in Event.objects.approved())
-        to_approve.status = Event.STATUS_REMOVED
-        to_approve.save()
-        ok_(to_approve in Event.objects.archived_and_removed())
-        ok_(to_approve not in Event.objects.initiated())
-        # upcoming event
-        upcoming = Event.objects.create(
-            status=Event.STATUS_SCHEDULED,
-            start_time=time_soon,
-            archive_time=None
-        )
-        ok_(upcoming in Event.objects.approved())
-        ok_(upcoming in Event.objects.upcoming())
-        upcoming.status = Event.STATUS_REMOVED
-        upcoming.save()
-        ok_(upcoming in Event.objects.archived_and_removed())
-        ok_(upcoming not in Event.objects.upcoming())
-        # live event
-        live = Event.objects.create(
-            status=Event.STATUS_SCHEDULED,
-            start_time=time_now,
-            archive_time=None
-        )
-        ok_(live in Event.objects.approved())
-        ok_(live in Event.objects.live())
-        live.status = Event.STATUS_REMOVED
-        live.save()
-        ok_(live in Event.objects.archived_and_removed())
-        ok_(live not in Event.objects.live())
-        # archiving event
-        archiving = Event.objects.create(
-            status=Event.STATUS_SCHEDULED,
-            start_time=time_before,
-            archive_time=time_soon
-        )
-        ok_(archiving in Event.objects.approved())
-        ok_(archiving in Event.objects.archiving())
-        ok_(archiving not in Event.objects.live())
-        archiving.status = Event.STATUS_REMOVED
-        archiving.save()
-        ok_(archiving in Event.objects.archived_and_removed())
-        ok_(archiving not in Event.objects.archiving())
-        # archived event
-        archived = Event.objects.create(
-            status=Event.STATUS_SCHEDULED,
-            start_time=time_before,
-            archive_time=time_before
-        )
-        ok_(archived in Event.objects.approved())
-        ok_(archived in Event.objects.archived())
-        archived.status = Event.STATUS_REMOVED
-        archived.save()
-        ok_(archived in Event.objects.archived_and_removed())
-        ok_(archived not in Event.objects.archived())
+        ok_(not event.needs_approval())
 
-        archived.status = Event.STATUS_PENDING
-        archived.save()
-        ok_(archived not in Event.objects.archived_and_removed())
-
-    def test_needs_approval_if_not_approved(self):
-        time_now = timezone.now()
-        to_approve = Event.objects.create(
+    def test_archived_and_approved(self):
+        event = Event.objects.create(
             status=Event.STATUS_SCHEDULED,
-            start_time=time_now,
+            start_time=timezone.now(),
+            archive_time=timezone.now()
         )
-        app = Approval.objects.create(event=to_approve, group=None)
-        ok_(to_approve.needs_approval())
+        ok_(event in Event.objects.archived())
+        ok_(event in Event.objects.archived().approved())
+
+        # now suppose, it as a pending approval on it
+        app = Approval.objects.create(event=event)
+        ok_(event in Event.objects.archived())
+        ok_(event not in Event.objects.archived().approved())
+
+        # basically, it has been looked at and the answer was no
         app.processed = True
         app.save()
-        ok_(not to_approve.needs_approval())
+        ok_(event in Event.objects.archived())
+        ok_(event not in Event.objects.archived().approved())
+
+        app.approved = True
+        app.save()
+        ok_(event in Event.objects.archived())
+        ok_(event in Event.objects.archived().approved())
+
+    def test_live_and_approved(self):
+        event = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=timezone.now(),
+        )
+        ok_(event.is_live())
+        ok_(not event.is_upcoming())
+        ok_(event in Event.objects.live())
+        ok_(event in Event.objects.live().approved())
+
+        # now suppose, it as a pending approval on it
+        app = Approval.objects.create(event=event)
+        ok_(event in Event.objects.live())
+        ok_(event not in Event.objects.live().approved())
+
+        # basically, it has been looked at and the answer was no
+        app.processed = True
+        app.save()
+        ok_(event in Event.objects.live())
+        ok_(event not in Event.objects.live().approved())
+
+        app.approved = True
+        app.save()
+        ok_(event in Event.objects.live())
+        ok_(event in Event.objects.live().approved())
+
+    def test_upcoming_and_approved(self):
+        time_soon = timezone.now() + datetime.timedelta(hours=1)
+        event = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=time_soon,
+        )
+        ok_(event.is_upcoming())
+        ok_(not event.is_live())
+        ok_(event in Event.objects.upcoming())
+        ok_(event in Event.objects.upcoming().approved())
+
+        # now suppose, it as a pending approval on it
+        app = Approval.objects.create(event=event)
+        ok_(event in Event.objects.upcoming())
+        ok_(event not in Event.objects.upcoming().approved())
+
+        # basically, it has been looked at and the answer was no
+        app.processed = True
+        app.save()
+        ok_(event in Event.objects.upcoming())
+        ok_(event not in Event.objects.upcoming().approved())
+
+        app.approved = True
+        app.save()
+        ok_(event in Event.objects.upcoming())
+        ok_(event in Event.objects.upcoming().approved())
 
 
 class ForeignKeyTests(TestCase):
