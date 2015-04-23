@@ -150,3 +150,7 @@ p.pending {
     opacity: 1;
 
 }
+
+.tab .content.additional-links {
+    overflow-y: scroll;
+}
