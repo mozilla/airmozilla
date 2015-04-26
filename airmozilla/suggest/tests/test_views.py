@@ -746,6 +746,7 @@ class TestPages(DjangoTestCase):
             'tags': tag1.name + ', ' + tag2.name,
             'channels': channel.pk,
             'additional_links': 'http://www.peterbe.com\n',
+            'call_info': 'vidyo room',
         }
 
         response = self.client.post(url, data)
@@ -763,6 +764,7 @@ class TestPages(DjangoTestCase):
         eq_([x.name for x in event.tags.all()], ['foo', 'bar'])
         eq_(event.channels.all()[0], channel)
         eq_(event.additional_links, data['additional_links'].strip())
+        eq_(event.call_info, 'vidyo room')
 
         # do it again, but now with different tags
         data['tags'] = 'buzz, bar'
@@ -1136,6 +1138,7 @@ class TestPages(DjangoTestCase):
         ok_('Location' in response.content)
         ok_('Start time' in response.content)
         ok_('Remote presenters' in response.content)
+        ok_('Vidyo room' in response.content)
 
         ok_("Cool O&#39;Title" in response.content)
         ok_('cool-title' in response.content)
