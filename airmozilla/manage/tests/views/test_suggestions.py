@@ -184,6 +184,7 @@ class TestSuggestions(ManageTestCase):
             submitted=now,
             first_submitted=now,
             popcorn_url='https://',
+            call_info='vidyo room',
         )
         event.tags.add(tag1)
         event.tags.add(tag2)
@@ -201,6 +202,7 @@ class TestSuggestions(ManageTestCase):
         ok_(os.path.basename(self.placeholder) in response.content)
         ok_(location.name in response.content)
         ok_(event.get_privacy_display() in response.content)
+        ok_('vidyo room' in response.content)
 
         response = self.client.post(url)
         eq_(response.status_code, 302)
