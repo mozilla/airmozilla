@@ -285,8 +285,13 @@ function EventManagerController($scope, $http, $interval, $localForage) {
         $scope.events.forEach(function(event, i) {
             if (modified[event.id]) {
                 $scope.events[i] = modified[event.id];
+                delete modified[event.id];
             }
         });
+        // add what's left
+        for (var id in modified) {
+            $scope.events.push(modified[id]);
+        }
         $scope.max_modified = $scope.next_max_modified;
         $scope.modified_events = [];
     };
