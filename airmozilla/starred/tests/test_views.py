@@ -227,3 +227,56 @@ class TestStarredEvent(DjangoTestCase):
         ok_(event1.title in response.content)
         ok_(event2.title in response.content)
         ok_(event3.title not in response.content)
+
+    def test_event_pagination(self):
+        url = self.home_url
+        user = self._login(username='lisa')
+
+        events = []
+
+        for i in range(25):
+            event = self.create_event("Event Title %d" % (i + 1))
+            StarredEvent.objects.create(user=user, event=event)
+            events.append(event)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        for i, event in enumerate(events):
+            match = 'data-id="%d"' % event.id
+            if i < 10:
+                ok_(match in response.content, i)
+            else:
+                ok_(match not in response.content, i)
+
+        output = response.content
+        ok_('href="%s"' % reverse('starred:home', args=(2,)) in output)
+        ok_('href="%s"' % reverse('starred:home', args=(0,)) not in output)
+
+        response = self.client.get(url + 'page/2/')
+        eq_(response.status_code, 200)
+
+        for i, event in enumerate(events):
+            match = 'data-id="%d"' % event.id
+            if i >= 10 and i < 20:
+                ok_(match in response.content, i)
+            else:
+                ok_(match not in response.content, i)
+
+        output = response.content
+        ok_('href="%s"' % reverse('starred:home', args=(1,)) in output)
+        ok_('href="%s"' % reverse('starred:home', args=(3,)) in output)
+
+        response = self.client.get(url + 'page/3/')
+        eq_(response.status_code, 200)
+
+        for i, event in enumerate(events):
+            match = 'data-id="%d"' % event.id
+            if i >= 20:
+                ok_(match in response.content, i)
+            else:
+                ok_(match not in response.content, i)
+
+        output = response.content
+        ok_('href="%s"' % reverse('starred:home', args=(2,)) in output)
+        ok_('href="%s"' % reverse('starred:home', args=(4,)) not in output)
