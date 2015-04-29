@@ -1,5 +1,8 @@
 $(function() {
-
+    if (!$('.playbackrate').length) {
+        // if the dom node isn't there don't bother with any of this
+        return;
+    }
     function highlightCurrentPlaybackrate() {
         var current = document.querySelector('video').playbackRate;
         $('.playbackrate .options a').each(function() {
