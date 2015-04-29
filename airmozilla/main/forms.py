@@ -61,6 +61,8 @@ class EventEditForm(BaseModelForm):
         self.fields['picture'].label = (
             'Select an existing picture from the gallery'
         )
+        if not (self.event.is_upcoming() or self.event.is_live()):
+            del self.fields['call_info']
 
     def clean(self):
         cleaned_data = super(EventEditForm, self).clean()

@@ -1178,6 +1178,34 @@ class TestPages(DjangoTestCase):
             in response.content
         )
 
+    def test_call_info_presence(self):
+        event = Event.objects.get(title='Test event')
+        event.call_info = 'More info'
+
+        url = reverse('main:event', args=(event.slug,))
+
+        event.archive_time = None
+        event.start_time = timezone.now() + datetime.timedelta(days=1)
+        event.save()
+        assert event.is_upcoming()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('More info' in response.content)
+
+        event.start_time = timezone.now()
+        event.save()
+        assert event.is_live()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('More info' in response.content)
+
+        event.archive_time = timezone.now()
+        event.save()
+        assert not event.is_live() and not event.is_upcoming()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('More info' not in response.content)
+
     @mock.patch('airmozilla.manage.vidly.urllib2.urlopen')
     def test_event_with_vidly_token_urlerror(self, p_urlopen):
         # based on https://bugzilla.mozilla.org/show_bug.cgi?id=811476
