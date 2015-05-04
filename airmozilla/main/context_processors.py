@@ -252,8 +252,9 @@ def autocompeter(request):
             groups.append(Event.PRIVACY_COMPANY)
     url = getattr(settings, 'AUTOCOMPETER_URL', '')
     domain = getattr(settings, 'AUTOCOMPETER_DOMAIN', '')
+    enabled = getattr(settings, 'AUTOCOMPETER_ENABLED', True)
     return {
-        'include_autocompeter': True,
+        'include_autocompeter': enabled,
         'autocompeter_domain': domain,
         'autocompeter_groups': ','.join(groups),
         'autocompeter_url': url,
