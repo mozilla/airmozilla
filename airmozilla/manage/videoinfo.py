@@ -93,7 +93,8 @@ def fetch_duration(
             'FFMPEG_LOCATION',
             'ffmpeg'
         )
-        assert which(ffmpeg_location), ffmpeg_location
+        if verbose and not which(ffmpeg_location):
+            print ffmpeg_location, "is not an executable path"
         command = [
             ffmpeg_location,
             '-i',
@@ -203,7 +204,8 @@ def fetch_screencapture(
             'FFMPEG_LOCATION',
             'ffmpeg'
         )
-        assert which(ffmpeg_location), ffmpeg_location
+        if verbose and not which(ffmpeg_location):
+            print ffmpeg_location, "is not an executable path"
         incr = float(event.duration) / settings.SCREENCAPTURES_NO_PICTURES
         seconds = 0
         t0 = time.time()
