@@ -678,8 +678,8 @@ angular.module('new.controllers', ['new.services'])
 ])
 
 .controller('PublishedController',
-    ['$scope', '$stateParams', '$http',
-    function($scope, $stateParams, $http) {
+    ['$scope', '$stateParams', '$http', 'eventService',
+    function($scope, $stateParams, $http, eventService) {
         var $appContainer = angular.element('#content');
         var id = $stateParams.id;
         var summaryUrl = $appContainer.data('summary-url').replace('0', id);
