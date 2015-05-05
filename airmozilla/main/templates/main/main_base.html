@@ -7,11 +7,19 @@
     ('Calendar', 'main:calendar', 'calendar', True, ''),
     ('Tag Cloud', 'main:tag_cloud', 'tag_cloud', not request.user.is_staff, ''),
     ('Starred', 'starred:home', 'starred', True, ''),
-    ('New/Upload', 'new:home', 'new', request.user.is_active, ''),
+    ('Requests', 'suggest:start', 'suggest', request.user.is_active, ''),
     ('Management', 'manage:events', '', request.user.is_staff, ''),
     ('Sign out', '/browserid/logout/', '', request.user.is_active, 'browserid-logout'),
 ] -%}
 
+{#
+  Temporary removed this line from the list above:
+
+  ('New/Upload', 'new:home', 'new', request.user.is_active, ''),
+
+  Swap this with the one about Requests once the new upload has been more tested.
+
+#}
 
 {% block page_title %}
 Air Mozilla | Mozilla, in Video
@@ -36,7 +44,6 @@ Air Mozilla | Mozilla, in Video
     <link href="{{ static('main/css/autocompeter.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('browserid/persona-buttons.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
-
 
   <link href="//mozorg.cdn.mozilla.net/media/css/tabzilla-min.css" rel="stylesheet">
 {% endblock %}
