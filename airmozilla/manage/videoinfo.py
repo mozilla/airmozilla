@@ -35,6 +35,26 @@ def _download_file(url, local_filename):
                 f.flush()
 
 
+# http://stackoverflow.com/a/377028/205832
+def which(program):
+
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
 def fetch_duration(
     event, save=False, save_locally=False, verbose=False, use_https=True,
     video_url=None
@@ -73,6 +93,7 @@ def fetch_duration(
             'FFMPEG_LOCATION',
             'ffmpeg'
         )
+        assert which(ffmpeg_location), ffmpeg_location
         command = [
             ffmpeg_location,
             '-i',
@@ -182,6 +203,7 @@ def fetch_screencapture(
             'FFMPEG_LOCATION',
             'ffmpeg'
         )
+        assert which(ffmpeg_location), ffmpeg_location
         incr = float(event.duration) / settings.SCREENCAPTURES_NO_PICTURES
         seconds = 0
         t0 = time.time()
