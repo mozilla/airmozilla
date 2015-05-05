@@ -85,7 +85,7 @@
       <iframe ng-src="{{ video.iframe_src }}" frameborder="0" scrolling="no"
         style="overflow-y: hidden; width: 640px; height: 360px" seamless="seamless"
         ></iframe>
-      <p>
+      <p ng-if="video.duration">
         <small><b>Duration:</b> {{ video.duration_human }}</small>
       </p>
     </td>
