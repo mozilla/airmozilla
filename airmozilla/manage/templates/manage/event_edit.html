@@ -291,6 +291,27 @@
          class="btn btn-xs btn-primary"
       >Change</a>
     </p>
+
+    {% if event.is_removed() %}
+    <p style="margin-top:25px"><strong>Really Delete</strong></p>
+    <p class="really-delete-metadata">
+        This event last changed {{ event.modified | js_date }}
+      <br>
+      <a href="#"
+         class="btn btn-xs btn-primary really-delete"
+      >Delete</a>
+    </p>
+    <form action="{{ url('manage:event_delete', event.id) }}"
+          method="post"
+          class="really-delete-confirmation">
+      {{ csrf() }}
+      <b>Are you sure?</b><br>
+      This will delete everything associated with this event.<br>
+      <button type="submit" class="btn btn-xs btn-primary"
+      >Yes delete forever</button>
+      <a href="#" class="btn btn-xs btn-default cancel">Cancel</a>
+    </form>
+    {% endif %}
     {% endif %}
 
   </div>

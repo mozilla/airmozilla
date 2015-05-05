@@ -3,6 +3,7 @@ import cgi
 import datetime
 import json
 import urllib
+import os
 from cStringIO import StringIO
 
 from nose.tools import eq_, ok_
@@ -2255,3 +2256,116 @@ class TestEvents(ManageTestCase):
         dt = datetime.datetime(2015, 4, 1, 12, 0, 0)
         dt = dt.replace(tzinfo=utc)
         eq_(event.archive_time, dt)
+
+    @mock.patch('airmozilla.manage.views.events.boto.connect_s3')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_event_delete(self, p_urllib2, mocked_connect_s3):
+
+        assert not Upload.objects.all()
+        assert not VidlySubmission.objects.all()
+        assert not Picture.objects.all()
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>Success</Message>
+              <MessageCode>0.0</MessageCode>
+              <Success>
+                <MediaShortLink>8oxv6x</MediaShortLink>
+              </Success>
+              <Errors>
+                <Error>
+                  <SourceFile>http://www.com</SourceFile>
+                  <ErrorCode>1</ErrorCode>
+                  <Description>ErrorDescriptionK</Description>
+                  <Suggestion>ErrorSuggestionK</Suggestion>
+                </Error>
+              </Errors>
+            </Response>
+            """)
+
+        sent_xml_strings = []
+
+        def mocked_Request(url, data, **kwargs):
+            sent_xml_strings.append(urllib.unquote_plus(data))
+            return mock.MagicMock()
+
+        p_urllib2.Request = mocked_Request
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_delete', args=(event.id,))
+        response = self.client.post(url)
+        # because the event is not in state of removed
+        eq_(response.status_code, 404)
+        event.status = Event.STATUS_REMOVED
+        event.save()
+
+        # create some uploads
+        Upload.objects.create(
+            user=self.user,
+            event=event,
+            url='http://aws.com/file1.mov',
+            size=98765
+        )
+        Upload.objects.create(
+            user=self.user,
+            event=event,
+            url='http://aws.com/file2.mov',
+            size=123456
+        )
+
+        # create some vidly submissions
+        VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+        )
+        VidlySubmission.objects.create(
+            event=event,
+            tag='xyz987',
+        )
+
+        # Create some pictures
+        file_paths = []
+        for i in range(3):
+            with open(self.placeholder) as fp:
+                picture = Picture.objects.create(
+                    event=event,
+                    file=File(fp),
+                    notes=str(i)
+                )
+                assert os.path.isfile(picture.file.path)
+                file_paths.append(picture.file.path)
+        # associate the event with the last picture
+        event.picture = picture
+        event.save()
+
+        # finally, try to delete it again
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+
+        mocked_connect_s3().get_bucket.assert_called_once_with(
+            settings.S3_UPLOAD_BUCKET
+        )
+        mocked_connect_s3().get_bucket().delete_key.assert_any_call(
+            '/file2.mov'
+        )
+        mocked_connect_s3().get_bucket().delete_key.assert_any_call(
+            '/file1.mov'
+        )
+
+        eq_(len(sent_xml_strings), 2)
+        ok_('<Action>DeleteMedia</Action>' in sent_xml_strings[0])
+        ok_('<Action>DeleteMedia</Action>' in sent_xml_strings[1])
+        ok_('<MediaShortLink>xyz987</MediaShortLink>' in sent_xml_strings[0])
+        ok_('<MediaShortLink>abc123</MediaShortLink>' in sent_xml_strings[1])
+
+        for file_path in file_paths:
+            ok_(not os.path.isfile(file_path))
+
+        # We can do this because there weren't any of these before the
+        # test started.
+        ok_(not Upload.objects.all())
+        ok_(not VidlySubmission.objects.all())
+        ok_(not Picture.objects.all())

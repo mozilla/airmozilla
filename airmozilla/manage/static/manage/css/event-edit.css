@@ -27,3 +27,7 @@ table.suggested-event-upload .file-name {
 #privacy-vidly-mismatch {
     display: none;
 }
+
+.really-delete-confirmation {
+    display: none;
+}

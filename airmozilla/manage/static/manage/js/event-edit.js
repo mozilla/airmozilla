@@ -78,4 +78,15 @@ $(function() {
             $('#privacy-vidly-mismatch').show();
         }
     });
+
+    $('a.really-delete').click(function() {
+        $('.really-delete-metadata').toggle();
+        $('.really-delete-confirmation').toggle();
+        return false;
+    });
+    $('.really-delete-confirmation a.cancel').click(function() {
+        $('.really-delete-metadata').toggle();
+        $('.really-delete-confirmation').toggle();
+        return false;
+    });
 });

@@ -3,6 +3,7 @@ import datetime
 import hashlib
 import re
 import urlparse
+import os
 
 from django.conf import settings
 from django import http
@@ -21,6 +22,7 @@ import pytz
 from funfactory.urlresolvers import reverse
 import vobject
 from jsonview.decorators import json_view
+import boto
 
 from airmozilla.main.helpers import thumbnail, short_desc
 from airmozilla.manage.helpers import scrub_transform_passwords
@@ -56,6 +58,7 @@ from airmozilla.manage import archiver
 from airmozilla.manage import sending
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Survey
+from airmozilla.uploads.models import Upload
 
 from .decorators import (
     staff_required,
@@ -634,6 +637,65 @@ def event_stop_live(request, id):
     event.save()
 
     return redirect('manage:event_upload', event.pk)
+
+
+@require_POST
+@superuser_required
+@transaction.commit_on_success
+def event_delete(request, id):
+    """Don't just delete the event record, but delete everything associated
+    with it:
+        * S3 Uploads
+        * Pictures and their files
+    """
+    event = get_object_or_404(Event, id=id, status=Event.STATUS_REMOVED)
+
+    s3_keys = {}
+    for upload in Upload.objects.filter(event=event):
+        key = urlparse.urlparse(upload.url).path
+        s3_keys[upload.id] = key
+    if s3_keys:
+        conn = boto.connect_s3(
+            settings.AWS_ACCESS_KEY_ID,
+            settings.AWS_SECRET_ACCESS_KEY
+        )
+        bucket = conn.get_bucket(settings.S3_UPLOAD_BUCKET)
+        for id, key in s3_keys.items():
+            bucket.delete_key(key)
+
+    no_vidly_medias = 0
+    for submission in VidlySubmission.objects.filter(event=event):
+        tag, error = vidly.delete_media(submission.tag)
+        if not error:
+            no_vidly_medias += 1
+            submission.delete()
+
+    no_pictures = 0
+    for picture in Picture.objects.filter(event=event):
+        # make sure it's not used by anybody else
+        other_events = (
+            Event.objects
+            .exclude(id=event.id)
+            .filter(picture=picture)
+        )
+        if not other_events.count():
+            if os.path.isfile(picture.file.path):
+                picture.delete()
+                os.remove(picture.file.path)
+                no_pictures += 1
+
+    with transaction.atomic():
+        event.delete()
+        messages.success(
+            request,
+            'Event wiped off the face of the earth (%d S3 uploads, '
+            '%d Vid.ly videos, %d pictures)' % (
+                len(s3_keys),
+                no_vidly_medias,
+                no_pictures,
+            )
+        )
+    return redirect('manage:events')
 
 
 @staff_required
