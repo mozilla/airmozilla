@@ -20,7 +20,7 @@ $(function() {
         $('#id_tags').select2({tags: response.tags});
     }).fail(function() {
         console.log('Unable to download all tags');
-        console.error(arguments);
+        console.error.apply(console, arguments);
     });
 
     // Datetime picker (jQuery UI)

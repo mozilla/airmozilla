@@ -116,9 +116,9 @@ $(function() {
             file_dom_selector: 'anything',
             s3_sign_put_url: form.data('sign_upload_url'),
             onProgress: function(percent, message) {
-                // console.log('percent', percent, 'message', message);
-                progress_bar.attr('value', percent);
-                progress_value.text(percent + ' %');
+                console.log('percent', percent, 'message', message);
+                // progress_bar.attr('value', percent);
+                // progress_value.text(percent + ' %');
             },
             onFinishS3Put: function(url) {
                 $('.uploading').hide();

@@ -1,0 +1,24 @@
+<h4>Details</h4>
+{% include "new/_alert_form_errors.html" %}
+
+{% raw %}
+
+<loading on="loading" message="Loading video details..."></loading>
+
+{% endraw %}
+<form class="show-hide" ng-show="!loading" method="post" ng-submit="save()" id="details-form">
+    {{ bootstrapform_horizontal(form) }}
+
+    <div class="form-actions show-hide" ng-show="eventService.getId()">
+        <button type="submit" class="btn btn-primary submit" name="submit">
+            Save and proceed
+        </button>
+    </div>
+    <div class="form-actions show-hide" ng-show="!eventService.getId()">
+        <small>
+          You'll be able to save as soon as the upload is finished
+        </small>
+    </div>
+
+
+</form>

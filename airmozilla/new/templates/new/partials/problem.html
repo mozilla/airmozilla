@@ -1,0 +1,10 @@
+{% raw %}
+<h4>{{ error.title }}</h4>
+
+<div class="alert alert-danger">
+  <p>{{ error.message }}</p>
+
+  <p><a ng-if="error.url" ng-href="{{ error.url }}">Go back</a></p>
+</div>
+
+{% endraw %}

@@ -1,0 +1,229 @@
+input.has-error,
+textarea.has-error {
+    border: 1px solid darkred;
+}
+
+.form-group > label {
+    padding-top: 0.75em;
+}
+.alert-danger h4 {
+    color: darkred;
+}
+
+#details-form input[type="text"],
+#details-form textarea {
+    width: 90%;
+}
+#id_title {
+    font-size: 130%;
+}
+
+/* On the page where you pick a picture */
+div.all-thumbnails {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+div.thumbnail-picked {
+    background-color: #efefef;
+}
+
+div.thumbnail-outer {
+    display: inline;
+    padding: 20px;
+    float: left;
+}
+
+.summary th, .summary td {
+    padding: 2px;
+}
+.summary th {
+    text-align: left;
+    padding-right: 6px;
+    vertical-align: top;
+}
+.summary td.event-title {
+    font-size: 130%;
+}
+.summary td {
+    width: 100%;
+}
+
+/* overrides for jquery textcomplete */
+.dropdown-menu li:hover, .dropdown-menu .active {
+    background-color: #20272A;
+}
+.dropdown-menu {
+    background-color: #20272A;
+}
+.dropdown-menu li.active {
+    color: #fff;
+}
+
+.loading-outer-large {
+    margin: 300px;
+}
+
+.loading-outer-medium {
+    margin: 150px 300px;
+}
+
+.loading {
+    background: url(../img/spinner-20272A.gif) no-repeat;
+    padding-left: 30px;
+
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 1s;
+    -moz-animation-timing-function: linear;
+    -moz-animation-iteration-count: infinite;
+
+    animation-name: blinker;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+@-moz-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1.0; }
+}
+@-webkit-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1.0; }
+}
+@keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1.0; }
+}
+
+form.submission {
+    padding: 10px;
+    border: 4px solid #323232;
+    text-align: center;
+}
+
+.event-summary {
+    margin: 40px;
+}
+.event-summary a.event-title {
+    font-size: 140%;
+}
+.event-summary .event-url {
+    font-size: 80%;
+}
+
+
+/* Inspired by http://www.hongkiat.com/blog/html5-progress-bar/ */
+.progress-bar {
+    width: 95%;
+    margin: 30px auto 0;
+    padding: 15px 15px;
+    border-radius: 3px;
+}
+.progress-bar progress {
+    background-color: #f3f3f3;
+    border: 0;
+    width: 75%;
+    height: 22px;
+    border-radius: 4px;
+}
+.progress-bar progress::-webkit-progress-bar {
+    background-color: #f3f3f3;
+    border-radius: 4px;
+}
+.progress-bar progress::-webkit-progress-value {
+    background: #cdeb8e;
+    background: -moz-linear-gradient(top,  #cdeb8e 0%, #a5c956 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cdeb8e), color-stop(100%,#a5c956));
+    background: -webkit-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+    background: -o-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+    background: -ms-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+    background: linear-gradient(to bottom,  #cdeb8e 0%,#a5c956 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cdeb8e', endColorstr='#a5c956',GradientType=0 );
+    border-radius: 4px;
+}
+.progress-bar progress::-moz-progress-bar {
+    background: #cdeb8e;
+    background: -moz-linear-gradient(top,  #cdeb8e 0%, #a5c956 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cdeb8e), color-stop(100%,#a5c956));
+    background: -webkit-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+    background: -o-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+    background: -ms-linear-gradient(top,  #cdeb8e 0%,#a5c956 100%);
+    background: linear-gradient(to bottom,  #cdeb8e 0%,#a5c956 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cdeb8e', endColorstr='#a5c956',GradientType=0 );
+    border-radius: 4px;
+}
+.progress-bar .progress-value,
+.progress-bar .progress-size {
+    padding: 0px 5px;
+    line-height: 20px;
+    margin-left: 5px;
+    height: 22px;
+    float: right;
+}
+.progress-bar .progress-size {
+    font-size: 80%;
+}
+
+ul.channels.expanded {
+    -webkit-column-count: 3;
+    -webkit-column-gap: 10px;
+    -moz-column-count: 3;
+    -moz-column-gap: 10px;
+    column-count: 3;
+    column-gap: 10px;
+}
+
+ul.channels li {
+    margin-bottom: 0;
+}
+ul.channels li label {
+    padding-bottom: 0.1em;
+}
+
+a[ng-click] {
+    cursor: pointer;
+}
+
+.show-hide {
+    -webkit-transition:all linear 0.5s;
+    transition:all linear 0.5s;
+}
+
+.show-hide.ng-hide {
+    opacity: 0;
+}
+
+button.delete-button, button.delete-confirm, button.delete-cancel {
+    font-size: 80%;
+    padding: 4px 12px;
+}
+
+.start .event {
+    clear: left;
+    margin-bottom: 40px;
+}
+.start .event .deletion {
+    float: right;
+}
+.start .event .picture {
+    float: left;
+}
+.start .event .metadata {
+    margin-left: 200px;
+}
+.start .no-picture {
+    display: block;
+    text-align: center;
+    width: 160px;
+    padding: 35px 0;
+    border: 1px solid #B4B4B4;;
+}

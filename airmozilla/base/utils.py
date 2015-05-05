@@ -60,7 +60,7 @@ def shorten_url(url):
     return result['data']['url']
 
 
-def unique_slugify(data, models, duplicate_key='', lower=True):
+def unique_slugify(data, models, duplicate_key='', lower=True, exclude=None):
     """Returns a unique slug string.  If duplicate_key is provided, this is
        appended for non-unique slugs before adding a count."""
     slug_base = slugify(data)
@@ -68,7 +68,14 @@ def unique_slugify(data, models, duplicate_key='', lower=True):
         slug_base = slug_base.lower()
     counter = 0
     slug = slug_base
-    while any(model.objects.filter(slug=slug).exists() for model in models):
+
+    def query(model):
+        qs = model.objects.filter(slug=slug)
+        if exclude:
+            qs = qs.exclude(**exclude)
+        return qs
+
+    while any(query(model).exists() for model in models):
         counter += 1
         if counter == 1 and duplicate_key:
             slug_base += '-' + duplicate_key

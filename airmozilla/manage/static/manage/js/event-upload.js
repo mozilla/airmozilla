@@ -46,13 +46,13 @@ function postSaveHook(response) {
             })
             .fail(function() {
                 console.warn('Unable archive event with shortcode');
-                console.error(arguments);
+                console.error.apply(console, arguments);
                 progress.hide();
             });
         })
         .fail(function() {
             console.warn('Unable get vid.ly shortcode');
-            console.error(arguments);
+            console.error.apply(console, arguments);
             progress.hide();
         });
     }

@@ -1,0 +1,78 @@
+{% raw %}
+<h4>New</h4>
+
+<ul>
+  <li>
+    <a ui-sref="startUpload" class="btn btn-primary submit">Upload a file</a>
+  </li>
+  <li>
+    <a ui-sref="selfie">Record with your web camera</a>
+  </li>
+</ul>
+
+
+<loading on="loading" message="Loading your videos..." size="medium"></loading>
+
+<div ng-show="!loading" class="show-hide start">
+  <h4>Incomplete</h4>
+  <div ng-repeat="event in events" class="event">
+
+    <div class="deletion">
+      <button ng-show="!event._deleting"
+              ng-click="event._confirm_delete=true" class="delete-button">Delete</button>
+      <div ng-show="event._confirm_delete && !event._deleting" class="show-hide">
+        Are you sure?
+        <button ng-click="deleteEvent(event)" class="delete-button">Yes</button>
+        <button ng-click="event._confirm_delete=false" class="delete-button">cancel</button>
+      </div>
+    </div>
+
+    <div class="picture">
+
+      <a ng-href="{{ event._nextUrl }}">
+        <img ng-if="event.picture" ng-src="{{ event.picture.url }}">
+      </a>
+
+      <a ng-if="!event.picture" ui-sref="picture({id: event.id})" class="no-picture">
+        No picture :(
+      </a>
+    </div>
+
+    <div class="metadata">
+      <a ng-href="{{ event._nextUrl }}">
+        <b ng-if="event.title">{{ event.title }}</b>
+        <em ng-if="!event.title">no title</em>
+      </a>
+      <br>
+      <time title="{{ formatDate(event.modified * 1000) }}" am-time-ago="event.modified * 1000"></time>
+      <br>
+      <span ng-if="event.title && event.picture">
+        Has details and picture, just needs to be published.
+      </span>
+      <span ng-if="event.title && !event.picture">
+        Has details and but no picture.
+        <span ng-if="event.pictures">
+          {{ event.pictures }} pictures to choose from.
+        </span>
+      </span>
+      <span ng-if="!event.title">
+        No details entered yet.
+      </span>
+      <br>
+      <span ng-if="event._video">
+        <span ng-if="event._video.duration">
+          {{ event._video.duration_human }} video.
+        </span>
+        Status:
+        <span ng-if="event._video.finished">
+          finished processing.
+        </span>
+        <span ng-if="!event._video.finished">
+          still processing.
+        </span>
+      </span>
+    </div>
+
+  </div>
+</div>
+{% endraw %}

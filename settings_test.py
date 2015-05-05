@@ -51,6 +51,7 @@ TWITTER_USERNAME = 'airmozilla'
 MEDIA_URL = '/media/'
 STATIC_URL = '/static/'
 
+VIDLY_BASE_URL = 'https://vid.ly.example'
 VIDLY_USER_ID = 'any...'
 VIDLY_USER_KEY = '...thing not empty'
 EDGECAST_SECURE_KEY = 'anythingheretoo'

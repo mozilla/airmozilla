@@ -14,6 +14,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.conf import settings
+from django.db import transaction
 
 import requests
 from funfactory.urlresolvers import reverse
@@ -99,6 +100,8 @@ def sign(request):
     url = 'https://%s.s3.amazonaws.com/%s' % (S3_UPLOAD_BUCKET, object_name)
     context = {}
     context['url'] = url
+    context['file_name'] = file_name
+    context['mime_type'] = mime_type
     signed_request = (
         '%s?AWSAccessKeyId=%s&Expires=%d&Signature=%s' % (
             url,
@@ -119,6 +122,7 @@ def sign(request):
 @json_view
 @login_required
 @require_POST
+@transaction.commit_on_success
 def save(request):
     url = request.POST.get('url')
     if not url:

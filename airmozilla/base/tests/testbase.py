@@ -1,5 +1,6 @@
 import os
 import shutil
+import json
 
 from nose.plugins.skip import SkipTest
 from selenium import webdriver
@@ -14,6 +15,11 @@ class DjangoTestCase(TestCase):
 
     def shortDescription(self):
         return None
+
+    def post_json(self, path, data=None, **extra):
+        data = data or {}
+        extra['content_type'] = 'application/json'
+        return self.client.post(path, json.dumps(data), **extra)
 
     def tearDown(self):
         assert os.path.basename(settings.MEDIA_ROOT).startswith('testmedia')

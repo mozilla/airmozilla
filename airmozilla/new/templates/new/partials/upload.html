@@ -1,0 +1,14 @@
+<h4>Upload</h4>
+
+{% raw %}
+<div ng-show="fileError">
+  <h5>Something uncool about that file</h5>
+  <p>{{ fileError }}</p>
+</div>
+
+<form ng-submit="startUpload()">
+  <input type="file" ng-model="upload.file" file-model="dataFile">
+  <button class="btn btn-primary submit">Start Uploading</button>
+</form>
+
+{% endraw %}

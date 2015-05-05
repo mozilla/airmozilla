@@ -40,6 +40,11 @@ def sidebar(request):
         'Event': Event,
     }
 
+    data['search_form'] = SearchForm(request.GET)
+
+    if not getattr(request, 'show_sidebar', True):
+        return data
+
     # if viewing a specific page is limited by channel, apply that filtering
     # here too
     if getattr(request, 'channels', None):
@@ -80,8 +85,6 @@ def sidebar(request):
             data['sidebar_top'] = page
         elif page.url.startswith('sidebar_bottom_'):
             data['sidebar_bottom'] = page
-
-    data['search_form'] = SearchForm(request.GET)
 
     return data
 

@@ -107,6 +107,31 @@ body #page { background-color: #20272a; background-image: url("/static/main/img/
     margin-left: .5em;
 }
 
+#masthead .sub-options {
+    z-index: 1000;
+    display: none;
+    position: absolute;
+    /*top: 35px;*/
+    top: 0;
+    background-color: #000;
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+    border-right: 1px solid white;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    /*border-radius: 4px;*/
+}
+#masthead .sub-options ul {
+    list-style-type: normal;
+}
+#masthead .sub-options li {
+    display: block;
+}
+#masthead .sub-options a.close {
+    cursor: pointer;
+    text-transform: lowercase;
+}
+
 #site-title.home {
     padding-top: 72px;
     padding-bottom: 46px;

@@ -59,7 +59,7 @@ $(function() {
             }
         })
         .fail(function() {
-            console.error(arguments);
+            console.error.apply(console, arguments);
             self.show();
         });
     });

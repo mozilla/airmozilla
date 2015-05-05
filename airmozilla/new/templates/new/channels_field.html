@@ -1,0 +1,32 @@
+<ul class="channels" ng-class="{expanded: showOtherChannels}">
+  {% for channel in popular %}
+  <li class="popular-channel">
+    <label for="id_popular_channel-{{ channel.id }}">
+      <input type="checkbox" name="channel" value="{{ channel.id }}"
+             ng-model="event.channels[{{ channel.id }}]"
+             id="id_popular_channel-{{ channel.id }}">
+      {{ channel.name }}
+    </label>
+  </li>
+  {% endfor %}
+  <li>
+    <label for="id_channel-other">
+      <a ng-show="showOtherChannels" ng-click="toggleShowOtherChannels()">
+        Show less&hellip;
+      </a>
+      <a ng-show="!showOtherChannels" ng-click="toggleShowOtherChannels()">
+        Show more&hellip;
+      </a>
+    </label>
+  </li>
+  {% for channel in choices %}
+  <li class="other-channel" ng-show="showOtherChannels">
+    <label for="id_channel-{{ channel.id }}">
+      <input type="checkbox" name="channel" value="{{ channel.id }}"
+             ng-model="event.channels[{{ channel.id }}]"
+             id="id_channel-{{ channel.id }}">
+      {{ channel.name }}
+    </label>
+  </li>
+  {% endfor %}
+</ul>

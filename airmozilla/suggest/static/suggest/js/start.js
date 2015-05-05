@@ -59,4 +59,8 @@ $(function() {
         }
     });
     $('input[name="upcoming"]').change();
+
+    if (location.hash === '#new-popcorn') {
+        $('input[value="popcorn"]').prop("checked", true);
+    }
 });

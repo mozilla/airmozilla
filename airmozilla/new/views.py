@@ -1,0 +1,590 @@
+import json
+import os
+from xml.parsers.expat import ExpatError
+
+from django import http
+from django.shortcuts import render, get_object_or_404
+from django.db import transaction
+from django.conf import settings
+from django.utils import timezone
+from django.db.models import Count
+from django.contrib.auth.decorators import login_required
+from django.utils.functional import wraps
+from django.views.decorators.http import require_POST
+from django.template.base import TemplateDoesNotExist
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import Permission, Group
+from django.core.cache import cache
+
+from jsonview.decorators import json_view
+from funfactory.urlresolvers import reverse
+import xmltodict
+from sorl.thumbnail import get_thumbnail
+
+from airmozilla.manage import vidly
+from airmozilla.base.utils import get_base_url
+from airmozilla.main.models import (
+    Event,
+    VidlySubmission,
+    Template,
+    Picture,
+    EventOldSlug,
+    Channel,
+    Approval,
+)
+from airmozilla.uploads.models import Upload
+from airmozilla.manage import videoinfo
+from airmozilla.base.helpers import show_duration
+from airmozilla.manage import sending
+from . import forms
+
+
+def xhr_login_required(view_func):
+    """similar to django.contrib.auth.decorators.login_required
+    except instead of redirecting it returns a 403 message if not
+    authenticated."""
+    @wraps(view_func)
+    def inner(request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            return http.HttpResponse(
+                json.dumps({'error': "You must be logged in"}),
+                content_type='application/json',
+                status=403
+            )
+        return view_func(request, *args, **kwargs)
+
+    return inner
+
+
+def must_be_your_event(f):
+    @wraps(f)
+    def inner(request, id, **kwargs):
+        assert request.user.is_authenticated()
+        event = get_object_or_404(Event, pk=id)
+        if event.creator != request.user:
+            return http.HttpResponseForbidden(
+                "Not your event to meddle with"
+            )
+        return f(request, event, **kwargs)
+
+    return inner
+
+
+@login_required
+def home(request):
+    context = {}
+    request.show_sidebar = False
+    return render(request, 'new/home.html', context)
+
+
+@xhr_login_required
+def partial_template(request, template_name):
+    context = {}
+    if template_name == 'details.html':
+        context['form'] = forms.DetailsForm()
+    template_path = os.path.join('new/partials', template_name)
+    try:
+        return render(request, template_path, context)
+    except TemplateDoesNotExist:
+        raise http.Http404(template_name)
+
+
+@json_view
+@xhr_login_required
+@require_POST
+@transaction.atomic
+def save_upload(request):
+    data = json.loads(request.body)
+    form = forms.SaveForm(data)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+
+    url = form.cleaned_data['url']
+    file_name = form.cleaned_data['file_name'] or os.path.basename(url)
+    mime_type = form.cleaned_data['mime_type']
+    size = form.cleaned_data['size']
+    duration = data.get('duration')
+
+    new_upload = Upload.objects.create(
+        user=request.user,
+        url=url,
+        size=size,
+        file_name=file_name,
+        mime_type=mime_type
+    )
+
+    # now we can create the event to start with
+    event = Event.objects.create(
+        upload=new_upload,
+        status=Event.STATUS_INITIATED,
+        start_time=timezone.now(),
+        privacy=Event.PRIVACY_PUBLIC,
+        creator=request.user,
+        duration=duration,
+    )
+    new_upload.event = event
+    new_upload.save()
+    # forcibly put it in the mozshorts channel
+    default_channel, __ = Channel.objects.get_or_create(
+        name=settings.MOZSHORTZ_CHANNEL_NAME,
+        slug=settings.MOZSHORTZ_CHANNEL_SLUG,
+    )
+    event.channels.add(default_channel)
+
+    return {'id': event.id}
+
+
+@xhr_login_required
+@transaction.commit_on_success
+@must_be_your_event
+@json_view
+def event_edit(request, event):
+    if request.method == 'POST':
+        if event.status != Event.STATUS_INITIATED:
+            return http.HttpResponseBadRequest(
+                "You can't edit events that are NOT in the state of initiated."
+            )
+        title_before = event.title
+        form = forms.DetailsForm(json.loads(request.body), instance=event)
+        if form.is_valid():
+            form.save()
+            if event.title != title_before:
+                # Un-setting it will automatically pick a good slug.
+                # But first we need to forget any EventOldSlug
+                EventOldSlug.objects.filter(slug=event.slug).delete()
+                event.slug = None
+                event.save()
+        else:
+            return {'errors': form.errors}
+
+    context = {
+        'event': serialize_event(event),
+        # 'event_channels': dict(
+        #     (str(c.id), True) for c in event.channels.all()
+        # ),
+    }
+    return context
+
+
+def serialize_event(event, extended=False):
+    data = {
+        'id': event.id,
+        'title': event.title,
+        'slug': event.slug,
+        'description': event.description,
+        'privacy': event.privacy,
+        'privacy_display': event.get_privacy_display(),
+        'status': event.status,
+        'status_display': event.get_status_display(),
+        'additional_links': event.additional_links,
+        'duration': event.duration,
+        'tags': [],
+        'channels': [],
+    }
+    if event.slug:
+        data['url'] = reverse('main:event', args=(event.slug,))
+    for tag in event.tags.all():
+        data['tags'].append(tag.name)  # good enough?
+    # lastly, make it a string
+    data['tags'] = ', '.join(sorted(data['tags']))
+
+    for channel in event.channels.all():
+        data['channels'].append({
+            # 'id': channel.id,
+            'name': channel.name,
+            'url': reverse('main:home_channels', args=(channel.slug,)),
+        })
+
+    if extended:
+        # get a list of all the groups that need to approve it
+        data['approvals'] = []
+        for approval in Approval.objects.filter(event=event):
+            data['approvals'].append({
+                'group_name': approval.group.name,
+                # 'approved': approval.approved,
+                # 'processed': approval.processed,
+                # 'comment': approval.comment,
+            })
+
+    if event.picture:
+        geometry = '160x90'
+        crop = 'center'
+        thumb = get_thumbnail(
+            event.picture.file, geometry, crop=crop
+        )
+        data['picture'] = {
+            'url': thumb.url,
+            'width': thumb.width,
+            'height': thumb.height,
+        }
+    if event.upload:
+        data['upload'] = {
+            'size': event.upload.size,
+            'url': event.upload.url,
+            'mime_type': event.upload.mime_type,
+        }
+
+    return data
+
+
+@require_POST
+@login_required
+@transaction.atomic
+@must_be_your_event
+@json_view
+def event_archive(request, event):
+    if event.status != Event.STATUS_INITIATED:
+        return http.HttpResponseBadRequest(
+            "You can't archive events that are NOT in the state of initiated."
+        )
+    try:
+        vidly_submission = VidlySubmission.objects.get(
+            event=event,
+            url=event.upload.url
+        )
+    except VidlySubmission.DoesNotExist:
+        # we haven't sent it in for archive yet
+        upload = event.upload
+        base_url = get_base_url(request)
+        webhook_url = base_url + reverse('new:vidly_media_webhook')
+
+        tag, error = vidly.add_media(
+            upload.url,
+            hd=True,
+            notify_url=webhook_url,
+            # Note that we deliberately don't bother yet to set
+            # token_protection here because we don't yet know if the
+            # event is going to be private or not.
+            # Also, it's much quicker to make screencaptures of videos
+            # that are not token protected on vid.ly.
+        )
+        # then we need to record that we did this
+        vidly_submission = VidlySubmission.objects.create(
+            event=event,
+            url=upload.url,
+            tag=tag,
+            hd=True,
+            submission_error=error or None
+        )
+        default_template = Template.objects.get(default_archive_template=True)
+        # Do an in place edit in case this started before the fetch_duration
+        # has started.
+        Event.objects.filter(id=event.id).update(
+            template=default_template,
+            template_environment={'tag': tag}
+        )
+
+    return {
+        'tag': vidly_submission.tag,
+        'error': vidly_submission.submission_error
+    }
+
+
+@require_POST
+@login_required
+@must_be_your_event
+@json_view
+def event_screencaptures(request, event):
+    if event.status != Event.STATUS_INITIATED:
+        return http.HttpResponseBadRequest(
+            "Events NOT in the state of initiated."
+        )
+    upload = event.upload
+    video_url = upload.url
+
+    context = {}
+
+    cache_key = 'fetching-{0}'.format(event.id)
+
+    # This function sets the cache `fetching-{id}` before and after calling
+    # those functions in the videoinfo module.
+    # The reason is that those calls might take many many seconds
+    # and the webapp might send async calls to the event_picture view
+    # which will inform the webapp that the slow videoinfo processes
+    # are running and thus that the webapp shouldn't kick if off yet.
+
+    seconds = event.duration
+    if not event.duration:
+        cache.set(cache_key, True, 60)
+        seconds = videoinfo.fetch_duration(
+            event,
+            video_url=video_url,
+            save=True,
+            verbose=settings.DEBUG
+        )
+        cache.delete(cache_key)
+        event = Event.objects.get(id=event.id)
+    context['seconds'] = seconds
+    # The reason we can't use `if event.duration:` is because the
+    # fetch_duration() does an inline-update instead of modifying
+    # the instance object.
+    no_pictures = Picture.objects.filter(event=event).count()
+    if event.duration:
+        cache.set(cache_key, True, 60)
+        no_pictures = videoinfo.fetch_screencapture(
+            Event.objects.get(id=event.id),
+            video_url=video_url,
+            save=True,
+            verbose=settings.DEBUG
+        )
+        cache.delete(cache_key)
+    context['no_pictures'] = no_pictures
+    return context
+
+
+# Note that this view is publically available.
+# That means we can't trust the content but we can take it as a hint.
+@csrf_exempt
+@require_POST
+def vidly_media_webhook(request):
+    if not request.POST.get('xml'):
+        return http.HttpResponseBadRequest("no 'xml'")
+
+    xml_string = request.POST['xml'].strip()
+    try:
+        struct = xmltodict.parse(xml_string)
+    except ExpatError:
+        return http.HttpResponseBadRequest("Bad 'xml'")
+
+    try:
+        task = struct['Response']['Result']['Task']
+        try:
+            vidly_submission = VidlySubmission.objects.get(
+                url=task['SourceFile'],
+                tag=task['MediaShortLink']
+            )
+
+            if task['Status'] == 'Finished':
+                event = vidly_submission.event
+
+                # Awesome!
+                # This event now has a fully working transcoded piece of
+                # media.
+                event.archive_time = timezone.now()
+                event.save()
+
+                # More awesome! We can start processing the transcoded media.
+                if not event.duration:
+                    videoinfo.fetch_duration(
+                        event,
+                        save=True,
+                        verbose=settings.DEBUG
+                    )
+                    event = Event.objects.get(id=event.id)
+                if event.duration:
+                    if not Picture.objects.filter(event=event):
+                        videoinfo.fetch_screencapture(
+                            event,
+                            save=True,
+                            verbose=settings.DEBUG
+                        )
+        except VidlySubmission.DoesNotExist:
+            # remember, we can't trust the XML since it's publically
+            # available and exposed as a webhook
+            pass
+    except KeyError:
+        # If it doesn't have a "Result" or "Task", it was just a notification
+        # that the media was added.
+        pass
+
+    return http.HttpResponse('OK\n')
+
+
+@login_required
+@must_be_your_event
+@json_view
+def event_picture(request, event):
+
+    if request.method == 'POST':
+        form = forms.PictureForm(json.loads(request.body), instance=event)
+        if not form.is_valid():
+            return http.HttpResponseBadRequest(form.errors)
+        with transaction.atomic():
+            form.save()
+
+    # if it has screen captures start returning them
+    pictures = Picture.objects.filter(event=event).order_by('created')
+    thumbnails = []
+    # geometry = request.GET.get('geometry', '160x90')
+    # crop = request.GET.get('crop', 'center')
+    geometry = '160x90'
+    crop = 'center'
+    for p in pictures:
+        thumb = get_thumbnail(
+            p.file, geometry, crop=crop
+        )
+        picked = event.picture and event.picture == p
+        thumbnails.append({
+            'id': p.id,
+            'url': thumb.url,
+            'width': thumb.width,
+            'height': thumb.height,
+            'picked': picked,
+            # 'large_url': large_thumb.url,
+        })
+
+    context = {}
+    if thumbnails:
+        context['thumbnails'] = thumbnails
+
+    cache_key = 'fetching-{0}'.format(event.id)
+    context['fetching'] = bool(cache.get(cache_key))
+    return context
+
+
+@login_required
+@must_be_your_event
+@json_view
+def event_summary(request, event):
+    extended = 'extended' in request.GET
+    context = {
+        'event': serialize_event(event, extended=extended),
+        'pictures': Picture.objects.filter(event=event).count(),
+    }
+
+    return context
+
+
+@login_required
+@must_be_your_event
+@json_view
+def event_video(request, event):
+    context = {}
+    if event.duration:
+        context['duration'] = event.duration
+        context['duration_human'] = show_duration(event.duration)
+    # basically a thin wrapper on the vidly info
+    tag = event.template_environment and event.template_environment.get('tag')
+    if tag:
+        qs = VidlySubmission.objects.filter(event=event, tag=tag)
+        for vidly_submission in qs.order_by('-submission_time')[:1]:
+            context['tag'] = tag
+            results = vidly.query(tag).get(tag, {})
+            context['status'] = results.get('Status')
+            context['finished'] = results.get('Status') == 'Finished'
+            if context['finished'] and not event.archive_time:
+                event.archive_time = timezone.now()
+                event.save()
+            # context['finished']=0
+    return context
+
+
+@require_POST
+@login_required
+@must_be_your_event
+@json_view
+def event_publish(request, event):
+    # context = {}
+    if event.status != Event.STATUS_INITIATED:
+        return http.HttpResponseBadRequest("Not in an initiated state")
+
+    # there has to be a Vid.ly video
+    tag = event.template_environment['tag']
+    submission = None
+    qs = VidlySubmission.objects.filter(event=event, tag=tag)
+    for each in qs.order_by('-submission_time'):
+        submission = each
+        break
+    assert submission, "Event has no vidly submission"
+
+    permissions = Permission.objects.filter(codename='change_approval')
+    groups = Group.objects.filter(permissions__in=permissions)
+
+    with transaction.atomic():
+        results = vidly.query(tag).get(tag, {})
+        if results.get('Status') == 'Finished':
+            event.status = Event.STATUS_SCHEDULED
+            # event.archive_time = timezone.now()
+        else:
+            # vidly hasn't finished processing it yet
+            event.status = Event.STATUS_PENDING
+        event.save()
+
+        if not event.picture:
+            # assign the default placeholder picture if there is one
+            try:
+                event.picture = Picture.objects.get(default_placeholder=True)
+                event.save()
+            except Picture.DoesNotExist:  # pragma: no cover
+                pass
+
+        if not event.channels.all():
+            # forcibly put it in the mozshorts channel
+            default_channel, __ = Channel.objects.get_or_create(
+                name=settings.MOZSHORTZ_CHANNEL_NAME,
+                slug=settings.MOZSHORTZ_CHANNEL_SLUG,
+            )
+            event.channels.add(default_channel)
+
+        if event.privacy == Event.PRIVACY_PUBLIC:
+            for group in groups:
+                Approval.objects.create(event=event, group=group)
+
+    for group in groups:
+        sending.email_about_approval_requested(
+            event,
+            group,
+            request
+        )
+
+    return True
+
+
+@login_required
+@json_view
+def your_events(request):
+    events = Event.objects.filter(
+        creator=request.user,
+        status=Event.STATUS_INITIATED,
+        upload__isnull=False,
+    ).order_by('-modified')
+
+    all_possible_pictures = (
+        Picture.objects
+        .filter(event__in=events)
+        .values('event_id')
+        .annotate(Count('event'))
+    )
+    pictures_count = {}
+    for each in all_possible_pictures:
+        pictures_count[each['event_id']] = each['event__count']
+
+    serialized = []
+    for event in events:
+        upload = event.upload
+        upload = {
+            'size': upload.size,
+            'mime_type': upload.mime_type
+        }
+        thumbnail = None
+        if event.picture:
+            geometry = '160x90'
+            crop = 'center'
+            thumb = get_thumbnail(
+                event.picture.file, geometry, crop=crop
+            )
+            thumbnail = {
+                'url': thumb.url,
+                'width': thumb.width,
+                'height': thumb.height,
+            }
+        serialized.append({
+            'id': event.id,
+            'title': event.title,
+            'upload': upload,
+            'picture': thumbnail,
+            'pictures': pictures_count.get(event.id, 0),
+            'modified': event.modified,
+        })
+    return {'events': serialized}
+
+
+@require_POST
+@login_required
+@must_be_your_event
+@json_view
+def event_delete(request, event):
+    with transaction.atomic():
+        event.status = Event.STATUS_REMOVED
+        event.save()
+    return True

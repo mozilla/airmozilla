@@ -33,7 +33,7 @@
   {% if error %}
     <h3 class="error">ERROR: {{ error }}</h3>
   {% else %}
-    {% if warning %}
+    {% if warning and not no_warning %}
       <div class="warning">Warning: {{ warning }}</div>
     {% endif %}
 
@@ -44,7 +44,7 @@
         </p>
       {% else %}
         {{ video | safe }}
-        {% if embedded %}
+        {% if embedded and not no_footer %}
           <p class="footer"><a href="{{ absolute_url }}" target="_blank">View on Air Mozilla</a></p>
         {% endif %}
       {% endif %}
@@ -54,6 +54,6 @@
   {% compress js %}
   <script src="{{ static('main/js/event_video.js') }}"></script>
   {% endcompress %}
-  
+
   </body>
 </html>

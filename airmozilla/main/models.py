@@ -593,8 +593,14 @@ def event_update_slug(sender, instance, raw, *args, **kwargs):
     if raw:
         return
     if not instance.slug:
-        instance.slug = unique_slugify(instance.title, [Event, EventOldSlug],
-                                       instance.start_time.strftime('%Y%m%d'))
+        exclude = {}
+        if instance.id:
+            exclude = {'id': instance.id}
+        instance.slug = unique_slugify(
+            instance.title, [Event, EventOldSlug],
+            instance.start_time.strftime('%Y%m%d'),
+            exclude=exclude
+        )
     try:
         old = Event.objects.get(id=instance.id)
         if instance.slug != old.slug:
