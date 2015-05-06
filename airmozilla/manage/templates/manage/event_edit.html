@@ -93,15 +93,20 @@
         <table class="event-upload">
           <tr>
             <th>Name:</th>
-            <td class="file-name">{{ suggested_event.upload.file_name }}</td>
+            <td class="file-name">
+              <a href="{{ suggested_event.upload.url }}">{{ suggested_event.upload.file_name }}</a>
+            </td>
           </tr>
           <tr>
             <th>Size:</th>
-            <td>{{ suggested_event.upload.size | filesizeformat }}</td>
-          </tr>
-          <tr>
-            <th>URL:</th>
-            <td><a href="{{ suggested_event.upload.url }}">Open</td>
+            <td>
+              {{ suggested_event.upload.size | filesizeformat }}
+              {% if suggested_event.upload.upload_time %}
+                <small>
+                  ({{ suggested_event.upload.upload_time }} seconds to upload)
+                </small>
+              {% endif %}
+            </td>
           </tr>
         </table>
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
@@ -110,15 +115,20 @@
         <table class="event-upload">
            <tr>
              <th>Name:</th>
-             <td class="file-name">{{ event.upload.file_name }}</td>
+             <td class="file-name">
+               <a href="{{ event.upload.url }}">{{ event.upload.file_name }}</a>
+              </td>
            </tr>
            <tr>
              <th>Size:</th>
-             <td>{{ event.upload.size | filesizeformat }}</td>
-           </tr>
-           <tr>
-             <th>URL:</th>
-             <td><a href="{{ event.upload.url }}">Open</td>
+             <td>
+               {{ event.upload.size | filesizeformat }}
+               {% if event.upload.upload_time %}
+                 <small>
+                   ({{ event.upload.upload_time }} seconds to upload)
+                 </small>
+               {% endif %}
+             </td>
            </tr>
         </table>
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>

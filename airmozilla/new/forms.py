@@ -12,7 +12,7 @@ class SaveForm(BaseModelForm):
 
     class Meta:
         model = Upload
-        fields = ('url', 'file_name', 'mime_type', 'size')
+        fields = ('url', 'file_name', 'mime_type', 'size', 'upload_time')
 
 
 class ChannelsFieldRenderer(forms.widgets.CheckboxFieldRenderer):
@@ -33,10 +33,6 @@ class ChannelsFieldRenderer(forms.widgets.CheckboxFieldRenderer):
             'attrs': self.attrs,
         }
 
-        # print dir(self)
-        # print self.choices
-        # print self.attrs
-        # print "value", repr(self.value)
         html = render_to_string('new/channels_field.html', context)
         return mark_safe(html)
 
@@ -57,12 +53,6 @@ class ChannelsSelectWidget(forms.widgets.CheckboxSelectMultiple):
 class ChannelsModelMultipleChoiceField(forms.ModelMultipleChoiceField):
     widget = ChannelsSelectWidget
     help_text = ''
-
-    # def to_python(self, value):
-    #     if not value:
-    #         return []
-    #     print "In to_python", repr(value)
-    #     raise NotImplementedError(value)
 
 
 class DetailsForm(BaseModelForm):

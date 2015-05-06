@@ -23,6 +23,7 @@ from jsonview.decorators import json_view
 
 from airmozilla.main.models import Event, SuggestedEvent
 from .models import Upload
+from . import forms
 
 
 @login_required
@@ -124,9 +125,11 @@ def sign(request):
 @require_POST
 @transaction.commit_on_success
 def save(request):
-    url = request.POST.get('url')
-    if not url:
-        return http.HttpResponseBadRequest('Not a valid URL')
+    form = forms.SaveForm(request.POST)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(str(form.errors))
+    url = form.cleaned_data['url']
+    upload_time = form.cleaned_data['upload_time']
     cache_key = 'length_%s' % hashlib.md5(url).hexdigest()
     size = cache.get(cache_key)
     if not size:
@@ -147,7 +150,8 @@ def save(request):
         url=url,
         size=size,
         file_name=file_name,
-        mime_type=mime_type
+        mime_type=mime_type,
+        upload_time=upload_time,
     )
     messages.info(
         request,
