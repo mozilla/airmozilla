@@ -103,6 +103,7 @@ def save_upload(request):
     file_name = form.cleaned_data['file_name'] or os.path.basename(url)
     mime_type = form.cleaned_data['mime_type']
     size = form.cleaned_data['size']
+    upload_time = form.cleaned_data['upload_time']
     duration = data.get('duration')
 
     new_upload = Upload.objects.create(
@@ -110,7 +111,8 @@ def save_upload(request):
         url=url,
         size=size,
         file_name=file_name,
-        mime_type=mime_type
+        mime_type=mime_type,
+        upload_time=upload_time,
     )
 
     # now we can create the event to start with

@@ -107,7 +107,8 @@ class TestNew(DjangoTestCase):
             'url': 'https://s3.com/foo.webm',
             'mime_type': 'video/webm',
             'file_name': 'bar.webm',
-            'size': 12345678
+            'size': 12345678,
+            'upload_time': '123',
         }
         response = self.post_json(url, data)
         eq_(response.status_code, 403)
@@ -122,7 +123,8 @@ class TestNew(DjangoTestCase):
             url=data['url'],
             mime_type=data['mime_type'],
             file_name=data['file_name'],
-            size=data['size']
+            size=data['size'],
+            upload_time=int(data['upload_time']),
         )
         event, = Event.objects.filter(upload=upload)
         eq_(event.creator, user)

@@ -273,6 +273,7 @@ angular.module('new.controllers', ['new.services'])
             statusService.set('Uploading video file...');
             $state.go('preemptiveDetails');
 
+            var startTime = new Date();
             var s3upload = new S3Upload({
                 file_dom_selector: 'anything',
                 s3_sign_put_url: uploadUrl,
@@ -286,12 +287,11 @@ angular.module('new.controllers', ['new.services'])
                     hideUploadProgress();
                     statusService.set(msg);
                     console.error(msg);
-                    // $state.go('upload', {id: response.id}); // good idea?!
                 },
                 onFinishS3Put: function(url, file) {
+                    var endTime = new Date();
+                    var uploadTime = parseInt((endTime - startTime) / 1000, 10);
                     $scope.signed.url = url;
-                    // console.log("FINISHED!", url, file);
-                    // progressService.set(null);
                     statusService.set('Verifying upload size');
                     // oh how I wish I could do $http.get(url, params)
                     $http({
@@ -302,6 +302,7 @@ angular.module('new.controllers', ['new.services'])
                     .success(function(response) {
                         hideUploadProgress();
                         $scope.signed.size = response.size;
+                        $scope.signed.upload_time = uploadTime;
                         $scope.uploadSize = response.size_human;
                         // console.log('Size verified', response);
                         statusService.set('Saving upload');
@@ -310,7 +311,7 @@ angular.module('new.controllers', ['new.services'])
                         $http.post(saveUrl, $scope.signed)
                         .success(function(response) {
                             // console.log('Upload saved', response);
-                            statusService.set('Upload saved.', 2);
+                            statusService.set('Upload saved', 2);
                             eventService.setId(response.id);
 
                             // Archiving will submit the upload URL to vid.ly
@@ -318,8 +319,9 @@ angular.module('new.controllers', ['new.services'])
                                 archiveUrl.replace('0', eventService.getId())
                             )
                             .success(function(response) {
-                                console.log("Archiving finished");
-
+                                statusService.set(
+                                    'Video sent in for transcoding', 3
+                                );
                             })
                             .error(console.error.bind(console));
 
@@ -329,13 +331,13 @@ angular.module('new.controllers', ['new.services'])
                                 scrapeUrl.replace('0', eventService.getId())
                             )
                             .success(function() {
-                                console.log("Finished screencaps scraping");
+                                statusService.set(
+                                    'Screencaptures scraped from the video', 3
+                                );
                             })
                             .error(console.error.bind(console));
-
                         })
                         .error(console.error.bind(console));
-
                     })
                     .error(console.error.bind(console));
                 }

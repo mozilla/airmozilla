@@ -16,6 +16,7 @@ $(function() {
         in_progress = true;
         $('.pre-progress', form).hide();
         $('.in-progress', form).show();
+        var start_time = new Date();
         var s3upload = new S3Upload({
             file_dom_selector: '#file',
             s3_sign_put_url: form.data('sign_upload_url'),
@@ -25,18 +26,23 @@ $(function() {
                 progress_value.text(percent + ' %');
             },
             onFinishS3Put: function(url) {
+                var end_time = new Date();
                 $('.in-progress', form).hide();
                 $('.mid-progress', form).show();
-
                 $.get(verify_size_url, {url: url})
                   .then(function(result) {
                       $('input[name="url"]', form).val(url);
                       $('#status').text('');
+                      var duration = parseInt((end_time - start_time) / 1000, 10);
                       $('.post-progress .file-size', form).text(result.size_human);
+                      $('.post-progress .upload-time', form).text(
+                         moment.duration(duration, 'seconds').humanize()
+                      );
                       $('.post-progress', form).show();
 
                       var params = {
                           url: url,
+                          upload_time: duration,
                           csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val()
                       };
                       $.post(save_url, params)
