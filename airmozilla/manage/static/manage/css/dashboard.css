@@ -1,0 +1,32 @@
+.section {
+    margin-bottom: 50px;
+}
+.section h4 {
+    border-top: 1px solid #ccc;
+}
+.searches {
+    margin: 0 auto;
+    width: 90%;
+}
+.searches th,
+.searches td {
+    width: 100px;
+}
+
+.searches th {
+    text-align: center;
+}
+tr.counts td {
+    font-size: 240%;
+    text-align: center;
+}
+tr.counts.small td {
+    font-size: 190%;
+}
+.loading {
+    padding: 200px;
+    text-align: center;
+}
+.prior-count {
+    font-size: 50%;
+}

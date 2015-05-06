@@ -11,6 +11,7 @@ from airmozilla.manage.helpers import (
     almost_equal,
     event_status_to_css_label,
     format_message,
+    formatduration,
 )
 
 
@@ -75,3 +76,15 @@ class MiscTests(TestCase):
             '<code>Code</code>'
         )
         ok_(isinstance(result, jinja2.Markup))
+
+    def test_formatduration(self):
+        output = formatduration(10)
+        eq_(output, '10s')
+        output = formatduration(60)
+        eq_(output, u'1m\xa00s')
+        output = formatduration(70)
+        eq_(output, u'1m\xa010s')
+        output = formatduration(60 * 60)
+        eq_(output, u'1h\xa00m\xa00s')
+        output = formatduration(60 * 60 + 61)
+        eq_(output, u'1h\xa01m\xa01s')

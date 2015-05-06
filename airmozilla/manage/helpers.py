@@ -1,6 +1,8 @@
 import re
 import cgi
 import urllib
+import urlparse as _urlparse
+
 import jinja2
 from jingo import register
 
@@ -8,6 +10,7 @@ from django.template import Context
 from django.template.loader import get_template
 from django.conf import settings
 from django.utils.timesince import timesince as _timesince
+from django.utils.html import avoid_wrapping
 
 from bootstrapform.templatetags.bootstrap import bootstrap_horizontal
 
@@ -137,3 +140,28 @@ def event_status_to_css_label(status):
     if status == Event.STATUS_REMOVED:
         return 'label-danger'
     raise NotImplementedError(status)
+
+
+@register.function
+def urlparse(url):
+    return _urlparse.urlparse(url)
+
+
+@register.filter
+def formatduration(seconds):
+    if seconds is None:
+        return ""
+    parts = []
+    if seconds >= 60:
+        minutes = seconds / 60
+        if seconds >= 60 * 60:
+            hours = seconds / 3600
+            # print "Its more than 1 hour"
+            minutes = (seconds % 3600) / 60
+            # print "Seconds", seconds
+            # print "Minutes", repr(minutes)
+            parts.append('%dh' % hours)
+        seconds = seconds % 60
+        parts.append('%dm' % minutes)
+    parts.append('%ds' % seconds)
+    return avoid_wrapping(' '.join(parts))

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import uuid
 import shutil
 import os
@@ -181,11 +183,11 @@ class TestTruncation(DjangoTestCase):
 
     def test_truncate_chars(self):
         result = truncate_chars('peter bengtsson', 11)
-        eq_(result, 'peter be...')
+        eq_(result, 'peter beng' + u'…')
         result = truncate_chars('peter bengtsson', 10)
-        eq_(result, 'peter b...')
-        result = truncate_chars('peter bengtsson', 9)
-        eq_(result, 'peter...')
+        eq_(result, 'peter ben' + u'…')
+        result = truncate_chars('peter bengtsson', 7)
+        eq_(result, 'peter' + u'…')
 
     def test_truncate_chars_too_short(self):
         self.assertRaises(

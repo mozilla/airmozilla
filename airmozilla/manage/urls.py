@@ -23,6 +23,7 @@ from .views import (
     cronlogger,
     permissions,
     autocompeter,
+    uploads,
 )
 
 
@@ -221,6 +222,9 @@ urlpatterns = patterns(
     url(r'^recruitmentmessages/(?P<id>\d+)/delete/$',
         recruitmentmessages.recruitmentmessage_delete,
         name='recruitmentmessage_delete'),
+    url(r'^uploads/$',
+        uploads.uploads,
+        name='uploads'),
     url(r'^loggedsearches/$',
         loggedsearches.loggedsearches,
         name='loggedsearches'),

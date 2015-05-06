@@ -1,0 +1,76 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='uploads' -%}
+
+{% block manage_title %}
+  Uploads
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  td.text { font-size: 0.8em; font-style: italic; }
+  td.buttons { text-align: right; }
+  </style>
+{% endblock %}
+
+{% block manage_content %}
+  {#<p>
+    <a href="{{ url('manage:loggedsearches_stats') }}">Logged Searches Stats</a>
+  </p>#}
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Status</th>
+        <th>URL</th>
+        <th>Size</th>
+        <th>Mime type</th>
+        <th>Upload time</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for upload in paginate %}
+      <tr>
+        <td>
+          {% if upload.event %}
+          <a href="{{ url('manage:event_edit', upload.event.id) }}">
+            {% if upload.event.title %}
+              {{ truncate_chars(upload.event.title, 40) }}
+            {% else %}
+              <em>no title</em>
+            {% endif %}
+          </a>
+          {% else %}
+          <em>No event</em> (by {{ upload.user.email }})
+          {% endif %}
+        </td>
+        <td>
+          {% if upload.event %}
+          <span class="label {{ event_status_to_css_label(upload.event.status) }}">
+            {{ upload.event.get_status_display() }}
+          </span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{{ upload.url }}">{{ urlparse(upload.url).path.split('/')[-1] }}</a>
+        </td>
+        <td>{{ upload.size | filesizeformat }}</td>
+        <td>{{ upload.mime_type }}</td>
+        <td>
+          {% if upload.upload_time %}
+            {{ upload.upload_time | formatduration }}
+            <small>({{ upload.upload_speed | filesizeformat }}/s)</small>
+          {% endif %}
+        </td>
+        <td>
+          {{ upload.created | js_date }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "manage/_paginate.html" %}
+
+{% endblock %}
