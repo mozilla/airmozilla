@@ -15,38 +15,9 @@
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  .section {
-      margin-bottom: 50px;
-  }
-  .section h4 {
-      border-top: 1px solid #ccc;
-  }
-  .searches {
-      margin: 0 auto;
-      width: 90%;
-  }
-  .searches th,
-  .searches td {
-      width: 100px;
-  }
-
-  .searches th {
-      text-align: center;
-  }
-  tr.counts td {
-      font-size: 240%;
-      text-align: center;
-      /*padding: 5px 70px;*/
-  }
-  .loading {
-      padding: 200px;
-      text-align: center;
-  }
-  .prior-count {
-      font-size: 50%;
-  }
-  </style>
+  {% compress css %}
+  <link href="{{ static('manage/css/dashboard.css') }}" rel="stylesheet" type="text/css">
+  {% endcompress %}
 {% endblock %}
 
 {% block manage_content %}
@@ -71,7 +42,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr class="counts">
+        <tr class="counts" ng-class="{small: group.small}">
           <td title="Starting at midnight of UTC">
             {{ group.counts.today | customNumber}}
             <span class="prior-count" title="Count for yesterday">

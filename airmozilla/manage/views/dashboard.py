@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.utils import timezone
 from django.db.models import Sum
+from django.template.defaultfilters import filesizeformat
 
 from jsonview.decorators import json_view
 
@@ -15,6 +16,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.starred.models import StarredEvent
 from airmozilla.comments.models import Comment
+from airmozilla.uploads.models import Upload
 
 from .decorators import staff_required
 
@@ -46,37 +48,37 @@ def dashboard_data(request):
     last_year = this_year.replace(year=this_year.year - 1)
     context['groups'] = []
 
+    def make_filter(key, gte=None, lt=None):
+        filter = {}
+        if gte is not None:
+            filter['%s__gte' % key] = gte
+        if lt is not None:
+            filter['%s__lt' % key] = lt
+        return filter
+
     def get_counts(qs, key):
         counts = {}
 
-        def make_filter(gte=None, lt=None):
-            filter = {}
-            if gte is not None:
-                filter['%s__gte' % key] = gte
-            if lt is not None:
-                filter['%s__lt' % key] = lt
-            return filter
-
         counts['today'] = qs.filter(
-            **make_filter(gte=today, lt=tomorrow)
+            **make_filter(key, gte=today, lt=tomorrow)
         ).count()
         counts['yesterday'] = qs.filter(
-            **make_filter(gte=yesterday, lt=today)).count()
+            **make_filter(key, gte=yesterday, lt=today)).count()
 
         counts['this_week'] = qs.filter(
-            **make_filter(gte=this_week, lt=next_week)).count()
+            **make_filter(key, gte=this_week, lt=next_week)).count()
         counts['last_week'] = qs.filter(
-            **make_filter(gte=last_week, lt=this_week)).count()
+            **make_filter(key, gte=last_week, lt=this_week)).count()
 
         counts['this_month'] = qs.filter(
-            **make_filter(gte=this_month, lt=next_month)).count()
+            **make_filter(key, gte=this_month, lt=next_month)).count()
         counts['last_month'] = qs.filter(
-            **make_filter(gte=last_month, lt=this_month)).count()
+            **make_filter(key, gte=last_month, lt=this_month)).count()
 
         counts['this_year'] = qs.filter(
-            **make_filter(gte=this_year, lt=next_year)).count()
+            **make_filter(key, gte=this_year, lt=next_year)).count()
         counts['last_year'] = qs.filter(
-            **make_filter(gte=last_year, lt=this_year)).count()
+            **make_filter(key, gte=last_year, lt=this_year)).count()
 
         counts['ever'] = qs.count()
         return counts
@@ -131,17 +133,15 @@ def dashboard_data(request):
         'counts': counts
     })
 
-    def get_duration_totals(qs):
+    def get_duration_totals(qs, key='start_time'):
 
-        key = 'start_time'
-
-        def make_filter(gte=None, lt=None):
-            filter = {}
-            if gte is not None:
-                filter['%s__gte' % key] = gte
-            if lt is not None:
-                filter['%s__lt' % key] = lt
-            return filter
+        # def make_filter(gte=None, lt=None):
+        #     filter = {}
+        #     if gte is not None:
+        #         filter['%s__gte' % key] = gte
+        #     if lt is not None:
+        #         filter['%s__lt' % key] = lt
+        #     return filter
 
         counts = {}
 
@@ -156,21 +156,56 @@ def dashboard_data(request):
                 return "%dm" % minutes
             return "%ds" % seconds
 
-        counts['today'] = sum(qs.filter(**make_filter(gte=today)))
+        counts['today'] = sum(qs.filter(
+            **make_filter(key, gte=today)))
         counts['yesterday'] = sum(qs.filter(
-            **make_filter(gte=yesterday, lt=today)))
+            **make_filter(key, gte=yesterday, lt=today)))
 
-        counts['this_week'] = sum(qs.filter(**make_filter(gte=this_week)))
+        counts['this_week'] = sum(qs.filter(
+            **make_filter(key, gte=this_week)))
         counts['last_week'] = sum(qs.filter(
-            **make_filter(gte=last_week, lt=this_week)))
+            **make_filter(key, gte=last_week, lt=this_week)))
 
-        counts['this_month'] = sum(qs.filter(**make_filter(gte=this_month)))
+        counts['this_month'] = sum(qs.filter(
+            **make_filter(key, gte=this_month)))
         counts['last_month'] = sum(qs.filter(
-            **make_filter(gte=last_month, lt=this_month)))
+            **make_filter(key, gte=last_month, lt=this_month)))
 
-        counts['this_year'] = sum(qs.filter(**make_filter(gte=this_year)))
+        counts['this_year'] = sum(qs.filter(
+            **make_filter(key, gte=this_year)))
         counts['last_year'] = sum(qs.filter(
-            **make_filter(gte=last_year, lt=this_year)))
+            **make_filter(key, gte=last_year, lt=this_year)))
+
+        counts['ever'] = sum(qs)
+        return counts
+
+    def get_size_totals(qs, key='created'):
+
+        counts = {}
+
+        def sum(elements):
+            bytes = elements.aggregate(Sum('size'))['size__sum']
+            return filesizeformat(bytes)
+
+        counts['today'] = sum(qs.filter(
+            **make_filter(key, gte=today)))
+        counts['yesterday'] = sum(qs.filter(
+            **make_filter(key, gte=yesterday, lt=today)))
+
+        counts['this_week'] = sum(qs.filter(
+            **make_filter(key, gte=this_week)))
+        counts['last_week'] = sum(qs.filter(
+            **make_filter(key, gte=last_week, lt=this_week)))
+
+        counts['this_month'] = sum(qs.filter(
+            **make_filter(key, gte=this_month)))
+        counts['last_month'] = sum(qs.filter(
+            **make_filter(key, gte=last_month, lt=this_month)))
+
+        counts['this_year'] = sum(qs.filter(
+            **make_filter(key, gte=this_year)))
+        counts['last_year'] = sum(qs.filter(
+            **make_filter(key, gte=last_year, lt=this_year)))
 
         counts['ever'] = sum(qs)
         return counts
@@ -180,6 +215,13 @@ def dashboard_data(request):
     context['groups'].append({
         'name': 'Total Event Durations',
         'counts': counts
+    })
+
+    counts = get_size_totals(Upload.objects.all())
+    context['groups'].append({
+        'name': 'Uploads',
+        'counts': counts,
+        'small': True
     })
 
     return context

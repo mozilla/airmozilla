@@ -26,3 +26,7 @@ class Upload(models.Model):
 
     def __unicode__(self):
         return self.file_name
+
+    @property
+    def upload_speed(self):
+        return float(self.size) / self.upload_time
