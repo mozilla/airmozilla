@@ -22,14 +22,15 @@ function humanFileSize( bytes, precision ) {
     return bytes.toFixed( + precision ) + ' ' + units[ unit ];
 }
 
+var originalDocumentTitle = document.title;
 function showUploadProgress(percent, filesize) {
     var $parent = $('#progress');
     if (percent) {
+        var progress = humanFileSize(filesize * percent / 100) + ' of ' +
+            humanFileSize(filesize);
+        document.title = percent + '% (' + progress + ')';
         $('progress', $parent).attr('value', percent);
-        $('.progress-size', $parent).text(
-            humanFileSize(filesize * percent / 100) + ' of ' +
-            humanFileSize(filesize)
-        );
+        $('.progress-size', $parent).text(progress);
         $('.progress-value', $parent).text(percent + '%');
         $parent.show();
     } else {
@@ -37,8 +38,17 @@ function showUploadProgress(percent, filesize) {
     }
 }
 
-function hideUploadProgress() {
+function hideUploadProgress(celebrate) {
     $('#progress').hide();
+    celebrate = celebrate || false;
+    if (celebrate) {
+        document.title = '\\o/ Upload finished! \\o/';
+        setTimeout(function() {
+            document.title = originalDocumentTitle;
+        }, 3 * 1000);
+    } else {
+        document.title = originalDocumentTitle;
+    }
 }
 
 
@@ -300,7 +310,7 @@ angular.module('new.controllers', ['new.services'])
                         params: {url: url},
                     })
                     .success(function(response) {
-                        hideUploadProgress();
+                        hideUploadProgress(true);
                         $scope.signed.size = response.size;
                         $scope.signed.upload_time = uploadTime;
                         $scope.uploadSize = response.size_human;
