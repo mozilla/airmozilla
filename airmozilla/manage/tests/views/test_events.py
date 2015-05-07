@@ -185,6 +185,38 @@ class TestEvents(ManageTestCase):
         response = self.client.get(reverse('manage:events'))
         eq_(response.status_code, 200)
 
+    def test_events_with_basic_filtering(self):
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        eq_(results['events'][0]['id'], event.id)
+
+        event.status = Event.STATUS_INITIATED
+        event.save()
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        # still there
+        eq_(results['events'][0]['id'], event.id)
+
+        event.status = Event.STATUS_PENDING  # anything not initiated
+        event.title = ''
+        event.save()
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        # still there
+        eq_(results['events'][0]['id'], event.id)
+
+        event.status = Event.STATUS_INITIATED
+        event.save()
+        response = self.client.get(reverse('manage:events_data'))
+        eq_(response.status_code, 200)
+        results = json.loads(response.content)
+        # not included now
+        ok_(not results['events'])
+
     def test_events_with_event_without_location(self):
         event = Event.objects.get(title='Test event')
         response = self.client.get(reverse('manage:events_data'))

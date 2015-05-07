@@ -102,6 +102,8 @@ angular.module('new.controllers', ['new.services'])
         var yoursUrl = $appContainer.data('yours-url');
         var deleteUrl = $appContainer.data('delete-url');
         var videoUrl = $appContainer.data('video-url');
+        var archiveUrl = $appContainer.data('archive-url');
+        var scrapeUrl = $appContainer.data('screencaptures-url');
         $scope.loading = true;
 
         $scope.formatDate = function(date) {
@@ -124,11 +126,30 @@ angular.module('new.controllers', ['new.services'])
                 }
                 event._nextUrl = nextUrl;
                 event._video = null;
+
                 var url = videoUrl.replace('0', event.id);
                 $http.get(url)
                 .success(function(response) {
                     event._video = response;
+                    if (!response.tag) {
+                        // it must have been a straggler that wasn't submitted
+                        console.log("Re-archiving", event.id);
+                        $http.post(archiveUrl.replace('0', event.id))
+                        .success(function() {
+                            $http.get(url)
+                            .success(function(response) {
+                                event._video = response;
+                            });
+                        });
+                    }
                 });
+
+                if (!event.pictures) {
+                    $http.post(scrapeUrl.replace('0', event.id))
+                    .success(function(response) {
+                        event.pictures = response.no_pictures;
+                    });
+                }
             });
         })
         .error(console.error.bind(console))
@@ -603,8 +624,13 @@ angular.module('new.controllers', ['new.services'])
         };
 
         $scope.next = function() {
-            $state.go('summary', {id: id});
+            if ($scope.event.title) {
+                $state.go('summary', {id: $scope.event.id});
+            } else {
+                $state.go('details', {id: $scope.event.id});
+            }
         };
+
     }
 ])
 

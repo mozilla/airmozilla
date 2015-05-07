@@ -33,7 +33,9 @@
   <tr>
     <th>Tags:</th>
     <td>
-      {{ event.tags }}
+      <span ng-if="event.tags">{{ ::event.tags }}</span>
+      <a ng-if="!event.tags" ui-sref="details({id: event.id})"
+      >No tags entered :(</a>
     </td>
   </tr>
   <tr>
