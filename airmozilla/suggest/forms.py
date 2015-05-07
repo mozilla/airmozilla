@@ -174,7 +174,12 @@ class DetailsForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         super(DetailsForm, self).__init__(*args, **kwargs)
         self.fields['channels'].required = False
-
+        self.fields['channels'].queryset = (
+            Channel.objects
+            .filter(
+                Q(never_show=False) | Q(id__in=self.instance.channels.all())
+            )
+        )
         if not self.instance.upcoming:
             del self.fields['location']
             del self.fields['start_time']

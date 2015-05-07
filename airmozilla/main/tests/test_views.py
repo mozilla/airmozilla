@@ -3085,6 +3085,50 @@ class TestEventEdit(DjangoTestCase):
         event = Event.objects.get(pk=event.pk)
         eq_(event.title, 'Different title')
 
+    def test_edit_channel(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        main_channel = Channel.objects.get(
+            slug=settings.DEFAULT_CHANNEL_SLUG
+        )
+        assert main_channel in event.channels.all()
+        url = reverse('main:event_edit', args=(event.slug,))
+        old_channel = Channel.objects.create(
+            name='Old', slug='old', never_show=True
+        )
+        bad_channel = Channel.objects.create(
+            name='Bad', slug='bad', never_show=True
+        )
+        good_channel = Channel.objects.create(
+            name='Good', slug='good',
+        )
+        event.channels.add(old_channel)
+
+        self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # the Good channel should be a choice
+        html = '<option value="{0}">{1}</option>'.format(
+            good_channel.id, good_channel.name
+        )
+        ok_(html in response.content)
+        # the Main channel should be in there and already selected
+        html = '<option value="{0}" selected="selected">{1}</option>'.format(
+            main_channel.id, main_channel.name
+        )
+        ok_(html in response.content)
+        # the Old channel should be in there and already selected
+        html = '<option value="{0}" selected="selected">{1}</option>'.format(
+            old_channel.id, old_channel.name
+        )
+        ok_(html in response.content)
+        # the bad channel shouldn't even be a choice
+        html = '<option value="{0}">{1}</option>'.format(
+            bad_channel.id, bad_channel.name
+        )
+        ok_(html not in response.content)
+
     def test_edit_nothing(self):
         """basically pressing save without changing anything"""
         event = Event.objects.get(title='Test event')

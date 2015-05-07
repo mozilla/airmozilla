@@ -60,6 +60,23 @@ class TestChannels(ManageTestCase):
         eq_(response.status_code, 302)
         channel = Channel.objects.get(slug='different')
 
+    def test_channel_edit_visibility_clash(self):
+        channel = Channel.objects.get(slug='testing')
+        response = self.client.get(
+            reverse('manage:channel_edit', args=(channel.pk,)),
+        )
+        response = self.client.post(
+            reverse('manage:channel_edit', args=(channel.pk,)),
+            {
+                'name': 'Different',
+                'slug': 'different',
+                'description': '<p>Other things</p>',
+                'never_show': True,
+                'always_show': True,
+            }
+        )
+        eq_(response.status_code, 200)
+
     def test_channel_edit_child(self):
         channel = Channel.objects.get(slug='testing')
         response = self.client.get(

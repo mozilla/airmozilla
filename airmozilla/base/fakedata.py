@@ -65,10 +65,13 @@ def random_channels():
             # make it belong to a none-main channel
             name = random.choice(channel_names)
             slug = slugify(name.lower())
-            channel, _ = main_models.Channel.objects.get_or_create(
+            channel, created = main_models.Channel.objects.get_or_create(
                 slug=slug,
                 name=name
             )
+            if created and not channel.description:
+                channel.description = "Here's the description for %s" % name
+                channel.save()
             channels.append(channel)
     if random.randint(1, 5) != 1 or not channels:
         main, _ = main_models.Channel.objects.get_or_create(

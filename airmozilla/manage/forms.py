@@ -377,6 +377,16 @@ class ChannelForm(BaseModelForm):
                 if x != kwargs['instance'].pk
             ]
 
+    def clean(self):
+        cleaned_data = super(ChannelForm, self).clean()
+        if 'always_show' in cleaned_data and 'never_show' in cleaned_data:
+            # if one is true, the other one can't be
+            if cleaned_data['always_show'] and cleaned_data['never_show']:
+                raise forms.ValidationError(
+                    "Can't both be on always and never shown"
+                )
+        return cleaned_data
+
 
 class TemplateEditForm(BaseModelForm):
     class Meta:

@@ -65,7 +65,7 @@ class DetailsForm(BaseModelForm):
         })
     )
     channels = ChannelsModelMultipleChoiceField(
-        Channel.objects,
+        Channel.objects.exclude(never_show=True),
         label='Channels',
         required=False,
     )
@@ -97,9 +97,9 @@ class DetailsForm(BaseModelForm):
 
         # should include the channel you used last time!
         # but the list should only be two
-        popular = [default_channel, main_channel]
+        # popular = [default_channel, main_channel]
+        popular = Channel.objects.filter(always_show=True)
         popular_ids = [x.id for x in popular]
-
         self.fields['channels'].widget = ChannelsSelectWidget(
             popular=[
                 (x.id, x.name) for x in popular

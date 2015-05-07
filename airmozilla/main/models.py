@@ -84,6 +84,14 @@ class Channel(models.Model):
     created = models.DateTimeField(default=_get_now)
     reverse_order = models.BooleanField(default=False)
     exclude_from_trending = models.BooleanField(default=False)
+    always_show = models.BooleanField(default=False, help_text="""
+        If always shown, it will appear as a default option visible by
+        default when uploading and entering details.
+    """.strip())
+    never_show = models.BooleanField(default=False, help_text="""
+        If never show, it's not an option for new events. Not even
+        available but hidden first.
+    """.strip())
 
     class Meta:
         ordering = ['name']
