@@ -141,7 +141,8 @@ def fetch_duration(
 
 def fetch_screencapture(
     event, save=False, save_locally=False, verbose=False, use_https=True,
-    import_=True, import_if_possible=False, video_url=None
+    import_=True, import_if_possible=False, video_url=None,
+    set_first_available=False,
 ):
     """return number of files that were successfully created or None"""
     assert event.duration, "no duration"
@@ -252,7 +253,11 @@ def fetch_screencapture(
                 print "No output. Error:"
                 print '\n'.join(all_err)
             try:
-                created = _import_files(event, files)
+                created = _import_files(
+                    event,
+                    files,
+                    set_first_available=set_first_available
+                )
             except Exception:
                 delete_save_dir = False
                 raise
@@ -372,7 +377,7 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
     return video_url, filepath
 
 
-def _import_files(event, files):
+def _import_files(event, files, set_first_available=False):
     created = 0
     # We sort and reverse by name so that the first instance
     # that is created is the oldest one.
@@ -381,12 +386,19 @@ def _import_files(event, files):
     # correct chronological order.
     for i, filepath in enumerate(reversed(sorted(files))):
         with open(filepath) as fp:
-            Picture.objects.create(
+            picture = Picture.objects.create(
                 file=File(fp),
                 notes="Screencap %d" % (len(files) - i,),
                 event=event,
             )
             created += 1
+            if set_first_available:
+                # Don't use instance save, but just do an update
+                # because this whole functionality is too slow to hang
+                # on to an object instance and sending a .save() might
+                # cause race conditions.
+                Event.objects.filter(id=event.id).update(picture=picture)
+                set_first_available = False
     return created
 
 

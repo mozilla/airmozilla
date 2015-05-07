@@ -12,10 +12,25 @@ textarea.has-error {
 
 #details-form input[type="text"],
 #details-form textarea {
-    width: 90%;
+    width: 97%;
 }
-#id_title {
+#details-form input[id="id_title"] {
     font-size: 130%;
+    /*width: 75%;*/
+}
+
+div.picture-preview {
+    float: right;
+    width: 160px;
+}
+
+div.loading-preview {
+    float: right;
+    width: 160px;
+    height: 90px;
+    margin-bottom: 10px;
+    border: 1px solid #B4B4B4;
+    text-align: center;
 }
 
 /* On the page where you pick a picture */
@@ -87,6 +102,11 @@ div.thumbnail-outer {
     animation-duration: 1s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
+}
+.loading-vertical {
+    background-position: center;
+    padding-left: 0;
+    padding-top: 45px;
 }
 @-moz-keyframes blinker {
     0% { opacity: 1.0; }

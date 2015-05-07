@@ -1,25 +1,5 @@
 {% extends "base.html" %}
 {% set page = page|default('home') -%}
-{% set nav_main = [
-    ('Home', 'main:home', 'home', True, ''),
-    ('About', '/about/', 'about', True, ''),
-    ('Channels', 'main:channels', 'channels', True, ''),
-    ('Calendar', 'main:calendar', 'calendar', True, ''),
-    ('Tag Cloud', 'main:tag_cloud', 'tag_cloud', not request.user.is_staff, ''),
-    ('Starred', 'starred:home', 'starred', True, ''),
-    ('Requests', 'suggest:start', 'suggest', request.user.is_active, ''),
-    ('Management', 'manage:events', '', request.user.is_staff, ''),
-    ('Sign out', '/browserid/logout/', '', request.user.is_active, 'browserid-logout'),
-] -%}
-
-{#
-  Temporary removed this line from the list above:
-
-  ('New/Upload', 'new:home', 'new', request.user.is_active, ''),
-
-  Swap this with the one about Requests once the new upload has been more tested.
-
-#}
 
 {% block page_title %}
 Air Mozilla | Mozilla, in Video
@@ -55,10 +35,10 @@ Air Mozilla | Mozilla, in Video
   <header id="masthead">
     <nav id="nav-main">
       <ul>
-        {% for title, view, id, show, class in nav_main %}
-          {% if show %}
+        {% set nav_main = nav_bar() %}
+        {% for title, url_, id, class in nav_main['items'] %}
           <li id="nav-{{ id }}">
-            <a href="{% if '/' in view %}{{ view }}{% else %}{{ url(view) }}{% endif %}"
+            <a href="{{ url_ }}"
               class="{{ class }}{% if id == page %} current{% endif %}">
             {{ title }}
             </a>
@@ -66,6 +46,9 @@ Air Mozilla | Mozilla, in Video
             <div class="sub-options">
               <ul>
                 <li><a class="close">close</a></li>
+                {% if nav_main['unfinished_events'] %}  {# comes from the nav_bar context processor #}
+                <li><a href="{{ url('new:home') }}">Unfinished Videos ({{ nav_main['unfinished_events'] }})</a></li>
+                {% endif %}
                 <li><a href="{{ url('new:home') }}">Webcamera Video</a></li>
                 <li><a href="{{ url('new:home') }}/upload">Upload Video</a></li>
                 <li><a href="{{ url('suggest:start') }}#new-upcoming">Upcoming Event</a></li>
@@ -74,14 +57,14 @@ Air Mozilla | Mozilla, in Video
             </div>
             {% endif %}
           </li>
-          {% endif %}
         {% endfor %}
-          {% if not request.user.is_active %}
-          <li>
-            {# the redirect_next function comes from the browserid context processor #}
-            {{ browserid_login(text='Sign in', color='dark', next=redirect_next()) }}
-          </li>
-          {% endif %}
+
+        {% if not request.user.is_active %}
+        <li>
+          {# the redirect_next function comes from the browserid context processor #}
+          {{ browserid_login(text='Sign in', color='dark', next=redirect_next()) }}
+        </li>
+        {% endif %}
       </ul>
     </nav>
     {% if request.user.is_authenticated() %}

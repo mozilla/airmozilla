@@ -18,6 +18,52 @@ from airmozilla.search.forms import SearchForm
 from airmozilla.staticpages.models import StaticPage
 
 
+def nav_bar(request):
+
+    def get_nav_bar():
+        items = [
+            ('Home', reverse('main:home'), 'home', ''),
+            ('About', '/about/', 'about', ''),
+            ('Channels', reverse('main:channels'), 'channels', ''),
+            ('Calendar', reverse('main:calendar'), 'calendar', ''),
+        ]
+        if not request.user.is_staff:
+            items.append(
+                ('Tag Cloud', reverse('main:tag_cloud'), 'tag_cloud', '')
+            )
+        items.append(
+            ('Starred', reverse('starred:home'), 'starred', '')
+        )
+        unfinished_events = 0
+        if request.user.is_active:
+            unfinished_events = Event.objects.filter(
+                creator=request.user,
+                status=Event.STATUS_INITIATED,
+                upload__isnull=False,
+            ).count()
+            if settings.USE_NEW_UPLOADER:
+                items.append(
+                    ('New/Upload', reverse('new:home'), 'new', ''),
+                )
+            else:
+                items.append(
+                    ('Requests', reverse('suggest:start'), 'suggest', ''),
+                )
+            if request.user.is_staff:
+                items.append(
+                    ('Management', reverse('manage:events'), '', ''),
+                )
+            items.append(
+                ('Sign out', '/browserid/logout/', '', 'browserid-logout'),
+            )
+        return {'items': items, 'unfinished_events': unfinished_events}
+
+    # The reason for making this a closure is because this stuff is not
+    # needed on every single template render. Only the main pages where
+    # there is a nav bar at all.
+    return {'nav_bar': get_nav_bar}
+
+
 def dev(request):
     return {'DEV': settings.DEV, 'DEBUG': settings.DEBUG}
 
