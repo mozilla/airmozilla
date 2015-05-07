@@ -1,7 +1,13 @@
 from django import forms
+from django.db.models import Q
 
 from airmozilla.base.forms import BaseModelForm, BaseForm, GallerySelect
-from airmozilla.main.models import EventRevision, RecruitmentMessage, Event
+from airmozilla.main.models import (
+    EventRevision,
+    RecruitmentMessage,
+    Event,
+    Channel,
+)
 
 
 class CalendarDataForm(BaseForm):
@@ -47,6 +53,14 @@ class EventEditForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         self.event = kwargs.pop('event', None)
         super(EventEditForm, self).__init__(*args, **kwargs)
+
+        self.fields['channels'].queryset = (
+            Channel.objects
+            .filter(Q(never_show=False) | Q(id__in=self.event.channels.all()))
+        )
+        # print self.fields['channels'].queryset
+        # print self.fields['channels'].queryset.query
+
         self.fields['placeholder_img'].required = False
         self.fields['placeholder_img'].label = (
             'Upload a picture from your computer'

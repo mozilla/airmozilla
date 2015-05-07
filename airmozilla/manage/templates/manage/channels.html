@@ -12,6 +12,7 @@
         <th>Channel</th>
         <th>Parent</th>
         <th>Events</th>
+        <th>Visibility</th>
         <th></th>
       </tr>
     </thead>
@@ -32,6 +33,13 @@
             {% endif %}
           </td>
           <td>{{ channel.event_set.count() }}</td>
+          <td>
+            {% if channel.always_show %}
+            <span class="label label-success">Always show</span>
+            {% elif channel.never_show %}
+            <span class="label label-default">Never show</span>
+            {% endif %}
+          </td>
           <td>
             <a class="btn btn-default btn-sm" href="{{ url('manage:channel_edit', channel.id) }}">
             <i class="glyphicon glyphicon-edit"></i>

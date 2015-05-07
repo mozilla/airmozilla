@@ -180,6 +180,40 @@ class TestNew(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 404)
 
+    def test_render_edit_template(self):
+        # make one channel that is always shown
+        great_channel = Channel.objects.create(
+            name='Great', slug='great', always_show=True
+        )
+        poor_channel = Channel.objects.create(
+            name='Poor', slug='poor'
+        )
+        bad_channel = Channel.objects.create(
+            name='Bad', slug='bad', never_show=True
+        )
+        self._login()
+        url = reverse(
+            'new:partial_template',
+            args=('details.html',)
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # channels that are always on are shown before the "Show more"
+        html_before = response.content.split('Show more')[0]
+        html_after = response.content.split('Show more')[1]
+
+        html = 'name="channel" value="{0}"'.format(great_channel.id)
+        ok_(html in html_before)
+        ok_(html not in html_after)
+
+        html = 'name="channel" value="{0}"'.format(poor_channel.id)
+        ok_(html not in html_before)
+        ok_(html in html_after)
+
+        html = 'name="channel" value="{0}"'.format(bad_channel.id)
+        ok_(html not in html_before)
+        ok_(html not in html_after)
+
     def test_edit(self):
         event = Event.objects.get(title='Test event')
         url = reverse('new:edit', args=(event.id,))
