@@ -103,6 +103,7 @@ LOGIN_REDIRECT_URL_FAILURE = '/login-failure/'
 
 TEMPLATE_CONTEXT_PROCESSORS += (
     'airmozilla.manage.context_processors.badges',
+    'airmozilla.main.context_processors.nav_bar',
     'airmozilla.main.context_processors.sidebar',
     'airmozilla.main.context_processors.analytics',
     'airmozilla.main.context_processors.dev',
@@ -317,3 +318,10 @@ CONTRIBUTORS = (
 
 # Override this if you want to run the selenium based tests
 RUN_SELENIUM_TESTS = False
+
+
+# Whether we should use the new upload nav bar item.
+# Once the new upload is fully tested and ready to go live we might as
+# well delete this setting and remove the if-statement in
+# main.context_processors.nav_bar.
+USE_NEW_UPLOADER = False

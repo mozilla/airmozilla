@@ -165,6 +165,10 @@ angular.module('new.controllers', ['new.services'])
             })
             .error(console.error.bind(console));
         };
+
+        // If you're deliberately here, we don't need to keep remembering
+        // which Id you last worked on.
+        sessionStorage.removeItem('lastNewId');
     }
 ])
 
@@ -186,24 +190,6 @@ angular.module('new.controllers', ['new.services'])
     };
 }])
 
-// .controller('ProgressController',
-//     ['$scope', 'progressService',
-//     function($scope, progressService) {
-//         $scope.progress = progressService;
-//         // console.log('$scope.progress', $scope.progress);
-//         //
-//         // progressService.set(0);
-//         // // $scope.progress = progressService;
-//         // $timeout(function() {
-//         //     progressService.set(10);
-//         // }, 1000);
-//         // setTimeout(function() {
-//         //     progressService.set(15);
-//         //     $scope.$apply();
-//         // }, 2000);
-//     }]
-// )
-
 .controller('StatusController',
     ['$scope', 'statusService',
     function($scope, statusService) {
@@ -220,6 +206,7 @@ angular.module('new.controllers', ['new.services'])
     ) {
         var $appContainer = angular.element('#content');
         var saveUrl = $appContainer.data('save-url');
+        var eventUrl = $appContainer.data('event-url');
         var uploadUrl = $appContainer.data('sign-upload-url');
         var archiveUrl = $appContainer.data('archive-url');
         var scrapeUrl = $appContainer.data('screencaptures-url');
@@ -302,6 +289,7 @@ angular.module('new.controllers', ['new.services'])
             };
 
             statusService.set('Uploading video file...');
+            eventService.setUploading(true);
             $state.go('preemptiveDetails');
 
             var startTime = new Date();
@@ -316,6 +304,9 @@ angular.module('new.controllers', ['new.services'])
                 onError: function(msg) {
                     // progressService.set(null);
                     hideUploadProgress();
+                    $scope.$apply(function() {
+                        eventService.setUploading(false);
+                    });
                     statusService.set(msg);
                     console.error(msg);
                 },
@@ -332,6 +323,9 @@ angular.module('new.controllers', ['new.services'])
                     })
                     .success(function(response) {
                         hideUploadProgress(true);
+                        $scope.$apply(function() {
+                            eventService.setUploading(false);
+                        });
                         $scope.signed.size = response.size;
                         $scope.signed.upload_time = uploadTime;
                         $scope.uploadSize = response.size_human;
@@ -343,6 +337,8 @@ angular.module('new.controllers', ['new.services'])
                         .success(function(response) {
                             // console.log('Upload saved', response);
                             statusService.set('Upload saved', 2);
+                            // in case the user reloads when URL is /new/details
+                            sessionStorage.setItem('lastNewId', response.id);
                             eventService.setId(response.id);
 
                             // Archiving will submit the upload URL to vid.ly
@@ -353,6 +349,28 @@ angular.module('new.controllers', ['new.services'])
                                 statusService.set(
                                     'Video sent in for transcoding', 3
                                 );
+
+                                // start looking for a picture
+                                var url = eventUrl.replace('0', eventService.getId());
+                                var keepLooking = $interval(function() {
+                                    $http.get(url)
+                                    .success(function(response) {
+                                        if (response.event.picture) {
+                                            console.log("YAY we have a picture now");
+                                            eventService.setPicture(
+                                                response.event.picture
+                                            );
+                                            $interval.cancel(keepLooking);
+                                        } else {
+                                            console.log("No picture yet");
+                                        }
+                                    })
+                                    .error(function() {
+                                        console.error.apply(console, arguments);
+                                        $interval.cancel(keepLooking);
+                                    });
+                                }, 2 * 1000);
+
                             })
                             .error(console.error.bind(console));
 
@@ -380,21 +398,20 @@ angular.module('new.controllers', ['new.services'])
 ])
 
 .controller('DetailsController',
-    ['$scope', '$stateParams', '$http', '$state', '$timeout', 'eventService',
-     'statusService', 'localProxy',
+    ['$scope', '$stateParams', '$http', '$state', '$timeout', '$interval',
+     'eventService', 'statusService', 'localProxy',
     function(
-        $scope, $stateParams, $http, $state, $timeout, eventService,
-        statusService, localProxy
+        $scope, $stateParams, $http, $state, $timeout, $interval,
+        eventService, statusService, localProxy
     ) {
         $scope.eventService = eventService;
         var $appContainer = angular.element('#content');
         var eventUrl = $appContainer.data('event-url');
+        var scrapeUrl = $appContainer.data('screencaptures-url');
         $scope.event = {};
         $scope.errors = {};
         $scope.hasErrors = false;
-        // console.log("$stateParams.id", $stateParams.id);
         if (typeof $stateParams.id !== 'undefined') {
-            // $scope.id = parseInt($stateParams.id, 10);
             eventService.setId(parseInt($stateParams.id, 10));
         } else {
             // we have to pick some defaults
@@ -427,7 +444,14 @@ angular.module('new.controllers', ['new.services'])
 
         // $scope.loading=true;return;
 
-        if (eventService.getId() === null) {
+        if (eventService.getId() === null && !eventService.isUploading()) {
+            var lastId = sessionStorage.getItem('lastNewId');
+            if (lastId) {
+                $state.go('details', {id: lastId});
+            } else {
+                $state.go('start');
+            }
+        } else if (eventService.getId() === null) {
             // the upload progress is still going on
             $scope.loading = false;
         } else {
@@ -439,6 +463,9 @@ angular.module('new.controllers', ['new.services'])
                     $state.go('published', {id: eventService.getId()});
                 }
                 $scope.event = response.event;
+                if ($scope.event.picture) {
+                    eventService.setPicture($scope.event.picture);
+                }
                 // exceptional for editing
                 $scope.event.channels = decodeChannelsList(
                     response.event.channels
@@ -453,6 +480,41 @@ angular.module('new.controllers', ['new.services'])
                         }
                     }
                 });
+                if (!$scope.picture) {
+                    // we need to "force load this"
+                    $http.post(scrapeUrl.replace('0', $scope.event.id))
+                    .success(function() {
+                        console.log("Finished scraping");
+                    })
+                    .error(console.error.bind(console));
+
+                    var keepLookingAttempts = 0;
+                    var keepLooking = $interval(function() {
+                        $http.get(url)
+                        .success(function(response) {
+                            if (response.event.picture) {
+                                $scope.picture = response.event.picture;
+                                $interval.cancel(keepLooking);
+                            } else {
+                                keepLookingAttempts++;
+                                if (keepLookingAttempts > 20) {
+                                    $interval.cancel(keepLooking);
+                                }
+                            }
+                        })
+                        .error(function() {
+                            console.error.apply(console, arguments);
+                            $interval.cancel(keepLooking);
+                        });
+                    }, 2 * 1000);
+                }
+                // if (!$scope.event.)
+                // url = pictureUrl.replace('0', $scope.event.id);
+                // $http.get(url)
+                // .success(function() {
+                //     $scope.picture
+                // })
+                // .error(console.error.bind(console));
             })
             .error(eventService.handleErrorStatus);
 
@@ -571,7 +633,7 @@ angular.module('new.controllers', ['new.services'])
                 if (response && response.thumbnails) {
                     $scope.loading = false;
                     $scope.stillLoading = false;
-                    if (response.thumbnails.length >= 10) {
+                    if (response.thumbnails.length > 1) {
                         $interval.cancel(reloadPromise);
                     }
                     $scope.thumbnails = response.thumbnails;
@@ -607,7 +669,7 @@ angular.module('new.controllers', ['new.services'])
         };
 
         displayAvailableScreencaptures(); // first load
-        var reloadPromise = $interval(displayAvailableScreencaptures, 3000);
+        var reloadPromise = $interval(displayAvailableScreencaptures, 3 * 1000);
 
         $scope.pickThumbnail = function(thumbnail) {
             // unpick the other, if there was one

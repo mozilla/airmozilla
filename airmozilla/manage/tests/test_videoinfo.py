@@ -811,7 +811,8 @@ class TestVideoinfo(DjangoTestCase):
         event.save()
         videoinfo.fetch_screencaptures()
         assert ffmpeged_urls
-        eq_(Picture.objects.filter(event=event).count(), 15)
+        no_screencaptures = settings.SCREENCAPTURES_NO_PICTURES
+        eq_(Picture.objects.filter(event=event).count(), no_screencaptures)
 
         # When viewed, like it's viewed in the picture gallery and gallery
         # select widget, we want the one called "Screencap 1" to appear
@@ -820,16 +821,100 @@ class TestVideoinfo(DjangoTestCase):
         notes = [x.notes for x in pictures]
         eq_(
             notes,
-            ["Screencap %d" % x for x in range(1, 16)]
+            ["Screencap %d" % x for x in range(1, no_screencaptures + 1)]
         )
 
         # Try to do it again and it shouldn't run it again
         # because there are pictures in the gallery already.
-        assert len(ffmpeged_urls) == 15, len(ffmpeged_urls)
+        assert len(ffmpeged_urls) == no_screencaptures, len(ffmpeged_urls)
         videoinfo.fetch_screencaptures()
-        eq_(len(ffmpeged_urls), 15)
+        eq_(len(ffmpeged_urls), no_screencaptures)
         # and still
-        eq_(Picture.objects.filter(event=event).count(), 15)
+        eq_(Picture.objects.filter(event=event).count(), no_screencaptures)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_screencapture_set_first_available(
+        self, mock_popen, rhead, p_urllib2
+    ):
+        assert Picture.objects.all().count() == 0, Picture.objects.all()
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>xxx999</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        def mocked_head(url, **options):
+            return _Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        sample_jpg = self.sample_jpg
+        sample_jpg2 = self.sample_jpg2
+
+        def mocked_popen(command, **kwargs):
+            url = command[4]
+            ffmpeged_urls.append(url)
+            destination = command[-1]
+            assert os.path.isdir(os.path.dirname(destination))
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if 'xyz123' in url:
+                        if '01.jpg' in destination:
+                            shutil.copyfile(sample_jpg, destination)
+                        else:
+                            shutil.copyfile(sample_jpg2, destination)
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.duration = 1157
+        event.save()
+
+        # Make sure it has a HD VidlySubmission
+        VidlySubmission.objects.create(
+            event=event,
+            url='https://s3.com/asomething.mov',
+            tag='xyz123',
+            hd=True,
+        )
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+        videoinfo.fetch_screencapture(event, set_first_available=True)
+        assert ffmpeged_urls
+        no_screencaptures = settings.SCREENCAPTURES_NO_PICTURES
+        pictures = Picture.objects.filter(event=event)
+        eq_(pictures.count(), no_screencaptures)
+        event = Event.objects.get(id=event.id)
+        eq_(event.picture, pictures.order_by('created')[0])
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
@@ -923,10 +1008,11 @@ class TestVideoinfo(DjangoTestCase):
         directory_name = '%s_%s' % (event.id, event.slug)
         event_temp_dir = os.path.join(temp_dir, directory_name)
         ok_(os.path.isdir(event_temp_dir))
-        # there should be 2 JPEGs in there
+        # there should be X JPEGs in there
+        no_screencaptures = settings.SCREENCAPTURES_NO_PICTURES
         eq_(
             sorted(os.listdir(event_temp_dir)),
-            ["screencap-%02d.jpg" % x for x in range(1, 16)]
+            ["screencap-%02d.jpg" % x for x in range(1, no_screencaptures + 1)]
         )
 
     def test_import_screencaptures_empty(self):

@@ -1,16 +1,19 @@
-from nose.tools import eq_
+from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User, AnonymousUser
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.conf import settings
+from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import Event, UserProfile
+from airmozilla.uploads.models import Upload
 from airmozilla.main.context_processors import (
     browserid,
     autocompeter,
+    nav_bar,
 )
 
 
@@ -104,3 +107,83 @@ class TestAutocompeter(TestCase):
         with self.settings(AUTOCOMPETER_URL='http://autocompeter.dev/v1'):
             result = autocompeter(request)
             eq_(result['autocompeter_url'], 'http://autocompeter.dev/v1')
+
+
+class TestNavBar(TestCase):
+
+    def test_anonymous(self):
+        request = RequestFactory().get('/')
+        request.user = AnonymousUser()
+        data = nav_bar(request)['nav_bar']()
+        eq_(data['unfinished_events'], 0)
+        urls = [x[1] for x in data['items']]
+        ok_('/' in urls)
+        ok_('/about/' in urls)
+        ok_(reverse('main:channels') in urls)
+        ok_(reverse('main:calendar') in urls)
+        ok_(reverse('main:tag_cloud') in urls)
+        ok_(reverse('starred:home') in urls)
+
+    def test_signed_in_contributor(self):
+        request = RequestFactory().get('/')
+        request.user = User.objects.create(
+            username='contributor'
+        )
+        UserProfile.objects.create(
+            user=request.user,
+            contributor=True,
+        )
+        with self.settings(USE_NEW_UPLOADER=True):
+            data = nav_bar(request)['nav_bar']()
+        eq_(data['unfinished_events'], 0)
+        urls = [x[1] for x in data['items']]
+        ok_('/' in urls)
+        ok_('/about/' in urls)
+        ok_(reverse('main:channels') in urls)
+        ok_(reverse('main:calendar') in urls)
+        ok_(reverse('main:tag_cloud') in urls)
+        ok_(reverse('starred:home') in urls)
+        ok_(reverse('new:home') in urls)
+        ok_('/browserid/logout/' in urls)
+
+        with self.settings(USE_NEW_UPLOADER=False):
+            # the old way
+            data = nav_bar(request)['nav_bar']()
+        urls = [x[1] for x in data['items']]
+        ok_(reverse('new:home') not in urls)
+        ok_(reverse('suggest:start') in urls)
+
+    def test_signed_in_staff(self):
+        request = RequestFactory().get('/')
+        request.user = User.objects.create(
+            username='richard',
+            is_staff=True
+        )
+        data = nav_bar(request)['nav_bar']()
+        urls = [x[1] for x in data['items']]
+        ok_(reverse('main:tag_cloud') not in urls)
+        ok_(reverse('manage:events') in urls)
+
+    def test_signed_in_with_unfinished_events(self):
+        request = RequestFactory().get('/')
+        request.user = User.objects.create(
+            username='richard',
+        )
+        event = Event.objects.create(
+            creator=request.user,
+            status=Event.STATUS_INITIATED,
+            start_time=timezone.now(),
+        )
+        upload = Upload.objects.create(
+            user=request.user,
+            url='https://aws.example.com/file.mov',
+            size=123,
+            mime_type='video/quicktime',
+            event=event
+        )
+        event.upload = upload
+        event.save()
+
+        with self.settings(USE_NEW_UPLOADER=True):
+            data = nav_bar(request)['nav_bar']()
+        eq_(data['unfinished_events'], 1)

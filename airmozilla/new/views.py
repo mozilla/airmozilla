@@ -323,16 +323,26 @@ def event_screencaptures(request, event):
     # fetch_duration() does an inline-update instead of modifying
     # the instance object.
     no_pictures = Picture.objects.filter(event=event).count()
-    if event.duration:
+    if event.duration and not no_pictures:
         if not cache.get(cache_key):
             cache.set(cache_key, True, 60)
+            event = Event.objects.get(id=event.id)
             no_pictures = videoinfo.fetch_screencapture(
-                Event.objects.get(id=event.id),
+                event,
                 video_url=video_url,
                 save=True,
-                verbose=settings.DEBUG
+                verbose=settings.DEBUG,
+                set_first_available=not event.picture,
             )
             cache.delete(cache_key)
+            event = Event.objects.get(id=event.id)
+    if no_pictures and not event.picture:
+        # no picture has been chosen previously
+        pictures = Picture.objects.filter(event=event).order_by('created')[:1]
+        for picture in pictures:
+            event.picture = picture
+            event.save()
+            break
     context['no_pictures'] = no_pictures
     return context
 
@@ -381,7 +391,8 @@ def vidly_media_webhook(request):
                         videoinfo.fetch_screencapture(
                             event,
                             save=True,
-                            verbose=settings.DEBUG
+                            verbose=settings.DEBUG,
+                            set_first_available=True,
                         )
         except VidlySubmission.DoesNotExist:
             # remember, we can't trust the XML since it's publically

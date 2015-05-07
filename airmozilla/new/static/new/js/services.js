@@ -4,6 +4,8 @@ angular.module('new.services', [])
     ['$state',
     function($state) {
         var _id = null;
+        var _uploading = false;
+        var _picture = null;
         var service = {};
         service.setId = function(id) {
             _id = id;
@@ -19,6 +21,18 @@ angular.module('new.services', [])
             } else {
                 console.error("STATUS", status, data);
             }
+        };
+        service.isUploading = function() {
+            return _uploading;
+        };
+        service.setUploading = function(toggle) {
+            _uploading = toggle;
+        };
+        service.setPicture = function(picture) {
+            _picture = picture;
+        };
+        service.getPicture = function() {
+            return _picture;
         };
         return service;
     }]
