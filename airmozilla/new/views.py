@@ -192,7 +192,7 @@ def serialize_event(event, extended=False):
 
     for channel in event.channels.all():
         data['channels'].append({
-            # 'id': channel.id,
+            'id': channel.id,
             'name': channel.name,
             'url': reverse('main:home_channels', args=(channel.slug,)),
         })
@@ -307,29 +307,32 @@ def event_screencaptures(request, event):
 
     seconds = event.duration
     if not event.duration:
-        cache.set(cache_key, True, 60)
-        seconds = videoinfo.fetch_duration(
-            event,
-            video_url=video_url,
-            save=True,
-            verbose=settings.DEBUG
-        )
-        cache.delete(cache_key)
-        event = Event.objects.get(id=event.id)
+        # it's a poor man's lock
+        if not cache.get(cache_key):
+            cache.set(cache_key, True, 60)
+            seconds = videoinfo.fetch_duration(
+                event,
+                video_url=video_url,
+                save=True,
+                verbose=settings.DEBUG
+            )
+            cache.delete(cache_key)
+            event = Event.objects.get(id=event.id)
     context['seconds'] = seconds
     # The reason we can't use `if event.duration:` is because the
     # fetch_duration() does an inline-update instead of modifying
     # the instance object.
     no_pictures = Picture.objects.filter(event=event).count()
     if event.duration:
-        cache.set(cache_key, True, 60)
-        no_pictures = videoinfo.fetch_screencapture(
-            Event.objects.get(id=event.id),
-            video_url=video_url,
-            save=True,
-            verbose=settings.DEBUG
-        )
-        cache.delete(cache_key)
+        if not cache.get(cache_key):
+            cache.set(cache_key, True, 60)
+            no_pictures = videoinfo.fetch_screencapture(
+                Event.objects.get(id=event.id),
+                video_url=video_url,
+                save=True,
+                verbose=settings.DEBUG
+            )
+            cache.delete(cache_key)
     context['no_pictures'] = no_pictures
     return context
 
@@ -535,11 +538,46 @@ def event_publish(request, event):
 @login_required
 @json_view
 def your_events(request):
+    # If you have some uploads that are lingering but not associated
+    # with an event, we might want to create empty events for them
+    # now.
+    lingering_uploads = Upload.objects.filter(
+        mime_type__startswith='video/',
+        user=request.user,
+        event__isnull=True,
+        size__gt=0
+    )
+    default_channel, _ = Channel.objects.get_or_create(
+        name=settings.MOZSHORTZ_CHANNEL_NAME,
+        slug=settings.MOZSHORTZ_CHANNEL_SLUG,
+    )
+    with transaction.atomic():
+        for upload in lingering_uploads:
+            event = Event.objects.create(
+                status=Event.STATUS_INITIATED,
+                creator=upload.user,
+                upload=upload,
+                start_time=upload.created,
+                privacy=Event.PRIVACY_PUBLIC,
+                created=upload.created
+            )
+            event.channels.add(default_channel)
+
+            # We'll pretend the event was created at the time the
+            # video was uploaded.
+            # Doing this after the create() is necessary because the
+            # model uses the auto_now_add=True
+            event.created = upload.created
+            event.save()
+
+            upload.event = event
+            upload.save()
+
     events = Event.objects.filter(
         creator=request.user,
         status=Event.STATUS_INITIATED,
         upload__isnull=False,
-    ).order_by('-modified')
+    ).order_by('-created')
 
     all_possible_pictures = (
         Picture.objects

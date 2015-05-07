@@ -35,6 +35,10 @@
 
       <a ng-if="!event.picture" ui-sref="picture({id: event.id})" class="no-picture">
         No picture :(
+        <span ng-if="event.pictures">
+          <br>
+          {{ event.pictures }} to choose from
+        </span>
       </a>
     </div>
 

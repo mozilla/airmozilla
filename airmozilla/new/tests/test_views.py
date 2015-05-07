@@ -614,7 +614,7 @@ class TestNew(DjangoTestCase):
             [{
                 'url': reverse('main:home_channels', args=(channel.slug,)),
                 'name': channel.name,
-                # 'id': channel.id,
+                'id': channel.id,
             }]
         )
         eq_(information['event']['id'], event.id)
@@ -655,11 +655,13 @@ class TestNew(DjangoTestCase):
             [
                 {
                     'url': reverse('main:home_channels', args=(default.slug,)),
-                    'name': default.name
+                    'name': default.name,
+                    'id': default.id,
                 },
                 {
                     'url': reverse('main:home_channels', args=(channel.slug,)),
-                    'name': channel.name
+                    'name': channel.name,
+                    'id': channel.id,
                 }
             ]
         )
@@ -685,9 +687,8 @@ class TestNew(DjangoTestCase):
         event = self._create_event()
         event.slug = 'saling'
         event.save()
-        event.channels.add(
-            Channel.objects.create(name='Peterisms', slug='peterism')
-        )
+        channel = Channel.objects.create(name='Peterisms', slug='peterism')
+        event.channels.add(channel)
         Approval.objects.create(
             event=event,
             group=Group.objects.create(name='PR')
@@ -700,21 +701,25 @@ class TestNew(DjangoTestCase):
             information['event']['url'],
             reverse('main:event', args=(event.slug,))
         )
+        default = Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
         eq_(
             information['event']['channels'],
             [
                 {
                     'url': reverse(
                         'main:home_channels',
-                        args=(settings.MOZSHORTZ_CHANNEL_SLUG,)
+                        args=(default.slug,)
                     ),
-                    # 'slug': settings.MOZSHORTZ_CHANNEL_SLUG,
-                    'name': settings.MOZSHORTZ_CHANNEL_NAME
+                    'name': default.name,
+                    'id': default.id,
                 },
                 {
-                    'url': reverse('main:home_channels', args=('peterism',)),
-                    # 'slug': 'peterism',
-                    'name': 'Peterisms'
+                    'url': reverse(
+                        'main:home_channels',
+                        args=(channel.slug,)
+                    ),
+                    'name': channel.name,
+                    'id': channel.id,
                 }
             ]
         )
@@ -964,3 +969,36 @@ class TestNew(DjangoTestCase):
         eq_(response.status_code, 200)
         eq_(json.loads(response.content), True)
         ok_(Event.objects.get(id=event.id, status=Event.STATUS_REMOVED))
+
+    def test_picking_up_lingering_uploads(self):
+        user = self._login()
+        upload = Upload.objects.create(
+            user=user,
+            url='https://aws.com/file.mov',
+            size=1234,
+            mime_type='video/quicktime',
+        )
+        Upload.objects.create(
+            user=user,
+            url='https://aws.com/file2.mov',
+            size=0,
+            mime_type='video/quicktime',
+        )
+        Upload.objects.create(
+            user=user,
+            url='https://aws.com/file2.xls',
+            size=1000,
+            mime_type='application/ms-excel',
+        )
+        url = reverse('new:your_events')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        events = json.loads(response.content)['events']
+        first, = events
+        eq_(first['title'], '')
+        eq_(first['upload']['size'], upload.size)
+        eq_(first['upload']['mime_type'], 'video/quicktime')
+        # reload
+        upload = Upload.objects.get(id=upload.id)
+        ok_(upload.event)
+        eq_(upload.event.upload, upload)
