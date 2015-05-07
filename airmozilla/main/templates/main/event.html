@@ -188,7 +188,7 @@
         </div>
       {% endif %}
 
-      {% if event.call_info %}
+      {% if event.call_info and (event.is_upcoming() or event.is_live()) %}
         <div class="tab">
           <input type="radio" id="tab-4" name="tab-group-1">
           <label for="tab-4">Call Info</label>
