@@ -118,7 +118,7 @@ class DetailsForm(BaseModelForm):
                 Event.PRIVACY_CONTRIBUTORS,
                 'Contributors (only vouched Mozillians)'
             ),
-            (Event.PRIVACY_COMPANY, 'Private (only Mozilla staff)'),
+            (Event.PRIVACY_COMPANY, 'Staff (MoCo/MoFo only)'),
         ]
         self.fields['additional_links'].label = 'Links (optional)'
 
