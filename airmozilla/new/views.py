@@ -29,7 +29,7 @@ from airmozilla.main.models import (
     Template,
     Picture,
     EventOldSlug,
-    Channel,
+    # Channel,
     Approval,
 )
 from airmozilla.uploads.models import Upload
@@ -126,12 +126,12 @@ def save_upload(request):
     )
     new_upload.event = event
     new_upload.save()
-    # forcibly put it in the mozshorts channel
-    default_channel, __ = Channel.objects.get_or_create(
-        name=settings.MOZSHORTZ_CHANNEL_NAME,
-        slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-    )
-    event.channels.add(default_channel)
+    # # forcibly put it in the mozshorts channel
+    # default_channel, __ = Channel.objects.get_or_create(
+    #     name=settings.MOZSHORTZ_CHANNEL_NAME,
+    #     slug=settings.MOZSHORTZ_CHANNEL_SLUG,
+    # )
+    # event.channels.add(default_channel)
 
     return {'id': event.id}
 
@@ -161,9 +161,6 @@ def event_edit(request, event):
 
     context = {
         'event': serialize_event(event),
-        # 'event_channels': dict(
-        #     (str(c.id), True) for c in event.channels.all()
-        # ),
     }
     return context
 
@@ -524,13 +521,13 @@ def event_publish(request, event):
             except Picture.DoesNotExist:  # pragma: no cover
                 pass
 
-        if not event.channels.all():
-            # forcibly put it in the mozshorts channel
-            default_channel, __ = Channel.objects.get_or_create(
-                name=settings.MOZSHORTZ_CHANNEL_NAME,
-                slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-            )
-            event.channels.add(default_channel)
+        # if not event.channels.all():
+        #     # forcibly put it in the mozshorts channel
+        #     default_channel, __ = Channel.objects.get_or_create(
+        #         name=settings.MOZSHORTZ_CHANNEL_NAME,
+        #         slug=settings.MOZSHORTZ_CHANNEL_SLUG,
+        #     )
+        #     event.channels.add(default_channel)
 
         if event.privacy == Event.PRIVACY_PUBLIC:
             for group in groups:
@@ -558,10 +555,10 @@ def your_events(request):
         event__isnull=True,
         size__gt=0
     )
-    default_channel, _ = Channel.objects.get_or_create(
-        name=settings.MOZSHORTZ_CHANNEL_NAME,
-        slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-    )
+    # default_channel, _ = Channel.objects.get_or_create(
+    #     name=settings.MOZSHORTZ_CHANNEL_NAME,
+    #     slug=settings.MOZSHORTZ_CHANNEL_SLUG,
+    # )
     with transaction.atomic():
         for upload in lingering_uploads:
             event = Event.objects.create(
@@ -572,7 +569,7 @@ def your_events(request):
                 privacy=Event.PRIVACY_PUBLIC,
                 created=upload.created
             )
-            event.channels.add(default_channel)
+            # event.channels.add(default_channel)
 
             # We'll pretend the event was created at the time the
             # video was uploaded.

@@ -235,10 +235,6 @@ VIDLY_API_URL = 'http://m.vid.ly/api/'
 DEFAULT_CHANNEL_SLUG = 'main'
 DEFAULT_CHANNEL_NAME = 'Main'
 
-# Name of the default MozShortz channel
-MOZSHORTZ_CHANNEL_SLUG = 'mozshortz'
-MOZSHORTZ_CHANNEL_NAME = 'MozShortz'
-
 # Default Location for events that are not upcoming
 DEFAULT_PRERECORDED_LOCATION = (
     'Pre-recorded',  # name
