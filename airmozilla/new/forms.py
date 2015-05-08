@@ -1,5 +1,4 @@
 from django import forms
-from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
@@ -82,24 +81,20 @@ class DetailsForm(BaseModelForm):
         )
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super(DetailsForm, self).__init__(*args, **kwargs)
 
-        # # it will be required for submission later
-        # self.fields['description'].required = False
-        default_channel, __ = Channel.objects.get_or_create(
-            slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-            name=settings.MOZSHORTZ_CHANNEL_NAME,
-        )
-        main_channel, __ = Channel.objects.get_or_create(
-            slug=settings.DEFAULT_CHANNEL_SLUG,
-            name=settings.DEFAULT_CHANNEL_NAME,
-        )
-
-        # should include the channel you used last time!
-        # but the list should only be two
-        # popular = [default_channel, main_channel]
-        popular = Channel.objects.filter(always_show=True)
+        # make it into a list because we might append to it later
+        popular = list(Channel.objects.filter(always_show=True))
         popular_ids = [x.id for x in popular]
+        # include the channel you used last time too
+        if user:
+            user_past_events = Event.objects.filter(creator=self.user)
+            for event in user_past_events.order_by('-created')[:1]:
+                for channel in event.channels.all():
+                    if channel.id not in popular_ids:
+                        popular.append(channel)
+                        popular_ids.append(channel.id)
         self.fields['channels'].widget = ChannelsSelectWidget(
             popular=[
                 (x.id, x.name) for x in popular
@@ -109,8 +104,6 @@ class DetailsForm(BaseModelForm):
                 if x[0] not in popular_ids
             ]
         )
-        # self.fields['channels'].help_text = ""
-        # print list(self.fields['channels'].choices)
 
         self.fields['privacy'].choices = [
             (Event.PRIVACY_PUBLIC, 'Public'),

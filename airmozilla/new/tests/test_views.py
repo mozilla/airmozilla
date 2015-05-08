@@ -640,16 +640,16 @@ class TestNew(DjangoTestCase):
         eq_(information['event']['additional_links'], '')
         eq_(information['event']['slug'], '')
         eq_(information['event']['privacy'], 'public')
-        channel = Channel.objects.get(
-            slug=settings.MOZSHORTZ_CHANNEL_SLUG
-        )
+        # channel = Channel.objects.get(
+        #     slug=settings.MOZSHORTZ_CHANNEL_SLUG
+        # )
         eq_(
-            information['event']['channels'],
-            [{
-                'url': reverse('main:home_channels', args=(channel.slug,)),
-                'name': channel.name,
-                'id': channel.id,
-            }]
+            information['event']['channels'], []
+            # [{
+            #     'url': reverse('main:home_channels', args=(channel.slug,)),
+            #     'name': channel.name,
+            #     'id': channel.id,
+            # }]
         )
         eq_(information['event']['id'], event.id)
         ok_('approvals' not in information['event'])
@@ -683,15 +683,16 @@ class TestNew(DjangoTestCase):
         eq_(information['event']['tags'], 'peterbe')
         eq_(information['event']['additional_links'], 'http://example.com')
         eq_(information['event']['slug'], 'my-title')
-        default = Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
+        # default = Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
         eq_(
             information['event']['channels'],
             [
-                {
-                    'url': reverse('main:home_channels', args=(default.slug,)),
-                    'name': default.name,
-                    'id': default.id,
-                },
+                # {
+                #     'url': reverse('main:home_channels',
+                # args=(default.slug,)),
+                #     'name': default.name,
+                #     'id': default.id,
+                # },
                 {
                     'url': reverse('main:home_channels', args=(channel.slug,)),
                     'name': channel.name,
@@ -735,18 +736,18 @@ class TestNew(DjangoTestCase):
             information['event']['url'],
             reverse('main:event', args=(event.slug,))
         )
-        default = Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
+        # default = Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
         eq_(
             information['event']['channels'],
             [
-                {
-                    'url': reverse(
-                        'main:home_channels',
-                        args=(default.slug,)
-                    ),
-                    'name': default.name,
-                    'id': default.id,
-                },
+                # {
+                #     'url': reverse(
+                #         'main:home_channels',
+                #         args=(default.slug,)
+                #     ),
+                #     'name': default.name,
+                #     'id': default.id,
+                # },
                 {
                     'url': reverse(
                         'main:home_channels',
@@ -835,12 +836,12 @@ class TestNew(DjangoTestCase):
         eq_(json.loads(response.content), True)
 
         event = Event.objects.get(id=event.id)
-        # a default channel was forced upon it
-        default_channel = Channel.objects.get(
-            slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-            name=settings.MOZSHORTZ_CHANNEL_NAME
-        )
-        ok_(default_channel in event.channels.all())
+        # # a default channel was forced upon it
+        # default_channel = Channel.objects.get(
+        #     slug=settings.MOZSHORTZ_CHANNEL_SLUG,
+        #     name=settings.MOZSHORTZ_CHANNEL_NAME
+        # )
+        # ok_(default_channel in event.channels.all())
         eq_(event.picture, default_picture)
         eq_(event.status, Event.STATUS_PENDING)
 
@@ -953,12 +954,12 @@ class TestNew(DjangoTestCase):
         url = reverse('new:publish', args=(event.id,))
         response = self.client.post(url)
         eq_(response.status_code, 200)
-        ok_(event.channels.all().count())
-        event_channel, = event.channels.all()
-        eq_(
-            event_channel,
-            Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
-        )
+        # ok_(event.channels.all().count())
+        # event_channel, = event.channels.all()
+        # eq_(
+        #     event_channel,
+        #     Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
+        # )
 
     def test_your_events(self):
         event = self._create_event()
