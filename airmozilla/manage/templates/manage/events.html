@@ -5,6 +5,7 @@
   {{ super() }}
   <script src="{{ static('angular/angular.min.js') }}"></script>
   <script src="{{ static('angular/angular-moment.min.js') }}"></script>
+  {% if DEBUG %}<script src="{{ static('angular/watchcounter.js') }}"></script>{% endif %}
   {% compress js %}
   <script src="{{ static('manage/js/bootstrap-datepicker.js') }}"></script>
   <script src="{{ static('manage/js/events.js') }}"></script>
@@ -138,7 +139,7 @@
       <tr ng-repeat="event in filtered_items = (events | filter:filterBySearch) | orderBy:sorting:sorting_reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
         <td class="event-thumbnail">
           <img ng-if="event.thumbnail"
-               ng-src="{{ event.thumbnail.url }}" width="{{ event.thumbnail.width }}" height="{{ event.thumbnail.height }}">
+               ng-src="{{ ::event.thumbnail.url }}" width="{{ ::event.thumbnail.width }}" height="{{ ::event.thumbnail.height }}">
           <img ng-if="!event.thumbnail && !event.nopicture"
                ng-src="{{ url('manage:redirect_event_thumbnail', event.id) }}?geometry=50x28">
           <a ng-if="event.pictures && !event.nopicture"
@@ -149,7 +150,7 @@
               >{{ event.pictures }}</span>
           </a>
           <a ng-if="event.picture"
-             href="{{ url('manage:picturegallery') }}?event={{ event.id }}"
+             href="{{ ::url('manage:picturegallery') }}?event={{ event.id }}"
              title="Uses a picture in the gallery"
              class="picture-gallery-use">
               <i class="glyphicon glyphicon-ok"></i>
@@ -168,7 +169,7 @@
         <td>{{ event.start_time }}</td>
         <td>
           <time ng-if="event.archive_time && !event.popcorn_url" title="{{ formatDate(event.archive_time) }}" am-time-ago="event.archive_time"></time>
-          <span ng-if="event.archive_time && event.popcorn_url" title="{{ event.popcorn_url }}">Popcorn URL</span>
+          <span ng-if="event.archive_time && event.popcorn_url" title="{{ ::event.popcorn_url }}">Popcorn URL</span>
           <span ng-if="!event.archive_time">
             <span ng-if="event.is_pending">
               Pending
@@ -177,7 +178,7 @@
               <span ng-if="!event.archive_url">Not archived</span>
             </span>
             <a ng-if="event.can.indexOf('archive') > -1 && (event.is_pending || event.is_scheduled)"
-               href="{{ url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
+               href="{{ ::url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
               <i class="glyphicon glyphicon-time"></i> Archive
             </a>
           </span>
@@ -199,11 +200,11 @@
           >{{ event.privacy_display }}</span>
         </td>
         <td>
-          <a href="{{ url('manage:event_edit', event.id) }}" class="btn btn-default btn-xs">
+          <a href="{{ ::url('manage:event_edit', event.id) }}" class="btn btn-default btn-xs">
             <i class="glyphicon glyphicon-edit"></i> Edit
           </a>
           <a ng-if="event.can.indexOf('duplicate') > -1"
-             href="{{ url('manage:event_duplicate', event.id) }}" class="btn btn-default btn-xs">
+             href="{{ ::url('manage:event_duplicate', event.id) }}" class="btn btn-default btn-xs">
               <i class="glyphicon glyphicon-repeat"></i> Duplicate
           </a>
         </td>

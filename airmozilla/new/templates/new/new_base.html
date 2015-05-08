@@ -21,11 +21,13 @@
   <script src="{{ static('uploads/js/s3upload.js') }}"></script>
   <script src="{{ static('new/jquery-textcomplete/jquery.textcomplete.min.js') }}"></script>
   {% endcompress %}
+  {% if DEBUG %}<script src="{{ static('angular/watchcounter.js') }}"></script>{% endif %}
   {% compress js %}
   <script src="{{ static('new/js/app.js') }}"></script>
   <script src="{{ static('new/js/services.js') }}"></script>
   <script src="{{ static('new/js/controllers.js') }}"></script>
   {% endcompress %}
+
 {% endblock %}
 
 {% block extra_head %}

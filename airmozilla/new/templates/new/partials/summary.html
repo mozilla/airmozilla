@@ -15,15 +15,15 @@
   </tr>
   <tr>
     <th>Title:</th>
-    <td class="event-title">{{ event.title }}</td>
+    <td class="event-title">{{ ::event.title }}</td>
   </tr>
   <tr>
     <th>Description:</th>
-    <td>{{ event.description }}</td>
+    <td>{{ ::event.description }}</td>
   </tr>
   <tr>
     <th>Privacy:</th>
-    <td>{{ event.privacy_display }}</td>
+    <td>{{ ::event.privacy_display }}</td>
   </tr>
   <tr>
     <th>Links:</th>
@@ -42,8 +42,8 @@
     <th>Channels:</th>
     <td>
       <span ng-repeat="channel in event.channels">
-        <a ng-href="{{ channel.url }}" target="_self"
-        >{{ channel.name }}</a>{{ !$last && ', ' || '' }}
+        <a ng-href="{{ ::channel.url }}" target="_self"
+        >{{ ::channel.name }}</a>{{ !$last && ', ' || '' }}
       </span>
       <span ng-if="!event.channels.length">
         <a ui-sref="details({id: event.id})">No channel chosen!</a>
@@ -60,7 +60,7 @@
       <a ng-if="!event.picture && pictures"
          ui-sref="picture({id: event.id})"
          title="Pick a picture">
-         Pick a picture ({{ pictures }} available)
+         Pick a picture ({{ ::pictures }} available)
       </a>
       <a ng-if="!event.picture && !pictures"
          ui-sref="picture({id: event.id})"
@@ -87,18 +87,18 @@
       <p class="loading">Loading video info...</p>
     </td>
     <td ng-if="!loadingVideo && video.finished">
-      <iframe ng-src="{{ video.iframe_src }}" frameborder="0" scrolling="no"
+      <iframe ng-src="{{ ::video.iframe_src }}" frameborder="0" scrolling="no"
         style="overflow-y: hidden; width: 640px; height: 360px" seamless="seamless"
         ></iframe>
       <p ng-if="video.duration">
-        <small><b>Duration:</b> {{ video.duration_human }}</small>
+        <small><b>Duration:</b> {{ ::video.duration_human }}</small>
       </p>
     </td>
     <td ng-if="!loadingVideo && !video.finished">
       <p ng-if="video.tag">
         The video has been submitted for transcoding but
         it has not finished yet.<br>
-        Current transcoding status is: <b>{{ video.status }}</b>
+        Current transcoding status is: <b>{{ ::video.status }}</b>
       </p>
       <p ng-if="!video.tag">
         The video has not yet been submitted.

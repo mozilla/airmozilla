@@ -14,9 +14,9 @@
        ng-class="{'thumbnail-picked': thumbnail.picked}">
     <a ng-click="pickThumbnail(thumbnail)"
        title="Click to picture this picture">
-      <img ng-src="{{ thumbnail.url }}"
-         width="{{ thumbnail.width }}"
-         height="{{ thumbnail.height }}">
+      <img ng-src="{{ ::thumbnail.url }}"
+         width="{{ ::thumbnail.width }}"
+         height="{{ ::thumbnail.height }}">
     </a>
   </div>
 </div>
