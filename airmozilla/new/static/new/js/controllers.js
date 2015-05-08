@@ -106,10 +106,6 @@ angular.module('new.controllers', ['new.services'])
         var scrapeUrl = $appContainer.data('screencaptures-url');
         $scope.loading = true;
 
-        $scope.formatDate = function(date) {
-            return moment(date).format('ddd, MMM D, YYYY, h:mma UTCZZ');
-        };
-
         $http.get(yoursUrl)
         .success(function(response) {
             $scope.events = response.events;
@@ -124,6 +120,8 @@ angular.module('new.controllers', ['new.services'])
                 } else {
                     nextUrl = $state.href('details', {id: event.id});
                 }
+                event._modified_formatted = moment(event.modified)
+                    .format('ddd, MMM D, YYYY, h:mma UTCZZ');
                 event._nextUrl = nextUrl;
                 event._video = null;
 

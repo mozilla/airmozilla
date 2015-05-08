@@ -29,26 +29,26 @@
 
     <div class="picture">
 
-      <a ng-href="{{ event._nextUrl }}">
-        <img ng-if="event.picture" ng-src="{{ event.picture.url }}">
+      <a ng-href="{{ ::event._nextUrl }}">
+        <img ng-if="event.picture" ng-src="{{ ::event.picture.url }}">
       </a>
 
       <a ng-if="!event.picture" ui-sref="picture({id: event.id})" class="no-picture">
         No picture :(
         <span ng-if="event.pictures">
           <br>
-          {{ event.pictures }} to choose from
+          {{ ::event.pictures }} to choose from
         </span>
       </a>
     </div>
 
     <div class="metadata">
-      <a ng-href="{{ event._nextUrl }}">
-        <b ng-if="event.title">{{ event.title }}</b>
+      <a ng-href="{{ ::event._nextUrl }}">
+        <b ng-if="event.title">{{ ::event.title }}</b>
         <em ng-if="!event.title">no title</em>
       </a>
       <br>
-      <time title="{{ formatDate(event.modified * 1000) }}" am-time-ago="event.modified * 1000"></time>
+      <time title="{{ ::event._modified_formatted }}" am-time-ago="event.modified * 1000"></time>
       <br>
       <span ng-if="event.title && event.picture">
         Has details and picture, just needs to be published.
@@ -56,7 +56,7 @@
       <span ng-if="event.title && !event.picture">
         Has details and but no picture.
         <span ng-if="event.pictures">
-          {{ event.pictures }} pictures to choose from.
+          {{ ::event.pictures }} pictures to choose from.
         </span>
       </span>
       <span ng-if="!event.title">
@@ -65,7 +65,7 @@
       <br>
       <span ng-if="event._video">
         <span ng-if="event._video.duration">
-          {{ event._video.duration_human }} video.
+          {{ ::event._video.duration_human }} video.
         </span>
         Status:
         <span ng-if="event._video.finished">
