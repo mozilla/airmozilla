@@ -29,7 +29,7 @@ from airmozilla.main.models import (
     Template,
     Picture,
     EventOldSlug,
-    # Channel,
+    Channel,
     Approval,
 )
 from airmozilla.uploads.models import Upload
@@ -197,12 +197,9 @@ def serialize_event(event, extended=False):
     if extended:
         # get a list of all the groups that need to approve it
         data['approvals'] = []
-        for approval in Approval.objects.filter(event=event):
+        for approval in Approval.objects.filter(event=event, approved=False):
             data['approvals'].append({
                 'group_name': approval.group.name,
-                # 'approved': approval.approved,
-                # 'processed': approval.processed,
-                # 'comment': approval.comment,
             })
 
     if event.picture:
@@ -507,7 +504,11 @@ def event_publish(request, event):
         results = vidly.query(tag).get(tag, {})
         if results.get('Status') == 'Finished':
             event.status = Event.STATUS_SCHEDULED
-            # event.archive_time = timezone.now()
+            # If it's definitely finished, it means we managed to ask
+            # Vid.ly this question before Vid.ly had a chance to ping
+            # us on the webhook. Might as well set it now.
+            if not event.archive_time:
+                event.archive_time = timezone.now()
         else:
             # vidly hasn't finished processing it yet
             event.status = Event.STATUS_PENDING
@@ -521,13 +522,10 @@ def event_publish(request, event):
             except Picture.DoesNotExist:  # pragma: no cover
                 pass
 
-        # if not event.channels.all():
-        #     # forcibly put it in the mozshorts channel
-        #     default_channel, __ = Channel.objects.get_or_create(
-        #         name=settings.MOZSHORTZ_CHANNEL_NAME,
-        #         slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-        #     )
-        #     event.channels.add(default_channel)
+        if not event.channels.all():
+            # forcibly put it in the default channel(s)
+            for channel in Channel.objects.filter(default=True):
+                event.channels.add(channel)
 
         if event.privacy == Event.PRIVACY_PUBLIC:
             for group in groups:
@@ -555,10 +553,6 @@ def your_events(request):
         event__isnull=True,
         size__gt=0
     )
-    # default_channel, _ = Channel.objects.get_or_create(
-    #     name=settings.MOZSHORTZ_CHANNEL_NAME,
-    #     slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-    # )
     with transaction.atomic():
         for upload in lingering_uploads:
             event = Event.objects.create(

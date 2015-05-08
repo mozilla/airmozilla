@@ -92,6 +92,11 @@ class Channel(models.Model):
         If never show, it's not an option for new events. Not even
         available but hidden first.
     """.strip())
+    default = models.BooleanField(default=False, help_text="""
+        If no channel is chosen by the user, this one definitely gets
+        associated with the event. You can have multiple of these.
+        It doesn't matter if the channel is "never_show".
+    """)
 
     class Meta:
         ordering = ['name']

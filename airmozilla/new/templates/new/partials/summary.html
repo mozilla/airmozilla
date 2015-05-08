@@ -35,7 +35,7 @@
     <td>
       <span ng-if="event.tags">{{ ::event.tags }}</span>
       <a ng-if="!event.tags" ui-sref="details({id: event.id})"
-      >No tags entered :(</a>
+      >No tags entered!</a>
     </td>
   </tr>
   <tr>
@@ -44,6 +44,9 @@
       <span ng-repeat="channel in event.channels">
         <a ng-href="{{ channel.url }}" target="_self"
         >{{ channel.name }}</a>{{ !$last && ', ' || '' }}
+      </span>
+      <span ng-if="!event.channels.length">
+        <a ui-sref="details({id: event.id})">No channel chosen!</a>
       </span>
     </td>
   </tr>
