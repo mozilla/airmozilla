@@ -77,7 +77,15 @@
         <td>Tags</td>
         <td>
           {% for tag in approval.event.tags.all() %}
-            &bull; {{ tag.name }}
+            &bull; {{ tag.name }}<br>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>Channels</td>
+        <td>
+          {% for channel in approval.event.channels.all() %}
+            &bull; {{ channel.name }}<br>
           {% endfor %}
         </td>
       </tr>
@@ -85,7 +93,7 @@
         <td>Approvals requested</td>
         <td>
           {% for app in approval.event.approval_set.all() %}
-            &bull; {{ app.group }}
+            &bull; {{ app.group }}<br>
           {% endfor %}
         </td>
       </tr>

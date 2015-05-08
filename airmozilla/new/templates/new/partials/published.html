@@ -14,35 +14,35 @@
             height="{{ event.picture.height }}">
     </a>
     <a ng-href="{{ event.url }}" target="_self" class="event-title">
-      {{ event.title }}
+      {{ ::event.title }}
     </a>
 
     <br>
     <br>
     <a ng-href="{{ event._abs_url }}" target="_self" class="event-url">
-      {{ event._abs_url }}
+      {{ ::event._abs_url }}
     </a>
   </h4>
 
   <p>
     <b>The event is published under the following channel:</b>
-    <a ng-repeat="channel in event.channels_full"
+    <a ng-repeat="channel in event.channels"
       ng-href="{{ channel.url }}" target="_self">
-      {{ channel.name }}
+      {{ ::channel.name }}
     </a>
   </p>
   <p>
     Privacy level:
-    <b>{{ event.privacy_display }}</b>
+    <b>{{ ::event.privacy_display }}</b>
   </p>
   <p ng-if="!event.approvals.length">
     No approval necessary.
   </p>
   <p ng-if="event.approvals.length">
     Approval awaiting from:
-    <b ng-repeat="approval in event.approvals">
-      {{ approval.group_name }}
-    </b>
+    <span ng-repeat="approval in event.approvals">
+      <b>{{ ::approval.group_name }}</b>
+    </span>
   </p>
 
   <p ng-if="video">

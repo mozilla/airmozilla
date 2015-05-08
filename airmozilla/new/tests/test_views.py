@@ -836,12 +836,6 @@ class TestNew(DjangoTestCase):
         eq_(json.loads(response.content), True)
 
         event = Event.objects.get(id=event.id)
-        # # a default channel was forced upon it
-        # default_channel = Channel.objects.get(
-        #     slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-        #     name=settings.MOZSHORTZ_CHANNEL_NAME
-        # )
-        # ok_(default_channel in event.channels.all())
         eq_(event.picture, default_picture)
         eq_(event.status, Event.STATUS_PENDING)
 
@@ -877,6 +871,11 @@ class TestNew(DjangoTestCase):
         channel = Channel.objects.create(name='Peterism', slug='peter')
         event.channels.add(channel)
 
+        # also, create a default one
+        default_channel = Channel.objects.create(
+            name='Clips', slug='clips', default=True
+        )
+
         VidlySubmission.objects.create(
             event=event,
             tag='abc123',
@@ -898,6 +897,7 @@ class TestNew(DjangoTestCase):
 
         event = Event.objects.get(id=event.id)
         ok_(channel in event.channels.all())
+        ok_(default_channel not in event.channels.all())
         eq_(event.picture, picture)
         eq_(event.status, Event.STATUS_SCHEDULED)
 
@@ -907,6 +907,56 @@ class TestNew(DjangoTestCase):
         ok_(event.creator.email in sent_email.body)
         ok_(group.name in sent_email.body)
         eq_(sent_email.recipients(), [x.email for x in group_users])
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_event_publish_default_channel(self, p_urllib2):
+        """test publishing when the vidly submission has finished"""
+        group, group_users = self._create_approval_group()
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='abc123',
+                status='Finished'
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = self._create_event()
+        event.template = self._create_default_archive_template()
+        event.template_environment = {'tag': 'abc123'}
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+
+        VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+            url='https://example.com/file.mov'
+        )
+
+        with open(self.sample_jpg) as fp:
+            picture = Picture.objects.create(
+                event=event,
+                file=File(fp),
+            )
+        event.picture = picture
+        event.save()
+
+        assert not event.channels.all()
+
+        channel = Channel.objects.create(
+            name='Peterism',
+            slug='peter',
+            default=True
+        )
+
+        url = reverse('new:publish', args=(event.id,))
+        response = self.post_json(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), True)
+
+        event = Event.objects.get(id=event.id)
+        ok_(channel in event.channels.all())
 
     def test_event_publish_bad_status(self):
         event = self._create_event()
