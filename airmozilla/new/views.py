@@ -3,7 +3,7 @@ import os
 from xml.parsers.expat import ExpatError
 
 from django import http
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db import transaction
 from django.conf import settings
 from django.utils import timezone
@@ -15,6 +15,7 @@ from django.template.base import TemplateDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import Permission, Group
 from django.core.cache import cache
+from django.contrib.auth.models import User
 
 from jsonview.decorators import json_view
 from funfactory.urlresolvers import reverse
@@ -31,6 +32,7 @@ from airmozilla.main.models import (
     EventOldSlug,
     Channel,
     Approval,
+    get_profile_safely,
 )
 from airmozilla.uploads.models import Upload
 from airmozilla.manage import videoinfo
@@ -630,3 +632,33 @@ def event_delete(request, event):
         event.status = Event.STATUS_REMOVED
         event.save()
     return True
+
+
+@transaction.atomic
+def unsubscribe(request, identifier):
+    context = {}
+    cache_key = 'unsubscribe-%s' % identifier
+
+    user_id = cache.get(cache_key)
+    if user_id:
+        user = get_object_or_404(User, id=user_id)
+    else:
+        user = None
+        cache.set(cache_key, request.user.id, 60)
+    context['user'] = user
+
+    if request.method == 'POST':
+        if not user:
+            return http.HttpResponseBadRequest('No user')
+        user_profile = get_profile_safely(user, create_if_necessary=True)
+        user_profile.optout_event_emails = True
+        user_profile.save()
+        cache.delete(cache_key)
+        return redirect('new:unsubscribed')
+
+    return render(request, 'new/unsubscribe.html', context)
+
+
+def unsubscribed(request):
+    context = {}
+    return render(request, 'new/unsubscribed.html', context)

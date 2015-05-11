@@ -4,6 +4,7 @@ import locale
 import time
 import urllib
 import json
+import urlparse
 
 import bleach
 import jinja2
@@ -186,7 +187,8 @@ def show_thumbnail(
     geometry='160x90',
     crop='center',
     alt=None,
-    image=None
+    image=None,
+    url_prefix='',
 ):
     alt = alt or event.title
     if not image:
@@ -195,7 +197,7 @@ def show_thumbnail(
     html = (
         '<img src="%(url)s" width="%(width)s" height="%(height)s" '
         'alt="%(alt)s" class="wp-post-image">' % {
-            'url': thumb.url,
+            'url': urlparse.urljoin(url_prefix, thumb.url),
             'width': thumb.width,
             'height': thumb.height,
             'alt': escape(alt),

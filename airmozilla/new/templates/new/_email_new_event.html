@@ -1,0 +1,36 @@
+{% extends 'email_base.html' %}
+
+{% block content %}
+<p>
+  <b>Your video has been transcoded and made available.</b>
+</p>
+
+<h3>
+  <a href="{{ build_absolute_url(url('main:event', event.slug)) }}">{{ event.title }}</a><br>
+  {% if event.picture %}
+  <a href="{{ build_absolute_url(url('main:event', event.slug)) }}">
+    {{ show_thumbnail(event, geometry='385x218', crop='center', url_prefix=build_absolute_url('/'), alt='Placeholder picture') }}
+  </a>
+  {% endif %}
+</h3>
+
+<p>
+  <a href="{{ build_absolute_url(url('main:event', event.slug)) }}"
+  >{{ build_absolute_url(url('main:event', event.slug)) }}</a>
+</p>
+
+<p>
+  Video privacy: <b>{{ event.get_privacy_display() }}</b>
+</p>
+
+<p>
+  To change any details go to the
+  <a href="{{ build_absolute_url(url('main:event_edit', event.slug)) }}">Edit page</a>.
+</p>
+
+<p style="font-size:80%; margin-top:20px">
+  Click here to
+  <a href="{{ build_absolute_url(unsubscribe_url) }}">unsubscribe from new video emails</a>.
+</p>
+
+{% endblock %}
