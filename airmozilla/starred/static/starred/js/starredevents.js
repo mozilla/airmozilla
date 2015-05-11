@@ -35,6 +35,9 @@ var EventLoader = (function() {
                     // un-starring) but this operation is quicker than
                     // doing something like `$('.loading-stars:visible').hide()`
                     $('.loading-stars').hide();
+                    $('a.star').each(function(i, element){
+                        Stars.setToolTip(element);
+                    });
                 }).show();
             }
         }

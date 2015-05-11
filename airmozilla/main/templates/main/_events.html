@@ -19,7 +19,10 @@
       {% endif %}
     </a>
 
-    <a class="star{% if star_on %} star-on{% endif %}" data-id="{{ event.id }}" title="Save as a starred event"></a>
+    <a class="star{% if star_on %} star-on{% endif %}" data-id="{{ event.id }}" 
+        data-star-on="Remove star"
+        data-star-off="Save as a starred event"
+        ></a>
     <p>
       {{ short_desc(event) | safe_html }}
       <a class="go" href="{{ href }}">{{ _('See more') }}</a>
