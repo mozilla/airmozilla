@@ -137,6 +137,38 @@ class TestVideoinfo(DjangoTestCase):
         event = Event.objects.get(id=event.id)
         eq_(event.duration, 1157)
 
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_duration_oserror(self, mock_popen, rhead):
+
+        def mocked_head(url, **options):
+            return _Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        def mocked_popen(command, **kwargs):
+
+            class Inner:
+                def communicate(self):
+                    raise OSError('Something Bad')
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        video_url = 'https://example.com/file.mov'
+        try:
+            videoinfo.fetch_duration(event, video_url=video_url)
+            raise AssertionError("not supposed to happen")
+        except OSError as exception:
+            message = str(exception)
+            ok_('Something Bad' in message)
+            ok_('ffmpeg -i %s' % video_url in message)
+
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
     @mock.patch('requests.head')
