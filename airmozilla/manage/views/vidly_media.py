@@ -314,3 +314,46 @@ def vidly_media_webhook(request):
         pass
 
     return http.HttpResponse('OK\n')
+
+
+@superuser_required
+def vidly_media_timings(request):
+    context = {
+    }
+    return render(request, 'manage/vidly_media_timings.html', context)
+
+
+@superuser_required
+@json_view
+def vidly_media_timings_data(request):
+    points = []
+    submissions = VidlySubmission.objects.filter(
+        finished__isnull=False,
+        event__duration__isnull=False
+    )
+    # deliberately only look at the last 100 recordings
+    for submission in submissions.order_by('submission_time')[:100]:
+        points.append({
+            'x': submission.event.duration,
+            'y': submission.finished_duration
+        })
+
+    slope = None
+    if len(points) > 1:
+        # See https://www.easycalculation.com/analytical/learn-least-\
+        # square-regression.php
+        sum_x = sum(1. * e['x'] for e in points)
+        sum_y = sum(1. * e['y'] for e in points)
+        sum_xy = sum(1. * e['x'] * e['y'] for e in points)
+        sum_xx = sum((1. * e['x']) ** 2 for e in points)
+        N = len(points)
+        try:
+            slope = (N * sum_xy - sum_x * sum_y) / (N * sum_xx - sum_x ** 2)
+        except ZeroDivisionError:
+            pass
+
+    context = {
+        'points': points,
+        'slope': slope,
+    }
+    return context
