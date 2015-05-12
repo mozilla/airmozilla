@@ -9,7 +9,7 @@ from django.contrib.sites.models import Site
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Event
+from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.webrtc.sending import email_about_mozillian_video
 from .vidly import query
 
@@ -76,7 +76,17 @@ def archive(event, swallow_email_exceptions=False, verbose=False):
             cache.set(cache_key, 'Done', 60 * 60 * 24)
 
     elif results[tag].get('Status') == 'Error':
-        # terrible! Email the admins!
+        # Terrible!
+        submissions = VidlySubmission.objects.filter(
+            event=event,
+            tag=tag,
+            finished__isnull=True
+        )
+        for submission in submissions:
+            submission.errored = timezone.now()
+            submission.save()
+
+        # Email the admins!
         cache_key = 'archiver-%s-error' % tag
         if not cache.get(cache_key):
             try:
@@ -110,6 +120,15 @@ def archive(event, swallow_email_exceptions=False, verbose=False):
 
         if verbose:  # pragma: no cover
             print 'Event "%s" archived!' % event
+
+        submissions = VidlySubmission.objects.filter(
+            event=event,
+            tag=tag,
+            finished__isnull=True
+        )
+        for submission in submissions:
+            submission.finished = timezone.now()
+            submission.save()
 
         # if it belonged to a Mozillian, then send an email to the creator
         if event.mozillian:

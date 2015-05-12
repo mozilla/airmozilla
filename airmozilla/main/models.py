@@ -598,6 +598,16 @@ class VidlySubmission(models.Model):
     token_protection = models.BooleanField(default=False)
     hd = models.BooleanField(default=False)
     submission_error = models.TextField(blank=True, null=True)
+    finished = models.DateTimeField(null=True)
+    errored = models.DateTimeField(null=True)
+
+    @property
+    def finished_duration(self):
+        return (self.finished - self.submission_time).seconds
+
+    @property
+    def errored_duration(self):
+        return (self.errored - self.submission_time).seconds
 
 
 @receiver(models.signals.post_save, sender=Event)

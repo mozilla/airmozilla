@@ -364,8 +364,11 @@ def vidly_media_webhook(request):
                 url=task['SourceFile'],
                 tag=task['MediaShortLink']
             )
-
             if task['Status'] == 'Finished':
+                if not vidly_submission.finished:
+                    vidly_submission.finished = timezone.now()
+                    vidly_submission.save()
+
                 event = vidly_submission.event
 
                 # Awesome!
@@ -390,6 +393,10 @@ def vidly_media_webhook(request):
                             verbose=settings.DEBUG,
                             set_first_available=True,
                         )
+            elif task['Status'] == 'Error':
+                if not vidly_submission.errored:
+                    vidly_submission.errored = timezone.now()
+                    vidly_submission.save()
         except VidlySubmission.DoesNotExist:
             # remember, we can't trust the XML since it's publically
             # available and exposed as a webhook

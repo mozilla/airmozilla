@@ -156,10 +156,7 @@ def formatduration(seconds):
         minutes = seconds / 60
         if seconds >= 60 * 60:
             hours = seconds / 3600
-            # print "Its more than 1 hour"
             minutes = (seconds % 3600) / 60
-            # print "Seconds", seconds
-            # print "Minutes", repr(minutes)
             parts.append('%dh' % hours)
         seconds = seconds % 60
         parts.append('%dm' % minutes)
