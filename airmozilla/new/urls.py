@@ -45,6 +45,12 @@ urlpatterns = patterns(
     url(r'^vidly/webhook/$',
         views.vidly_media_webhook,
         name='vidly_media_webhook'),
+    url(r'unsubscribed/$',
+        views.unsubscribed,
+        name='unsubscribed'),
+    url(r'unsubscribe/(?P<identifier>\w{10})/$',
+        views.unsubscribe,
+        name='unsubscribe'),
     # lastly
     url(r'',
         views.home,

@@ -30,6 +30,7 @@ def _get_live_time():
 class UserProfile(models.Model):
     user = models.OneToOneField(User, related_name='profile')
     contributor = models.BooleanField(default=False)
+    optout_event_emails = models.BooleanField(default=False)
 
 
 @receiver(models.signals.post_delete, sender=UserProfile)
@@ -389,6 +390,14 @@ def most_recent_event():
 def reset_most_recent_event(sender, instance, *args, **kwargs):
     cache_key = 'most_recent_event'
     cache.delete(cache_key)
+
+
+class EventEmail(models.Model):
+    event = models.ForeignKey(Event)
+    user = models.ForeignKey(User)
+    to = models.EmailField()
+    send_failure = models.TextField(null=True, blank=True)
+    created = models.DateTimeField(default=_get_now)
 
 
 class EventRevisionManager(models.Manager):
