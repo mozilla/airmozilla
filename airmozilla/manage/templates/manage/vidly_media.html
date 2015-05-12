@@ -18,6 +18,8 @@
   th.buttons, td.buttons { width: 280px; }
   form.resubmit { display: none; }
   div.info { display: none; }
+  td span.errored { color: darkred; }
+  td span.finished { color: green; }
   </style>
 {% endblock %}
 
@@ -73,6 +75,7 @@
       <tr>
         <th>Event</th>
         {% if repeated %}<th># Submissions</th>{% endif %}
+        <th>Timings</th>
         <th>Template</th>
         <th>Status</th>
         <th class="buttons">Options</th>
@@ -82,8 +85,13 @@
       {% for event in paginate %}
       <tr>
         <td>
+          {% if event.title %}
           <a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}"
             data-privacy="{{ event.privacy }}">{{ truncate_words(event.title, 8) }}</a>
+          {% else %}
+          <a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}"
+            data-privacy="{{ event.privacy }}"><em>no title</em></a>
+          {% endif %}
         </td>
         {% if repeated %}
         <td>
@@ -91,6 +99,19 @@
           >{{ get_repeats(event) }}</a>
         </td>
         {% endif %}
+        <td>
+          {% for submission in submissions.get(event.id, []) %}
+            {% if submission.errored %}
+            <span class="errored">
+              {{ submission.errored_duration | formatduration }}
+            </span>
+            {% elif submission.finished %}
+            <span class="finished">
+              {{ submission.finished_duration | formatduration }}
+            </span>
+            {% endif %}
+          {% endfor %}
+        </td>
         <td>
           {{ event.template.name }}
         </td>

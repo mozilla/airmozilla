@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+
 import json
 import hashlib
+import datetime
 from cStringIO import StringIO
 
 from nose.tools import eq_, ok_
 import mock
 
+from django.utils import timezone
 from django.core.cache import cache
 
 from funfactory.urlresolvers import reverse
@@ -154,13 +157,17 @@ class TestVidlyMedia(ManageTestCase):
         eq_(response.status_code, 200)
         ok_(event.title not in response.content)
 
+        then = timezone.now() - datetime.timedelta(days=1)
         VidlySubmission.objects.create(
             event=event,
-            tag='xyz000'
+            tag='xyz000',
+            submission_time=then,
+            finished=then + datetime.timedelta(seconds=7)
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_(event.title in response.content)
+        ok_('7s' in response.content)
 
     def test_vidly_media_repeated_events(self):
         url = reverse('manage:vidly_media')

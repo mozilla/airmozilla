@@ -1,5 +1,6 @@
 import hashlib
 import logging
+from collections import defaultdict
 from xml.parsers.expat import ExpatError
 
 from django import http
@@ -73,8 +74,12 @@ def vidly_media(request):
 
     events = events.order_by('-start_time')
     events = events.select_related('template')
-
     paged = paginate(events, request.GET.get('page'), 15)
+
+    submissions = defaultdict(list)
+    for submission in VidlySubmission.objects.filter(event__in=paged):
+        submissions[submission.event_id].append(submission)
+
     vidly_resubmit_form = forms.VidlyResubmitForm()
     context = {
         'paginate': paged,
@@ -82,6 +87,7 @@ def vidly_media(request):
         'vidly_resubmit_form': vidly_resubmit_form,
         'repeated': repeated,
         'get_repeats': get_repeats,
+        'submissions': submissions,
     }
     return render(request, 'manage/vidly_media.html', context)
 

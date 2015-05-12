@@ -17,6 +17,8 @@
   <style>
   td.url { font-size: 0.8em; }
   div.info { display: none; }
+  td span.errored { color: darkred; }
+  td span.finished { color: green; }
   </style>
 {% endblock %}
 
@@ -52,7 +54,8 @@
       <tr>
         <th></th>
         <th>URL</th>
-        <th>Submission Time</th>
+        <th>Date</th>
+        <th>Timing</th>
         <th>Shortcode</th>
         <th>Token</th>
         <th>HD</th>
@@ -72,6 +75,19 @@
         </td>
         <td class="url">{{ scrub_transform_passwords(submission.url) }}</td>
         <td>{{ submission.submission_time|js_date }}</td>
+        <td>
+          {% if submission.errored %}
+          <span class="errored">
+            {{ submission.errored_duration | formatduration }}
+          </span>
+          {% elif submission.finished %}
+          <span class="finished">
+            {{ submission.finished_duration | formatduration }}
+          </span>
+          {% else %}
+          n/a
+          {% endif %}
+        </td>
         <td>
           {% if submission.tag %}<code>{{ submission.tag }}</code>{% endif %}
         </td>

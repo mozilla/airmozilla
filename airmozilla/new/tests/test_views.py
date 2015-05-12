@@ -421,7 +421,7 @@ class TestNew(DjangoTestCase):
         event = self._create_event(file_url)
 
         tag = 'abc123'
-        VidlySubmission.objects.create(
+        vidly_submission = VidlySubmission.objects.create(
             event=event,
             url=file_url,
             tag=tag,
@@ -454,6 +454,55 @@ class TestNew(DjangoTestCase):
         ok_(Picture.objects.filter(event=event))
 
         eq_(len(ffmpeged_urls), 1 + settings.SCREENCAPTURES_NO_PICTURES)
+
+        vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
+        ok_(vidly_submission.finished)
+
+    def test_trigger_vidly_media_webhook_errored(self):
+
+        # the webhook is supposed to be sent back when the file has
+        # been submitted and successfully transcoded, or errored.
+
+        file_url = 'https://s3.com/foo.webm'
+        event = self._create_event(file_url)
+
+        tag = 'abc123'
+        vidly_submission = VidlySubmission.objects.create(
+            event=event,
+            url=file_url,
+            tag=tag,
+        )
+
+        event.template = self._create_default_archive_template()
+        event.template_environment = {'tag': tag}
+        event.save()
+
+        url = reverse('new:vidly_media_webhook')
+
+        xml_string = SAMPLE_MEDIA_RESULT_SUCCESS
+        xml_string = xml_string.replace(
+            '<Status>Finished</Status>',
+            '<Status>Error</Status>'
+        )
+        xml_string = re.sub(
+            '<SourceFile>(.*)</SourceFile>',
+            '<SourceFile>{0}</SourceFile>'.format(file_url),
+            xml_string
+        )
+        xml_string = re.sub(
+            '<MediaShortLink>(.*)</MediaShortLink>',
+            '<MediaShortLink>{0}</MediaShortLink>'.format(tag),
+            xml_string
+        )
+        response = self.client.post(url, {'xml': xml_string})
+        eq_(response.status_code, 200)
+
+        event = Event.objects.get(id=event.id)
+        ok_(not event.archive_time)
+
+        vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
+        ok_(vidly_submission.errored)
+        ok_(not vidly_submission.finished)
 
     def test_trigger_vidly_media_webhook_bad_tag(self):
         self._create_event()
