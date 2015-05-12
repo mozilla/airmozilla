@@ -242,6 +242,18 @@ class TestPictureGallery(ManageTestCase):
         assert picture.size
         eq_(picture.modified_user, self.user)
 
+    def test_picture_add_with_event(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_edit', args=(event.id,))
+        response = self.client.get(url, {'event': event.id})
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+        url = reverse('manage:picture_add')
+        response = self.client.get(url, {'event': event.id})
+        eq_(response.status_code, 200)
+        ok_('?event=%d' % event.id in response.content)
+
     def test_redirect_picture_thumbnail(self):
         with open(self.main_image) as fp:
             picture = Picture.objects.create(
