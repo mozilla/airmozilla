@@ -36,7 +36,7 @@ def _download_file(url, local_filename):
 
 
 # http://stackoverflow.com/a/377028/205832
-def which(program):
+def which(program):  # pragma: no cover
 
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
@@ -53,6 +53,27 @@ def which(program):
                 return exe_file
 
     return None
+
+
+def wrap_subprocess(command):
+    try:
+        return subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        ).communicate()
+    except OSError as exception:
+        # We need to modify the OSError to give us much better
+        # chances of debugging what went wrong.
+        # By knowing the command that errored, we can try to
+        # manually reproduce plainly on the command line.
+        message = (
+            '%s {command: %r}' % (
+                str(exception),
+                ' '.join(command)
+            ),
+        )
+        raise OSError(message)
 
 
 def fetch_duration(
@@ -104,11 +125,7 @@ def fetch_duration(
             print ' '.join(command)
 
         t0 = time.time()
-        out, err = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        ).communicate()
+        out, err = wrap_subprocess(command)
         t1 = time.time()
 
         if verbose:  # pragma: no cover
@@ -229,11 +246,7 @@ def fetch_screencapture(
             ]
             if verbose:  # pragma: no cover
                 print ' '.join(command)
-            out, err = subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            ).communicate()
+            out, err = wrap_subprocess(command)
             all_out.append(out)
             all_err.append(err)
             seconds += incr
