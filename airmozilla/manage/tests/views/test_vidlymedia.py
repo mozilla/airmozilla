@@ -673,3 +673,62 @@ class TestVidlyMedia(ManageTestCase):
         response = self.client.post(url, {'xml': SAMPLE_MEDIA_RESULT_SUCCESS})
         eq_(response.status_code, 200)
         eq_('OK\n', response.content)
+
+    def test_vidly_media_timings(self):
+        url = reverse('manage:vidly_media_timings')
+        response = self.client.get(url)
+        # Not much is happening on this page server side.
+        # It just loads some javascript that loads some JSON
+        eq_(response.status_code, 200)
+
+    def test_vidly_media_timings_data(self):
+        url = reverse('manage:vidly_media_timings_data')
+        response = self.client.get(url)
+        # Not much is happening on this page server side.
+        # It just loads some javascript that loads some JSON
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        eq_(data['points'], [])
+        eq_(data['slope'], None)
+
+        event = Event.objects.get(title='Test event')
+        event.duration = 60
+        event.save()
+        VidlySubmission.objects.create(
+            event=event,
+            submission_time=timezone.now(),
+            finished=timezone.now() + datetime.timedelta(seconds=150),
+        )
+        VidlySubmission.objects.create(
+            event=event,
+            submission_time=timezone.now(),
+            finished=timezone.now() + datetime.timedelta(seconds=100),
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        eq_(data['points'], [{'y': 150, 'x': 60}, {'y': 100, 'x': 60}])
+        # Because the X value never changes you get a standard deviation
+        # of 0 which means the slope can't be calculated
+        eq_(data['slope'], None)
+
+        other_event = Event.objects.create(
+            duration=200,
+            start_time=event.start_time,
+        )
+        VidlySubmission.objects.create(
+            event=other_event,
+            submission_time=timezone.now(),
+            finished=timezone.now() + datetime.timedelta(seconds=300),
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        eq_(data['points'], [
+            {'y': 150, 'x': 60},
+            {'y': 100, 'x': 60},
+            {'y': 300, 'x': 200},
+        ])
+        # Because the X value never changes you get a standard deviation
+        # of 0 which means the slope can't be calculated
+        eq_(data['slope'], 1.25)

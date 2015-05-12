@@ -20,11 +20,16 @@
   div.info { display: none; }
   td span.errored { color: darkred; }
   td span.finished { color: green; }
+  .timings-link { float: right; }
   </style>
 {% endblock %}
 
 
 {% block manage_content %}
+
+<h4 class="timings-link">
+  <a href="{{ url('manage:vidly_media_timings')}}">Vid.ly Media Timings</a>
+</h4>
 
 <p>
   These are all the events that use a template that has the
@@ -102,12 +107,18 @@
         <td>
           {% for submission in submissions.get(event.id, []) %}
             {% if submission.errored %}
-            <span class="errored">
+            <span class="errored" title="Time it took to finish transcoding">
               {{ submission.errored_duration | formatduration }}
+              <span title="Event duration">
+                ({{ submission.event.duration | formatduration }})
+              </span>
             </span>
             {% elif submission.finished %}
-            <span class="finished">
+            <span class="finished" title="Time it took till transcoding errored">
               {{ submission.finished_duration | formatduration }}
+              <span title="Event duration">
+                ({{ submission.event.duration | formatduration }})
+              </span>
             </span>
             {% endif %}
           {% endfor %}
