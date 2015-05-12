@@ -832,7 +832,7 @@ class TestNew(DjangoTestCase):
         event.template_environment = {'tag': 'abc123'}
         event.save()
 
-        VidlySubmission.objects.create(
+        vidly_submission = VidlySubmission.objects.create(
             event=event,
             tag='abc123',
             url='https://example.com/file.mov'
@@ -846,6 +846,45 @@ class TestNew(DjangoTestCase):
         ok_(information['finished'])
         eq_(information['tag'], 'abc123')
         eq_(information['status'], 'Finished')
+
+        vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
+        ok_(vidly_submission.finished)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_event_video_errored(self, p_urllib2):
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='abc123',
+                status='Error'
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = self._create_event()
+        url = reverse('new:video', args=(event.id,))
+
+        event.template = self._create_default_archive_template()
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        vidly_submission = VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+            url='https://example.com/file.mov'
+        )
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        information = json.loads(response.content)
+        ok_(not information['finished'])
+        eq_(information['tag'], 'abc123')
+        eq_(information['status'], 'Error')
+
+        vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
+        ok_(not vidly_submission.finished)
+        ok_(vidly_submission.errored)
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_event_publish_unfinished_video(self, p_urllib2):

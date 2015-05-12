@@ -481,10 +481,18 @@ def event_video(request, event):
             results = vidly.query(tag).get(tag, {})
             context['status'] = results.get('Status')
             context['finished'] = results.get('Status') == 'Finished'
-            if context['finished'] and not event.archive_time:
-                event.archive_time = timezone.now()
-                event.save()
-            # context['finished']=0
+            if context['finished']:
+                if not vidly_submission.finished:
+                    vidly_submission.finished = timezone.now()
+                    vidly_submission.save()
+                if not event.archive_time:
+                    event.archive_time = timezone.now()
+                    event.save()
+            elif results.get('Status') == 'Error':
+                if not vidly_submission.errored:
+                    vidly_submission.errored = timezone.now()
+                    vidly_submission.save()
+
     return context
 
 
