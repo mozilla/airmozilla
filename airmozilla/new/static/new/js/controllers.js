@@ -104,6 +104,7 @@ angular.module('new.controllers', ['new.services'])
         var videoUrl = $appContainer.data('video-url');
         var archiveUrl = $appContainer.data('archive-url');
         var scrapeUrl = $appContainer.data('screencaptures-url');
+        var eventUrl = $appContainer.data('event-url');
         $scope.loading = true;
 
         $http.get(yoursUrl)
@@ -146,6 +147,14 @@ angular.module('new.controllers', ['new.services'])
                     $http.post(scrapeUrl.replace('0', event.id))
                     .success(function(response) {
                         event.pictures = response.no_pictures;
+                        var url = eventUrl.replace('0', event.id);
+                        $http.get(url)
+                        .success(function(response) {
+                            if (response.event && response.event.picture) {
+                                event.picture = response.event.picture;
+                            }
+                        })
+                        .error(console.error.bind(console));
                     });
                 }
             });
@@ -330,6 +339,13 @@ angular.module('new.controllers', ['new.services'])
                         // console.log('Size verified', response);
                         statusService.set('Saving upload');
 
+                        // The scrape is fired off at the same time as we
+                        // start the archiving and the order of these finishing
+                        // is not guaranteed. So setting this higher scope
+                        // boolean allows the interval of looking for picture
+                        // to be cancelled.
+                        var scrapeFailed = false;
+
                         // Save will create an event that will have an upload
                         $http.post(saveUrl, $scope.signed)
                         .success(function(response) {
@@ -351,6 +367,14 @@ angular.module('new.controllers', ['new.services'])
                                 // start looking for a picture
                                 var url = eventUrl.replace('0', eventService.getId());
                                 var keepLooking = $interval(function() {
+
+                                    if (scrapeFailed) {
+                                        // Some future version we might, here,
+                                        // remove the "Loading preview" thing
+                                        $interval.cancel(keepLooking);
+                                        return;
+                                    }
+
                                     $http.get(url)
                                     .success(function(response) {
                                         if (response.event.picture) {
@@ -382,7 +406,10 @@ angular.module('new.controllers', ['new.services'])
                                     'Screencaptures scraped from the video', 3
                                 );
                             })
-                            .error(console.error.bind(console));
+                            .error(function() {
+                                console.error.apply(console, arguments);
+                                scrapeFailed = true;
+                            });
                         })
                         .error(console.error.bind(console));
                     })
@@ -488,6 +515,7 @@ angular.module('new.controllers', ['new.services'])
 
                     var keepLookingAttempts = 0;
                     var keepLooking = $interval(function() {
+                        console.log("Keep looking for a picture", url);
                         $http.get(url)
                         .success(function(response) {
                             if (response.event.picture) {
@@ -506,13 +534,6 @@ angular.module('new.controllers', ['new.services'])
                         });
                     }, 2 * 1000);
                 }
-                // if (!$scope.event.)
-                // url = pictureUrl.replace('0', $scope.event.id);
-                // $http.get(url)
-                // .success(function() {
-                //     $scope.picture
-                // })
-                // .error(console.error.bind(console));
             })
             .error(eventService.handleErrorStatus);
 
@@ -625,6 +646,7 @@ angular.module('new.controllers', ['new.services'])
         $scope.stillLoading = false;
         var reFetching = false;
         var displayAvailableScreencaptures = function() {
+            console.log("Continue to look for available screen captures", pictureUrl);
             $http.get(pictureUrl)
             .success(function(response) {
                 // console.log(response);

@@ -128,12 +128,6 @@ def save_upload(request):
     )
     new_upload.event = event
     new_upload.save()
-    # # forcibly put it in the mozshorts channel
-    # default_channel, __ = Channel.objects.get_or_create(
-    #     name=settings.MOZSHORTZ_CHANNEL_NAME,
-    #     slug=settings.MOZSHORTZ_CHANNEL_SLUG,
-    # )
-    # event.channels.add(default_channel)
 
     return {'id': event.id}
 
