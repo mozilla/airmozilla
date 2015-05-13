@@ -310,6 +310,7 @@ CONTRIBUTORS = (
     'koddsson',
     'KrystalYu',
     'anuragchaudhury',
+    'blossomica',
 )
 
 # Override this if you want to run the selenium based tests
