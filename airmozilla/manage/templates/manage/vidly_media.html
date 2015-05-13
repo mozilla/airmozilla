@@ -107,14 +107,14 @@
         <td>
           {% for submission in submissions.get(event.id, []) %}
             {% if submission.errored %}
-            <span class="errored" title="Time it took to finish transcoding">
+            <span class="errored" title="Time it took till transcoding errored">
               {{ submission.errored_duration | formatduration }}
               <span title="Event duration">
                 ({{ submission.event.duration | formatduration }})
               </span>
             </span>
             {% elif submission.finished %}
-            <span class="finished" title="Time it took till transcoding errored">
+            <span class="finished" title="Time it took to finish transcoding">
               {{ submission.finished_duration | formatduration }}
               <span title="Event duration">
                 ({{ submission.event.duration | formatduration }})
