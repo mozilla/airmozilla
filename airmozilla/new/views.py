@@ -1,5 +1,6 @@
 import json
 import os
+from cStringIO import StringIO
 from xml.parsers.expat import ExpatError
 
 from django import http
@@ -16,11 +17,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import Permission, Group
 from django.core.cache import cache
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 
 from jsonview.decorators import json_view
 from funfactory.urlresolvers import reverse
 import xmltodict
 from sorl.thumbnail import get_thumbnail
+from PIL import Image
 
 from airmozilla.manage import vidly
 from airmozilla.base.utils import get_base_url
@@ -671,3 +674,33 @@ def unsubscribe(request, identifier):
 def unsubscribed(request):
     context = {}
     return render(request, 'new/unsubscribed.html', context)
+
+
+@require_POST
+@login_required
+@must_be_your_event
+@json_view
+@transaction.atomic
+def event_pictures_rotate(request, event):
+    try:
+        post = request.body and json.loads(request.body) or {}
+    except ValueError:
+        return http.HttpResponseBadRequest('invalid JSON body')
+    direction = post.get('direction', 'left')
+    for picture in Picture.objects.filter(event=event):
+        img = Image.open(picture.file.path)
+        if picture.file.name.lower().endswith('.png'):
+            format = 'png'
+        else:
+            format = 'jpeg'
+        img = img.rotate(direction == 'left' and 90 or 270)
+        f = StringIO()
+        try:
+            img.save(f, format=format)
+            picture.file.save(
+                picture.file.name,
+                ContentFile(f.getvalue())
+            )
+        finally:
+            f.close()
+    return True

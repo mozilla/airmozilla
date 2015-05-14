@@ -49,5 +49,13 @@
   Next
 </button>
 
+<p ng-show="!loading" class="picture-options">
+  Picture options:
+  <span ng-show="rotating">Rotating...</span><br>
+  <button type="button" ng-show="!rotating" ng-click="rotatePictures('left')">Rotate left</button>
+  <button type="button" ng-show="!rotating" ng-click="rotatePictures('right')">Rotate right</button>
+
+</p>
+
 
 {% endraw %}
