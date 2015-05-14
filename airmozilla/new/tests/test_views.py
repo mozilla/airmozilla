@@ -9,6 +9,7 @@ from cStringIO import StringIO
 import mock
 from nose.tools import eq_, ok_
 from funfactory.urlresolvers import reverse
+from PIL import Image
 
 from django.contrib.auth.models import Group, Permission, User
 from django.conf import settings
@@ -637,6 +638,56 @@ class TestNew(DjangoTestCase):
         ok_(thumbnail['height'])
         eq_(thumbnail['id'], picture.id)
 
+    def test_pictures_rotate(self):
+        event = self._create_event()
+        url = reverse('new:pictures_rotate', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 405)
+
+        with open(self.sample_jpg) as fp:
+            picture = Picture.objects.create(
+                event=event,
+                file=File(fp)
+            )
+
+        img_before = Image.open(picture.file.path)
+        file_before = picture.file
+        size_before = img_before.size
+        img_before.close()
+
+        response = self.client.post(url, {'direction': 'right'})
+        eq_(response.status_code, 400)
+        response = self.post_json(url, {'direction': 'right'})
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), True)
+        picture = Picture.objects.get(id=picture.id)
+        file_after = picture.file
+        ok_(file_before != file_after)
+
+        img_after = Image.open(picture.file.path)
+        size_after = img_after.size
+        img_after.close()
+
+        # numbers transposed?
+        eq_(size_before[0], size_after[1])
+        eq_(size_before[1], size_after[0])
+
+        # rotate it back
+        response = self.post_json(url, {'direction': 'left'})
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), True)
+
+        picture = Picture.objects.get(id=picture.id)
+        img_after_after = Image.open(picture.file.path)
+        size_after_after = img_after_after.size
+        img_after_after.close()
+
+        # numbers transposed?
+        eq_(size_after[0], size_after_after[1])
+        eq_(size_after[1], size_after_after[0])
+
+        eq_(size_before, size_after_after)
+
     def test_picture_save(self):
         event = self._create_event()
         url = reverse('new:picture', args=(event.id,))
@@ -1092,12 +1143,6 @@ class TestNew(DjangoTestCase):
         url = reverse('new:publish', args=(event.id,))
         response = self.client.post(url)
         eq_(response.status_code, 200)
-        # ok_(event.channels.all().count())
-        # event_channel, = event.channels.all()
-        # eq_(
-        #     event_channel,
-        #     Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
-        # )
 
     def test_your_events(self):
         event = self._create_event()

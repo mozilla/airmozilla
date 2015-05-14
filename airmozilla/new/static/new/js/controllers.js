@@ -629,6 +629,7 @@ angular.module('new.controllers', ['new.services'])
         var eventUrl = $appContainer.data('event-url').replace('0', id);
         var pictureUrl = $appContainer.data('picture-url').replace('0', id);
         var scrapeUrl = $appContainer.data('screencaptures-url').replace('0', id);
+        var rotateUrl = $appContainer.data('rotate-url').replace('0', id);
 
         $http.get(eventUrl)
         .success(function(response) {
@@ -711,6 +712,15 @@ angular.module('new.controllers', ['new.services'])
             } else {
                 $state.go('details', {id: $scope.event.id});
             }
+        };
+
+        $scope.rotatePictures = function(direction) {
+            $scope.rotating = true;
+            $http.post(rotateUrl, {direction: direction})
+            .finally(function() {
+                displayAvailableScreencaptures();
+                $scope.rotating = false;
+            });
         };
 
     }

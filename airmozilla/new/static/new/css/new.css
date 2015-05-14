@@ -247,3 +247,13 @@ button.delete-button, button.delete-confirm, button.delete-cancel {
     padding: 35px 0;
     border: 1px solid #B4B4B4;;
 }
+
+.picture-options {
+    margin-top: 50px;
+    float: right;
+}
+
+.picture-options button {
+    font-size: 70%;
+    padding: 5px 8px;
+}

@@ -38,6 +38,9 @@ urlpatterns = patterns(
     url(r'^api/(?P<id>\d+)/delete/$',
         views.event_delete,
         name='delete'),
+    url(r'^api/(?P<id>\d+)/rotate/pictures/$',
+        views.event_pictures_rotate,
+        name='pictures_rotate'),
     # Do this to avoid any undefined api calls to be attempted as an
     # html pushstate thing in ui-router.
     url(r'^api/',
