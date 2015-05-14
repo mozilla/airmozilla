@@ -2093,7 +2093,7 @@ class TestEvents(ManageTestCase):
 
         # reload the event and it should have changed status
         event = Event.objects.get(pk=event.pk)
-        eq_(event.status, Event.STATUS_PENDING)
+        eq_(event.status, Event.STATUS_PROCESSING)
 
     def test_event_redirect_thumbnail(self):
         event = Event.objects.get(title='Test event')

@@ -340,7 +340,12 @@ class EventView(View):
             return self.cant_view_event(event, request)
 
         warning = None
-        if event.status not in (Event.STATUS_SCHEDULED, Event.STATUS_PENDING):
+        ok_statuses = (
+            Event.STATUS_SCHEDULED,
+            Event.STATUS_PENDING,
+            Event.STATUS_PROCESSING,
+            )
+        if event.status not in ok_statuses:
             if not request.user.is_superuser:
                 self.template_name = 'main/event_not_scheduled.html'
             else:
@@ -971,7 +976,7 @@ def events_calendar_ical(request, privacy=None):
     cal = vobject.iCalendar()
 
     now = timezone.now()
-    base_qs = Event.objects.scheduled()
+    base_qs = Event.objects.scheduled_or_processing()
     if privacy == 'public':
         base_qs = base_qs.approved().filter(
             privacy=Event.PRIVACY_PUBLIC
@@ -1071,7 +1076,7 @@ class EventsFeed(Feed):
     def items(self):
         now = timezone.now()
         qs = (
-            Event.objects.scheduled()
+            Event.objects.scheduled_or_processing()
             .filter(start_time__lt=now,
                     channels=self._channel)
             .order_by('-start_time')
@@ -1223,7 +1228,7 @@ def calendar_data(request):
 
     privacy_filter = {}
     privacy_exclude = {}
-    events = Event.objects.scheduled()
+    events = Event.objects.scheduled_or_processing()
     if request.user.is_active:
         if is_contributor(request.user):
             privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}

@@ -62,6 +62,11 @@
         <p class="pending">
         Event is currently in a pending state meaning it will soon be made available.
         </p>
+      {% elif processing %}
+        <p>
+        This video is currently being transcoded; that will take some time. 
+        Feel free to check again on its status after a while.
+        </p>
       {% else %}
         {% if video %}
           {{ video|safe }}

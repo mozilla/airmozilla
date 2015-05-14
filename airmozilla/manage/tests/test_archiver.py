@@ -119,7 +119,7 @@ class ArchiverTestCase(TestCase):
 
         sent_email = mail.outbox[-1]
         eq_(sent_email.to, [x[1] for x in settings.ADMINS])
-        ok_('Unable to archive pending event' in sent_email.subject)
+        ok_('Unable to archive event' in sent_email.subject)
         ok_('abc123' in sent_email.subject)
         ok_(reverse('manage:event_edit', args=(event.pk,)) in sent_email.body)
 
