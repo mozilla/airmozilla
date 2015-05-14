@@ -2468,6 +2468,40 @@ class TestPages(DjangoTestCase):
 
     @mock.patch('logging.error')
     @mock.patch('requests.get')
+    def test_curated_groups_map(self, rget, rlogging):
+        # sign in as a member of staff
+        User.objects.create_user(
+            'gloria', 'gloria@mozilla.com', 'secret'
+        )
+        assert self.client.login(username='gloria', password='secret')
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('main:home')
+        event.privacy = Event.PRIVACY_CONTRIBUTORS
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_("Recent Events" in response.content)
+
+        # make it so that viewing the event requires that you're a
+        # certain group
+        CuratedGroup.objects.create(
+            event=event,
+            name='vip',
+            url='https://mozillians.org/vip',
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(re.findall(
+            'This event is available only to staff and Mozilla volunteers '
+            'who are members of the\s+vip\s+group.',
+            response.content,
+            re.M
+        ))
+
+    @mock.patch('logging.error')
+    @mock.patch('requests.get')
     def test_view_curated_group_event_as_staff(self, rget, rlogging):
 
         def mocked_get(url, **options):
