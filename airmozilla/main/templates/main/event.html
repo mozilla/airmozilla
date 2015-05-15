@@ -101,7 +101,7 @@
              &mdash;
              {{ event.location_time.strftime("%I:%M%p") }}
               {% if not event.location.name.startswith('Cyberspace') and not
-                 event.location.name.startswith(settings.DEFAULT_PRERECORDED_LOCATION[0]) %}
+                 event.is_prerecorded() %}
                  in {{ event.location.name }}
               {% endif %}
             {% endif %}
@@ -121,7 +121,11 @@
           <label for="tab-details">Details</label>
           <div class="content">
             <p>
-              Start time: {{ event.start_time | js_date }}
+              {% if event.is_prerecorded() %}
+                  Uploaded: {{ event.start_time | js_date }}
+              {% else %}
+                  Start time: {{ event.start_time | js_date }}
+              {% endif %}
               {% if event.is_upcoming() %}
                 {% if event.location %}
                   &mdash;
@@ -131,7 +135,7 @@
               <br>
 
               {% if event.location and not event.location.name.startswith('Cyberspace')
-                 and not event.location.name.startswith(settings.DEFAULT_PRERECORDED_LOCATION[0]) %}
+                 and not event.is_prerecorded() %}
                 {{ _('Location') }}: {{ event.location.name }}<br>
               {% endif %}
 
