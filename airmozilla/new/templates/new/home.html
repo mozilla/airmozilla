@@ -2,13 +2,6 @@
 
 {% block content_main %}
 
-<ui-view></ui-view>
-
-<script type="text/ng-template" id="start.html">
-{% include "new/partials/start.html" %}
-</script>
-
-
 <!-- this is update by a piece of jQuery -->
 <div id="progress" style="display:none">
   <div class="progress-bar" id="progressbar">
@@ -19,6 +12,19 @@
     </div>
   </div>
 </div>
+
+<div ng-controller="UploadProblemController" ng-show="upload.hasFailed()"
+     class="alert alert-danger show-hide">
+  <h4>Upload Error</h4>
+  <p>An unexpected upload error occurred. Sorry.</p>
+  <button type="button" ng-click="retryUpload()">Retry Upload</button>
+</div>
+
+<ui-view></ui-view>
+
+<script type="text/ng-template" id="start.html">
+{% include "new/partials/start.html" %}
+</script>
 
 {% raw %}
 <div ng-controller="StatusController" id="status" ng-show="status.get()">

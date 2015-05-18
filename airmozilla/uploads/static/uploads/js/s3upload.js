@@ -102,6 +102,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
         this.onError('CORS not supported');
       } else {
         xhr.onload = function() {
+            //if (typeof window.FAILED_ONCE === 'undefined') {
+            //    window.FAILED_ONCE = true;
+            //    return this_s3upload.onError('Oh noes! Mocked failure. ' +xhr.status, file);
+            //} else { console.log('Letting it work the second time'); }
           if (xhr.status === 200) {
             this_s3upload.onProgress(100, 'Upload completed.', public_url, file);
             return this_s3upload.onFinishS3Put(public_url, file);

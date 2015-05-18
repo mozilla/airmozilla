@@ -1,0 +1,19 @@
+{
+    "env": {
+        "browser": 1
+    },
+    "globals": {
+        "angular": 1,
+        "$": 1,
+        "console": 1,
+        "moment": 1,
+        "S3Upload": 1,
+        "humanFilesize": 1
+    },
+    "rules": {
+        "quotes": [2, "single"],
+        "strict": 0,
+        "no-underscore-dangle": 0,
+        "no-console": 0
+    }
+}
