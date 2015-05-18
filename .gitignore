@@ -27,3 +27,4 @@ roku/dist/
 roku/airmozilla.zip
 ghostdriver.log
 /node_modules/
+/tags

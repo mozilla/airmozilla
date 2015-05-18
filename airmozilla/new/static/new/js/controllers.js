@@ -1,55 +1,4 @@
-function humanFileSize( bytes, precision ) {
-    var units = [
-       'bytes',
-       'Kb',
-       'Mb',
-       'Gb',
-       'Tb',
-       'Pb'
-    ];
-
-    if ( isNaN( parseFloat( bytes )) || ! isFinite( bytes ) ) {
-        return '?';
-    }
-
-    var unit = 0;
-
-    while ( bytes >= 1024 ) {
-      bytes /= 1024;
-      unit ++;
-    }
-
-    return bytes.toFixed( + precision ) + ' ' + units[ unit ];
-}
-
-var originalDocumentTitle = document.title;
-function showUploadProgress(percent, filesize) {
-    var $parent = $('#progress');
-    if (percent) {
-        var progress = humanFileSize(filesize * percent / 100) + ' of ' +
-            humanFileSize(filesize);
-        document.title = percent + '% (' + progress + ')';
-        $('progress', $parent).attr('value', percent);
-        $('.progress-size', $parent).text(progress);
-        $('.progress-value', $parent).text(percent + '%');
-        $parent.show();
-    } else {
-        $parent.hide();
-    }
-}
-
-function hideUploadProgress(celebrate) {
-    $('#progress').hide();
-    celebrate = celebrate || false;
-    if (celebrate) {
-        document.title = '\\o/ Upload finished! \\o/';
-        setTimeout(function() {
-            document.title = originalDocumentTitle;
-        }, 3 * 1000);
-    } else {
-        document.title = originalDocumentTitle;
-    }
-}
+/* global $ angular console document */
 
 
 angular.module('new.controllers', ['new.services'])
@@ -121,23 +70,23 @@ angular.module('new.controllers', ['new.services'])
                 } else {
                     nextUrl = $state.href('details', {id: event.id});
                 }
-                event._modified_formatted = moment(event.modified)
+                event._modifiedFormatted = moment(event.modified)
                     .format('ddd, MMM D, YYYY, h:mma UTCZZ');
                 event._nextUrl = nextUrl;
                 event._video = null;
 
                 var url = videoUrl.replace('0', event.id);
                 $http.get(url)
-                .success(function(response) {
-                    event._video = response;
-                    if (!response.tag) {
+                .success(function(videoResponse) {
+                    event._video = videoResponse;
+                    if (!videoResponse.tag) {
                         // it must have been a straggler that wasn't submitted
-                        console.log("Re-archiving", event.id);
+                        console.log('Re-archiving', event.id);
                         $http.post(archiveUrl.replace('0', event.id))
                         .success(function() {
                             $http.get(url)
-                            .success(function(response) {
-                                event._video = response;
+                            .success(function(archiveResponse) {
+                                event._video = archiveResponse;
                             });
                         });
                     }
@@ -145,13 +94,12 @@ angular.module('new.controllers', ['new.services'])
 
                 if (!event.pictures) {
                     $http.post(scrapeUrl.replace('0', event.id))
-                    .success(function(response) {
-                        event.pictures = response.no_pictures;
-                        var url = eventUrl.replace('0', event.id);
-                        $http.get(url)
-                        .success(function(response) {
-                            if (response.event && response.event.picture) {
-                                event.picture = response.event.picture;
+                    .success(function(scrapeResponse) {
+                        event.pictures = scrapeResponse.no_pictures;
+                        $http.get(eventUrl.replace('0', event.id))
+                        .success(function(eventResponse) {
+                            if (eventResponse.event && eventResponse.event.picture) {
+                                event.picture = eventResponse.event.picture;
                             }
                         })
                         .error(console.error.bind(console));
@@ -204,24 +152,31 @@ angular.module('new.controllers', ['new.services'])
     }]
 )
 
-.controller('UploadController',
-    ['$scope', '$http', '$state', 'eventService',
-     'statusService', '$interval',
-    function(
-        $scope, $http, $state, eventService,
-        statusService, $interval
-    ) {
-        var $appContainer = angular.element('#content');
-        var saveUrl = $appContainer.data('save-url');
-        var eventUrl = $appContainer.data('event-url');
-        var uploadUrl = $appContainer.data('sign-upload-url');
-        var archiveUrl = $appContainer.data('archive-url');
-        var scrapeUrl = $appContainer.data('screencaptures-url');
-        $scope.fileError = null;
-        $scope.signed = {};
+.controller('UploadProblemController',
+    ['$scope', 'uploadService',
+    function($scope, uploadService) {
+        $scope.upload = uploadService;
 
-        hideUploadProgress();
-        // progressService.set(null);
+        $scope.retryUpload = function() {
+            uploadService.startAndProcess();
+            // .then(function() {
+            //     console.log("SECOND ATTEMPT AND IT WORKED");
+            // })
+            // .catch(function() {
+            //     console.error("SECOND ATTEMPT AND IT FAILED");
+            // });
+        };
+    }]
+)
+
+.controller('UploadController',
+    ['$scope', '$http', '$state', '$interval',
+     'statusService', 'eventService', 'uploadService',
+    function(
+        $scope, $http, $state, $interval,
+        statusService, eventService, uploadService
+    ) {
+        $scope.fileError = null;
 
         var acceptedFiles = [
             'video/webm',
@@ -231,191 +186,29 @@ angular.module('new.controllers', ['new.services'])
             'video/ogg',
             'video/x-msvideo',
             'video/x-ms-wmv',
-            'video/x-m4v',
+            'video/x-m4v'
         ];
 
         $scope.startUpload = function() {
-            // var fakei = $interval(function() {
-            //     progressService.set(1 + progressService.get());
-            //     var file = {};
-            //     file.size = 12345678;
-            //     var percent = progressService.get();
-            //     progressService.setSize(
-            //         humanFileSize(file.size * percent / 100) +
-            //         ' of ' + humanFileSize(file.size)
-            //     );
-            //     if (progressService.get() >= 100) {
-            //         $interval.cancel(fakei);
-            //         eventService.setId(1234);
-            //     }
-            // }, 0.2*1000);
-            // $state.go('preemptiveDetails');
-            // return;
-            //
-            //
 
-
-            if (!$scope.dataFile) return;
+            if (!$scope.dataFile) {
+                return;
+            }
             $scope.fileError = null;
             var file = $scope.dataFile;
 
             // commented out temporarily so I don't have to upload movie files every time!!!!!!
             if (acceptedFiles.indexOf(file.type) === -1) {
-                $scope.fileError = "Not a recognized file type (" +
-                    file.type + ")";
+                $scope.fileError = 'Not a recognized file type (' +
+                    file.type + ')';
                 return;
             }
 
-            // let's start uploading it to S3
-            S3Upload.prototype.handleFileSelect = function() {
-                var results = [];
-                results.push(this.uploadFile(file));
-                return results;
-            };
-            // override so we can get more information from the signage
-            S3Upload.prototype.executeOnSignedUrl = function(file, callback, opts) {
-                var type = opts && opts.type || file.type;
-                var name = opts && opts.name || file.name;
-                var this_s3upload = this;
-                $http({
-                    url: $appContainer.data('sign-upload-url'),
-                    method: 'GET',
-                    params: {
-                        s3_object_type: type,
-                        s3_object_name: name
-                    }
-                })
-                .success(function(response) {
-                    $scope.signed = response;
-                    callback(response.signed_request, response.url);
-                })
-                .error(function() {
-                    this_s3upload.onError('Unable to sign request');
-                    console.warn(arguments);
-                });
-            };
-
-            statusService.set('Uploading video file...');
-            eventService.setUploading(true);
+            // statusService.set('Uploading video file...');
+            // eventService.setUploading(true);
             $state.go('preemptiveDetails');
-
-            var startTime = new Date();
-            var s3upload = new S3Upload({
-                file_dom_selector: 'anything',
-                s3_sign_put_url: uploadUrl,
-                onProgress: function(percent, message, public_url, file) {
-                    // Use jQuery for this because we don't want to have
-                    // to apply the scope for every little percent tick.
-                    showUploadProgress(percent, file.size);
-                },
-                onError: function(msg) {
-                    // progressService.set(null);
-                    hideUploadProgress();
-                    $scope.$apply(function() {
-                        eventService.setUploading(false);
-                    });
-                    statusService.set(msg);
-                    console.error(msg);
-                },
-                onFinishS3Put: function(url, file) {
-                    var endTime = new Date();
-                    var uploadTime = parseInt((endTime - startTime) / 1000, 10);
-                    $scope.signed.url = url;
-                    statusService.set('Verifying upload size');
-                    // oh how I wish I could do $http.get(url, params)
-                    $http({
-                        url: $appContainer.data('verify-size-url'),
-                        method: 'GET',
-                        params: {url: url},
-                    })
-                    .success(function(response) {
-                        hideUploadProgress(true);
-                        $scope.$apply(function() {
-                            eventService.setUploading(false);
-                        });
-                        $scope.signed.size = response.size;
-                        $scope.signed.upload_time = uploadTime;
-                        $scope.uploadSize = response.size_human;
-                        // console.log('Size verified', response);
-                        statusService.set('Saving upload');
-
-                        // The scrape is fired off at the same time as we
-                        // start the archiving and the order of these finishing
-                        // is not guaranteed. So setting this higher scope
-                        // boolean allows the interval of looking for picture
-                        // to be cancelled.
-                        var scrapeFailed = false;
-
-                        // Save will create an event that will have an upload
-                        $http.post(saveUrl, $scope.signed)
-                        .success(function(response) {
-                            // console.log('Upload saved', response);
-                            statusService.set('Upload saved', 2);
-                            // in case the user reloads when URL is /new/details
-                            sessionStorage.setItem('lastNewId', response.id);
-                            eventService.setId(response.id);
-
-                            // Archiving will submit the upload URL to vid.ly
-                            $http.post(
-                                archiveUrl.replace('0', eventService.getId())
-                            )
-                            .success(function(response) {
-                                statusService.set(
-                                    'Video sent in for transcoding', 3
-                                );
-
-                                // start looking for a picture
-                                var url = eventUrl.replace('0', eventService.getId());
-                                var keepLooking = $interval(function() {
-
-                                    if (scrapeFailed) {
-                                        // Some future version we might, here,
-                                        // remove the "Loading preview" thing
-                                        $interval.cancel(keepLooking);
-                                        return;
-                                    }
-
-                                    $http.get(url)
-                                    .success(function(response) {
-                                        if (response.event.picture) {
-                                            console.log("YAY we have a picture now");
-                                            eventService.setPicture(
-                                                response.event.picture
-                                            );
-                                            $interval.cancel(keepLooking);
-                                        } else {
-                                            console.log("No picture yet");
-                                        }
-                                    })
-                                    .error(function() {
-                                        console.error.apply(console, arguments);
-                                        $interval.cancel(keepLooking);
-                                    });
-                                }, 2 * 1000);
-
-                            })
-                            .error(console.error.bind(console));
-
-                            // Screencaps will use the S3 upload to make
-                            // screencaptures independent of Vid.ly
-                            $http.post(
-                                scrapeUrl.replace('0', eventService.getId())
-                            )
-                            .success(function() {
-                                statusService.set(
-                                    'Screencaptures scraped from the video', 3
-                                );
-                            })
-                            .error(function() {
-                                console.error.apply(console, arguments);
-                                scrapeFailed = true;
-                            });
-                        })
-                        .error(console.error.bind(console));
-                    })
-                    .error(console.error.bind(console));
-                }
-            }); // new S3Upload(...)
+            uploadService.setDataFile(file);
+            uploadService.startAndProcess();
 
         };
 
@@ -423,16 +216,15 @@ angular.module('new.controllers', ['new.services'])
 ])
 
 .controller('DetailsController',
-    ['$scope', '$stateParams', '$http', '$state', '$timeout', '$interval',
+    ['$scope', '$stateParams', '$http', '$state', '$timeout',
      'eventService', 'statusService', 'localProxy',
     function(
-        $scope, $stateParams, $http, $state, $timeout, $interval,
+        $scope, $stateParams, $http, $state, $timeout,
         eventService, statusService, localProxy
     ) {
         $scope.eventService = eventService;
         var $appContainer = angular.element('#content');
         var eventUrl = $appContainer.data('event-url');
-        var scrapeUrl = $appContainer.data('screencaptures-url');
         $scope.event = {};
         $scope.errors = {};
         $scope.hasErrors = false;
@@ -473,6 +265,7 @@ angular.module('new.controllers', ['new.services'])
             var lastId = sessionStorage.getItem('lastNewId');
             if (lastId) {
                 $state.go('details', {id: lastId});
+                sessionStorage.removeItem('lastNewId');
             } else {
                 $state.go('start');
             }
@@ -481,8 +274,7 @@ angular.module('new.controllers', ['new.services'])
             $scope.loading = false;
         } else {
             $scope.loading = true;
-            var url = eventUrl.replace('0', eventService.getId());
-            $http.get(url)
+            $http.get(eventUrl.replace('0', eventService.getId()))
             .success(function(response) {
                 if (response.event.status !== 'initiated') {
                     $state.go('published', {id: eventService.getId()});
@@ -507,32 +299,8 @@ angular.module('new.controllers', ['new.services'])
                 });
                 if (!$scope.picture) {
                     // we need to "force load this"
-                    $http.post(scrapeUrl.replace('0', $scope.event.id))
-                    .success(function() {
-                        console.log("Finished scraping");
-                    })
-                    .error(console.error.bind(console));
-
-                    var keepLookingAttempts = 0;
-                    var keepLooking = $interval(function() {
-                        console.log("Keep looking for a picture", url);
-                        $http.get(url)
-                        .success(function(response) {
-                            if (response.event.picture) {
-                                $scope.picture = response.event.picture;
-                                $interval.cancel(keepLooking);
-                            } else {
-                                keepLookingAttempts++;
-                                if (keepLookingAttempts > 20) {
-                                    $interval.cancel(keepLooking);
-                                }
-                            }
-                        })
-                        .error(function() {
-                            console.error.apply(console, arguments);
-                            $interval.cancel(keepLooking);
-                        });
-                    }, 2 * 1000);
+                    eventService.scrape($scope.event.id);
+                    eventService.lookForPicture($scope.event.id);
                 }
             })
             .error(eventService.handleErrorStatus);
@@ -572,16 +340,15 @@ angular.module('new.controllers', ['new.services'])
             // return false;
             $scope.errors = {};
             $scope.hasErrors = false;
-            var url = eventUrl.replace('0', eventService.getId());
             // exceptionally change the channels list of a plain list
             $scope.event.channels = encodeChannelsList($scope.event.channels);
-            $http.post(url, $scope.event)
+            $http.post(eventUrl.replace('0', eventService.getId()), $scope.event)
             .success(function(response) {
                 if (response.errors) {
                     $scope.hasErrors = true;
                     $scope.errors = response.errors;
                     console.warn(response.errors);
-                    statusService.set("Form submission error", 10);
+                    statusService.set('Form submission error', 10);
                     $scope.event.channels = decodeChannelsList(
                         $scope.event.channels
                     );
@@ -590,7 +357,7 @@ angular.module('new.controllers', ['new.services'])
                     $scope.event.channels = decodeChannelsList(
                         response.event.channels
                     );
-                    statusService.set("Event saved!", 3);
+                    statusService.set('Event saved!', 3);
                     if ($scope.event.picture) {
                         $state.go('summary', {id: eventService.getId()});
                     } else {
@@ -608,7 +375,7 @@ angular.module('new.controllers', ['new.services'])
         };
 
         $scope.toggleShowOtherChannels = function() {
-            $scope.showOtherChannels = ! $scope.showOtherChannels;
+            $scope.showOtherChannels = !$scope.showOtherChannels;
         };
 
     }
@@ -646,8 +413,9 @@ angular.module('new.controllers', ['new.services'])
         $scope.loading = true;
         $scope.stillLoading = false;
         var reFetching = false;
+        var reloadPromise = null;
         var displayAvailableScreencaptures = function() {
-            console.log("Continue to look for available screen captures", pictureUrl);
+            console.log('Continue to look for available screen captures');
             $http.get(pictureUrl)
             .success(function(response) {
                 // console.log(response);
@@ -655,7 +423,9 @@ angular.module('new.controllers', ['new.services'])
                     $scope.loading = false;
                     $scope.stillLoading = false;
                     if (response.thumbnails.length > 1) {
-                        $interval.cancel(reloadPromise);
+                        if (reloadPromise) {
+                            $interval.cancel(reloadPromise);
+                        }
                     }
                     $scope.thumbnails = response.thumbnails;
                 } else {
@@ -664,20 +434,24 @@ angular.module('new.controllers', ['new.services'])
                     if (response && !response.fetching && !reFetching) {
                         reFetching = true;
                         $http.post(scrapeUrl)
-                        .success(function(response) {
-                            if (!response.seconds) {
+                        .success(function(scrapeResponse) {
+                            if (!scrapeResponse.seconds) {
                                 $scope.loading = false;
                                 $scope.stillLoading = false;
                                 $scope.durationError = true;
-                                $interval.cancel(reloadPromise);
-                            } else if (!response.no_pictures) {
+                                if (reloadPromise) {
+                                    $interval.cancel(reloadPromise);
+                                }
+                            } else if (!scrapeResponse.no_pictures) {
                                 $scope.loading = false;
                                 $scope.stillLoading = false;
                                 $scope.picturesError = true;
-                                $interval.cancel(reloadPromise);
+                                if (reloadPromise) {
+                                    $interval.cancel(reloadPromise);
+                                }
                             } else {
                                 console.log(
-                                    "Finished screencaps scraping",
+                                    'Finished screencaps scraping',
                                     response
                                 );
                             }
@@ -688,18 +462,17 @@ angular.module('new.controllers', ['new.services'])
             })
             .error(console.error.bind(console));
         };
-
         displayAvailableScreencaptures(); // first load
-        var reloadPromise = $interval(displayAvailableScreencaptures, 3 * 1000);
+        reloadPromise = $interval(displayAvailableScreencaptures, 3 * 1000);
 
         $scope.pickThumbnail = function(thumbnail) {
             // unpick the other, if there was one
-            $scope.thumbnails.forEach(function(thumbnail) {
-                thumbnail.picked = false;
+            $scope.thumbnails.forEach(function(thisThumbnail) {
+                thisThumbnail.picked = false;
             });
             thumbnail.picked = true;
             $http.post(pictureUrl, {picture: thumbnail.id})
-            .success(function(response) {
+            .success(function() {
                 statusService.set('Chosen picture saved.', 3);
             })
             .error(console.error.bind(console));
@@ -760,7 +533,7 @@ angular.module('new.controllers', ['new.services'])
                 } else {
                     $timeout(function() {
                         fetchVideo();
-                        console.log("Rechecking if video is there now");
+                        console.log('Rechecking if video is there now');
                     }, 5 * 1000);
                 }
             })
@@ -789,7 +562,7 @@ angular.module('new.controllers', ['new.services'])
             $scope.publishing = true;
             $scope.publishingError = false;
             $http.post(publishUrl)
-            .success(function(response) {
+            .success(function() {
                 $state.go('published', {id: id});
                 $scope.publishing = false;
             })
@@ -810,6 +583,7 @@ angular.module('new.controllers', ['new.services'])
 .controller('PublishedController',
     ['$scope', '$stateParams', '$http', 'eventService',
     function($scope, $stateParams, $http, eventService) {
+        'use strict';
         var $appContainer = angular.element('#content');
         var id = $stateParams.id;
         var summaryUrl = $appContainer.data('summary-url').replace('0', id);
@@ -821,7 +595,7 @@ angular.module('new.controllers', ['new.services'])
         $http.get(summaryUrl)
         .success(function(response) {
             $scope.event = response.event;
-            $scope.event._abs_url = document.location.protocol + '//' +
+            $scope.event._absURL = document.location.protocol + '//' +
             document.location.hostname +
             response.event.url;
         })
@@ -834,7 +608,7 @@ angular.module('new.controllers', ['new.services'])
         .success(function(response) {
             $scope.video = response;
         })
-        .error(console.error.bind(console));
+        .error(eventService.handleErrorStatus);
 
     }
 ])
@@ -843,8 +617,8 @@ angular.module('new.controllers', ['new.services'])
     ['$scope',
     function($scope) {
         $scope.error = {
-            title: "Not Found",
-            message: "Page not found.",
+            title: 'Not Found',
+            message: 'Page not found.'
         };
     }
 ])
@@ -852,10 +626,11 @@ angular.module('new.controllers', ['new.services'])
 .controller('NotYoursController',
     ['$scope',
     function($scope) {
+        'use strict';
         $scope.error = {
-            title: "Not Yours",
-            message: "The page you tried to access tried to access data " +
-                     "about an event that doesn't belong to you.",
+            title: 'Not Yours',
+            message: 'The page you tried to access tried to access data ' +
+                     'about an event that doesn\'t belong to you.'
         };
     }
 ])

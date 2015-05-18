@@ -48,7 +48,7 @@
         <em ng-if="!event.title">no title</em>
       </a>
       <br>
-      <time title="{{ ::event._modified_formatted }}" am-time-ago="event.modified * 1000"></time>
+      <time title="{{ ::event._modifiedFormatted }}" am-time-ago="event.modified * 1000"></time>
       <br>
       <span ng-if="event.title && event.picture">
         Has details and picture, just needs to be published.
