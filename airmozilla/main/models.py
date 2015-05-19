@@ -367,6 +367,14 @@ class Event(models.Model):
                     return True
         return False
 
+    def is_prerecorded(self):
+        if self.location:
+            if self.location.name.startswith(
+               settings.DEFAULT_PRERECORDED_LOCATION[0]):
+                return True
+            return False
+        return True
+
     def has_vidly_template(self):
         return self.template and 'Vid.ly' in self.template.name
 
