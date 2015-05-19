@@ -579,7 +579,16 @@ class EventVideoView(EventView):
 
     def can_view_event(self, event, request):
         if self.embedded:
-            return event.privacy == Event.PRIVACY_PUBLIC
+            if event.privacy != Event.PRIVACY_PUBLIC:
+                # If you are the owner of it, it's fine, if we don't
+                # want any warnings
+                if (
+                    self.no_warning and
+                    request.user.is_active and request.user == event.creator
+                ):
+                    return True
+                return False
+            return True
         else:
             return super(EventVideoView, self).can_view_event(event, request)
 
@@ -604,13 +613,13 @@ class EventVideoView(EventView):
         url = reverse('main:event', kwargs={'slug': event.slug})
         context['absolute_url'] = root_url + url
         context['embedded'] = self.embedded
-        context['embedded'] = self.embedded
-        context['no_warning'] = request.GET.get('no-warning')
+        context['no_warning'] = self.no_warning
         context['no_footer'] = request.GET.get('no-footer')
         return context
 
     def get(self, request, slug):
         self.embedded = request.GET.get('embedded', 'true') == 'true'
+        self.no_warning = request.GET.get('no-warning')
 
         response = super(EventVideoView, self).get(request, slug)
         # ALLOWALL is what YouTube uses for sharing

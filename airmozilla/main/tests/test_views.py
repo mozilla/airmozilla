@@ -1888,6 +1888,8 @@ class TestPages(DjangoTestCase):
         event = Event.objects.get(title='Test event')
         event.privacy = Event.PRIVACY_COMPANY
         event.save()
+        event.template.content = "Hello world"
+        event.template.save()
 
         url = reverse('main:event_video', kwargs={'slug': event.slug})
         response = self.client.get(url)
@@ -1896,7 +1898,7 @@ class TestPages(DjangoTestCase):
         ok_("Not a public event" in response.content)
 
         # it won't help to be signed in
-        User.objects.create_user(
+        user = User.objects.create_user(
             'zandr', 'zandr@mozilla.com', 'secret'
         )
         assert self.client.login(username='zandr', password='secret')
@@ -1910,6 +1912,22 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_("Not a public event" not in response.content)
         eq_(response['X-Frame-Options'], 'DENY')  # back to the default
+
+        # will it help if it's your event?
+        event.creator = user
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_("Not a public event" in response.content)
+
+        # no, however if you add ?no-warning which is what the uploader
+        # does so you can get a preview in the summary page of YOUR
+        # event.
+        response = self.client.get(url, {'no-warning': 1})
+        eq_(response.status_code, 200)
+        eq_(response['X-Frame-Options'], 'ALLOWALL')
+        ok_("Not a public event" not in response.content)
+        ok_("Hello world" in response.content)
 
     def test_view_event_video_not_found(self):
         url = reverse('main:event_video', kwargs={'slug': 'xxxxxx'})
