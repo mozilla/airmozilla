@@ -49,10 +49,26 @@ def invalidate_latest_comment_cache(sender, instance, **kwargs):
 
 class Discussion(models.Model):
     event = models.ForeignKey(Event, unique=True)
-    enabled = models.BooleanField(default=False, db_index=True)
-    closed = models.BooleanField(default=False)
-    moderate_all = models.BooleanField(default=False)
-    notify_all = models.BooleanField(default=False)
+    enabled = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether comments will be available at all."
+    )
+    closed = models.BooleanField(
+        default=False,
+        help_text="Existing comments remain visible but the discussion is "
+                  "not open for new comments."
+    )
+    moderate_all = models.BooleanField(
+        default=False,
+        help_text="Moderators must approve all comments before "
+                  "they become visible."
+    )
+    notify_all = models.BooleanField(
+        default=False,
+        help_text="Moderators will receive an email about "
+                  "all new comments."
+    )
     moderators = models.ManyToManyField(User, related_name='moderators')
 
 

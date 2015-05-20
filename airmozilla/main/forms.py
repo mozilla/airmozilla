@@ -1,5 +1,8 @@
+import re
+
 from django import forms
 from django.db.models import Q
+from django.contrib.auth.models import User
 
 from airmozilla.base.forms import BaseModelForm, BaseForm, GallerySelect
 from airmozilla.main.models import (
@@ -8,6 +11,7 @@ from airmozilla.main.models import (
     Event,
     Channel,
 )
+from airmozilla.comments.models import Discussion
 
 
 class CalendarDataForm(BaseForm):
@@ -87,6 +91,45 @@ class EventEditForm(BaseModelForm):
         if not placeholder_img and not picture:
             raise forms.ValidationError('Events needs to have a picture')
         return cleaned_data
+
+
+class EventDiscussionForm(BaseModelForm):
+
+    moderators = forms.CharField(
+        widget=forms.widgets.Textarea()
+    )
+
+    class Meta:
+        model = Discussion
+        exclude = ('event', )
+
+    def __init__(self, *args, **kwargs):
+        self.event = kwargs.pop('event')
+        super(EventDiscussionForm, self).__init__(*args, **kwargs)
+
+        self.fields['moderators'].widget = forms.widgets.Textarea()
+        self.fields['moderators'].help_text = (
+            "One email address per line or separated by commas."
+        )
+
+    def clean_moderators(self):
+        value = self.cleaned_data['moderators']
+        emails = [x for x in re.split('[,\s]', value) if x.strip()]
+        users = []
+        for email in emails:
+            try:
+                users.append(User.objects.get(email__iexact=email))
+            except User.DoesNotExist:
+                raise forms.ValidationError(
+                    "{0} does not exist as a Air Mozilla user".format(
+                        email
+                    )
+                )
+        if not users:
+            raise forms.ValidationError(
+                "You must have at least one moderator"
+            )
+        return users
 
 
 class ExecutiveSummaryForm(BaseForm):

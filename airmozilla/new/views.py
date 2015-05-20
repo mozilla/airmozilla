@@ -37,6 +37,7 @@ from airmozilla.main.models import (
     Approval,
     get_profile_safely,
 )
+from airmozilla.comments.models import Discussion
 from airmozilla.uploads.models import Upload
 from airmozilla.manage import videoinfo
 from airmozilla.base.helpers import show_duration
@@ -540,6 +541,14 @@ def event_publish(request, event):
             # forcibly put it in the default channel(s)
             for channel in Channel.objects.filter(default=True):
                 event.channels.add(channel)
+
+        if not Discussion.objects.filter(event=event):
+            discussion = Discussion.objects.create(
+                event=event,
+                enabled=True,
+                notify_all=True
+            )
+            discussion.moderators.add(event.creator)
 
         if event.privacy == Event.PRIVACY_PUBLIC:
             for group in groups:
