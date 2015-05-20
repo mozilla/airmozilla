@@ -390,8 +390,11 @@ class EventView(View):
             request.user.is_staff and
             request.user.has_perm('main.change_event')
         )
-        can_edit_event = (
-            request.user.is_active
+        can_edit_event = request.user.is_active
+        can_edit_discussion = (
+            can_edit_event and
+            request.user == event.creator and
+            Discussion.objects.filter(event=event)
         )
 
         request.channels = event.channels.all()
@@ -416,6 +419,7 @@ class EventView(View):
             'warning': warning,
             'can_manage_edit_event': can_manage_edit_event,
             'can_edit_event': can_edit_event,
+            'can_edit_discussion': can_edit_discussion,
             'Event': Event,
             'hits': hits,
             'tags': [t.name for t in event.tags.all()],
@@ -851,6 +855,83 @@ class EventEditView(EventView):
                 if base_revision:
                     base_revision.delete()
 
+            return redirect('main:event', event.slug)
+
+        return self.get(request, slug, form=form)
+
+
+class EventDiscussionView(EventView):
+    template_name = 'main/event_discussion.html'
+
+    def can_edit_discussion(self, event, request):
+        # this might change in the future to only be
+        # employees and vouched mozillians
+        return (
+            request.user.is_active and
+            request.user == event.creator and
+            Discussion.objects.filter(event=event)
+        )
+
+    def cant_edit_discussion(self, event, user):
+        return redirect('main:event', event.slug)
+
+    def get_event_safely(self, slug, request):
+        event = self.get_event(slug, request)
+        if isinstance(event, http.HttpResponse):
+            return event
+
+        if not self.can_view_event(event, request):
+            return self.cant_view_event(event, request)
+        if not self.can_edit_discussion(event, request):
+            return self.cant_edit_discussion(event, request)
+
+        return event
+
+    def get(self, request, slug, form=None):
+        event = self.get_event_safely(slug, request)
+        if isinstance(event, http.HttpResponse):
+            return event
+
+        discussion = Discussion.objects.get(event=event)
+
+        if form is None:
+            initial = {
+                'moderators': ', '.join(
+                    x.email for x in discussion.moderators.all()
+                ),
+            }
+            form = forms.EventDiscussionForm(
+                instance=discussion,
+                event=event,
+                initial=initial,
+            )
+
+        context = {
+            'event': event,
+            'form': form,
+        }
+        return render(request, self.template_name, context)
+
+    @transaction.commit_on_success
+    @json_view
+    def post(self, request, slug):
+        event = self.get_event_safely(slug, request)
+        if isinstance(event, http.HttpResponse):
+            return event
+
+        if 'cancel' in request.POST:
+            return redirect('main:event', event.slug)
+
+        discussion = Discussion.objects.get(event=event)
+
+        form = forms.EventDiscussionForm(
+            request.POST,
+            instance=discussion,
+            event=event,
+        )
+
+        if form.is_valid():
+            form.save()
             return redirect('main:event', event.slug)
 
         return self.get(request, slug, form=form)

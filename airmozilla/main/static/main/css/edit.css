@@ -6,6 +6,10 @@
     height: 140px;
 }
 
+#id_title {
+    font-size: 150%;
+}
+
 button.btn-primary {
     font-weight: bold;
 }

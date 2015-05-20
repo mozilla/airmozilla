@@ -140,9 +140,6 @@ class DetailsForm(BaseModelForm):
             final_tags.append(t)
         return final_tags
 
-    # def clean_channels(self):
-    #     raise NotImplementedError(self.cleaned_data['channels'])
-
 
 class PictureForm(BaseModelForm):
 

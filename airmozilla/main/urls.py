@@ -69,6 +69,8 @@ urlpatterns = patterns(
     url(r'^(?P<slug>[-\w]+)/(?P<id>\d+)/change/$',
         views.EventRevisionView.as_view(),
         name='event_change'),
+    url(r'^(?P<slug>[-\w]+)/discussion/$', views.EventDiscussionView.as_view(),
+        name='event_discussion'),
     url(r'^(?P<slug>[-\w]+)/(?P<id>\d+)/difference/$',
         views.EventRevisionView.as_view(difference=True),
         name='event_difference'),

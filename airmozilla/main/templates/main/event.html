@@ -273,6 +273,12 @@
                 <a href="{{ url('main:event_edit', event.slug) }}"
                    title="Click to edit any of the meta data about this event">Edit event data &raquo;</a>
               </p>
+              {% if can_edit_discussion %}
+              <p>
+                <a href="{{ url('main:event_discussion', event.slug) }}"
+                   title="You are allowed to configure the discussion on this event">Change discussion configuration &raquo;</a>
+              </p>
+              {% endif %}
             {% endif %}
           </div>
         </div>
