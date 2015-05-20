@@ -310,9 +310,12 @@ function EventManagerController($scope, $http, $interval, $localForage) {
         });
     }
 
+    $scope.load_error = null;
+
     function loadAll() {
         fetchEvents({})
           .success(function(data) {
+              $scope.load_error = null;
               $localForage.setItem('eventmanager', data);
               $scope.events = data.events;
               $scope.reading_from_cache = false;
@@ -320,11 +323,14 @@ function EventManagerController($scope, $http, $interval, $localForage) {
               // every 10 seconds, look for for changed events
               $interval(lookForModifiedEvents, 10 * 1000);
           }).error(function(data, status) {
-              console.warn('Failed to fetch ALL events', status);
+              console.log(data, status);
+              $scope.load_error = 'Failed to fetch ALL events (' + status + ')';
           }).finally(function() {
               $scope.second_loading = false;
           });
     }
+
+    $scope.retryLoadAll = loadAll;
 
     function loadSome() {
         fetchEvents({limit: $scope.pageSize})
