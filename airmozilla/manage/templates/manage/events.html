@@ -56,7 +56,16 @@
 
   {% raw %}
 
-  <table class="table table-striped table-bordered" ng-class="{hidden: loading}">
+  <div class="alert alert-danger" ng-if="load_error">
+    <h4>Loading Error</h4>
+    <p>Unable to download all the events at the moment.</p>
+    <p><code>{{ load_error }}</code></p>
+    <p>
+      <button type="button" class="btn btn-primary" ng-click="retryLoadAll()">Try again</button>
+    </p>
+  </div>
+
+  <table class="table table-striped table-bordered" ng-if="!load_error" ng-class="{hidden: loading}">
     <thead>
       <tr>
         <th style="width: 50px" title="Number of events found">
