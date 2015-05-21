@@ -65,7 +65,7 @@
     </p>
   </div>
 
-  <table class="table table-striped table-bordered" ng-if="!load_error" ng-class="{hidden: loading}">
+  <table class="table table-striped table-bordered" ng-class="{hidden: loading || load_error}">
     <thead>
       <tr>
         <th style="width: 50px" title="Number of events found">
