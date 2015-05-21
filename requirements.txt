@@ -99,7 +99,7 @@ django-appconf==0.6
 django-nose==1.3
 # sha256: RORjnsBXprap3duGnU46SBj8knjsSQzOOa7whEBZKpM
 django-session-csrf==0.5
-# sha256: i8pS00-rg-P2l9AuFWJb12bqLJL7FVXGYFfsElkMwZ0
+# sha256: ih29HHrehSBq53DJzl9DCBoJjJX5lK8RP2Q06QBVmmc
 https://github.com/jbalogh/test-utils/archive/e42e031.zip#egg=test-utils
 # sha256: sGqGRRqZ1sJr-mUIKZnb9ljgh-WW6SkszmiLU-q6qto
 django-sha2==0.4
@@ -117,7 +117,7 @@ fancy-tag==0.2.0
 commonware==0.4.2
 # sha256: LRy1WDkWc99RCaP-XoT95hYO3IskGz6xmrPTq-m43zE
 cef==0.5
-# sha256: -fUE8yboUH-tNZdMGuX5HUpzX7M-VWtu2PXsEGBUpHM
+# sha256: aLzPfWX4LppstFym1qD3o35lVH9HUNrrmjq9wcvd9hI
 https://github.com/mozilla/nuggets/archive/ce50688.zip#egg=nuggets
 # sha256: pucH2csXyL8eVTcTrRSzEnSoHVwM4PziGwKTbQ79fbs
 html5lib==0.95
