@@ -20,12 +20,12 @@ Air Mozilla | Mozilla, in Video
     <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('starred/css/star_event.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/main.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ static('main/css/minimal-tabzilla.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/autocompeter/autocompeter.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/autocompeter.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('browserid/persona-buttons.css') }}" rel="stylesheet" type="text/css">
   {% endcompress %}
 
-  <link href="//mozorg.cdn.mozilla.net/media/css/tabzilla-min.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -158,7 +158,6 @@ Air Mozilla | Mozilla, in Video
 {% block site_js %}
   {{ super() }}
   {# the day Air Mozilla uses L10n we can remove this /en-US/ here. For now it reduces redirects. #}
-  {% if not DEV %}<script src="//mozorg.cdn.mozilla.net/en-US/tabzilla/tabzilla.js" defer></script>{% endif %}
 
   {% if include_autocompeter %}
   <autocompeter
@@ -185,5 +184,10 @@ Air Mozilla | Mozilla, in Video
   <script src="{{ static('main/js/autocompeter.js') }}"></script>
   {% endcompress %}
   {% endif %}
+
+  {% compress js %}
+  <script src="{{ static('main/js/include-tabzilla.js') }}"></script>
+  {% endcompress %}
+
 
 {% endblock %}
