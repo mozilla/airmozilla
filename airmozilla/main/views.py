@@ -1221,7 +1221,7 @@ def calendar_data(request):
 
     privacy_filter = {}
     privacy_exclude = {}
-    events = Event.objects.all()
+    events = Event.objects.scheduled()
     if request.user.is_active:
         if is_contributor(request.user):
             privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
