@@ -3,8 +3,8 @@
 set -e
 
 echo "Install Python dependencies"
-pip install -r requirements.txt
-pip install -r dev-requirements.txt
+pip install --no-deps -r requirements.txt
+pip install --no-deps -r dev-requirements.txt
 
 echo "Creating a test database"
 psql -c 'create database airmozilla;' -U postgres
