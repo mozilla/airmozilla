@@ -2091,6 +2091,16 @@ class TestPages(DjangoTestCase):
         eq_(item['title'], test_event.title)
         eq_(item['url'], reverse('main:event', args=(test_event.slug,)))
 
+        test_event.status = Event.STATUS_REMOVED
+        test_event.save()
+        response = self.client.get(url, {
+            'start': first_date,
+            'end': last_date
+        })
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        ok_(not structure)
+
     def test_calendar_data_privacy(self):
         url = reverse('main:calendar_data')
         response = self.client.get(url)
