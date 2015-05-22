@@ -1,5 +1,4 @@
 import datetime
-import json
 
 from nose.tools import eq_, ok_
 import mock
@@ -17,6 +16,7 @@ from airmozilla.main.models import (
     Approval
 )
 from .base import ManageTestCase
+from airmozilla.base.tests.test_utils import Response
 
 
 class TestEventTweets(ManageTestCase):
@@ -34,11 +34,12 @@ class TestEventTweets(ManageTestCase):
     }
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
-    @mock.patch('urllib.urlopen')
-    def test_prepare_new_tweet(self, p_urlopen):
+    @mock.patch('requests.get')
+    def test_prepare_new_tweet(self, rget):
 
-        def mocked_read():
-            r = {
+        def mocked_read(url, params):
+            assert url == settings.BITLY_URL
+            return Response({
                 u'status_code': 200,
                 u'data': {
                     u'url': u'http://mzl.la/1adh2wT',
@@ -48,10 +49,9 @@ class TestEventTweets(ManageTestCase):
                     u'new_hash': 0
                 },
                 u'status_txt': u'OK'
-            }
-            return json.dumps(r)
+            })
 
-        p_urlopen().read.side_effect = mocked_read
+        rget.side_effect = mocked_read
 
         event = Event.objects.get(title='Test event')
         # the event must have a real placeholder image
@@ -88,6 +88,17 @@ class TestEventTweets(ManageTestCase):
         event_url += reverse('main:event', args=(event.slug,))
         ok_('http://mzl.la/1adh2wT' in textarea)
         ok_(event_url not in textarea)
+
+        # Sometimes, due to...
+        # https://bugzilla.mozilla.org/show_bug.cgi?id=1167211
+        # the session is cleared out here in this test, so we
+        # really make sure we're signed in
+        assert self.client.login(username='fake', password='fake')
+        assert self.client.session.items()
+
+        # load the form
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
 
         # try to submit it with longer than 140 characters
         response = self.client.post(url, {

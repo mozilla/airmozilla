@@ -2,11 +2,11 @@ import time
 import datetime
 import re
 import urllib
-import json
 import subprocess
 import os
 
 import pytz
+import requests
 from slugify import slugify
 
 from django.core.handlers.wsgi import WSGIRequest
@@ -47,14 +47,14 @@ def shorten_url(url):
     """return the URL shortened with Bit.ly"""
     if not settings.BITLY_ACCESS_TOKEN:
         raise ImproperlyConfigured('BITLY_ACCESS_TOKEN not set')
-    bitly_base_url = 'https://api-ssl.bitly.com/v3/shorten'
-    qs = urllib.urlencode({
-        'access_token': settings.BITLY_ACCESS_TOKEN,
-        'longUrl': url
-    })
-    bitly_url = '%s?%s' % (bitly_base_url, qs)
-    response = urllib.urlopen(bitly_url).read()
-    result = json.loads(response)
+    response = requests.get(
+        settings.BITLY_URL,
+        params={
+            'access_token': settings.BITLY_ACCESS_TOKEN,
+            'longUrl': url
+        }
+    )
+    result = response.json()
     if result.get('status_code') == 500:
         raise ValueError(result.get('status_txt'))
     return result['data']['url']
