@@ -92,8 +92,7 @@ requests-oauthlib==0.4.2
 bleach==1.2.1
 # sha256: o71QUd0X6dUOip8tNiUI6C1wYwEP3AbV4HzjYI54D-Y
 jingo==0.7
-# sha256: qI7Y-5I6U8cMLEb75FCLX4Fka0sBQB8VaKghZxszIVw
-# sha256: 53T3tTehlADKaH9I01KrdGFzKsQThd2I_a1Hie-tKcU
+# sha256: BrZLrybHpDbLuBRk56UAR66jDbEFnb5uCdxEPvojuiA
 django-appconf==0.6
 # sha256: NmfSakH-wwNkoO9yWAgyylMogC1VP21ucq9awhyzY2U
 django-nose==1.3
