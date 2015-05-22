@@ -2,6 +2,11 @@
 
 {% block content_main %}
 
+{# to show before any of the javascript has loaded #}
+<div class="loading-outer-medium basic-loading">
+  <p class="loading">Loading application</p>
+</div>
+
 <!-- this is update by a piece of jQuery -->
 <div id="progress" style="display:none">
   <div class="progress-bar" id="progressbar">
@@ -14,7 +19,7 @@
 </div>
 
 <div ng-controller="UploadProblemController" ng-show="upload.hasFailed()"
-     class="alert alert-danger show-hide">
+     class="alert alert-danger show-hide" ng-cloak>
   <h4>Upload Error</h4>
   <p>An unexpected upload error occurred. Sorry.</p>
   <button type="button" ng-click="retryUpload()">Retry Upload</button>
@@ -27,7 +32,7 @@
 </script>
 
 {% raw %}
-<div ng-controller="StatusController" id="status" ng-show="status.get()">
+<div ng-controller="StatusController" id="status" ng-show="status.get()" ng-cloak>
   <p><b>Status:</b> {{ status.get() }}</p>
 </div>
 {% endraw %}

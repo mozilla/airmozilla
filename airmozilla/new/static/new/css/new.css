@@ -1,3 +1,8 @@
+[ng-cloak],
+.ng-cloak {
+  display: none !important;
+}
+
 input.has-error,
 textarea.has-error {
     border: 1px solid darkred;
@@ -263,4 +268,91 @@ button.delete-button, button.delete-confirm, button.delete-cancel {
 .picture-options button {
     font-size: 70%;
     padding: 5px 8px;
+}
+
+
+video {
+    width: 100%;
+    border-radius: 4px;
+}
+video.recording {
+    box-shadow: 0 0 30px 7px #f9493c;
+    /*box-shadow: 0 -2px 0 rgba(0,0,0,0.2) inset !important;*/
+    -webkit-animation-name: redPulse;
+    -webkit-animation-duration: 2s;
+    -webkit-animation-iteration-count: infinite;
+    -moz-animation-name: redPulse;
+    -moz-animation-duration: 2s;
+    -moz-animation-iteration-count: infinite;
+    animation-name: redPulse;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+video.ready {
+    box-shadow: 0 0 9px 2px #5de243;
+}
+
+@-webkit-keyframes redPulse {
+  from { background-color: #f9493c; -webkit-box-shadow: 0 0 9px #333; }
+  50% { background-color: #f9493c; -webkit-box-shadow: 0 0 18px #f9493c; }
+  to { background-color: #f9493c; -webkit-box-shadow: 0 0 9px #333; }
+}
+@-moz-keyframes redPulse {
+  from { background-color: #f9493c; -moz-box-shadow: 0 0 9px #333; }
+  50% { background-color: #f9493c; -moz-box-shadow: 0 0 18px #f9493c; }
+  to { background-color: #f9493c; -moz-box-shadow: 0 0 9px #333; }
+}
+@keyframes redPulse {
+  from { background-color: #f9493c; box-shadow: 0 0 9px #333; }
+  50% { background-color: #f9493c; box-shadow: 0 0 18px #f9493c; }
+  to { background-color: #f9493c; box-shadow: 0 0 9px #333; }
+}
+
+/*@-moz-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1.0; }
+}
+@-webkit-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1.0; }
+}
+@keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1.0; }
+}*/
+
+
+.video-outer {
+    position: relative;
+}
+.video-outer .start-stop-button,
+.video-outer .countdown {
+    text-align: center;
+    z-index: 100;
+    position: absolute;
+}
+.video-outer .countdown {
+    left: 40%;
+    top: 14%;
+    font-size: 2000%;
+    font-weight: bold;
+}
+.video-outer .start-stop-button {
+    left: 45%;
+    top: 45%;
+}
+.video-outer .about-filesize {
+    font-size: 80%;
+}
+.after-recording {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.extra-note {
+    margin-top: 110px;
+    font-size: 80%;
 }

@@ -1,10 +1,19 @@
-/* global $ angular console document */
+/* global $ angular console document RecordRTC */
 
 
 angular.module('new.controllers', ['new.services'])
 
 .filter('filesize', function () {
     return humanFileSize;
+})
+
+.filter('formattime', function() {
+    return function(seconds) {
+        if (!seconds) {
+            return '';
+        }
+        return humanizeDuration(seconds * 1000);
+    };
 })
 
 .directive('stopEvent', function () {
@@ -81,7 +90,6 @@ angular.module('new.controllers', ['new.services'])
                     event._video = videoResponse;
                     if (!videoResponse.tag) {
                         // it must have been a straggler that wasn't submitted
-                        console.log('Re-archiving', event.id);
                         $http.post(archiveUrl.replace('0', event.id))
                         .success(function() {
                             $http.get(url)
@@ -127,7 +135,6 @@ angular.module('new.controllers', ['new.services'])
     }
 ])
 
-
 // from http://uncorkedstudios.com/blog/multipartformdata-file-upload-with-angularjs
 .directive('fileModel', ['$parse', function ($parse) {
     return {
@@ -164,10 +171,10 @@ angular.module('new.controllers', ['new.services'])
 )
 
 .controller('UploadController',
-    ['$scope', '$http', '$state', '$interval',
+    ['$scope', '$state', '$interval',
      'statusService', 'eventService', 'uploadService',
     function(
-        $scope, $http, $state, $interval,
+        $scope, $state, $interval,
         statusService, eventService, uploadService
     ) {
         $scope.fileError = null;
@@ -198,14 +205,169 @@ angular.module('new.controllers', ['new.services'])
                 return;
             }
 
-            // statusService.set('Uploading video file...');
-            // eventService.setUploading(true);
-            $state.go('preemptiveDetails');
+            // make sure there's no lingering started event
+            sessionStorage.removeItem('lastNewId');
             uploadService.setDataFile(file);
             uploadService.startAndProcess();
+            $state.go('preemptiveDetails');
 
         };
 
+    }
+])
+
+.controller('RecordController',
+    ['$scope', '$state', '$timeout', '$interval',
+     'statusService', 'eventService', 'uploadService', 'staticService',
+    function(
+        $scope, $state, $timeout, $interval,
+        statusService, eventService, uploadService, staticService
+    ) {
+        var $appContainer = angular.element('#content');
+        staticService($appContainer.data('recordrtc-url'));
+        staticService($appContainer.data('humanizeduration-url'));
+
+        $scope.fileError = null;
+
+        // var acceptedFiles = [
+        //     'video/webm',
+        //     'video/quicktime',
+        //     'video/mp4',
+        //     'video/x-flv',
+        //     'video/ogg',
+        //     'video/x-msvideo',
+        //     'video/x-ms-wmv',
+        //     'video/x-m4v'
+        // ];
+
+        var recorder = null;
+        var stream = null;
+
+        $scope.cameraStarted = false;
+        $scope.showRecorderVideo = false;
+        $scope.showPlaybackVideo = false;
+
+
+        function getUserMedia(config, callback, errorCallback) {
+            navigator.getUserMedia = navigator.mozGetUserMedia || navigator.webkitGetUserMedia;
+            // console.log(getUserMedia); // XXX iOS? Opera? FirefoxOS?
+
+            navigator.getUserMedia(config, callback, errorCallback);
+            // navigator.getUserMedia(config, function(stream) {
+            //     video_stream = stream;
+            //     var video = $('video.recorder')[0];
+            //     video.src = URL.createObjectURL(stream);
+            //     video.muted = config.muted || false;
+            //     video.controls = config.controls || false;
+            //     video.play();
+            //
+            //     callback(stream);
+            // }, function(error) {
+            //     errorCallback(error);
+            // });
+        }
+
+        $scope.startCamera = function() {
+            var conf = {
+                audio: true,
+                video: {
+                    width: 1280,
+                    height: 720
+                }
+                // muted: true,
+                // controls: false
+            };
+
+            getUserMedia(conf, function(_stream) {
+                stream = _stream;
+                var video = document.querySelector('video.recorder');
+                video.src = URL.createObjectURL(_stream);
+                video.muted = true;//conf.muted;
+                video.controls = false;//conf.controls;
+                video.play();
+                recorder = RecordRTC(_stream, {
+                    // Hmm, I wonder what other options we have here
+                    type: 'video'
+                });
+                $scope.$apply(function() {
+                    $scope.cameraStarted = true;
+                    $scope.showRecorderVideo = true;
+
+                });
+            }, function(error) {
+                // XXX this needs better error handling that is user-friendly
+                console.warn('Unable to get the getUserMedia stream');
+                console.error(error);
+            });
+
+        };
+
+        $scope.duration = 0;
+        $scope.videoSize = 0;
+        var durationPromise;
+        function startDurationCounter() {
+            $scope.duration = 0;
+            durationPromise = $interval(function() {
+                $scope.duration++;
+            }, 1000);
+        }
+
+        function stopDurationCounter() {
+            $interval.cancel(durationPromise);
+        }
+
+        $scope.startRecording = function() {
+            $scope.countdown = 3;
+            var countdownPromise = $interval(function() {
+                $scope.countdown--;
+                if ($scope.countdown < 1) {
+                    $interval.cancel(countdownPromise);
+                    startDurationCounter();
+                    recorder.startRecording();
+                    $scope.recording = true;
+                }
+            }, 1000);
+        };
+
+        var videoBlob;
+
+        $scope.stopRecording = function() {
+            stopDurationCounter();
+            recorder.stopRecording(function(url) {
+                $scope.recording = false;
+                videoBlob = recorder.getBlob();
+                $scope.videoSize = videoBlob.size;
+                var video = document.querySelector('video.playback');
+                video.src = url;
+                video.muted = false;
+                video.controls = true;
+                $scope.$apply(function() {
+                    $scope.showRecorderVideo = false;
+                    $scope.showPlaybackVideo = true;
+                });
+                stream.stop();
+            });
+        };
+
+        $scope.uploadRecording = function() {
+            // make sure there's no lingering started event
+            sessionStorage.removeItem('lastNewId');
+
+            // $state.go('preemptiveDetails');
+            uploadService.setDataFile(videoBlob);
+            uploadService.startAndProcess($scope.duration);
+            $state.go('preemptiveDetails');
+        };
+
+        $scope.resetRecording = function() {
+            $scope.cameraStarted = false;
+            $scope.recording = false;
+            $scope.showRecorderVideo = true;
+            $scope.showPlaybackVideo = false;
+            $scope.duration = 0;
+            $scope.videoSize = 0;
+            $scope.startCamera();
+        };
     }
 ])
 
@@ -254,7 +416,6 @@ angular.module('new.controllers', ['new.services'])
         }
 
         // $scope.loading=true;return;
-
         if (eventService.getId() === null && !eventService.isUploading()) {
             var lastId = sessionStorage.getItem('lastNewId');
             if (lastId) {
@@ -330,8 +491,6 @@ angular.module('new.controllers', ['new.services'])
 
         $scope.save = function() {
             statusService.set('Saving event', 1);
-            // console.log($scope.event);
-            // return false;
             $scope.errors = {};
             $scope.hasErrors = false;
             // exceptionally change the channels list of a plain list
@@ -409,10 +568,8 @@ angular.module('new.controllers', ['new.services'])
         var reFetching = false;
         var reloadPromise = null;
         var displayAvailableScreencaptures = function() {
-            console.log('Continue to look for available screen captures');
             $http.get(pictureUrl)
             .success(function(response) {
-                // console.log(response);
                 if (response && response.thumbnails) {
                     $scope.loading = false;
                     $scope.stillLoading = false;
@@ -513,9 +670,8 @@ angular.module('new.controllers', ['new.services'])
         function showIframe() {
             var iframeUrl = $appContainer.data('iframe-url')
                 .replace('slug', $scope.event.slug) +
-                '?no-warning=1&no-footer=1'
-                ;
-            $scope.video.iframe_src = $sce.trustAsResourceUrl(iframeUrl);
+                '?no-warning=1&no-footer=1';
+            $scope.video.iframeSrc = $sce.trustAsResourceUrl(iframeUrl);
         }
 
         function fetchVideo() {
@@ -527,7 +683,7 @@ angular.module('new.controllers', ['new.services'])
                 } else {
                     $timeout(function() {
                         fetchVideo();
-                        console.log('Rechecking if video is there now');
+                        // console.log('Rechecking if video is there now');
                     }, 5 * 1000);
                 }
             })
@@ -628,5 +784,6 @@ angular.module('new.controllers', ['new.services'])
         };
     }
 ])
+
 
 ;

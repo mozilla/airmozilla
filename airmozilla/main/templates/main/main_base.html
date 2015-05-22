@@ -51,8 +51,8 @@ Air Mozilla | Mozilla, in Video
                 {% if nav_main['unfinished_events'] %}  {# comes from the nav_bar context processor #}
                 <li><a href="{{ url('new:home') }}">Unfinished Videos ({{ nav_main['unfinished_events'] }})</a></li>
                 {% endif %}
-                <li><a href="{{ url('new:home') }}">Webcamera Video</a></li>
-                <li><a href="{{ url('new:home') }}/upload">Upload Video</a></li>
+                <li><a href="{{ url('new:home') }}record">Web Camera Video</a></li>
+                <li><a href="{{ url('new:home') }}upload">Upload Video</a></li>
                 <li><a href="{{ url('suggest:start') }}#new-upcoming">Upcoming Event</a></li>
                 <li><a href="{{ url('suggest:start') }}#new-popcorn">Popcorn Video</a></li>
               </ul>
