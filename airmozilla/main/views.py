@@ -971,7 +971,7 @@ def events_calendar_ical(request, privacy=None):
     cal = vobject.iCalendar()
 
     now = timezone.now()
-    base_qs = Event.objects.all()
+    base_qs = Event.objects.scheduled()
     if privacy == 'public':
         base_qs = base_qs.approved().filter(
             privacy=Event.PRIVACY_PUBLIC
