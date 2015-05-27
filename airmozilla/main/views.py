@@ -1006,7 +1006,9 @@ def events_calendar_ical(request, privacy=None):
         vevent.add('description').value = short_desc(event, strip_html=True)
         if event.location:
             vevent.add('location').value = event.location.name
-        vevent.add('url').value = base_url + event.slug + '/'
+        vevent.add('url').value = (
+            base_url + reverse('main:event', args=(event.slug,))
+        )
     icalstream = cal.serialize()
     # response = http.HttpResponse(
     #     icalstream,
