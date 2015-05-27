@@ -1345,7 +1345,11 @@ def event_assignments(request):
 
     events = []
     now = timezone.now()
-    qs = Event.objects.filter(start_time__gte=now)
+    qs = (
+        Event.objects
+        .exclude(status=Event.STATUS_REMOVED)
+        .filter(start_time__gte=now)
+    )
     for event in qs.order_by('start_time'):
         try:
             assignment = EventAssignment.objects.get(event=event)
