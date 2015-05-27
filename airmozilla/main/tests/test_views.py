@@ -560,12 +560,33 @@ class TestPages(DjangoTestCase):
         response_private = self.client.get(private_url)
         eq_(response_private.status_code, 200)
         # Cache tests
-        event_change = Event.objects.get(id=22)
+        event_change = Event.objects.get(title='Test event')
         event_change.title = 'Hello cache clear!'
         event_change.save()
         response_changed = self.client.get(url)
         ok_(response_changed.content != response_public.content)
         ok_('cache clear!' in response_changed.content)
+
+    def test_calendar_ical_filter_by_status(self):
+        event = Event.objects.get(title='Test event')
+        assert event.status == Event.STATUS_SCHEDULED
+
+        url = self._calendar_url('public')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+
+        event.status = Event.STATUS_REMOVED
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+
+        event.status = Event.STATUS_PENDING
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
 
     def test_calendar_duration(self):
         """Test the behavior of duration in the iCal feed."""
