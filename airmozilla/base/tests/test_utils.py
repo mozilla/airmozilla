@@ -1,11 +1,21 @@
-import json
 import time
 import datetime
 import pytz
 from unittest import TestCase
-from nose.tools import eq_
+
+from nose.tools import eq_, assert_raises
 from mock import patch
+
 from airmozilla.base import utils
+
+
+class Response(object):
+    def __init__(self, content=None, status_code=200):
+        self.content = content
+        self.status_code = status_code
+
+    def json(self):
+        return self.content
 
 
 class TestMisc(TestCase):
@@ -50,17 +60,16 @@ class TestEdgecastTokenize(TestCase):
             return _Communicator(['', 'Not good'])
 
         p_subprocess.Popen = mocked_popen
-        self.assertRaises(utils.EdgecastEncryptionError,
-                          utils.edgecast_tokenize)
+        assert_raises(utils.EdgecastEncryptionError, utils.edgecast_tokenize)
 
 
 class TestBitlyURLShortener(TestCase):
 
-    @patch('urllib.urlopen')
-    def test_url_shortener_ok(self, p_urlopen):
+    @patch('requests.get')
+    def test_url_shortener_ok(self, rget):
 
-        def mocked_read():
-            r = {
+        def mocked_read(url, params):
+            return Response({
                 u'status_code': 200,
                 u'data': {
                     u'url': u'http://mzl.la/1adh2wT',
@@ -70,28 +79,26 @@ class TestBitlyURLShortener(TestCase):
                     u'new_hash': 0
                 },
                 u'status_txt': u'OK'
-            }
-            return json.dumps(r)
+            })
 
-        p_urlopen().read.side_effect = mocked_read
+        rget.side_effect = mocked_read
         url = 'https://air.mozilla.org/something/'
         short = utils.shorten_url(url)
         eq_(short, 'http://mzl.la/1adh2wT')
 
-    @patch('urllib.urlopen')
-    def test_url_shortener_error(self, p_urlopen):
+    @patch('requests.get')
+    def test_url_shortener_error(self, rget):
 
-        def mocked_read():
-            r = {
+        def mocked_read(url, params):
+            return Response({
                 u'status_code': 500,
                 u'data': [],
                 u'status_txt': u'INVALID_URI'
-            }
-            return json.dumps(r)
+            })
 
-        p_urlopen().read.side_effect = mocked_read
+        rget.side_effect = mocked_read
         url = 'https://air.mozilla.org/something/'
-        self.assertRaises(ValueError, utils.shorten_url, url)
+        assert_raises(ValueError, utils.shorten_url, url)
 
 
 class TestDotDict(TestCase):

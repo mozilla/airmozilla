@@ -254,6 +254,7 @@ URL_TRANSFORM_PASSWORDS = {}
 # Bit.ly URL shortener access token
 # See README about how to generate one
 BITLY_ACCESS_TOKEN = None
+BITLY_URL = 'https://api-ssl.bitly.com/v3/shorten'
 
 # Overridden so we can depend on more complex checking
 BROWSERID_VERIFY_CLASS = '%s.auth.views.CustomBrowserIDVerify' % PROJECT_MODULE

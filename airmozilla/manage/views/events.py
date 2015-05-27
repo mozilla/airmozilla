@@ -997,7 +997,7 @@ def new_event_tweet(request, id):
         try:
             abs_url = shorten_url(abs_url)
             data['shortener_error'] = None
-        except (ImproperlyConfigured, ValueError) as err:
+        except (ImproperlyConfigured, ValueError) as err:  # pragma: no cover
             data['shortener_error'] = str(err)
         # except OtherHttpRelatedErrors?
         #    data['shortener_error'] = "Network error trying to shorten URL"
