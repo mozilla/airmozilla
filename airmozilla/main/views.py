@@ -262,6 +262,7 @@ def can_view_event(event, user):
         if not is_contributor(user):
             # staff can always see it
             return True
+
         curated_groups = [
             x[0] for x in
             CuratedGroup.objects.filter(event=event).values_list('name')
@@ -402,15 +403,6 @@ class EventView(View):
         # needed for the open graph stuff
         event.url = reverse('main:event', args=(event.slug,))
 
-        # needed for the _event_privacy.html template
-        curated_groups = [
-            x[0] for x in
-            CuratedGroup.objects
-            .filter(event=event)
-            .values_list('name')
-            .order_by('name')
-        ]
-
         context = self.get_default_context(event, request)
         context.update({
             'event': event,
@@ -424,7 +416,8 @@ class EventView(View):
             'hits': hits,
             'tags': [t.name for t in event.tags.all()],
             'channels': request.channels,
-            'curated_groups': curated_groups,
+            # needed for the _event_privacy.html template
+            'curated_groups': CuratedGroup.get_names(event),
         })
 
         if (

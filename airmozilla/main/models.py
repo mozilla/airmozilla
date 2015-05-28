@@ -470,6 +470,31 @@ class CuratedGroup(models.Model):
     url = models.URLField(null=True)
     created = models.DateTimeField(default=_get_now)
 
+    @classmethod
+    def get_names_cache_key(cls, event):
+        return 'curated_group_names:{0}'.format(event.id)
+
+    @classmethod
+    def get_names(cls, event):
+        cache_key = cls.get_names_cache_key(event)
+        names = cache.get(cache_key, None)
+        if names is None:
+            names = list(
+                cls.objects
+                .filter(event=event)
+                .values_list('name', flat=True)
+                .order_by('name')
+            )
+            cache.set(cache_key, names, 60 * 60 * 10)  # 10 hours
+        return names
+
+
+@receiver(models.signals.post_save, sender=CuratedGroup)
+@receiver(models.signals.pre_delete, sender=CuratedGroup)
+def invalidate_curated_group_names(sender, instance, **kwargs):
+    cache_key = sender.get_names_cache_key(instance.event)
+    cache.delete(cache_key)
+
 
 class SuggestedEvent(models.Model):
     user = models.ForeignKey(User)
