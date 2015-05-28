@@ -635,7 +635,7 @@ def event_stop_live(request, id):
     """Convenient thing that changes the status and redirects you to
     go and upload a file."""
     event = get_object_or_404(Event, id=id)
-    event.status = Event.STATUS_PENDING
+    event.status = Event.STATUS_PROCESSING
     event.save()
 
     return redirect('manage:event_upload', event.pk)
@@ -1058,7 +1058,12 @@ def event_archive(request, id):
                 event.has_vidly_template() and
                 not has_successful_vidly_submission(event)
             ):
-                event.status = Event.STATUS_PENDING
+                # some events go from live -> to transcoding -> to archived
+                # and others go right away from transcoding -> to archived
+                # this IF makes sure the event is not currently transcoding
+                # before its status changes to PENDING
+                if event.status != Event.STATUS_PROCESSING:
+                    event.status = Event.STATUS_PENDING
             else:
                 event.status = Event.STATUS_SCHEDULED
                 now = (

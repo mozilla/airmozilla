@@ -42,7 +42,7 @@ def home(request):
         context['q'] = form.cleaned_data['q']
         privacy_filter = {}
         privacy_exclude = {}
-        qs = Event.objects.scheduled()
+        qs = Event.objects.scheduled_or_processing()
         if request.user.is_active:
             if is_contributor(request.user):
                 privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}

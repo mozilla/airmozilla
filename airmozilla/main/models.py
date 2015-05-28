@@ -9,6 +9,7 @@ from django.core.cache import cache
 from django.db import models
 from django.dispatch import receiver
 from django.utils import timezone
+from django.db.models import Q
 
 from airmozilla.base.utils import unique_slugify
 from airmozilla.main.fields import EnvironmentField
@@ -213,6 +214,13 @@ class EventManager(models.Manager):
     def scheduled(self):
         return self.get_query_set().filter(status=Event.STATUS_SCHEDULED)
 
+    def scheduled_or_processing(self):
+        return self.get_query_set().filter(
+            Q(status=Event.STATUS_SCHEDULED)
+            |
+            Q(status=Event.STATUS_PROCESSING)
+        )
+
     def approved(self):
         return (
             self.scheduled()
@@ -227,14 +235,15 @@ class EventManager(models.Manager):
         )
 
     def live(self):
-        return self.scheduled().filter(
+        return self.get_query_set().filter(
+            status=Event.STATUS_SCHEDULED,
             archive_time=None,
             start_time__lt=_get_live_time()
         )
 
     def archived(self):
         _now = _get_now()
-        return self.scheduled().filter(
+        return self.scheduled_or_processing().filter(
             archive_time__lt=_now,
             start_time__lt=_now
         )
@@ -255,11 +264,13 @@ class Event(models.Model):
     STATUS_INITIATED = 'initiated'
     STATUS_SCHEDULED = 'scheduled'
     STATUS_PENDING = 'pending'
+    STATUS_PROCESSING = 'processing'
     STATUS_REMOVED = 'removed'
     STATUS_CHOICES = (
         (STATUS_INITIATED, 'Initiated'),
         (STATUS_SCHEDULED, 'Scheduled'),
         (STATUS_PENDING, 'Pending'),
+        (STATUS_PROCESSING, 'Processing'),
         (STATUS_REMOVED, 'Removed')
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,

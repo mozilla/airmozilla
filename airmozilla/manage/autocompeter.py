@@ -63,10 +63,10 @@ def update(
             median_hits = sorted(values)[len(values) / 2]
         else:
             median_hits = 0
-        events = Event.objects.scheduled()
+        events = Event.objects.scheduled_or_processing()
     else:
         events = (
-            Event.objects.scheduled()
+            Event.objects.scheduled_or_processing()
             .filter(modified__gte=now-since)[:max_]
         )
         if events:
