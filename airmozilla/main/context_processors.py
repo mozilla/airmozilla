@@ -195,7 +195,33 @@ def get_featured_events(
         featured = _get_featured_events(channels, anonymous, contributor)
         featured = featured[:length]
         cache.set(cache_key, featured, 60 * 60)
-    return [x.event for x in featured]
+
+    # Sadly, in Django when you do a left outer join on a many-to-many
+    # table you get repeats and you can't fix that by adding a simple
+    # `distinct` on the first field.
+    # In django, if you do `myqueryset.distinct('id')` it requires
+    # that that's also something you order by.
+    # In pure Postgresql you can do this:
+    #   SELECT
+    #     DISTINCT main_eventhitstats.id as id,
+    #     (some formula) AS score,
+    #     ...
+    #   FROM ...
+    #   INNER JOIN ...
+    #   INNER JOIN ...
+    #   ORDER BY score DESC
+    #   LIMIT 5;
+    #
+    # But you can't do that with Django.
+    # So we have to manually de-dupe. Hopefully we can alleviate this
+    # problem altogether when we start doing aggregates where you have
+    # many repeated EventHitStats *per* event and you need to look at
+    # their total score across multiple vidly shortcodes.
+    events = []
+    for each in featured:
+        if each.event not in events:
+            events.append(each.event)
+    return events
 
 
 def _get_featured_events(channels, anonymous, contributor):
@@ -208,7 +234,6 @@ def _get_featured_events(channels, anonymous, contributor):
         EventHitStats.objects
         .exclude(event__archive_time__isnull=True)
         .filter(event__archive_time__lt=yesterday)
-
         .exclude(event__channels__exclude_from_trending=True)
         .extra(
             select={
@@ -228,6 +253,7 @@ def _get_featured_events(channels, anonymous, contributor):
         featured = featured.filter(event__privacy=Event.PRIVACY_PUBLIC)
     elif contributor:
         featured = featured.exclude(event__privacy=Event.PRIVACY_COMPANY)
+
     featured = featured.select_related('event__picture')
     return featured
 
