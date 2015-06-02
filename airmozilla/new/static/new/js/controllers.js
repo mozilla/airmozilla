@@ -159,12 +159,6 @@ angular.module('new.controllers', ['new.services'])
 
         $scope.retryUpload = function() {
             uploadService.startAndProcess();
-            // .then(function() {
-            //     console.log("SECOND ATTEMPT AND IT WORKED");
-            // })
-            // .catch(function() {
-            //     console.error("SECOND ATTEMPT AND IT FAILED");
-            // });
         };
     }]
 )

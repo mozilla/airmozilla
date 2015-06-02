@@ -327,6 +327,7 @@ def event_screencaptures(request, event):
                 save=True,
                 verbose=settings.DEBUG,
                 set_first_available=not event.picture,
+                import_immediately=True,
             )
             cache.delete(cache_key)
             event = Event.objects.get(id=event.id)

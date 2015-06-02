@@ -131,7 +131,14 @@ form.submission {
 }
 
 .event-summary {
-    margin: 40px;
+    margin: 50px 0;
+}
+.event-summary .thumbnail-wrapper {
+    float: left;
+}
+.event-summary .event-title,
+.event-summary .event-url {
+    margin-left: 25px;
 }
 .event-summary a.event-title {
     font-size: 140%;
