@@ -117,11 +117,14 @@
       ng-if="hasFilter()" ng-click="clearFilter()">Clear filter</button>
   </div>
 
-  <div class="row" ng-class="{hidden: loading}">
+  <div class="row" ng-class="{hidden: loading}"
+       ng-repeat="i in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize track by $index"
+       ng-if="$index % 4 == 0">
     <div class="col-md-3"
-        ng-repeat="picture in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize"
-        ng-class="{'current-event-picture': current_event_picture == picture.id}"
-         >
+        ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3]"
+        ng-if="filtered_items[i] != null"
+        ng-init="picture = filtered_items[i]"
+        ng-class="{'current-event-picture': current_event_picture == picture.id}">
       <div class="thumbnail">
         <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
           <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=201x113">
