@@ -9,8 +9,8 @@ HOME=/tmp
 # Every 1 hour
 0 */1 * * * {{ cron }} send_unsent_tweets 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
-# Every 15 minutes
-*/15 * * * * {{ cron }} auto_archive 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+# Every 10 minutes
+*/10 * * * * {{ cron }} auto_archive 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Daily
 7 0 * * * {{ cron }} pester_approvals 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'

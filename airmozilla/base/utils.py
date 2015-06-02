@@ -196,3 +196,19 @@ def get_base_url(request):
             RequestSite(request).domain
         )
     )
+
+
+def prepare_vidly_video_url(url):
+    """Return the URL prepared for Vid.ly
+    See # See http://help.encoding.com/knowledge-base/article/\
+    save-some-time-on-your-encodes/
+
+    Hopefully this will make the transcoding faster.
+    """
+    if 's3.amazonaws.com' in url:
+        if '?' in url:
+            url += '&'
+        else:
+            url += '?'
+        url += 'nocopy'
+    return url

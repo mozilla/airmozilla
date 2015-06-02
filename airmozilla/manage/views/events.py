@@ -33,6 +33,7 @@ from airmozilla.base.utils import (
     unhtml,
     shorten_url,
     get_base_url,
+    prepare_vidly_video_url,
 )
 from airmozilla.main.models import (
     Approval,
@@ -1522,6 +1523,8 @@ def vidly_url_to_shortcode(request, id):
 
         base_url = get_base_url(request)
         webhook_url = base_url + reverse('manage:vidly_media_webhook')
+
+        url = prepare_vidly_video_url(url)
 
         shortcode, error = vidly.add_media(
             url,

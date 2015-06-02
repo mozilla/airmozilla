@@ -24,6 +24,16 @@ class TestMisc(TestCase):
         input_ = 'A <a href="">FOO</a> BAR'
         eq_(utils.unhtml(input_), 'A FOO BAR')
 
+    def test_prepare_vidly_video_url(self):
+        url = 'https://foo.bar/file.flv'
+        eq_(utils.prepare_vidly_video_url(url), url)
+
+        url = 'https://mybucket.s3.amazonaws.com/file.mp4'
+        eq_(utils.prepare_vidly_video_url(url), url + '?nocopy')
+
+        url = 'https://mybucket.s3.amazonaws.com/file.mp4?cachebust=1'
+        eq_(utils.prepare_vidly_video_url(url), url + '&nocopy')
+
 
 class _Communicator(object):
     def __init__(self, response):
