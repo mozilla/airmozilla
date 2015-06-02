@@ -4,11 +4,10 @@ angular.module('new', [
     'angularMoment',
     'ui.router',
     'new.controllers',
-    'new.services',
+    'new.services'
 ])
 
 .config(function ($urlMatcherFactoryProvider) {
-  // $urlMatcherFactoryProvider.caseInsensitive(true);
   $urlMatcherFactoryProvider.strictMode(false);
 })
 
@@ -70,6 +69,11 @@ angular.module('new', [
         templateUrl: 'upload.html',
         controller: 'UploadController'
     })
+    .state('recordVideo', {
+        url: '/record',
+        templateUrl: 'record.html',
+        controller: 'RecordController'
+    })
     .state('preemptiveDetails', {
         url: '/details',
         templateUrl: 'details.html',
@@ -102,8 +106,14 @@ angular.module('new', [
 
 .run(['$http', function($http) {
     var token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-    if (!token) throw "No CSRF token";
+    if (!token) {
+        throw 'No CSRF token';
+    }
     $http.defaults.headers.post['X-CSRFToken'] = token;
+
+    // The little pure HTML & CSS blurb on the home page that is
+    // always there before any angular kicks in.
+    $('div.basic-loading').remove();
 }])
 
 ;

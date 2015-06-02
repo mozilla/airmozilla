@@ -1,0 +1,58 @@
+{% raw %}
+
+<h4 ng-if="!recording">Record</h4>
+<h4 ng-if="recording">Recording</h4>
+
+<div ng-if="!cameraStarted">
+  <p>
+    When you start the camera you will be asked to share your computer's
+    camera and microphone. <br>
+    You need to say...
+  </p>
+  <button type="button" ng-click="startCamera()">Start Camera</button>
+</div>
+
+<!-- {{ cameraStarted}},{{showRecorderVideo}},{{showPlaybackVideo}},{{countdown}}<br>
+recording?{{ recording}}<br> -->
+
+<div class="show-hide after-recording" ng-show="showPlaybackVideo">
+  <h3>Happy?</h3>
+  <h4>You can re-take the recording as many times as you like</h4>
+  <button ng-click="uploadRecording()">Upload Recording</button>
+  <button ng-click="resetRecording()">Restart Recording</button>
+</div>
+
+
+<div class="show-hide video-outer" ng-show="cameraStarted">
+  <h1 class="countdown show-hide" ng-show="countdown">{{ countdown }}</h3>
+    <button class="start-stop-button start-button show-hide"
+            ng-show="!recording && !countdown && showRecorderVideo"
+            ng-click="startRecording()">Start Recording</button>
+    <button class="start-stop-button stop-button show-hide"
+            ng-show="recording"
+            ng-click="stopRecording()">Stop Recording</button>
+  <video class="recorder"
+         ng-show="showRecorderVideo"
+         ng-class="{recording: recording, ready: !recording}"></video>
+  <video class="playback" ng-show="showPlaybackVideo"></video>
+
+  <p class="show-hide" ng-show="recording || duration">
+    <span ng-if="videoSize">Duration:</span>
+    <span ng-if="!videoSize">Time elapsed:</span>
+    {{ duration | formattime }}
+    <span class="about-filesize" ng-if="videoSize">
+      (approximately <b>{{ videoSize | filesize }}</b>)
+    </span>
+  </p>
+
+</div>
+
+
+<p class="extra-note" ng-if="!cameraStarted">
+  <b>Note!</b>
+  You can also
+  <a ui-sref="startUpload">upload a video file</a> if you have one already.
+</p>
+
+
+{% endraw %}

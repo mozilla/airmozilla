@@ -124,7 +124,7 @@ angular.module('new.services', [])
                 if (scrapeFailed) {
                     // Some future version we might, here,
                     // remove the "Loading preview" thing
-                    console.log(
+                    console.warn(
                         'Scrape failed so don\'t bother looking repeatedly.'
                     );
                     $interval.cancel(keepLooking);
@@ -133,13 +133,13 @@ angular.module('new.services', [])
                 $http.get(url)
                 .success(function(response) {
                     if (response.event.picture) {
-                        console.log('YAY we have a picture now');
+                        // console.log('YAY we have a picture now');
                         service.setPicture(
                             response.event.picture
                         );
                         $interval.cancel(keepLooking);
                     } else {
-                        console.log('No picture yet');
+                        // console.log('No picture yet');
                     }
                 })
                 .error(function() {
@@ -274,7 +274,7 @@ angular.module('new.services', [])
         service.hasFailed = function() {
             return !!_failed;
         };
-        service.start = function() {
+        service.start = function(duration) {
             var deferred = $q.defer();
 
             // override so we can set the file selection to an array
@@ -287,6 +287,7 @@ angular.module('new.services', [])
             S3Upload.prototype.executeOnSignedUrl = function(file, callback, opts) {
                 var type = opts && opts.type || file.type;
                 var name = opts && opts.name || file.name;
+                name = 'foo.webm';
                 var this_s3upload = this;
                 $http({
                     url: signURL,
@@ -347,7 +348,7 @@ angular.module('new.services', [])
                         signed.upload_time = uploadTime;
                         // uploadSize = response.size_human;
                         statusService.set('Saving upload');
-
+                        signed.duration = duration;
                         // Save will create an event that will have an upload
                         $http.post(saveUrl, signed)
                         .success(function(saveResponse) {
@@ -370,10 +371,10 @@ angular.module('new.services', [])
             }); // new S3Upload(...)
             return deferred.promise;
         };
-        service.startAndProcess = function() {
+        service.startAndProcess = function(duration) {
             // This will upload the set dataFile and when it has saved the
             // upload it will commence the archiving and scraping.
-            return service.start()
+            return service.start(duration)
             .then(function() {
                 // kick off the archiving
                 eventService.archive(eventService.getId())
@@ -403,4 +404,27 @@ angular.module('new.services', [])
     }]
 )
 
+.service('staticService',
+    function() {
+        var injected = [];
+        var endsWith = function(string, suffix) {
+            return string.indexOf(suffix, string.length - suffix.length) !== -1;
+        };
+        return function(url) {
+            if (injected.indexOf(url) === -1) {
+                if (endsWith(url, '.js')) {
+                    var script = document.createElement('script');
+                    script.src = url;
+                    document.head.appendChild(script);
+                } else if (endsWith(url, '.css')) {
+                    var link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = url;
+                    document.head.appendChild(link);
+                }
+                injected.push(url);
+            }
+        };
+    }
+)
 ;

@@ -28,3 +28,4 @@ roku/airmozilla.zip
 ghostdriver.log
 /node_modules/
 /tags
+npm-debug.log

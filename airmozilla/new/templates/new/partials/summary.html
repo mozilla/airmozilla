@@ -87,7 +87,7 @@
       <p class="loading">Loading video info...</p>
     </td>
     <td ng-if="!loadingVideo && video.finished">
-      <iframe ng-src="{{ ::video.iframe_src }}" frameborder="0" scrolling="no"
+      <iframe ng-src="{{ ::video.iframeSrc }}" frameborder="0" scrolling="no"
         style="overflow-y: hidden; width: 640px; height: 360px" seamless="seamless"
         ></iframe>
       <p ng-if="video.duration">

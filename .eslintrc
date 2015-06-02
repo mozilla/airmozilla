@@ -8,7 +8,8 @@
         "console": 1,
         "moment": 1,
         "S3Upload": 1,
-        "humanFilesize": 1
+        "humanFileSize": 1,
+        "humanizeDuration": 1
     },
     "rules": {
         "quotes": [2, "single"],
