@@ -148,7 +148,7 @@ For security, you need to enter something into the `SECRET_KEY`.
 SECRET_KEY = 'somethingnotempty'
 ```
 
-By default, you need a `Memcache` server up and running. The connection
+**By default, you need a `Memcache` server up and running.** The connection
 settings for that is not entered by default. So if you have a Memcache running
 on the default port you need to enter it for the `LOCATION` setting like this:
 ```
