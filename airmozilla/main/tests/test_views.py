@@ -3086,6 +3086,54 @@ class TestPages(DjangoTestCase):
         # The first 4 gets their own picture, the rest get a placeholder
         eq_(len(re.findall('data-layzr="(.*?)"', response.content)), 6)
 
+    def test_browserid_disabled(self):
+        with self.settings(BROWSERID_DISABLED=True):
+            response = self.client.get('/')
+            eq_(response.status_code, 200)
+            ok_('Sign in' not in response.content)
+
+            User.objects.create_user(
+                'mary', 'mary@mozilla.com', 'secret'
+            )
+            assert self.client.login(username='mary', password='secret')
+
+            response = self.client.get('/')
+            eq_(response.status_code, 200)
+            ok_('Sign out' not in response.content)
+
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Sign out' in response.content)
+
+        self.client.logout()
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Sign in' in response.content)
+
+    def test_god_mode(self):
+        url = reverse('main:god_mode')
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        # first prove that you start signed out
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Sign out' not in response.content)
+
+        with self.settings(GOD_MODE=True, DEBUG=True):
+            response = self.client.get(url)
+            eq_(response.status_code, 200)
+
+            User.objects.create_user(
+                'mary', 'mary@mozilla.com', 'secret'
+            )
+            response = self.client.post(url, {'email': 'mary@mozilla.com'})
+            eq_(response.status_code, 302)
+
+            response = self.client.get('/')
+            eq_(response.status_code, 200)
+            ok_('Sign out' in response.content)
+
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']

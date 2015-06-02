@@ -29,7 +29,9 @@ Air Mozilla | Mozilla, in Video
 {% endblock %}
 
 {% block content %}
+  {% if not BROWSERID_DISABLED %}
   {{ browserid_info() }}
+  {% endif %}
   <div id="page">
   <div class="wrap">
   <header id="masthead">
@@ -62,7 +64,9 @@ Air Mozilla | Mozilla, in Video
         {% if not request.user.is_active %}
         <li>
           {# the redirect_next function comes from the browserid context processor #}
+          {% if not BROWSERID_DISABLED %}
           {{ browserid_login(text='Sign in', color='dark', next=redirect_next()) }}
+          {% endif %}
         </li>
         {% endif %}
       </ul>
@@ -171,12 +175,17 @@ Air Mozilla | Mozilla, in Video
   {% compress js %}
   <script src="{{ static('js/libs/layzr.min.js') }}"></script>
   <script src="{{ static('js/layzr-images.js') }}"></script>
-  <script src="{{ static('js/libs/include.js') }}"></script>
-  <script src="{{ static('browserid/api.js') }}"></script>
-  <script src="{{ static('browserid/browserid.js') }}"></script>
   <script src="{{ static('starred/js/star_event.js') }}"></script>
   <script src="{{ static('main/js/nav.js') }}"></script>
   {% endcompress %}
+
+  {% if not BROWSERID_DISABLED %}
+  {% compress js %}
+  <script src="{{ static('js/libs/include.js') }}"></script>
+  <script src="{{ static('browserid/api.js') }}"></script>
+  <script src="{{ static('browserid/browserid.js') }}"></script>
+  {% endcompress %}
+  {% endif %}
 
   {% if include_autocompeter %}
   <script src="//cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js"></script>

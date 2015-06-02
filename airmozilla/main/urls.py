@@ -8,6 +8,7 @@ from . import views
 urlpatterns = patterns(
     '',
     url(r'^__debugger__', views.debugger__),
+    url(r'^god-mode/$', views.god_mode, name='god_mode'),
     url(r'^$', views.home, name='home'),
     url(r'^channels/(?P<channel_slug>[-\w]+)/$', views.home,
         name='home_channels'),
@@ -80,4 +81,5 @@ urlpatterns = patterns(
     url(r'^crossdomain.xml$',
         views.crossdomain_xml,
         name='crossdomain_xml'),
+
 )
