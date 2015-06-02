@@ -1510,3 +1510,19 @@ def event_livehits(request, id):
             total_hits = 0
 
     return {'hits': total_hits}
+
+
+def god_mode(request):
+    if not (settings.DEBUG and settings.GOD_MODE):
+        raise http.Http404()
+
+    if request.method == 'POST':
+        from django.contrib.auth.models import User
+        user = User.objects.get(email__iexact=request.POST['email'])
+        from django.contrib import auth
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        auth.login(request, user)
+        return redirect('/')
+
+    context = {}
+    return render(request, 'main/god_mode.html', context)

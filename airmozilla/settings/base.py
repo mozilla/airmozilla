@@ -323,3 +323,14 @@ RUN_SELENIUM_TESTS = False
 # well delete this setting and remove the if-statement in
 # main.context_processors.nav_bar.
 USE_NEW_UPLOADER = False
+
+
+# When enabled, together with DEBUG==True, by visiting /god-mode/ you
+# can become anybody.
+# This is a good tool for doing testing without doing any Persona auth.
+GOD_MODE = False
+
+
+# If you want to disable all of the browser ID stuff, set this to True.
+# That means you won't be able to sign in at all. Or sign out.
+BROWSERID_DISABLED = False

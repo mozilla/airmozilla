@@ -53,9 +53,10 @@ def nav_bar(request):
                 items.append(
                     ('Management', reverse('manage:events'), '', ''),
                 )
-            items.append(
-                ('Sign out', '/browserid/logout/', '', 'browserid-logout'),
-            )
+            if not settings.BROWSERID_DISABLED:
+                items.append(
+                    ('Sign out', '/browserid/logout/', '', 'browserid-logout'),
+                )
         return {'items': items, 'unfinished_events': unfinished_events}
 
     # The reason for making this a closure is because this stuff is not
@@ -65,7 +66,11 @@ def nav_bar(request):
 
 
 def dev(request):
-    return {'DEV': settings.DEV, 'DEBUG': settings.DEBUG}
+    return {
+        'DEV': settings.DEV,
+        'DEBUG': settings.DEBUG,
+        'BROWSERID_DISABLED': settings.BROWSERID_DISABLED,
+    }
 
 
 def sidebar(request):
