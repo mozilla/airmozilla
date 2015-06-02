@@ -159,7 +159,7 @@ def fetch_duration(
 def fetch_screencapture(
     event, save=False, save_locally=False, verbose=False, use_https=True,
     import_=True, import_if_possible=False, video_url=None,
-    set_first_available=False,
+    set_first_available=False, import_immediately=False,
 ):
     """return number of files that were successfully created or None"""
     assert event.duration, "no duration"
@@ -226,6 +226,7 @@ def fetch_screencapture(
             print ffmpeg_location, "is not an executable path"
         incr = float(event.duration) / settings.SCREENCAPTURES_NO_PICTURES
         seconds = 0
+        created = 0
         t0 = time.time()
         number = 0
         output_template = os.path.join(save_dir, 'screencap-%02d.jpg')
@@ -250,6 +251,17 @@ def fetch_screencapture(
             all_out.append(out)
             all_err.append(err)
             seconds += incr
+            if import_immediately:
+                created += _import_files(
+                    event,
+                    _get_files(save_dir),
+                    set_first_available=set_first_available,
+                    delete_opened_files=True,
+                )
+                # If 'set_first_available' was true, it should have at
+                # that point set the picture for that first one.
+                if created:
+                    set_first_available = False
         t1 = time.time()
 
         files = _get_files(save_dir)
@@ -262,11 +274,15 @@ def fetch_screencapture(
             )
 
         if import_ or import_if_possible:
-            if verbose and not files:  # pragma: no cover
+            if (
+                verbose and
+                not files and
+                not import_immediately
+            ):  # pragma: no cover
                 print "No output. Error:"
                 print '\n'.join(all_err)
             try:
-                created = _import_files(
+                created += _import_files(
                     event,
                     files,
                     set_first_available=set_first_available
@@ -390,7 +406,12 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
     return video_url, filepath
 
 
-def _import_files(event, files, set_first_available=False):
+def _import_files(
+    event,
+    files,
+    set_first_available=False,
+    delete_opened_files=False
+):
     created = 0
     # We sort and reverse by name so that the first instance
     # that is created is the oldest one.
@@ -412,6 +433,8 @@ def _import_files(event, files, set_first_available=False):
                 # cause race conditions.
                 Event.objects.filter(id=event.id).update(picture=picture)
                 set_first_available = False
+        if delete_opened_files:
+            os.remove(filepath)
     return created
 
 

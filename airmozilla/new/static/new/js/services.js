@@ -121,7 +121,6 @@ angular.module('new.services', [])
             // start looking for a picture
             var url = eventUrl.replace('0', eventId);
             var keepLooking = $interval(function() {
-
                 if (scrapeFailed) {
                     // Some future version we might, here,
                     // remove the "Loading preview" thing
@@ -131,7 +130,6 @@ angular.module('new.services', [])
                     $interval.cancel(keepLooking);
                     return;
                 }
-
                 $http.get(url)
                 .success(function(response) {
                     if (response.event.picture) {
@@ -148,7 +146,7 @@ angular.module('new.services', [])
                     console.error.apply(console, arguments);
                     $interval.cancel(keepLooking);
                 });
-            }, 2 * 1000);
+            }, 1.5 * 1000);
         };
         service.archive = function(eventId) {
             // Archiving will submit the upload URL to vid.ly

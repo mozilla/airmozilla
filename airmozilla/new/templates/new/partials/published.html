@@ -7,7 +7,7 @@
 <div class="show-hide" ng-if="!loading">
 
   <h4 class="event-summary">
-    <a ng-href="{{ event.url }}" target="_self" class="event-title"
+    <a ng-href="{{ event.url }}" target="_self" class="event-title thumbnail-wrapper"
        ng-if="event.picture">
        <img ng-src="{{ event.picture.url }}"
             width="{{ event.picture.width }}"
@@ -16,7 +16,6 @@
     <a ng-href="{{ event.url }}" target="_self" class="event-title">
       {{ ::event.title }}
     </a>
-
     <br>
     <br>
     <a ng-href="{{ event._absURL }}" target="_self" class="event-url">
@@ -24,11 +23,11 @@
     </a>
   </h4>
 
-  <p>
-    <b>The event is published under the following channel:</b>
+  <p style="clear: left">
+    The event is published under the following channel:
     <a ng-repeat="channel in event.channels"
       ng-href="{{ channel.url }}" target="_self">
-      {{ ::channel.name }}
+      <b>{{ ::channel.name }}</b>
     </a>
   </p>
   <p>
