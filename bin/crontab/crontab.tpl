@@ -36,8 +36,8 @@ HOME=/tmp
 # Every 10 minutes
 */10 * * * * {{ cron }} autocompeter_update 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
-# Every day
-30 7 * * * * {{ cron }} autocompeter_reset 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+# Every day at 8AM
+8 0 * * * * {{ cron }} autocompeter_reset 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every 10 minutes
 */10 * * * * {{ cron }} send_new_event_emails 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
