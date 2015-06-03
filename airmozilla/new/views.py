@@ -601,11 +601,15 @@ def your_events(request):
             upload.event = event
             upload.save()
 
-    events = Event.objects.filter(
-        creator=request.user,
-        status=Event.STATUS_INITIATED,
-        upload__isnull=False,
-    ).order_by('-created')
+    events = (
+        Event.objects.filter(
+            creator=request.user,
+            status=Event.STATUS_INITIATED,
+            upload__isnull=False,
+        )
+        .select_related('upload', 'picture')
+        .order_by('-created')
+    )
 
     all_possible_pictures = (
         Picture.objects
