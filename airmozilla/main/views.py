@@ -1126,9 +1126,32 @@ def channels(request):
         .filter(parent__isnull=True)
         .exclude(slug=settings.DEFAULT_CHANNEL_SLUG)
     )
+
+    # make a dict of parental counts
+    subchannel_counts = {}
+    qs = (
+        Channel.objects
+        .filter(parent__isnull=False)
+        .values('parent_id')
+        .order_by()  # necessary because the model has a default ordering
+        .annotate(Count('parent'))
+    )
+    for each in qs:
+        subchannel_counts[each['parent_id']] = each['parent__count']
+
+    # make a dict of events counts by channel
+    event_counts = {}
+    qs = (
+        Event.channels.through.objects.filter(event__in=events)
+        .values('channel_id')
+        .annotate(Count('channel'))
+    )
+    for each in qs:
+        event_counts[each['channel_id']] = each['channel__count']
+
     for channel in channels_qs:
-        event_count = events.filter(channels=channel).count()
-        subchannel_count = Channel.objects.filter(parent=channel).count()
+        event_count = event_counts.get(channel.id, 0)
+        subchannel_count = subchannel_counts.get(channel.id, 0)
         if event_count or subchannel_count:
             channels.append((channel, event_count, subchannel_count))
     data = {
