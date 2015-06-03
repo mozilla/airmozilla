@@ -118,10 +118,10 @@
   </div>
 
   <div class="row" ng-class="{hidden: loading}"
-       ng-repeat="i in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize track by $index"
+       ng-repeat="filteredItem in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize track by $index"
        ng-if="$index % 4 == 0">
     <div class="col-md-3"
-        ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3]"
+        ng-repeat="i in [(currentPage*pageSize) + $index, (currentPage*pageSize) + $index + 1, (currentPage*pageSize) + $index + 2, (currentPage*pageSize) + $index + 3]"
         ng-if="filtered_items[i] != null"
         ng-init="picture = filtered_items[i]"
         ng-class="{'current-event-picture': current_event_picture == picture.id}">
