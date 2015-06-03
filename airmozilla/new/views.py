@@ -26,7 +26,7 @@ from sorl.thumbnail import get_thumbnail
 from PIL import Image
 
 from airmozilla.manage import vidly
-from airmozilla.base.utils import get_base_url
+from airmozilla.base.utils import get_base_url, prepare_vidly_video_url
 from airmozilla.main.models import (
     Event,
     VidlySubmission,
@@ -244,8 +244,9 @@ def event_archive(request, event):
         base_url = get_base_url(request)
         webhook_url = base_url + reverse('new:vidly_media_webhook')
 
+        video_url = prepare_vidly_video_url(upload.url)
         tag, error = vidly.add_media(
-            upload.url,
+            video_url,
             hd=True,
             notify_url=webhook_url,
             # Note that we deliberately don't bother yet to set
@@ -257,7 +258,7 @@ def event_archive(request, event):
         # then we need to record that we did this
         vidly_submission = VidlySubmission.objects.create(
             event=event,
-            url=upload.url,
+            url=video_url,
             tag=tag,
             hd=True,
             submission_error=error or None

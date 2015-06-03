@@ -15,7 +15,11 @@ from funfactory.urlresolvers import reverse
 from jsonview.decorators import json_view
 import xmltodict
 
-from airmozilla.base.utils import paginate, get_base_url
+from airmozilla.base.utils import (
+    paginate,
+    get_base_url,
+    prepare_vidly_video_url,
+)
 from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.manage import forms
 from airmozilla.manage import vidly
@@ -244,15 +248,16 @@ def vidly_media_resubmit(request):
     webhook_url = base_url + reverse('manage:vidly_media_webhook')
 
     old_tag = environment['tag']
+    url = prepare_vidly_video_url(form.cleaned_data['url'])
     shortcode, error = vidly.add_media(
-        url=form.cleaned_data['url'],
+        url=url,
         hd=form.cleaned_data['hd'],
         token_protection=token_protection,
         notify_url=webhook_url,
     )
     VidlySubmission.objects.create(
         event=event,
-        url=form.cleaned_data['url'],
+        url=url,
         token_protection=token_protection,
         hd=form.cleaned_data['hd'],
         tag=shortcode,
