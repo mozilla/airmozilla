@@ -20,24 +20,42 @@ def approvals(request):
     user = request.user
     groups = user.groups.all()
     if groups.count():
-        approvals = (Approval.objects.filter(
-            group__in=user.groups.all(),
-            processed=False)
-            .exclude(event__status=Event.STATUS_REMOVED)
+        approvals = (
+            Approval.objects
+            .filter(
+                group__in=user.groups.all(),
+                processed=False
+            )
+            .exclude(
+                event__status=Event.STATUS_REMOVED
+            )
+            .select_related('event', 'group', 'event__creator')
         )
-        recent = (Approval.objects.filter(
-            group__in=user.groups.all(),
-            processed=True)
+        recent = (
+            Approval.objects
+            .filter(
+                group__in=user.groups.all(),
+                processed=True
+            )
+            .select_related('event', 'user', 'group')
             .order_by('-processed_time')[:25]
-        ).select_related('event', 'user', 'group')
+        )
     else:
         approvals = recent = Approval.objects.none()
+
+    # Of all the events in the approvals queryset, make a
+    # dict of accepted events' IDs to the suggested event.
+    approval_events = approvals.values_list('event_id', flat=True)
+    all_suggestedevents = {}
+    qs = SuggestedEvent.objects.filter(accepted_id__in=approval_events)
+    for each in qs:
+        all_suggestedevents[each.accepted_id] = each
 
     def get_suggested_event(event):
         """return the original suggested event or None"""
         try:
-            return SuggestedEvent.objects.get(accepted=event)
-        except SuggestedEvent.DoesNotExist:
+            return all_suggestedevents[event.id]
+        except KeyError:
             pass
 
     context = {
