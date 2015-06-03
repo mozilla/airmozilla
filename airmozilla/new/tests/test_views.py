@@ -459,6 +459,95 @@ class TestNew(DjangoTestCase):
         vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
         ok_(vidly_submission.finished)
 
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_trigger_vidly_media_webhook_pending(self, mock_popen, rhead):
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+            url = destination = None
+            if command[1] == '-i':
+                # doing a fetch info
+                url = command[2]
+            elif command[1] == '-ss':
+                # screen capturing
+                destination = command[-1]
+                assert os.path.isdir(os.path.dirname(destination))
+            else:
+                raise NotImplementedError(command)
+
+            ffmpeged_urls.append(url)
+
+            sample_jpg = self.sample_jpg
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if url is not None:
+                        if 'abc123' in url:
+                            err = """
+                Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
+                            """
+                        else:
+                            raise NotImplementedError(url)
+                    elif destination is not None:
+                        shutil.copyfile(sample_jpg, destination)
+                    else:
+                        raise NotImplementedError()
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        def mocked_head(url, **options):
+            return _Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        # the webhook is supposed to be sent back when the file has
+        # been submitted and successfully transcoded.
+
+        file_url = 'https://s3.com/foo.webm'
+        event = self._create_event(file_url)
+
+        tag = 'abc123'
+        VidlySubmission.objects.create(
+            event=event,
+            url=file_url,
+            tag=tag,
+        )
+
+        event.template = self._create_default_archive_template()
+        event.template_environment = {'tag': tag}
+        event.status = Event.STATUS_PENDING
+        event.save()
+
+        url = reverse('new:vidly_media_webhook')
+
+        xml_string = SAMPLE_MEDIA_RESULT_SUCCESS
+        xml_string = re.sub(
+            '<SourceFile>(.*)</SourceFile>',
+            '<SourceFile>{0}</SourceFile>'.format(file_url),
+            xml_string
+        )
+        xml_string = re.sub(
+            '<MediaShortLink>(.*)</MediaShortLink>',
+            '<MediaShortLink>{0}</MediaShortLink>'.format(tag),
+            xml_string
+        )
+        response = self.client.post(url, {'xml': xml_string})
+        eq_(response.status_code, 200)
+        eq_('OK\n', response.content)
+
+        event = Event.objects.get(id=event.id)
+        ok_(event.archive_time)
+        eq_(event.status, Event.STATUS_SCHEDULED)
+
     def test_trigger_vidly_media_webhook_errored(self):
 
         # the webhook is supposed to be sent back when the file has

@@ -373,6 +373,8 @@ def vidly_media_webhook(request):
                 # Awesome!
                 # This event now has a fully working transcoded piece of
                 # media.
+                if event.status == Event.STATUS_PENDING:
+                    event.status = Event.STATUS_SCHEDULED
                 event.archive_time = timezone.now()
                 event.save()
 
@@ -500,7 +502,6 @@ def event_video(request, event):
 @must_be_your_event
 @json_view
 def event_publish(request, event):
-    # context = {}
     if event.status != Event.STATUS_INITIATED:
         return http.HttpResponseBadRequest("Not in an initiated state")
 
