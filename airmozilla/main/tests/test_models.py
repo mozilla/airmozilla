@@ -15,7 +15,8 @@ from airmozilla.main.models import (
     Location,
     most_recent_event,
     RecruitmentMessage,
-    Picture
+    Picture,
+    CuratedGroup,
 )
 # This must be imported otherwise django-nose won't import
 # that foreign key reference when you run only the tests in this file.
@@ -454,3 +455,30 @@ class PictureTests(TestCase):
             ok_(Picture.__name__ in repr(picture))
             picture.notes = "Something"
             ok_("Something" in repr(picture))
+
+
+class CuratedGroupsTest(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+
+    def test_get_names(self):
+        event = Event.objects.get(title='Test event')
+        eq_(CuratedGroup.get_names(event), [])
+
+        group1 = CuratedGroup.objects.create(
+            event=event,
+            name='secrets'
+        )
+        eq_(CuratedGroup.get_names(event), ['secrets'])
+
+        group2 = CuratedGroup.objects.create(
+            event=event,
+            name='ABBA fans'
+        )
+        eq_(CuratedGroup.get_names(event), ['ABBA fans', 'secrets'])
+
+        group1.delete()
+        eq_(CuratedGroup.get_names(event), ['ABBA fans'])
+
+        group2.name = 'ABBA Fans'
+        group2.save()
+        eq_(CuratedGroup.get_names(event), ['ABBA Fans'])
