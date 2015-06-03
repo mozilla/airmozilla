@@ -132,6 +132,7 @@
             <option value="" class="select-label">By status</option>
             <option value="initiated">Initiated</option>
             <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
             <option value="scheduled">Scheduled</option>
             <option value="removed">Removed</option>
           </select>
@@ -196,6 +197,7 @@
           <span class="label"
            ng-class="{'label-default': event.status=='initiated',
                       'label-primary': event.status=='pending',
+                      'label-primary': event.status=='processing',
                       'label-success': event.status=='scheduled',
                       'label-danger': event.status=='removed'}"
            ng-click="selectSearchStatus(event.status)"
