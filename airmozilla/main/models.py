@@ -152,6 +152,22 @@ class Template(models.Model):
         return self.name
 
 
+class Topic(models.Model):
+    topic = models.TextField()
+    sort_order = models.PositiveIntegerField(
+        default=0,
+        help_text='The lower the higher in the list'
+    )
+    groups = models.ManyToManyField(Group)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('sort_order',)
+
+    def __unicode__(self):
+        return self.topic
+
+
 class Region(models.Model):
     """Region of a video/stream/presentation/etc."""
     name = models.CharField(max_length=300)
@@ -326,6 +342,7 @@ class Event(models.Model):
     transcript = models.TextField(null=True)
     recruitmentmessage = models.ForeignKey(RecruitmentMessage, null=True,
                                            on_delete=models.SET_NULL)
+    topics = models.ManyToManyField(Topic)
     duration = models.PositiveIntegerField(null=True)  # seconds
     mozillian = models.CharField(max_length=200, null=True)
     creator = models.ForeignKey(User, related_name='creator', blank=True,

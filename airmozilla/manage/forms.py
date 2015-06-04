@@ -32,7 +32,8 @@ from airmozilla.main.models import (
     EventAssignment,
     LocationDefaultEnvironment,
     RecruitmentMessage,
-    Picture
+    Picture,
+    Topic,
 )
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
@@ -493,6 +494,18 @@ class RegionEditForm(BaseModelForm):
 
     class Meta:
         model = Region
+
+
+class TopicEditForm(BaseModelForm):
+
+    class Meta:
+        model = Topic
+
+    def __init__(self, *args, **kwargs):
+        super(TopicEditForm, self).__init__(*args, **kwargs)
+        self.fields['topic'].widget = forms.widgets.TextInput(attrs={
+            'placeholder': 'for example Partners for Firefox OS'
+        })
 
 
 class ApprovalForm(BaseModelForm):

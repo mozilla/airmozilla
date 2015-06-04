@@ -50,6 +50,17 @@
       </span>
     </td>
   </tr>
+  <tr ng-if="event.privacy=='public'">
+    <th>
+      Topics:
+    </th>
+    <td>
+      <span ng-repeat="topic in event.topics">
+        {{ ::topic.topic }}<br>
+      </span>
+      <span ng-if="!event.topics.length">none</span>
+    </td>
+  </tr>
   <tr ng-if="event.status == 'initiated'">
     <td colspan="2" style="text-align: right">
       <a ng-if="event.picture"

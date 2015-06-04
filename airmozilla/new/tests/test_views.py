@@ -26,6 +26,7 @@ from airmozilla.main.models import (
     Tag,
     Channel,
     Approval,
+    Topic,
 )
 from airmozilla.uploads.models import Upload
 from airmozilla.manage.tests.views.test_vidlymedia import (
@@ -192,6 +193,8 @@ class TestNew(DjangoTestCase):
         bad_channel = Channel.objects.create(
             name='Bad', slug='bad', never_show=True
         )
+        topic1 = Topic.objects.create(topic='Topic 1')
+        topicX = Topic.objects.create(topic='Topic X', is_active=False)
         self._login()
         url = reverse(
             'new:partial_template',
@@ -215,14 +218,35 @@ class TestNew(DjangoTestCase):
         ok_(html not in html_before)
         ok_(html not in html_after)
 
+        ok_(
+            'ng-model="event.topics[&quot;%s&quot;]"' % topic1.id
+            in response.content
+        )
+        ok_(
+            'ng-model="event.topics[&quot;%s&quot;]"' % topicX.id
+            not in response.content
+        )
+
     def test_edit(self):
         event = Event.objects.get(title='Test event')
         url = reverse('new:edit', args=(event.id,))
+        channel1 = Channel.objects.create(name='Channel 1', slug='channel1')
+        channel2 = Channel.objects.create(name='Channel 2', slug='channel2')
+        topic1 = Topic.objects.create(topic='Topic 1')
+        topic2 = Topic.objects.create(topic='Topic 2')
         data = {
             'title': 'New Title  ',
             'description': 'My Description',
             'privacy': Event.PRIVACY_CONTRIBUTORS,
-            'tags': ' one, two, '
+            'tags': ' one, two, ',
+            'channels': {
+                channel1.id: False,
+                channel2.id: True,
+            },
+            'topics': {
+                topic1.id: False,
+                topic2.id: True,
+            }
         }
         response = self.post_json(url, data)
         eq_(response.status_code, 403)
@@ -254,6 +278,8 @@ class TestNew(DjangoTestCase):
         eq_(len(tags), 2)
         ok_(Tag.objects.get(name='one') in tags)
         ok_(Tag.objects.get(name='two') in tags)
+        eq_(list(event.channels.all()), [channel2])
+        eq_(list(event.topics.all()), [topic2])
 
     def test_edit_errors(self):
         event = self._create_event()
@@ -705,6 +731,31 @@ class TestNew(DjangoTestCase):
             settings.SCREENCAPTURES_NO_PICTURES
         )
 
+    def test_screencaptures_default_picture(self):
+        # Let's pretend we already have a couple of pictures to choose
+        # from but we haven't picked one yet, then it forces the first
+        # available one onto the event.
+        event = self._create_event()
+        event.duration = 123
+        event.save()
+        assert not event.picture
+        assert not Picture.objects.filter(event=event)
+
+        for _ in range(3):
+            with open(self.sample_jpg) as fp:
+                Picture.objects.create(
+                    event=event,
+                    file=File(fp)
+                )
+
+        url = reverse('new:screencaptures', args=(event.id,))
+        response = self.post_json(url)
+        eq_(response.status_code, 200)
+
+        # reload and see that a picture has been chosen
+        event = Event.objects.get(id=event.id)
+        ok_(event.picture)
+
     def test_picture(self):
         event = self._create_event()
         url = reverse('new:picture', args=(event.id,))
@@ -834,14 +885,9 @@ class TestNew(DjangoTestCase):
         # )
         eq_(
             information['event']['channels'], []
-            # [{
-            #     'url': reverse('main:home_channels', args=(channel.slug,)),
-            #     'name': channel.name,
-            #     'id': channel.id,
-            # }]
         )
         eq_(information['event']['id'], event.id)
-        ok_('approvals' not in information['event'])
+        ok_(not information['event']['approvals'])
 
         # let's add some pictures
         with open(self.sample_jpg) as fp:
@@ -857,6 +903,8 @@ class TestNew(DjangoTestCase):
             slug='peterisms'
         )
         event.channels.add(channel)
+        topic = Topic.objects.create(topic='Sensitive Stuff')
+        event.topics.add(topic)
         event.title = 'My Title'
         event.description = 'My Description'
         event.slug = 'my-title'
@@ -872,20 +920,22 @@ class TestNew(DjangoTestCase):
         eq_(information['event']['tags'], 'peterbe')
         eq_(information['event']['additional_links'], 'http://example.com')
         eq_(information['event']['slug'], 'my-title')
-        # default = Channel.objects.get(slug=settings.MOZSHORTZ_CHANNEL_SLUG)
         eq_(
             information['event']['channels'],
             [
-                # {
-                #     'url': reverse('main:home_channels',
-                # args=(default.slug,)),
-                #     'name': default.name,
-                #     'id': default.id,
-                # },
                 {
                     'url': reverse('main:home_channels', args=(channel.slug,)),
                     'name': channel.name,
                     'id': channel.id,
+                }
+            ]
+        )
+        eq_(
+            information['event']['topics'],
+            [
+                {
+                    'topic': topic.topic,
+                    'id': topic.id
                 }
             ]
         )
@@ -1046,6 +1096,10 @@ class TestNew(DjangoTestCase):
         event.template_environment = {'tag': 'abc123'}
         event.save()
 
+        topic = Topic.objects.create(topic='Money Matters')
+        topic.groups.add(group)
+        event.topics.add(topic)
+
         VidlySubmission.objects.create(
             event=event,
             tag='abc123',
@@ -1093,11 +1147,15 @@ class TestNew(DjangoTestCase):
         event = self._create_event()
         event.template = self._create_default_archive_template()
         event.template_environment = {'tag': 'abc123'}
-        event.privacy = Event.PRIVACY_COMPANY
+        event.privacy = Event.PRIVACY_PUBLIC
         event.save()
 
         channel = Channel.objects.create(name='Peterism', slug='peter')
         event.channels.add(channel)
+
+        topic = Topic.objects.create(topic='Money Matters')
+        topic.groups.add(group)
+        event.topics.add(topic)
 
         # also, create a default one
         default_channel = Channel.objects.create(
@@ -1226,7 +1284,8 @@ class TestNew(DjangoTestCase):
         }
         response = self.post_json(url, data)
         eq_(response.status_code, 200)
-        eq_(json.loads(response.content)['event']['channels'], [])
+        eq_(json.loads(response.content)['event']['channels'], {})
+        eq_(json.loads(response.content)['event']['topics'], {})
         assert not event.channels.all().count()
 
         url = reverse('new:publish', args=(event.id,))
