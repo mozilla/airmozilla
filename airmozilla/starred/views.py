@@ -1,5 +1,6 @@
 import collections
 
+from django import http
 from django.shortcuts import render
 from django.views.decorators import cache
 from session_csrf import anonymous_csrf
@@ -56,8 +57,13 @@ def home(request, page=1):
         )
 
     elif ids:
-        ids = [int(x) for x in ids.split(',')]
-        events = Event.objects.filter(id__in=ids)
+        # If you're not authenticated, you should only be able to see
+        # public events.
+        try:
+            ids = [int(x) for x in ids.split(',')]
+        except ValueError:
+            return http.HttpResponseBadRequest('invalid id')
+        events = Event.objects.filter(id__in=ids, privacy=Event.PRIVACY_PUBLIC)
         events = sorted(events, key=lambda e: ids.index(e.id))
     else:
         events = None

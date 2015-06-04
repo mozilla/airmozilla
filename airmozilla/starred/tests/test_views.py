@@ -228,6 +228,43 @@ class TestStarredEvent(DjangoTestCase):
         ok_(event2.title in response.content)
         ok_(event3.title not in response.content)
 
+    def test_anonymous_starred_events_by_privacy(self):
+        # create events
+        event1 = self.create_event('Test Event 1')
+        event2 = self.create_event('Test Event 2')
+        event2.privacy = Event.PRIVACY_CONTRIBUTORS
+        event2.save()
+        event3 = self.create_event('Test Event 3')
+        event3.privacy = Event.PRIVACY_COMPANY
+        event3.save()
+
+        # load page with an AJAX GET. `+ 1` tests that an invalid
+        # event id does not error when passed in the URL
+        response = self.client.get(
+            self.home_url,
+            {'ids': '%d,%d,%d' % (event1.id, event2.id, event3.id)},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        eq_(response.status_code, 200)
+
+        # verify correct events load
+        ok_(event1.title in response.content)
+        ok_(event2.title not in response.content)
+        ok_(event3.title not in response.content)
+
+    def test_anonymous_starred_events_bad_ids(self):
+        # create events
+        event1 = self.create_event('Test Event 1')
+
+        # load page with an AJAX GET. `+ 1` tests that an invalid
+        # event id does not error when passed in the URL
+        response = self.client.get(
+            self.home_url,
+            {'ids': '%d,9999,x' % (event1.id,)},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        eq_(response.status_code, 400)
+
     def test_event_pagination(self):
         url = self.home_url
         user = self._login(username='lisa')
