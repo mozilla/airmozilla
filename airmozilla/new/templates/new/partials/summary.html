@@ -50,7 +50,7 @@
       </span>
     </td>
   </tr>
-  <tr ng-if="event.privacy=='public'">
+  <tr ng-if="event.privacy=='public' && event.topics.length">
     <th>
       Topics:
     </th>
@@ -58,7 +58,6 @@
       <span ng-repeat="topic in event.topics">
         {{ ::topic.topic }}<br>
       </span>
-      <span ng-if="!event.topics.length">none</span>
     </td>
   </tr>
   <tr ng-if="event.status == 'initiated'">
