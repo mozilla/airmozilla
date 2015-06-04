@@ -391,29 +391,15 @@ angular.module('new.controllers', ['new.services'])
             $scope.event.privacy = 'public';
         }
 
-        function decodeChannelsList(channels) {
-            // needed for angularjs
-            var dict = {};
-            channels.forEach(function(channel) {
-                if (channel instanceof Object) {
-                    dict[channel.id] = true;
+        $scope.$watch('event.privacy', function(value) {
+            if (typeof value !== 'undefined') {
+                if (value === 'public') {
+                    $('#id_topics').parents('.form-group').show();
                 } else {
-                    dict[channel] = true;
-                }
-            });
-            return dict;
-        }
-
-        function encodeChannelsList(channels) {
-            // needed for django
-            var flat = [];
-            for (var id in channels) {
-                if (channels[id]) {
-                    flat.push(id);
+                    $('#id_topics').parents('.form-group').hide();
                 }
             }
-            return flat;
-        }
+        });
 
         // $scope.loading=true;return;
         if (eventService.getId() === null && !eventService.isUploading()) {
@@ -438,10 +424,6 @@ angular.module('new.controllers', ['new.services'])
                 if ($scope.event.picture) {
                     eventService.setPicture($scope.event.picture);
                 }
-                // exceptional for editing
-                $scope.event.channels = decodeChannelsList(
-                    response.event.channels
-                );
                 $scope.loading = false;
                 // use jQuery to find out if any of the channels you have
                 // selected is in the hidden part
@@ -494,7 +476,6 @@ angular.module('new.controllers', ['new.services'])
             $scope.errors = {};
             $scope.hasErrors = false;
             // exceptionally change the channels list of a plain list
-            $scope.event.channels = encodeChannelsList($scope.event.channels);
             $http.post(eventUrl.replace('0', eventService.getId()), $scope.event)
             .success(function(response) {
                 if (response.errors) {
@@ -502,14 +483,8 @@ angular.module('new.controllers', ['new.services'])
                     $scope.errors = response.errors;
                     console.warn(response.errors);
                     statusService.set('Form submission error', 10);
-                    $scope.event.channels = decodeChannelsList(
-                        $scope.event.channels
-                    );
                 } else {
                     $scope.event = response.event;
-                    $scope.event.channels = decodeChannelsList(
-                        response.event.channels
-                    );
                     statusService.set('Event saved!', 3);
                     if ($scope.event.picture) {
                         $state.go('summary', {id: eventService.getId()});
@@ -520,10 +495,6 @@ angular.module('new.controllers', ['new.services'])
             })
             .error(function() {
                 console.error.apply(console, arguments);
-                // decode it back
-                $scope.event.channels = decodeChannelsList(
-                    $scope.event.channels
-                );
             });
         };
 

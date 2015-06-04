@@ -50,14 +50,16 @@
      'glyphicon-briefcase', perms.main.change_recruitmentmessage, ''),
     ('manage:surveys', 'Surveys', 'surveys',
      'glyphicon-list-alt', perms.surveys.change_survey, ''),
+     ('manage:topics', 'Topics', 'topics', 'glyphicon-flag',
+      perms.main.change_topic, ''),
 
     ('', 'Other configuration', '', '', perms.flatpages.change_flatpage, ''),
     ('manage:staticpages', 'Static pages', 'pages', 'glyphicon-file',
      perms.staticpages.change_staticpage, ''),
-    ('manage:url_transforms', 'URL transforms', 'url_transforms', 'glyphicon-retweet',
-     perms.main.change_urlmatch, ''),
     ('manage:cronlogger', 'Cron Logs', 'cronlogger', 'glyphicon-tasks',
      is_superuser, ''),
+     ('manage:url_transforms', 'URL transforms', 'url_transforms', 'glyphicon-retweet',
+      perms.main.change_urlmatch, ''),
     ('manage:autocompeter', 'Autocompeter', 'autocompeter', 'glyphicon-fast-forward',
      is_superuser, ''),
 

@@ -14,7 +14,6 @@ from django.utils.functional import wraps
 from django.views.decorators.http import require_POST
 from django.template.base import TemplateDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.models import Permission, Group
 from django.core.cache import cache
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
@@ -178,8 +177,15 @@ def serialize_event(event, extended=False):
         'additional_links': event.additional_links,
         'duration': event.duration,
         'tags': [],
-        'channels': [],
+        'channels': {},
+        'topics': {},
     }
+    if extended:
+        # When it's the extended version, we return a list of dicts
+        # that contain the id, name, etc.
+        data['channels'] = []
+        data['topics'] = []
+
     if event.slug:
         data['url'] = reverse('main:event', args=(event.slug,))
     for tag in event.tags.all():
@@ -188,11 +194,23 @@ def serialize_event(event, extended=False):
     data['tags'] = ', '.join(sorted(data['tags']))
 
     for channel in event.channels.all():
-        data['channels'].append({
-            'id': channel.id,
-            'name': channel.name,
-            'url': reverse('main:home_channels', args=(channel.slug,)),
-        })
+        if extended:
+            data['channels'].append({
+                'id': channel.id,
+                'name': channel.name,
+                'url': reverse('main:home_channels', args=(channel.slug,)),
+            })
+        else:
+            data['channels'][channel.id] = True
+
+    for topic in event.topics.all():
+        if extended:
+            data['topics'].append({
+                'id': topic.id,
+                'topic': topic.topic,
+            })
+        else:
+            data['topics'][topic.id] = True
 
     if extended:
         # get a list of all the groups that need to approve it
@@ -457,13 +475,10 @@ def event_picture(request, event):
 @must_be_your_event
 @json_view
 def event_summary(request, event):
-    extended = 'extended' in request.GET
-    context = {
-        'event': serialize_event(event, extended=extended),
+    return {
+        'event': serialize_event(event, extended=True),
         'pictures': Picture.objects.filter(event=event).count(),
     }
-
-    return context
 
 
 @login_required
@@ -515,8 +530,7 @@ def event_publish(request, event):
         break
     assert submission, "Event has no vidly submission"
 
-    permissions = Permission.objects.filter(codename='change_approval')
-    groups = Group.objects.filter(permissions__in=permissions)
+    groups = []
 
     with transaction.atomic():
         results = vidly.query(tag).get(tag, {})
@@ -554,6 +568,10 @@ def event_publish(request, event):
             discussion.moderators.add(event.creator)
 
         if event.privacy == Event.PRIVACY_PUBLIC:
+            for topic in event.topics.all():
+                for group in topic.groups.all():
+                    if group not in groups:
+                        groups.append(group)
             for group in groups:
                 Approval.objects.create(event=event, group=group)
 

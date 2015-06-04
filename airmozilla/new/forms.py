@@ -3,7 +3,7 @@ from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
 from airmozilla.base.forms import BaseModelForm
-from airmozilla.main.models import Event, Tag, Channel
+from airmozilla.main.models import Event, Tag, Channel, Topic
 from airmozilla.uploads.models import Upload
 
 
@@ -49,7 +49,50 @@ class ChannelsSelectWidget(forms.widgets.CheckboxSelectMultiple):
         self.choices = choices
 
 
-class ChannelsModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+class AngularCheckboxChoiceInput(forms.widgets.CheckboxChoiceInput):
+
+    def render(self, name=None, value=None, attrs=None, choices=()):
+        name = name or self.name
+        value = value or self.value
+        attrs = attrs or self.attrs
+        if 'ng-model' in attrs:
+            attrs['ng-model'] += '["{0}"]'.format(self.choice_value)
+        else:
+            attrs['ng-model'] += '{0}["{1}"]'.format(name, self.choice_value)
+        return super(AngularCheckboxChoiceInput, self).render(
+            name, value, attrs, choices
+        )
+
+
+class AngularCheckboxFieldRenderer(forms.widgets.CheckboxFieldRenderer):
+    choice_input_class = AngularCheckboxChoiceInput
+
+
+class AngularCheckboxSelectMultiple(forms.widgets.CheckboxSelectMultiple):
+    renderer = AngularCheckboxFieldRenderer
+
+
+class AngularModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    widget = AngularCheckboxSelectMultiple
+
+    def clean(self, value):
+        """
+        When Angular sends in the value to a list of checkboxes as JSON
+        you get something like this:
+          {"123": true, "345": false, "99": true}
+        We need to convert that to ['123', '99']
+        """
+        if isinstance(value, dict):
+            # flatten to a list of those that are still on
+            flat = []
+            for key, value in value.items():
+                if value:
+                    flat.append(key)
+            value = flat
+        return super(AngularModelMultipleChoiceField, self).clean(value)
+
+
+class ChannelsModelMultipleChoiceField(AngularModelMultipleChoiceField):
     widget = ChannelsSelectWidget
     help_text = ''
 
@@ -68,6 +111,10 @@ class DetailsForm(BaseModelForm):
         label='Channels',
         required=False,
     )
+    topics = AngularModelMultipleChoiceField(
+        Topic.objects.filter(is_active=True),
+        required=False,
+    )
 
     class Meta:
         model = Event
@@ -78,6 +125,7 @@ class DetailsForm(BaseModelForm):
             'additional_links',
             'tags',
             'channels',
+            'topics',
         )
 
     def __init__(self, *args, **kwargs):

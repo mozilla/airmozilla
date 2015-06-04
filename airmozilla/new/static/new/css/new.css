@@ -1,3 +1,13 @@
+ui-view {
+    /*
+    This trick makes sure the footer stays to avoid flicker
+    when app.js decides which template and controller to load
+    and show.
+    */
+    min-height: 600px;
+    display: block;
+}
+
 [ng-cloak],
 .ng-cloak {
   display: none !important;
@@ -214,9 +224,11 @@ ul.channels.expanded {
     column-gap: 10px;
 }
 
+ul#id_topics li,
 ul.channels li {
     margin-bottom: 0;
 }
+ul#id_topics li label,
 ul.channels li label {
     padding-bottom: 0.1em;
 }

@@ -55,6 +55,13 @@
     "US/Pacific",
     "UTC"
   ],
+  "topics": [
+    "Sensitive Money Stuff",
+    "Delicate Matters",
+    "Sensitive Gender Issues",
+    "Special Press Circumstances",
+    "Firefox iOS Hacks"
+  ],
   "video_urls": [
     "https://air-mozilla-uploads-prod.s3.amazonaws.com/2015/03/27/2-3375c-033222.mov",
     "https://air-mozilla-uploads-prod.s3.amazonaws.com/2015/03/26/848-f8563-204849.mov",

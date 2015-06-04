@@ -40,7 +40,7 @@
   <p ng-if="event.approvals.length">
     Approval awaiting from:
     <span ng-repeat="approval in event.approvals">
-      <b>{{ ::approval.group_name }}</b>
+      <b>{{ ::approval.group_name }}</b>{{ !$last && ', ' || '' }}
     </span>
   </p>
 

@@ -16,6 +16,7 @@ from django.core.files import File
 from django.db import transaction
 from django.utils import timezone
 from django.conf import settings
+from django.contrib.auth.models import Group
 
 from airmozilla.main import models as main_models
 from airmozilla.uploads import models as upload_models
@@ -294,7 +295,7 @@ def random_location():
 
 def setup_locations():
     for name in DATA['locations']:
-        if main_models.Location.objects.filter(name=name):
+        if main_models.Location.objects.filter(name=name).exists():
             # we already have this one
             continue
 
@@ -319,6 +320,23 @@ def setup_regions():
         for l in locations:
             l.regions.add(region)
             picked.add(l.id)
+
+
+def setup_topics():
+    Group.objects.get_or_create(name='PR')
+    Group.objects.get_or_create(name='Special Users')
+    for topic in DATA['topics']:
+        if main_models.Topic.objects.filter(topic=topic).exists():
+            continue
+
+        is_active = random.randint(1, 5) != 1
+        topic = main_models.Topic.objects.create(
+            topic=topic,
+            is_active=is_active,
+            sort_order=main_models.Topic.objects.all().count() + 1,
+        )
+        for group in Group.objects.all().order_by('?')[:random.randint(1, 2)]:
+            topic.groups.add(group)
 
 
 def setup_users(howmany):
@@ -406,6 +424,7 @@ def generate(events=100, verbose=False):
     setup_locations()
     setup_regions()
     setup_users(int(float(events) / 10))
+    setup_topics()
 
     _slugs = set(
         main_models.Event.objects.all().values_list('slug', flat=True)
