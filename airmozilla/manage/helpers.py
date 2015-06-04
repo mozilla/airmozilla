@@ -133,7 +133,7 @@ def comment_status_to_css_label(status):
 def event_status_to_css_label(status):
     if status == Event.STATUS_INITIATED:
         return 'label-default'
-    if status == Event.STATUS_PENDING:
+    if status in (Event.STATUS_PENDING, Event.STATUS_PROCESSING):
         return 'label-primary'
     if status == Event.STATUS_SCHEDULED:
         return 'label-success'
