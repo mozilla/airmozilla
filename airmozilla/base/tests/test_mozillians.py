@@ -9,6 +9,7 @@ import mock
 from nose.tools import ok_, eq_
 
 from airmozilla.base import mozillians
+from airmozilla.base.tests.testbase import Response
 
 
 VOUCHED_FOR = """
@@ -244,12 +245,6 @@ assert json.loads(VOUCHED_FOR)
 assert json.loads(NOT_VOUCHED_FOR)
 assert json.loads(NO_VOUCHED_FOR)
 assert json.loads(IN_GROUPS)
-
-
-class Response(object):
-    def __init__(self, content=None, status_code=200):
-        self.content = content
-        self.status_code = status_code
 
 
 class TestMozillians(TestCase):

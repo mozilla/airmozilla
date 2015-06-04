@@ -72,3 +72,13 @@ class DjangoLiveServerTestCase(LiveServerTestCase):
         if not settings.RUN_SELENIUM_TESTS:
             raise SkipTest("settings.RUN_SELENIUM_TESTS is set to False")
         super(DjangoLiveServerTestCase, self).setUp()
+
+
+class Response(object):
+    def __init__(self, content=None, status_code=200, headers=None):
+        self.content = content
+        self.status_code = status_code
+        self.headers = headers or {}
+
+    def json(self):
+        return self.content

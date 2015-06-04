@@ -7,15 +7,7 @@ from nose.tools import eq_, assert_raises
 from mock import patch
 
 from airmozilla.base import utils
-
-
-class Response(object):
-    def __init__(self, content=None, status_code=200):
-        self.content = content
-        self.status_code = status_code
-
-    def json(self):
-        return self.content
+from airmozilla.base.tests.testbase import Response
 
 
 class TestMisc(TestCase):

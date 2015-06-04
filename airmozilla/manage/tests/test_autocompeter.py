@@ -10,19 +10,10 @@ from django.core.exceptions import ImproperlyConfigured
 
 from funfactory.urlresolvers import reverse
 
+from airmozilla.base.tests.testbase import Response
 from airmozilla.main.models import Event, EventHitStats, Approval
 from airmozilla.manage import autocompeter
 from airmozilla.base.tests.testbase import DjangoTestCase
-
-
-class Response(object):
-    def __init__(self, content, status_code=200, headers=None):
-        self.content = self.text = content
-        self.status_code = status_code
-        self.headers = headers or {}
-
-    def json(self):
-        return json.loads(self.content)
 
 
 class TestAutocompeter(DjangoTestCase):
@@ -315,7 +306,7 @@ class TestAutocompeter(DjangoTestCase):
 
         def mocked_get(url, **options):
             return Response(
-                json.dumps({'documents': 1}),
+                {'documents': 1},
                 200,
                 headers={
                     'content-type': 'application/json'
@@ -339,12 +330,12 @@ class TestAutocompeter(DjangoTestCase):
 
         def mocked_get(url, **options):
             return Response(
-                json.dumps({
+                {
                     'terms': ['foo'],
                     'results': [
                         ['/url', 'Page'],
                     ]
-                }),
+                },
                 200,
                 headers={
                     'content-type': 'application/json'

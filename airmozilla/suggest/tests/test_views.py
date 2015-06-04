@@ -25,6 +25,7 @@ from airmozilla.main.models import (
     Tag,
     Picture
 )
+from airmozilla.base.tests.testbase import Response
 from airmozilla.uploads.models import Upload
 from airmozilla.comments.models import SuggestedDiscussion
 from airmozilla.base.tests.testbase import DjangoTestCase
@@ -37,12 +38,6 @@ PNG_FILE = os.path.join(_here, 'popcorn.png')
 class HeadResponse(object):
     def __init__(self, **headers):
         self.headers = headers
-
-
-class Response(object):
-    def __init__(self, content=None, status_code=200):
-        self.content = content
-        self.status_code = status_code
 
 
 class TestPages(DjangoTestCase):

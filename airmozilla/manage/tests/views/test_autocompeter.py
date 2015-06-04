@@ -6,7 +6,7 @@ import mock
 from funfactory.urlresolvers import reverse
 
 from .base import ManageTestCase
-from airmozilla.manage.tests.test_autocompeter import Response
+from airmozilla.base.tests.testbase import Response
 
 
 class TestAutocompeter(ManageTestCase):
@@ -39,7 +39,7 @@ class TestAutocompeter(ManageTestCase):
 
         def mocked_get(url, **options):
             return Response(
-                json.dumps({'documents': 3}),
+                {'documents': 3},
                 200,
                 headers={
                     'Content-Type': 'application/json'
@@ -59,12 +59,12 @@ class TestAutocompeter(ManageTestCase):
 
         def mocked_get(url, **options):
             return Response(
-                json.dumps({
+                {
                     'terms': [options['params']['q']],
                     'results': [
                         ['/url', 'Page'],
                     ]
-                }),
+                },
                 200,
                 headers={
                     'Content-Type': 'application/json'
