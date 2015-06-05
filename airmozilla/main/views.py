@@ -4,6 +4,7 @@ import json
 import urllib
 import time
 import collections
+import pyelasticsearch
 
 from django import http
 from django.conf import settings
@@ -527,6 +528,20 @@ class EventView(View):
                         pass
 
         return render(request, self.template_name, context)
+
+    def es_to_template(self, request, slug):
+        es = pyelasticsearch.ElasticSearch('http://localhost:9200/')
+        hits = es.search('title: firefox', index='events')['hits']
+        ids = []
+        for doc in hits['hits']:
+            ids.append(doc['_id'])
+        events = Event.objects.filter(id__in=ids)
+        events.sort(lambda e: ids.index(e.id))
+
+        context = {
+            'events': events,
+        }
+        return render(request, 'main/es.html', context)
 
     def post(self, request, slug):
         event = get_object_or_404(Event, slug=slug)
