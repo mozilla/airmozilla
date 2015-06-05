@@ -14,6 +14,7 @@ from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
 from airmozilla.main.models import Event
+from airmozilla.base.tests.testbase import Response
 from airmozilla.comments.views import (
     can_manage_comments,
     get_latest_comment
@@ -60,12 +61,6 @@ MOZILLIAN_USER = """
   ]
 }
 """
-
-
-class Response(object):
-    def __init__(self, content=None, status_code=200):
-        self.content = content
-        self.status_code = status_code
 
 
 class TestComments(TestCase):

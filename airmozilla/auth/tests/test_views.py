@@ -11,6 +11,7 @@ from nose.tools import ok_, eq_
 
 from airmozilla.auth.browserid_mock import mock_browserid
 from airmozilla.base import mozillians
+from airmozilla.base.tests.testbase import Response
 from airmozilla.main.models import UserProfile
 
 
@@ -85,12 +86,6 @@ NOT_VOUCHED_FOR = """
   ]
 }
 """
-
-
-class Response(object):
-    def __init__(self, content=None, status_code=200):
-        self.content = content
-        self.status_code = status_code
 
 
 class TestViews(TestCase):

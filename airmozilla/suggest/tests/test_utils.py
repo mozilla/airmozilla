@@ -5,18 +5,13 @@ from nose.tools import eq_, ok_
 
 from mock import patch
 
+from airmozilla.base.tests.testbase import Response
 from airmozilla.suggest import utils
 
 
 _here = os.path.dirname(__file__)
 HAS_OPENGRAPH_FILE = os.path.join(_here, 'has_opengraph.html')
 NO_OPENGRAPH_FILE = os.path.join(_here, 'no_opengraph.html')
-
-
-class Response(object):
-    def __init__(self, content=None, status_code=200):
-        self.content = content
-        self.status_code = status_code
 
 
 class TestOpenGraph(TestCase):
