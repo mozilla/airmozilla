@@ -117,96 +117,90 @@
       ng-if="hasFilter()" ng-click="clearFilter()">Clear filter</button>
   </div>
 
-  <div class="row" ng-class="{hidden: loading}"
-       ng-repeat="filteredItem in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize track by $index"
-       ng-if="$index % 4 == 0">
-    <div class="col-md-3"
-        ng-repeat="i in [(currentPage*pageSize) + $index, (currentPage*pageSize) + $index + 1, (currentPage*pageSize) + $index + 2, (currentPage*pageSize) + $index + 3]"
-        ng-if="filtered_items[i] != null"
-        ng-init="picture = filtered_items[i]"
-        ng-class="{'current-event-picture': current_event_picture == picture.id}">
-      <div class="thumbnail">
-        <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
-          <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=201x113">
-          <span class="label label-primary picture-metadata">
-            {{ picture.width }}x{{ picture.height }}
-            {{ picture.size | filesize }}
-          </span>
-          <span ng-if="picture.default_placeholder"
-                class="label label-success picture-default-placeholder">
-            Default placeholder
-          </span>
+  <div class="col-md-3"
+     ng-repeat="picture in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize track by $index"
+      ng-class="{'current-event-picture': current_event_picture == picture.id, 'clearfix': $index % 4 == 0}">
+    <div class="thumbnail">
+      <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
+        <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=201x113">
+        <span class="label label-primary picture-metadata">
+          {{ picture.width }}x{{ picture.height }}
+          {{ picture.size | filesize }}
+        </span>
+        <span ng-if="picture.default_placeholder"
+              class="label label-success picture-default-placeholder">
+          Default placeholder
+        </span>
 
+      </a>
+      <div class="caption">
+
+        <input name="notes" value="{{ picture.notes }}"
+         ng-model="picture.notes"
+         placeholder="no notes">
+        <button
+          ng-click="saveNotes(picture)"
+          class="btn btn-xs"
+          ng-class="{'btn-primary': !picture._saving}">
+          <span ng-if="picture._saving">Saving</span>
+          <span ng-if="!picture._saving">Save</span>
+        </button>
+        <button
+          class="btn btn-danger btn-xs"
+          ng-show="!picture._delete_confirmation && !picture.cant_delete"
+          ng-click="toggleDeleteConfirmation(picture)">Delete</button>
+        <br>
+        <a href="" ng-show="picture.events.length"
+           ng-click="toggleShowEvents(picture)">
+           <ng-pluralize count="picture.events.length"
+            when="{'one': '1 event', 'other': '{} events'}">
+          </ng-pluralize>
         </a>
-        <div class="caption">
 
-          <input name="notes" value="{{ picture.notes }}"
-           ng-model="picture.notes"
-           placeholder="no notes">
-          <button
-            ng-click="saveNotes(picture)"
-            class="btn btn-xs"
-            ng-class="{'btn-primary': !picture._saving}">
-            <span ng-if="picture._saving">Saving</span>
-            <span ng-if="!picture._saving">Save</span>
-          </button>
-          <button
-            class="btn btn-danger btn-xs"
-            ng-show="!picture._delete_confirmation && !picture.cant_delete"
-            ng-click="toggleDeleteConfirmation(picture)">Delete</button>
-          <br>
-          <a href="" ng-show="picture.events.length"
-             ng-click="toggleShowEvents(picture)">
-             <ng-pluralize count="picture.events.length"
-              when="{'one': '1 event', 'other': '{} events'}">
-            </ng-pluralize>
-          </a>
-
-          <br>
-          <button ng-click="associatePicture(picture)" ng-show="current_event && current_event_picture != picture.id"
-                  class="btn btn-primary">
-            Pick this for the event
-          </button>
-          <p ng-show="current_event && current_event_picture == picture.id">
-            <b>Current event picture</b>
-          </p>
-          <span ng-show="picture._show_events">
-            <span ng-repeat="event in picture.events">
-              <a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a><br>
-            </span>
+        <br>
+        <button ng-click="associatePicture(picture)" ng-show="current_event && current_event_picture != picture.id"
+                class="btn btn-primary">
+          Pick this for the event
+        </button>
+        <p ng-show="current_event && current_event_picture == picture.id">
+          <b>Current event picture</b>
+        </p>
+        <span ng-show="picture._show_events">
+          <span ng-repeat="event in picture.events">
+            <a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a><br>
           </span>
+        </span>
 
-          <p ng-show="picture._delete_confirmation">
-            Are you sure?
-            <button class="btn btn-danger btn-xs"
-              ng-click="deletePicture(picture)">
-              Yes
-            </button>
-            <button class="btn btn-default btn-xs"
-              ng-click="toggleDeleteConfirmation(picture)">Cancel</button>
-            <br>
-            <small ng-show="picture.events.length">
-              Careful. This picture is used by <b>{{ picture.events.length }}</b>
-              events.
-            </small>
-          </p>
+        <p ng-show="picture._delete_confirmation">
+          Are you sure?
+          <button class="btn btn-danger btn-xs"
+            ng-click="deletePicture(picture)">
+            Yes
+          </button>
+          <button class="btn btn-default btn-xs"
+            ng-click="toggleDeleteConfirmation(picture)">Cancel</button>
+          <br>
+          <small ng-show="picture.events.length">
+            Careful. This picture is used by <b>{{ picture.events.length }}</b>
+            events.
+          </small>
+        </p>
 
 
-        </div>
       </div>
     </div>
-
-    <div ng-if="!filtered_items.length">
-        <p><b>Filtered too much?</b></p>
-        <p ng-if="search_notes">
-          <a href="#" ng-click="resetFilter('search_notes')">Drop notes search on <code>{{ search_notes }}</code></a>
-        </p>
-        <p ng-if="search_created">
-          <a href="#" ng-click="resetFilter('search_created')">Drop the filter on uploaded</a>
-        </p>
-    </div>
-
   </div>
+
+  <div ng-if="!filtered_items.length">
+      <p><b>Filtered too much?</b></p>
+      <p ng-if="search_notes">
+        <a href="#" ng-click="resetFilter('search_notes')">Drop notes search on <code>{{ search_notes }}</code></a>
+      </p>
+      <p ng-if="search_created">
+        <a href="#" ng-click="resetFilter('search_created')">Drop the filter on uploaded</a>
+      </p>
+  </div>
+
   <div id="total-pictures-stats">
     <p>
       <b>Total # pictures:</b>

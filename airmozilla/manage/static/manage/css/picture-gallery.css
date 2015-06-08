@@ -31,3 +31,7 @@ div.thumbnail {
     top: 22px;
     opacity: 0.9;
 }
+
+.clearfix {
+    clear: both;
+}
