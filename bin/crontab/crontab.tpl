@@ -42,10 +42,15 @@ HOME=/tmp
 # Every 10 minutes
 */10 * * * * {{ cron }} send_new_event_emails 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
+
 # Every 15 minutes
 */15 * * * * {{ cron }} tweet_new_published_events 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every 5 minutes
 */5 * * * * {{ cron }} render_popcorn 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+
+# Every 10 minutes
+*/10 * * * * {{ cron }} related_content_indexing 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+
 
 MAILTO=root

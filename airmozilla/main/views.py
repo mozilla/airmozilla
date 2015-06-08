@@ -529,20 +529,6 @@ class EventView(View):
 
         return render(request, self.template_name, context)
 
-    def es_to_template(self, request, slug):
-        es = pyelasticsearch.ElasticSearch('http://localhost:9200/')
-        hits = es.search('title: firefox', index='events')['hits']
-        ids = []
-        for doc in hits['hits']:
-            ids.append(doc['_id'])
-        events = Event.objects.filter(id__in=ids)
-        events.sort(lambda e: ids.index(e.id))
-
-        context = {
-            'events': events,
-        }
-        return render(request, 'main/es.html', context)
-
     def post(self, request, slug):
         event = get_object_or_404(Event, slug=slug)
         pin_form = forms.PinForm(request.POST, instance=event)
@@ -1171,6 +1157,115 @@ class EventsFeed(Feed):
 
     def item_pubdate(self, event):
         return event.start_time
+
+
+def related_content(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+
+    es = pyelasticsearch.ElasticSearch(settings.RELATED_CONTENT_URL)
+    es.refresh()
+
+    if request.user.is_active:
+        if is_contributor(request.user):
+            query = {
+                "query": {
+                    "filtered": {
+                        "query": {
+                            "more_like_this": {
+                                "fields": ["tags", "title", "channels"],
+                                "docs": [
+                                    {
+                                        "_index": "events",
+                                        "_type": "event",
+                                        "_id": event.id
+                                    }],
+                                "min_term_freq": 1,
+                                "max_query_terms": 5,
+                            }
+                        },
+                        "filter": {
+                            "must_not": {
+                                "term": {
+                                    "privacy": Event.PRIVACY_COMPANY
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        else:
+            query = {
+                "query": {
+                    "more_like_this": {
+                        "fields": ["tags", "title", "channels"],
+                        "docs": [
+                            {
+                                "_index": "events",
+                                "_type": "event",
+                                "_id": event.id
+                            }],
+                        "min_term_freq": 1,
+                        "max_query_terms": 5,
+                    }
+                }
+            }
+    else:
+        query = {
+            "query": {
+                "filtered": {
+                    "query": {
+                        "more_like_this": {
+                            "fields": ["tags", "title", "channels"],
+                            "docs": [
+                                {
+                                    "_index": "events",
+                                    "_type": "event",
+                                    "_id": event.id
+                                }],
+                            "min_term_freq": 1,
+                            "max_query_terms": 5,
+                        }
+                    },
+                    "filter": {
+                        "bool": {
+                            "must": {
+                                "term": {"privacy": Event.PRIVACY_PUBLIC}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    ids = []
+    hits = es.search(query, index='events')['hits']
+
+    for doc in hits['hits']:
+        print "\t", repr(doc['_source']['title']), doc['_id']
+        ids.append(doc['_id'])
+    ids2 = [int(x) for x in ids]
+
+    if request.user.is_active:
+        if is_contributor(request.user):
+            events = Event.objects \
+                          .filter(id__in=ids2)
+        else:
+            events = Event.objects.scheduled_or_processing()
+    else:
+        events = Event.objects \
+                      .filter(id__in=ids2)
+
+    curated_groups_map = collections.defaultdict(list)
+
+    def get_curated_groups(event):
+        return curated_groups_map.get('event_id')
+
+    context = {
+        'events': events,
+        'get_curated_groups': get_curated_groups,
+    }
+    print context
+    return render(request, 'main/es.html', context)
 
 
 def channels(request):
