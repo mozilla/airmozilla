@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Max
+from django.core.cache import cache
+from django.dispatch import receiver
 
 from jsonfield.fields import JSONField
 
@@ -13,6 +15,14 @@ class Survey(models.Model):
     active = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+
+@receiver(models.signals.m2m_changed, sender=Survey.events.through)
+@receiver(models.signals.post_save, sender=Survey)
+def invalidate_event_survey_cache_key(sender, instance, **kwargs):
+    for event in instance.events.all():
+        cache_key = 'event_survey_id_%s' % event.id
+        cache.delete(cache_key)
 
 
 def next_order(*args, **kwargs):

@@ -31,6 +31,7 @@ from airmozilla.main.models import (
     VidlySubmission,
     EventLiveHits,
 )
+from airmozilla.surveys.models import Survey, Question
 from airmozilla.staticpages.models import StaticPage
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -3126,3 +3127,33 @@ class TestPages(DjangoTestCase):
             response = self.client.get('/')
             eq_(response.status_code, 200)
             ok_('Sign out' in response.content)
+
+    def test_render_event_with_survey(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # create a survey and add some questions to it
+        survey = Survey.objects.create(name='Test', active=True)
+        Question.objects.create(
+            survey=survey,
+            question={
+                'question': 'Fav color?',
+                'choices': ['Red', 'Green', 'Blue']
+            }
+        )
+        survey.events.add(event)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # The question won't be in the event output but the event
+        # page will have a reference to the Survey URL
+        survey_url = reverse('surveys:load', args=(survey.id,))
+        ok_(survey_url in response.content)
+
+        survey.active = False
+        survey.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(survey_url not in response.content)

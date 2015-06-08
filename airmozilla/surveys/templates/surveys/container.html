@@ -1,5 +1,6 @@
+{# this include template assumes the variable `survey_id` is set #}
 <div id="survey"
-     data-load-url="{{ url('surveys:load', survey.id) }}">
+     data-load-url="{{ url('surveys:load', survey_id) }}">
   <h3>Survey</h3>
   <div class="inner">
 

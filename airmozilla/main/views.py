@@ -399,8 +399,13 @@ class EventView(View):
         can_edit_event = request.user.is_active
         can_edit_discussion = (
             can_edit_event and
-            request.user == event.creator and
-            Discussion.objects.filter(event=event)
+            # This is a little trick to avoid waking up the
+            # SimpleLazyObject on the user. If the .is_active is true
+            # the ID will have already been set by the session.
+            # So doing this comparison instead avoids causing a
+            # select query on the auth_user table.
+            request.user.pk == event.creator_id and
+            Discussion.objects.filter(event=event).exists()
         )
 
         request.channels = event.channels.all()
@@ -461,11 +466,19 @@ class EventView(View):
         if event.recruitmentmessage and event.recruitmentmessage.active:
             context['recruitmentmessage'] = event.recruitmentmessage
 
-        context['survey'] = None
-        try:
-            context['survey'] = Survey.objects.get(events=event, active=True)
-        except Survey.DoesNotExist:
-            pass
+        cache_key = 'event_survey_id_%s' % event.id
+        context['survey_id'] = cache.get(cache_key, -1)
+        if context['survey_id'] == -1:  # not known in cache
+            try:
+                survey = Survey.objects.get(
+                    events=event,
+                    active=True
+                )
+                cache.set(cache_key, survey.id, 60 * 60 * 24)
+                context['survey_id'] = survey.id
+            except Survey.DoesNotExist:
+                cache.set(cache_key, None, 60 * 60 * 24)
+                context['survey_id'] = None
 
         if settings.LOG_SEARCHES:
             if request.session.get('logged_search'):
