@@ -105,14 +105,14 @@
   <nav class="nav-paging">
     <ul role="navigation">
       {% if next_page_url %}
-        <li class="prev">
+        <li class="next">
           <a href="{{ next_page_url }}">
             {{ _('Next page') }}
           </a>
         </li>
       {% endif %}
       {% if prev_page_url %}
-        <li class="next">
+        <li class="prev">
           <a href="{{ prev_page_url }}">
             {{ _('Previous page') }}
           </a>
