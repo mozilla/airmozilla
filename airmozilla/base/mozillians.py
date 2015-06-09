@@ -140,6 +140,7 @@ def get_contributors():
         (x['username'], x)
         for x in
         _fetch_users(groups=['air mozilla contributors'])['objects']
+        if x.get('username')
     )
     users = []
     for username in settings.CONTRIBUTORS:
