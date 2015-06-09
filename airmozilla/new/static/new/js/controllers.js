@@ -61,8 +61,9 @@ angular.module('new.controllers', ['new.services'])
     };
 })
 
-.controller('StartController', ['$scope', '$http', '$state',
-    function($scope, $http, $state) {
+.controller('StartController',
+    ['$scope', '$http', '$timeout', '$state',
+    function($scope, $http, $timeout, $state) {
         var $appContainer = angular.element('#content');
         var yoursUrl = $appContainer.data('yours-url');
         var deleteUrl = $appContainer.data('delete-url');
@@ -90,7 +91,9 @@ angular.module('new.controllers', ['new.services'])
                     .format('ddd, MMM D, YYYY, h:mma UTCZZ');
                 event._nextUrl = nextUrl;
                 event._video = null;
-
+                if (event.picture) {
+                    preloadImage(event.picture.url);
+                }
                 var url = videoUrl.replace('0', event.id);
                 $http.get(url)
                 .success(function(videoResponse) {
@@ -124,7 +127,11 @@ angular.module('new.controllers', ['new.services'])
         })
         .error(console.error.bind(console))
         .finally(function() {
-            $scope.loading = false;
+            // delay it slightly to give it a chance to load all the
+            // images and the video information.
+            $timeout(function() {
+                $scope.loading = false;
+            }, 1000);
         });
 
         $scope.deleteEvent = function(event) {
