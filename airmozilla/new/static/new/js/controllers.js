@@ -1,5 +1,12 @@
 /* global $ angular console document RecordRTC */
 
+function preloadImage(url, cb) {
+    var img = document.createElement('img');
+    if (cb) {
+        img.onload = cb;
+    }
+    img.src = url;
+}
 
 angular.module('new.controllers', ['new.services'])
 
@@ -227,6 +234,10 @@ angular.module('new.controllers', ['new.services'])
         staticService($appContainer.data('recordrtc-url'));
         staticService($appContainer.data('humanizeduration-url'));
 
+        $scope.silhouetteURL = $appContainer.data('silhouette-url');
+
+        preloadImage($scope.silhouetteURL);
+
         $scope.fileError = null;
 
         // var acceptedFiles = [
@@ -246,7 +257,20 @@ angular.module('new.controllers', ['new.services'])
         $scope.cameraStarted = false;
         $scope.showRecorderVideo = false;
         $scope.showPlaybackVideo = false;
+        $scope.showSilhouette = false;
+        $scope.showTips = false;
 
+        $scope.toggleSilhouette = function() {
+            $scope.showSilhouette = !$scope.showSilhouette;
+            if ($scope.showSilhouette) {
+                sessionStorage.removeItem('hide-silhouette');
+            } else {
+                sessionStorage.setItem('hide-silhouette', true);
+            }
+        };
+        $scope.toggleTips = function() {
+            $scope.showTips = !$scope.showTips;
+        };
 
         function getUserMedia(config, callback, errorCallback) {
             navigator.getUserMedia = navigator.mozGetUserMedia || navigator.webkitGetUserMedia;
@@ -292,6 +316,12 @@ angular.module('new.controllers', ['new.services'])
                 $scope.$apply(function() {
                     $scope.cameraStarted = true;
                     $scope.showRecorderVideo = true;
+                    $timeout(function() {
+                        // unless you've explicitly disabled it
+                        if (!sessionStorage.getItem('hide-silhouette')) {
+                            $scope.showSilhouette = true;
+                        }
+                    }, 500);
 
                 });
             }, function(error) {

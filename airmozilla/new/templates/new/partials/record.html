@@ -1,4 +1,3 @@
-{% raw %}
 
 <h4 ng-if="!recording">Record</h4>
 <h4 ng-if="recording">Recording</h4>
@@ -7,13 +6,10 @@
   <p>
     When you start the camera you will be asked to share your computer's
     camera and microphone. <br>
-    You need to say...
+    You need to click <b>Share Selected Devices</b>.
   </p>
   <button type="button" ng-click="startCamera()">Start Camera</button>
 </div>
-
-<!-- {{ cameraStarted}},{{showRecorderVideo}},{{showPlaybackVideo}},{{countdown}}<br>
-recording?{{ recording}}<br> -->
 
 <div class="show-hide after-recording" ng-show="showPlaybackVideo">
   <h3>Happy?</h3>
@@ -22,8 +18,8 @@ recording?{{ recording}}<br> -->
   <button ng-click="resetRecording()">Restart Recording</button>
 </div>
 
-
 <div class="show-hide video-outer" ng-show="cameraStarted">
+  {% raw %}
   <h1 class="countdown show-hide" ng-show="countdown">{{ countdown }}</h3>
     <button class="start-stop-button start-button show-hide"
             ng-show="!recording && !countdown && showRecorderVideo"
@@ -31,6 +27,9 @@ recording?{{ recording}}<br> -->
     <button class="start-stop-button stop-button show-hide"
             ng-show="recording"
             ng-click="stopRecording()">Stop Recording</button>
+
+  <img class="silhouette" ng-src="{{ silhouetteURL }}" alt="silhouette"
+       ng-show="showSilhouette && !recording && showRecorderVideo">
   <video class="recorder"
          ng-show="showRecorderVideo"
          ng-class="{recording: recording, ready: !recording}"></video>
@@ -44,6 +43,35 @@ recording?{{ recording}}<br> -->
       (approximately <b>{{ videoSize | filesize }}</b>)
     </span>
   </p>
+  {% endraw %}
+
+  <div class="buttons" ng-show="!recording && showRecorderVideo">
+    <button class="smaller" ng-click="toggleTips()">
+      <span ng-if="!showTips">
+        Show Tips/Instructions
+      </span>
+      <span ng-if="showTips">
+        Hide Tips/Instructions
+      </span>
+    </button>
+    <button class="smaller" ng-show="!recording && showRecorderVideo" ng-click="toggleSilhouette()">
+      <span ng-if="showSilhouette">
+        Hide silhouette
+      </span>
+      <span ng-if="!showSilhouette">
+        Show silhouette
+      </span>
+    </button>
+  </div>
+
+  <div class="quality-instructions show-hide" ng-show="showTips && !recording && showRecorderVideo">
+    <h4>Tips for better quality</h4>
+    <ul>
+      <li>Try to have the camera at eye-level</li>
+      <li>If you have a microphone, use it</li>
+      <li>Avoid overly bright backgrounds</li>
+    </ul>
+  </div>
 
 </div>
 
@@ -53,6 +81,3 @@ recording?{{ recording}}<br> -->
   You can also
   <a ui-sref="startUpload">upload a video file</a> if you have one already.
 </p>
-
-
-{% endraw %}

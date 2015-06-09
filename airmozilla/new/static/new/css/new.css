@@ -320,25 +320,17 @@ video.ready {
   to { background-color: #f9493c; box-shadow: 0 0 9px #333; }
 }
 
-/*@-moz-keyframes blinker {
-    0% { opacity: 1.0; }
-    50% { opacity: 0.3; }
-    100% { opacity: 1.0; }
-}
-@-webkit-keyframes blinker {
-    0% { opacity: 1.0; }
-    50% { opacity: 0.3; }
-    100% { opacity: 1.0; }
-}
-@keyframes blinker {
-    0% { opacity: 1.0; }
-    50% { opacity: 0.3; }
-    100% { opacity: 1.0; }
-}*/
-
-
 .video-outer {
     position: relative;
+}
+.video-outer video.recorder {
+    transform: rotateY(180deg);
+    -webkit-transform:rotateY(180deg); /* Safari and Chrome */
+    -moz-transform:rotateY(180deg); /* Firefox */
+}
+.video-outer .silhouette {
+    position: absolute;
+    z-index: 50; /* something less than the start-stop button */
 }
 .video-outer .start-stop-button,
 .video-outer .countdown {
@@ -353,12 +345,29 @@ video.ready {
     font-weight: bold;
 }
 .video-outer .start-stop-button {
-    left: 45%;
+    left: 43%;
     top: 45%;
 }
 .video-outer .about-filesize {
     font-size: 80%;
 }
+.video-outer video {
+    margin-bottom: 20px;
+}
+.video-outer .buttons {
+    float: right;
+}
+.video-outer .buttons button  {
+    margin-left: 5px;
+}
+.video-outer .quality-instructions h4 {
+    margin: 20px 0;
+}
+
+.video-outer .quality-instructions ul {
+    margin-left: 20px;
+}
+
 .after-recording {
     text-align: center;
     margin-bottom: 20px;
@@ -367,4 +376,9 @@ video.ready {
 .extra-note {
     margin-top: 110px;
     font-size: 80%;
+}
+
+button.smaller {
+    font-size: 75%;
+    padding: 6px 10px;
 }
