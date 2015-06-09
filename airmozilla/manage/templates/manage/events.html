@@ -181,13 +181,16 @@
           <time ng-if="event.archive_time && !event.popcorn_url" title="{{ formatDate(event.archive_time) }}" am-time-ago="event.archive_time"></time>
           <span ng-if="event.archive_time && event.popcorn_url" title="{{ ::event.popcorn_url }}">Popcorn URL</span>
           <span ng-if="!event.archive_time">
+            <span ng-if="event.is_upcoming">
+              N/A (upcoming)
+            </span>
             <span ng-if="event.is_pending">
               Pending
             </span>
-            <span ng-if="!event.is_pending">
+            <span ng-if="!event.is_pending && !event.is_upcoming">
               <span ng-if="!event.archive_url">Not archived</span>
             </span>
-            <a ng-if="event.can.indexOf('archive') > -1 && (event.is_pending || event.is_scheduled)"
+            <a ng-if="event.can.indexOf('archive') > -1 && (event.is_pending || event.is_scheduled) && !event.is_upcoming"
                href="{{ ::url('manage:event_archive', event.id) }}" class="btn btn-default btn-xs">
               <i class="glyphicon glyphicon-time"></i> Archive
             </a>
