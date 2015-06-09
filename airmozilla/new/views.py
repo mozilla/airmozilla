@@ -481,24 +481,34 @@ def event_summary(request, event):
     }
 
 
-@login_required
-@must_be_your_event
-@json_view
-def event_video(request, event):
-    context = {}
-    if event.duration:
-        context['duration'] = event.duration
-        context['duration_human'] = show_duration(event.duration)
-    # basically a thin wrapper on the vidly info
-    tag = event.template_environment and event.template_environment.get('tag')
-    if tag:
+def _videos_by_tags(tags):
+    """Return a list of dicts where each dict looks something like this:
+
+        {'id': 123, 'tag': 'abc123', 'Status': 'Processing', 'finished': False}
+
+    And if there's no VidlySubmission the dict will just look like this:
+
+        {'id': 124}
+
+    The advantage of this function is that you only need to do 1 query
+    to Vid.ly for a long list of tags.
+    """
+    all_results = vidly.query(tags.keys())
+    video_contexts = []
+    for tag, event in tags.items():
+        video_context = {
+            'id': event.id,
+        }
+        if event.duration:
+            video_context['duration'] = event.duration
+            video_context['duration_human'] = show_duration(event.duration)
         qs = VidlySubmission.objects.filter(event=event, tag=tag)
         for vidly_submission in qs.order_by('-submission_time')[:1]:
-            context['tag'] = tag
-            results = vidly.query(tag).get(tag, {})
-            context['status'] = results.get('Status')
-            context['finished'] = results.get('Status') == 'Finished'
-            if context['finished']:
+            video_context['tag'] = tag
+            results = all_results.get(tag, {})
+            video_context['status'] = results.get('Status')
+            video_context['finished'] = results.get('Status') == 'Finished'
+            if video_context['finished']:
                 if not vidly_submission.finished:
                     vidly_submission.finished = timezone.now()
                     vidly_submission.save()
@@ -509,8 +519,49 @@ def event_video(request, event):
                 if not vidly_submission.errored:
                     vidly_submission.errored = timezone.now()
                     vidly_submission.save()
+        video_contexts.append(video_context)
+    return video_contexts
 
+
+@login_required
+@must_be_your_event
+@json_view
+def event_video(request, event):
+    context = {}
+    tag = event.template_environment and event.template_environment.get('tag')
+    if tag:
+        tags = {tag: event}
+        contexts = _videos_by_tags(tags)
+        context = contexts[0]
     return context
+
+
+@require_POST
+@login_required
+@json_view
+def videos(request):
+    """Similar to event_video except it expects a 'ids' request parameter
+    and returns a dict of videos where the event ID is the keys."""
+    try:
+        ids = json.loads(request.body)['ids']
+    except ValueError as x:
+        return http.HttpResponseBadRequest(str(x))
+    events = Event.objects.filter(
+        id__in=ids,
+        creator=request.user,
+        template__name__icontains='vid.ly',
+    )
+    tags = {}
+    for event in events:
+        tag = (
+            event.template_environment and
+            event.template_environment.get('tag')
+        )
+        tags[tag] = event
+    return dict(
+        (x['id'], x)
+        for x in _videos_by_tags(tags)
+    )
 
 
 @require_POST

@@ -68,6 +68,7 @@ angular.module('new.controllers', ['new.services'])
         var yoursUrl = $appContainer.data('yours-url');
         var deleteUrl = $appContainer.data('delete-url');
         var videoUrl = $appContainer.data('video-url');
+        var videosUrl = $appContainer.data('videos-url');
         var archiveUrl = $appContainer.data('archive-url');
         var scrapeUrl = $appContainer.data('screencaptures-url');
         var eventUrl = $appContainer.data('event-url');
@@ -76,6 +77,7 @@ angular.module('new.controllers', ['new.services'])
         $http.get(yoursUrl)
         .success(function(response) {
             $scope.events = response.events;
+            var eventIds = [];
             $scope.events.forEach(function(event) {
                 var nextUrl;
                 if (event.title) {
@@ -90,25 +92,17 @@ angular.module('new.controllers', ['new.services'])
                 event._modifiedFormatted = moment(event.modified)
                     .format('ddd, MMM D, YYYY, h:mma UTCZZ');
                 event._nextUrl = nextUrl;
+
+                // assume that we know nothing about the state of its video
                 event._video = null;
+
                 if (event.picture) {
                     preloadImage(event.picture.url);
                 }
-                var url = videoUrl.replace('0', event.id);
-                $http.get(url)
-                .success(function(videoResponse) {
-                    event._video = videoResponse;
-                    if (!videoResponse.tag) {
-                        // it must have been a straggler that wasn't submitted
-                        $http.post(archiveUrl.replace('0', event.id))
-                        .success(function() {
-                            $http.get(url)
-                            .success(function(archiveResponse) {
-                                event._video = archiveResponse;
-                            });
-                        });
-                    }
-                });
+
+                // build up a list of event IDs we want together
+                // query for the state of.
+                eventIds.push(event.id);
 
                 if (!event.pictures) {
                     $http.post(scrapeUrl.replace('0', event.id))
@@ -124,6 +118,27 @@ angular.module('new.controllers', ['new.services'])
                     });
                 }
             });
+            if (eventIds.length) {
+                $http.post(videosUrl, {ids: eventIds})
+                .success(function(response) {
+                    $scope.events.forEach(function(event) {
+                        if (!response[event.id].tag) {
+                            // it must have been a straggler what wasn't submitted
+                            $http.post(archiveUrl.replace('0', event.id))
+                            .success(function() {
+                                var url = videoUrl.replace('0', event.id);
+                                $http.get(url)
+                                .success(function(archiveResponse) {
+                                    event._video = archiveResponse;
+                                });
+                            });
+                        } else {
+                            event._video = response[event.id];
+                        }
+                    });
+                })
+                .error(console.error.bind(console));
+            }
         })
         .error(console.error.bind(console))
         .finally(function() {
