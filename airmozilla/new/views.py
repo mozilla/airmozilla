@@ -534,6 +534,19 @@ def event_publish(request, event):
 
     with transaction.atomic():
         results = vidly.query(tag).get(tag, {})
+        # Let's check the privacy/tokenization of the video.
+        # What matters (source of truth) is the event's privacy state.
+        if event.privacy != Event.PRIVACY_PUBLIC and results:
+            # make sure the submission the the video IS token protected
+            if not submission.token_protection:
+                submission.token_protection = True
+                submission.save()
+            if results['Private'] == 'false':
+                # it needs to change
+                vidly.update_media_protection(
+                    tag,
+                    True
+                )
         if results.get('Status') == 'Finished':
             event.status = Event.STATUS_SCHEDULED
             # If it's definitely finished, it means we managed to ask

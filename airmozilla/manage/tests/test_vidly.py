@@ -4,8 +4,9 @@ from cStringIO import StringIO
 from nose.tools import eq_, ok_, assert_raises
 import mock
 
-from django.test import TestCase
+from airmozilla.base.tests.testbase import DjangoTestCase
 
+from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.manage import vidly
 
 
@@ -133,12 +134,22 @@ SAMPLE_MEDIA_UPDATE_FAILED_XML = (
 )
 
 
-class TestVidlyTokenize(TestCase):
+class TestVidlyTokenize(DjangoTestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
-    @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
-    def test_secure_token(self, p_urllib2, p_logging):
+    def test_secure_token(self, p_urllib2):
+
+        event = Event.objects.get(title='Test event')
+        submission = VidlySubmission.objects.create(
+            event=event,
+            tag='xyz123'
+        )
+
+        tokenize_calls = []  # globally scope mutable
+
         def mocked_urlopen(request):
+            tokenize_calls.append(1)
             return StringIO("""
             <?xml version="1.0"?>
             <Response>
@@ -150,9 +161,28 @@ class TestVidlyTokenize(TestCase):
               </Success>
             </Response>
             """)
+
         p_urllib2.urlopen = mocked_urlopen
-        eq_(vidly.tokenize('xyz123', 60),
-            'MXCsxINnVtycv6j02ZVIlS4FcWP')
+        eq_(
+            vidly.tokenize(submission.tag, 60),
+            'MXCsxINnVtycv6j02ZVIlS4FcWP'
+        )
+        eq_(len(tokenize_calls), 1)
+        # do it a second time
+        eq_(
+            vidly.tokenize(submission.tag, 60),
+            'MXCsxINnVtycv6j02ZVIlS4FcWP'
+        )
+        eq_(len(tokenize_calls), 1)  # caching for the win!
+
+        submission.token_protection = True
+        submission.save()
+
+        eq_(
+            vidly.tokenize(submission.tag, 60),
+            'MXCsxINnVtycv6j02ZVIlS4FcWP'
+        )
+        eq_(len(tokenize_calls), 2)  # cache got invalidated
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
@@ -210,7 +240,7 @@ class TestVidlyTokenize(TestCase):
         )
 
 
-class TestVidlyAddMedia(TestCase):
+class TestVidlyAddMedia(DjangoTestCase):
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
@@ -322,7 +352,7 @@ class TestVidlyAddMedia(TestCase):
         ok_('0.0' in error)
 
 
-class TestVidlyDeleteMedia(TestCase):
+class TestVidlyDeleteMedia(DjangoTestCase):
 
     @mock.patch('airmozilla.manage.vidly.logging')
     @mock.patch('airmozilla.manage.vidly.urllib2')
@@ -383,7 +413,7 @@ class TestVidlyDeleteMedia(TestCase):
         ok_('1.1' in error)
 
 
-class VidlyTestCase(TestCase):
+class VidlyTestCase(DjangoTestCase):
 
     @mock.patch('urllib2.urlopen')
     def test_query(self, p_urlopen):

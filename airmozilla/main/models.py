@@ -671,6 +671,13 @@ class VidlySubmission(models.Model):
         return (self.errored - self.submission_time).seconds
 
 
+@receiver(models.signals.post_save, sender=VidlySubmission)
+def invalidate_vidly_tokenization(sender, instance, **kwargs):
+    if instance.tag:
+        cache_key = 'vidly_tokenize:%s' % instance.tag
+        cache.delete(cache_key)
+
+
 @receiver(models.signals.post_save, sender=Event)
 @receiver(models.signals.post_save, sender=Approval)
 def event_clear_cache(sender, **kwargs):
