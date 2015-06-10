@@ -1241,6 +1241,76 @@ class TestNew(DjangoTestCase):
         eq_(sent_email.recipients(), [x.email for x in group_users])
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_event_publish_private_event(self, p_urllib2):
+        """test publishing when the vidly submission has finished"""
+        group, group_users = self._create_approval_group()
+
+        vidly_actions = []
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='abc123',
+                status='Finished'
+            )
+            return StringIO(xml_string)
+
+        def make_mock_request(url, querystring):
+            xml_qs = urllib.unquote(querystring)
+            vidly_actions.append(
+                re.findall('<Action>(.*)</Action>', xml_qs)[0]
+            )
+            return mock.MagicMock()
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = self._create_event()
+        event.template = self._create_default_archive_template()
+        event.template_environment = {'tag': 'abc123'}
+        event.privacy = Event.PRIVACY_PUBLIC
+        event.save()
+
+        channel = Channel.objects.create(name='Peterism', slug='peter')
+        event.channels.add(channel)
+
+        topic = Topic.objects.create(topic='Money Matters')
+        topic.groups.add(group)
+        event.topics.add(topic)
+
+        # also, create a default one
+        Channel.objects.create(
+            name='Clips', slug='clips', default=True
+        )
+
+        submission = VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+            url='https://example.com/file.mov'
+        )
+        assert not submission.token_protection
+
+        with open(self.sample_jpg) as fp:
+            picture = Picture.objects.create(
+                event=event,
+                file=File(fp),
+            )
+        event.picture = picture
+
+        # let's pretend you went back to set the privacy to non-public
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+
+        url = reverse('new:publish', args=(event.id,))
+        response = self.post_json(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), True)
+
+        submission = VidlySubmission.objects.get(id=submission.id)
+        ok_(submission.token_protection)
+
+        eq_(vidly_actions, ['GetStatus', 'UpdateMedia'])
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_event_publish_default_channel(self, p_urllib2):
         """test publishing when the vidly submission has finished"""
         group, group_users = self._create_approval_group()
