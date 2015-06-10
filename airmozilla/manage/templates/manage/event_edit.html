@@ -103,7 +103,7 @@
               {{ suggested_event.upload.size | filesizeformat }}
               {% if suggested_event.upload.upload_time %}
                 <small>
-                  ({{ suggested_event.upload.upload_time }} seconds to upload)
+                  ({{ show_duration(suggested_event.upload.upload_time) }} to upload)
                 </small>
               {% endif %}
             </td>
@@ -125,7 +125,7 @@
                {{ event.upload.size | filesizeformat }}
                {% if event.upload.upload_time %}
                  <small>
-                   ({{ event.upload.upload_time }} seconds to upload)
+                   ({{ show_duration(event.upload.upload_time) }} to upload)
                  </small>
                {% endif %}
              </td>
