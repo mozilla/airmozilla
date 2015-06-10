@@ -199,8 +199,7 @@
         <td>
           <span class="label"
            ng-class="{'label-default': event.status=='initiated',
-                      'label-primary': event.status=='pending',
-                      'label-primary': event.status=='processing',
+                      'label-primary': event.status=='pending' || event.status=='processing',
                       'label-success': event.status=='scheduled',
                       'label-danger': event.status=='removed'}"
            ng-click="selectSearchStatus(event.status)"
