@@ -132,7 +132,7 @@
            </tr>
         </table>
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
-    {% elif event.is_pending() %}
+    {% elif event.is_pending() or event.is_processing() %}
         <p style="margin-top:25px"><strong>File Upload</strong></p>
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload original file</a></p>
     {% endif %}
