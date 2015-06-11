@@ -14,15 +14,26 @@
 {% endblock %}
 
 {% block manage_content %}
-  {#<p>
-    <a href="{{ url('manage:loggedsearches_stats') }}">Logged Searches Stats</a>
-  </p>#}
+  {% if event %}
+  <div class="alert alert-warning alert-dismissible" role="alert">
+    <p>
+      <b>Note!</b><br>
+      Filtering specifically for
+      <a href="{{ url('manage:event_edit', event.id) }}"><b>{{ event.title }}</b></a>
+    </p>
+    <p>
+      <a href="{{ url('manage:uploads') }}">All Uploads</a>
+    </p>
+  </div>
+  {% endif %}
 
   <table class="table">
     <thead>
       <tr>
+        {% if not event %}
         <th>Event</th>
         <th>Status</th>
+        {% endif %}
         <th>URL</th>
         <th>Size</th>
         <th>Mime type</th>
@@ -33,6 +44,7 @@
     <tbody>
       {% for upload in paginate %}
       <tr>
+        {% if not event %}
         <td>
           {% if upload.event %}
           <a href="{{ url('manage:event_edit', upload.event.id) }}">
@@ -53,6 +65,7 @@
           </span>
           {% endif %}
         </td>
+        {% endif %}
         <td>
           <a href="{{ upload.url }}">{{ urlparse(upload.url).path.split('/')[-1] }}</a>
         </td>

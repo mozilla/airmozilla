@@ -130,6 +130,15 @@
                {% endif %}
              </td>
            </tr>
+           {% if count_event_uploads and request.user.is_superuser %}
+           <tr>
+             <td colspan="2">
+               <a href="{{ url('manage:uploads') }}?event={{ event.id }}">
+                 See all <b>{{ count_event_uploads }}</b> uploads for this event
+                </a>
+             </td>
+           </tr>
+           {% endif %}
         </table>
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
     {% elif event.is_pending() %}

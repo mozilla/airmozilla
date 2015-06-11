@@ -581,6 +581,8 @@ def event_edit(request, id):
     for each in EventHitStats.objects.filter(event=event).values('total_hits'):
         context['total_hits'] += each['total_hits']
 
+    context['count_event_uploads'] = Upload.objects.filter(event=event).count()
+
     return render(request, 'manage/event_edit.html', context)
 
 
