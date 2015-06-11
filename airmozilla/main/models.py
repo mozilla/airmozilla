@@ -379,6 +379,9 @@ class Event(models.Model):
     def is_pending(self):
         return self.status == self.STATUS_PENDING
 
+    def is_processing(self):
+        return self.status == self.STATUS_PROCESSING
+
     def is_live(self):
         return (
             not self.archive_time and
