@@ -55,7 +55,7 @@ from . import cloud
 from . import forms
 
 
-def debugger__(request):
+def debugger__(request):  # pragma: no cover
     r = http.HttpResponse()
     r.write('BROWSERID_AUDIENCES=%r\n' % settings.BROWSERID_AUDIENCES)
     r.write('Todays date: 2014-05-21 14:02 PST\n')
@@ -416,7 +416,6 @@ class EventView(View):
         context = self.get_default_context(event, request)
         context.update({
             'event': event,
-            'pending': event.status == Event.STATUS_PENDING,
             'video': template_tagged,
             'warning': warning,
             'can_manage_edit_event': can_manage_edit_event,
@@ -431,7 +430,8 @@ class EventView(View):
         })
 
         if (
-            not context['pending'] and event.is_public() and
+            not (event.is_pending() or event.is_processing()) and
+            event.is_public() and
             event.has_vidly_template() and event.template_environment
         ):
             if event.template_environment.get('tag'):
@@ -448,6 +448,25 @@ class EventView(View):
                     break
 
                 context['vidly_hd'] = hd
+
+        # If the event is in the processing state (or pending), we welcome
+        # people to view it but it'll say that the video isn't ready yet.
+        # But we'll also try to include an estimate of how long we think
+        # it will take until it's ready to be viewed.
+        if (
+            (event.is_processing() or event.is_pending()) and
+            event.duration and
+            event.template_environment.get('tag')
+        ):
+            vidly_submissions = (
+                VidlySubmission.objects
+                .filter(event=event, tag=event.template_environment.get('tag'))
+                .order_by('-submission_time')
+            )
+            for vidly_submission in vidly_submissions:
+                context['estimated_time_left'] = (
+                    vidly_submission.get_estimated_time_left()
+                )
 
         if event.pin:
             if (

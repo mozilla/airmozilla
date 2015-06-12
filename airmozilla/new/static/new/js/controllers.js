@@ -23,6 +23,12 @@ angular.module('new.controllers', ['new.services'])
     };
 })
 
+.filter('showduration', function() {
+    return function(seconds) {
+        return moment().add(seconds, 'seconds').fromNow(true);
+    };
+})
+
 .directive('stopEvent', function () {
     return {
         restrict: 'A',
@@ -696,6 +702,10 @@ angular.module('new.controllers', ['new.services'])
                 '?no-warning=1&no-footer=1';
             $scope.video.iframeSrc = $sce.trustAsResourceUrl(iframeUrl);
         }
+
+        $scope.showDuration = function(seconds) {
+            return moment().add(seconds, 'seconds').fromNow(true);
+        };
 
         function fetchVideo() {
             $http.get(videoUrl)

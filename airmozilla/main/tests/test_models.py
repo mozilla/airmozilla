@@ -17,6 +17,7 @@ from airmozilla.main.models import (
     RecruitmentMessage,
     Picture,
     CuratedGroup,
+    VidlySubmission
 )
 # This must be imported otherwise django-nose won't import
 # that foreign key reference when you run only the tests in this file.
@@ -482,3 +483,34 @@ class CuratedGroupsTest(TestCase):
         group2.name = 'ABBA Fans'
         group2.save()
         eq_(CuratedGroup.get_names(event), ['ABBA Fans'])
+
+
+class VidlySubmissionTests(TestCase):
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+
+    def test_get_least_square_slope(self):
+        eq_(VidlySubmission.get_least_square_slope(), None)
+
+        event = Event.objects.get(title='Test event')
+        event.duration = 300
+        event.save()
+
+        now = timezone.now()
+        VidlySubmission.objects.create(
+            event=event,
+            submission_time=now,
+            finished=now + datetime.timedelta(seconds=event.duration * 2.1)
+        )
+        other_event = Event.objects.create(
+            duration=450,
+            slug='other',
+            start_time=event.start_time,
+        )
+        VidlySubmission.objects.create(
+            event=other_event,
+            submission_time=now,
+            finished=now + datetime.timedelta(
+                seconds=other_event.duration * 1.9
+            )
+        )
+        eq_(VidlySubmission.get_least_square_slope(), 1.5)

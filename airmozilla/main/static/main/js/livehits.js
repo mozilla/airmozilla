@@ -1,5 +1,9 @@
 $(function() {
     if (!$('.islive').length) return;
+    if (typeof jwplayer === 'undefined') {
+        console.warn('No jwplayer loaded');
+        return;
+    }
     if (typeof jwplayer("player").id === 'undefined') {
         console.warn('No jwplayer("player") to hook events to');
         return;

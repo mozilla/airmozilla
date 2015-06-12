@@ -52,6 +52,9 @@
     <b ng-if="!video.finished">
       Not yet finished
     </b>
+    <span ng-if="!video.finished && video.estimated_time_left && video.estimated_time_left > 0">
+      <br>(estimated time left: {{ video.estimated_time_left | showduration }})
+    </span>
   </p>
 </div>
 {% endraw %}
