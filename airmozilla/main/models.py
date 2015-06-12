@@ -662,7 +662,7 @@ class VidlySubmission(models.Model):
     token_protection = models.BooleanField(default=False)
     hd = models.BooleanField(default=False)
     submission_error = models.TextField(blank=True, null=True)
-    finished = models.DateTimeField(null=True)
+    finished = models.DateTimeField(null=True, db_index=True)
     errored = models.DateTimeField(null=True)
 
     @property
@@ -672,6 +672,49 @@ class VidlySubmission(models.Model):
     @property
     def errored_duration(self):
         return (self.errored - self.submission_time).seconds
+
+    @classmethod
+    def get_points(cls, slice=100):
+        points = []
+        submissions = cls.objects.filter(
+            finished__isnull=False,
+            event__duration__gt=0
+        ).select_related('event')
+        # deliberately only look at the last "slice" recordings
+        for submission in submissions.order_by('submission_time')[:slice]:
+            points.append({
+                'x': submission.event.duration,
+                'y': submission.finished_duration
+            })
+        return points
+
+    @classmethod
+    def get_least_square_slope(cls, points=None, slice=50):
+        if points is None:
+            points = cls.get_points(slice=slice)
+        if not points:
+            return None
+
+        # See https://www.easycalculation.com/analytical/learn-least-\
+        # square-regression.php
+        sum_x = sum(1. * e['x'] for e in points)
+        sum_y = sum(1. * e['y'] for e in points)
+        sum_xy = sum(1. * e['x'] * e['y'] for e in points)
+        sum_xx = sum((1. * e['x']) ** 2 for e in points)
+        N = len(points)
+        try:
+            return (N * sum_xy - sum_x * sum_y) / (N * sum_xx - sum_x ** 2)
+        except ZeroDivisionError:
+            return None
+
+    def get_estimated_time_left(self):
+        if self.event.duration:
+            least_square_slope = self.__class__.get_least_square_slope()
+            if least_square_slope:
+                time_gone = (timezone.now() - self.submission_time).seconds
+                return int(
+                    self.event.duration * least_square_slope - time_gone
+                )
 
 
 @receiver(models.signals.post_save, sender=VidlySubmission)

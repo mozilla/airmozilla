@@ -99,6 +99,7 @@ def vidly_media(request):
 @superuser_required
 @json_view
 def vidly_media_status(request):
+    context = {}
     if request.GET.get('tag'):
         tag = request.GET.get('tag')
     else:
@@ -138,8 +139,8 @@ def vidly_media_status(request):
         if results:
             cache.set(cache_key, results, expires)
 
-    _status = results.get('Status')
-    return {'status': _status}
+    context['status'] = results.get('Status')
+    return context
 
 
 @superuser_required
@@ -331,32 +332,8 @@ def vidly_media_timings(request):
 @superuser_required
 @json_view
 def vidly_media_timings_data(request):
-    points = []
-    submissions = VidlySubmission.objects.filter(
-        finished__isnull=False,
-        event__duration__isnull=False
-    )
-    # deliberately only look at the last 100 recordings
-    for submission in submissions.order_by('submission_time')[:100]:
-        points.append({
-            'x': submission.event.duration,
-            'y': submission.finished_duration
-        })
-
-    slope = None
-    if len(points) > 1:
-        # See https://www.easycalculation.com/analytical/learn-least-\
-        # square-regression.php
-        sum_x = sum(1. * e['x'] for e in points)
-        sum_y = sum(1. * e['y'] for e in points)
-        sum_xy = sum(1. * e['x'] * e['y'] for e in points)
-        sum_xx = sum((1. * e['x']) ** 2 for e in points)
-        N = len(points)
-        try:
-            slope = (N * sum_xy - sum_x * sum_y) / (N * sum_xx - sum_x ** 2)
-        except ZeroDivisionError:
-            pass
-
+    points = VidlySubmission.get_points(100)
+    slope = VidlySubmission.get_least_square_slope(points=points)
     context = {
         'points': points,
         'slope': slope,

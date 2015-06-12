@@ -10,7 +10,6 @@ import bleach
 import jinja2
 
 from django.utils.text import Truncator
-from django.utils import timezone
 from django.db.utils import IntegrityError
 from django.contrib.sites.models import RequestSite
 from django.utils.safestring import mark_safe
@@ -40,12 +39,6 @@ def js_date(dt, format='ddd, MMM D, YYYY, h:mma UTCZZ', enable_timeago=True,
                          ' data-format="%s">%s</time>'
                          % (dt.isoformat(), class_,
                             format, formatted_datetime))
-
-
-@register.function
-def date_now():
-    """The current date in UTC."""
-    return timezone.now()
 
 
 @register.function

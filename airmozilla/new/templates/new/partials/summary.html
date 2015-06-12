@@ -108,7 +108,16 @@
       <p ng-if="video.tag">
         The video has been submitted for transcoding but
         it has not finished yet.<br>
-        Current transcoding status is: <b>{{ ::video.status }}</b>
+        Current transcoding status is: <b>{{ ::video.status }}</b><br>
+        <span ng-if="video.estimated_time_left && video.estimated_time_left > 0">
+          Estimate of how soon it will be finished:
+          <b title="Assuming there are no transcoding errors">
+            {{ video.estimated_time_left | showduration }}
+          </b>
+        </span>
+        <span ng-if="video.estimated_time_left && video.estimated_time_left < 0">
+          Video transcoding appears to have taken longer than expected.
+        </span>
       </p>
       <p ng-if="!video.tag">
         The video has not yet been submitted.

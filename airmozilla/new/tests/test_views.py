@@ -4,6 +4,7 @@ import re
 import json
 import urllib
 import shutil
+import datetime
 from cStringIO import StringIO
 
 import mock
@@ -1075,6 +1076,67 @@ class TestNew(DjangoTestCase):
         vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
         ok_(not vidly_submission.finished)
         ok_(vidly_submission.errored)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_event_video_processing_and_time_estimate(self, p_urllib2):
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='abc123',
+                status='Processing'
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = self._create_event()
+        url = reverse('new:video', args=(event.id,))
+
+        event.template = self._create_default_archive_template()
+        event.template_environment = {'tag': 'abc123'}
+        event.duration = 123
+        event.save()
+
+        VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+            url='https://example.com/file.mov'
+        )
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        information = json.loads(response.content)
+        ok_(not information['finished'])
+        eq_(information['tag'], 'abc123')
+        eq_(information['status'], 'Processing')
+        # not enough vidly submissions to calculate a least square slope
+        eq_(information['estimated_time_left'], None)
+
+        event2 = Event.objects.create(
+            duration=305,
+            start_time=event.start_time,
+            slug='event2'
+        )
+        now = timezone.now()
+        VidlySubmission.objects.create(
+            event=event2,
+            submission_time=now,
+            finished=now + datetime.timedelta(seconds=event2.duration * 2)
+        )
+        event3 = Event.objects.create(
+            duration=500,
+            start_time=event.start_time,
+            slug='event3'
+        )
+        VidlySubmission.objects.create(
+            event=event3,
+            submission_time=now,
+            finished=now + datetime.timedelta(seconds=event3.duration * 2)
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        information = json.loads(response.content)
+        eq_(information['estimated_time_left'], 246)
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_videos(self, p_urllib2):

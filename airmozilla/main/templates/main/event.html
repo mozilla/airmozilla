@@ -58,15 +58,27 @@
     {% endif %}
 
     <div class="entry-content">
-      {% if pending %}
+      {{ estimated_time_left }}
+      {% if event.is_pending() %}
         <p class="pending">
-        Event is currently in a pending state meaning it will soon be made available.
+          Event is currently in a pending state meaning it will soon be made available.
+          <br>
+          {% if estimated_time_left %}
+            {% include "main/_show_estimated_time_left.html" %}
+          {% endif %}
         </p>
-      {% elif processing %}
-        <p>
-        This video is currently being transcoded; that will take some time.
-        Feel free to check again on its status after a while.
-        </p>
+      {% elif event.is_processing() %}
+        <div class="warning">
+          <p>
+            This video is currently being transcoded; that will take some time.
+            Feel free to check again on its status after a while.
+          </p>
+          {% if estimated_time_left %}
+          <p>
+            {% include "main/_show_estimated_time_left.html" %}
+          </p>
+          {% endif %}
+        </div>
       {% else %}
         {% if video %}
           {{ video|safe }}

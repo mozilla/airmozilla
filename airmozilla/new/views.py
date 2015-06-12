@@ -519,6 +519,11 @@ def _videos_by_tags(tags):
                 if not vidly_submission.errored:
                     vidly_submission.errored = timezone.now()
                     vidly_submission.save()
+            else:
+                video_context['estimated_time_left'] = (
+                    vidly_submission.get_estimated_time_left()
+                )
+            break
         video_contexts.append(video_context)
     return video_contexts
 
