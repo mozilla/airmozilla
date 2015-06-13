@@ -72,7 +72,11 @@
         </td>
         <td>{{ upload.size | filesizeformat }}</td>
         <td>{{ upload.mime_type }}</td>
-        <td>{{ truncate_chars(upload.file_name, 25) }}</td>
+        <td>
+          {% if upload.file_name %}
+            {{ truncate_chars(upload.file_name, 25) }}
+          {% endif %}
+        </td>
         <td>
           {% if upload.upload_time %}
             {{ upload.upload_time | formatduration }}
