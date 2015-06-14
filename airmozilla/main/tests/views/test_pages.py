@@ -3047,6 +3047,19 @@ class TestPages(DjangoTestCase):
         eq_(get_hits(response), 3)
         eq_(EventLiveHits.objects.get(event=event).total_hits, 3)
 
+    def test_event_status(self):
+
+        def event_status_url(slug):
+            return reverse('main:event_status', args=(slug,))
+
+        event = Event.objects.get(title='Test event')
+        response = self.client.get(event_status_url(event.slug))
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content)['status'], 'scheduled')
+
+        response = self.client.get(event_status_url('non-existent-slug',))
+        eq_(response.status_code, 404)
+
     def test_home_with_some_placeholder_images(self):
         e, = Event.objects.live()
         e.archive_time = timezone.now()
