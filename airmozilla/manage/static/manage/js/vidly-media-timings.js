@@ -6,14 +6,17 @@ $(function() {
             data: data.points,
             least_squares: true,
             chart_type: 'point',
-            width: 800,
+            // width: 800,
+            full_width: true,
             height: 600,
             // right: 0,
             left: 110,
             bottom: 50,
             x_label: "Video duration",
             y_label: "Time to finish",
+            xax_start_at_min: true,
             target: '#plot',
+
             yax_format: function(f) {
                 return moment.duration(f, 'seconds').humanize();
             },
