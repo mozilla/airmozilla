@@ -674,7 +674,7 @@ class VidlySubmission(models.Model):
         return (self.errored - self.submission_time).seconds
 
     @classmethod
-    def get_points(cls, slice=100):
+    def get_points(cls, slice=50):
         points = []
         submissions = cls.objects.filter(
             finished__isnull=False,
@@ -709,11 +709,18 @@ class VidlySubmission(models.Model):
 
     def get_estimated_time_left(self):
         if self.event.duration:
-            least_square_slope = self.__class__.get_least_square_slope()
+            points = self.__class__.get_points()
+            least_square_slope = self.__class__.get_least_square_slope(
+                points=points
+            )
             if least_square_slope:
+                # we estimate that it
+                min_y = min(point['y'] for point in points)
                 time_gone = (timezone.now() - self.submission_time).seconds
                 return int(
-                    self.event.duration * least_square_slope - time_gone
+                    self.event.duration * least_square_slope
+                    - time_gone
+                    + min_y
                 )
 
 
