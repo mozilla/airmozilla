@@ -128,7 +128,7 @@ angular.module('new.controllers', ['new.services'])
                 $http.post(videosUrl, {ids: eventIds})
                 .success(function(response) {
                     $scope.events.forEach(function(event) {
-                        if (!response[event.id].tag) {
+                        if (!response[event.id] || (response[event.id] && response[event.id].tag)) {
                             // it must have been a straggler what wasn't submitted
                             $http.post(archiveUrl.replace('0', event.id))
                             .success(function() {

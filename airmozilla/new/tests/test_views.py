@@ -1136,7 +1136,7 @@ class TestNew(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         information = json.loads(response.content)
-        eq_(information['estimated_time_left'], 246)
+        eq_(information['estimated_time_left'], 856)
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_videos(self, p_urllib2):
