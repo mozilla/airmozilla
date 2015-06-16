@@ -282,6 +282,10 @@ angular.module('new.controllers', ['new.services'])
         var recorder = null;
         var stream = null;
 
+        // If you're running Firefox 40 or 41, you can enable e10s which
+        // can crash the browser so we need a warning.
+        $scope.showFirefoxE10SWarning = /Firefox\/4[01]/.test(navigator.userAgent);
+
         $scope.cameraStarted = false;
         $scope.showRecorderVideo = false;
         $scope.showPlaybackVideo = false;
