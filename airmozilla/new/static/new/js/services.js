@@ -410,16 +410,20 @@ angular.module('new.services', [])
         var endsWith = function(string, suffix) {
             return string.indexOf(suffix, string.length - suffix.length) !== -1;
         };
-        return function(url) {
+        var nothingCallback = function() {};
+        return function(url, onload) {
+            onload = onload || nothingCallback;
             if (injected.indexOf(url) === -1) {
                 if (endsWith(url, '.js')) {
                     var script = document.createElement('script');
                     script.src = url;
+                    script.onload = onload;
                     document.head.appendChild(script);
                 } else if (endsWith(url, '.css')) {
                     var link = document.createElement('link');
                     link.rel = 'stylesheet';
                     link.href = url;
+                    link.onload = onload;
                     document.head.appendChild(link);
                 }
                 injected.push(url);

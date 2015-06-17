@@ -17,7 +17,7 @@
     <p>
       If you use <b>Firefox version 40 or 41</b> and you have
       <a href="https://wiki.mozilla.org/Electrolysis">Electrolys</a>
-      (aka. e10s, aka. multi-process) as it's known to crash the
+      (aka. e10s, aka. multi-process), it's known to crash the
       browser when you've made a recording and attempt to upload it. <br>
       See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1167730"
       >bug 1167730</a> for an update.<br>
@@ -49,6 +49,7 @@
   <video class="recorder"
          ng-show="showRecorderVideo"
          ng-class="{recording: recording, ready: !recording}"></video>
+
   <video class="playback" ng-show="showPlaybackVideo"></video>
 
   <p class="show-hide" ng-show="recording || duration">
@@ -59,6 +60,10 @@
       (approximately <b>{{ videoSize | filesize }}</b>)
     </span>
   </p>
+
+  <!-- this canvas is visually hidden but is used for face detection -->
+  <canvas width="200" height="112"></canvas>
+
   {% endraw %}
 
   <div class="buttons" ng-show="!recording && showRecorderVideo">
@@ -78,7 +83,20 @@
         Show silhouette
       </span>
     </button>
+    <button class="smaller" ng-show="!recording && showRecorderVideo && enableFaceDetection" ng-click="toggleFaceDetection()">
+      <span ng-if="showFaceDetection">
+        Hide face detection
+      </span>
+      <span ng-if="!showFaceDetection">
+        Show face detection
+      </span>
+    </button>
   </div>
+
+  <p class="face-message-outer" style="display:none"
+     ng-show="enableFaceDetection && cameraStarted && showFaceDetection && !recording && showRecorderVideo">
+    Face-Detection-Meter: <b class="face-message"></b>
+  </p>
 
   <div class="quality-instructions show-hide" ng-show="showTips && !recording && showRecorderVideo">
     <h4>Tips for better quality</h4>
