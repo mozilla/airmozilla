@@ -359,10 +359,11 @@ class TestNew(DjangoTestCase):
 
         file_url = 'https://s3.com/foo.webm'
 
+        addmedia_requests = []
+
         def make_mock_request(url, querystring):
             xml_qs = urllib.unquote(querystring)
-            ok_('<SourceFile>{0}</SourceFile>'.format(file_url) in xml_qs)
-            ok_('<Notify>{0}</Notify>'.format(webhook_url) in xml_qs)
+            addmedia_requests.append(xml_qs)
             return mock.MagicMock()
 
         p_urllib2.Request.side_effect = make_mock_request
@@ -373,6 +374,94 @@ class TestNew(DjangoTestCase):
         url = reverse('new:archive', args=(event.id,))
         response = self.post_json(url)
         eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {
+            'tag': '8oxv6x',
+            'error': None,
+        })
+
+        xml_qs, = addmedia_requests
+        ok_('<SourceFile>{0}</SourceFile>'.format(file_url) in xml_qs)
+        ok_('<Notify>{0}</Notify>'.format(webhook_url) in xml_qs)
+
+        submission, = VidlySubmission.objects.filter(event=event)
+        eq_(submission.url, file_url)
+
+        # hit a second time and that shouldn't create any new submissions
+        response = self.post_json(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {
+            'tag': '8oxv6x',
+            'error': None,
+        })
+        eq_(VidlySubmission.objects.filter(event=event).count(), 1)
+        eq_(len(addmedia_requests), 1)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_archive_with_s3_url(self, p_urllib2):
+
+        self._create_default_archive_template()
+
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>All medias have been added.</Message>
+              <MessageCode>2.1</MessageCode>
+              <BatchID>47520</BatchID>
+              <Success>
+                <MediaShortLink>
+                  <SourceFile>http://www.com/file.flv</SourceFile>
+                  <ShortLink>8oxv6x</ShortLink>
+                  <MediaID>13969839</MediaID>
+                  <QRCode>http://vid.ly/8oxv6x/qrcodeimg</QRCode>
+                  <HtmlEmbed>code code</HtmlEmbed>
+                  <EmailEmbed>more code code</EmailEmbed>
+                </MediaShortLink>
+              </Success>
+            </Response>
+            """)
+
+        webhook_url = 'http://testserver' + reverse('new:vidly_media_webhook')
+
+        file_url = 'https://air-mozilla-uploads.s3.amazonaws.com/foo.mov'
+
+        addmedia_requests = []
+
+        def make_mock_request(url, querystring):
+            xml_qs = urllib.unquote(querystring)
+            addmedia_requests.append(xml_qs)
+            return mock.MagicMock()
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = self._create_event(file_url)
+
+        url = reverse('new:archive', args=(event.id,))
+        response = self.post_json(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {
+            'tag': '8oxv6x',
+            'error': None,
+        })
+        xml_qs, = addmedia_requests
+        ok_(
+            '<SourceFile>{0}</SourceFile>'.format(file_url + '?nocopy')
+            in xml_qs
+        )
+        ok_('<Notify>{0}</Notify>'.format(webhook_url) in xml_qs)
+
+        submission, = VidlySubmission.objects.filter(event=event)
+        eq_(submission.url, file_url + '?nocopy')
+
+        # run it a second time
+        response = self.post_json(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {
+            'tag': '8oxv6x',
+            'error': None,
+        })
+        eq_(len(addmedia_requests), 1)
 
     def test_archive_pending_event(self):
         event = self._create_event()

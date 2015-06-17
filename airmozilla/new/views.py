@@ -251,12 +251,14 @@ def event_archive(request, event):
         return http.HttpResponseBadRequest(
             "You can't archive events that are NOT in the state of initiated."
         )
-    try:
-        vidly_submission = VidlySubmission.objects.get(
-            event=event,
-            url=event.upload.url
-        )
-    except VidlySubmission.DoesNotExist:
+
+    submissions = VidlySubmission.objects.filter(
+        event=event,
+        url__startswith=event.upload.url
+    )
+    for vidly_submission in submissions.order_by('-submission_time'):
+        break
+    else:
         # we haven't sent it in for archive yet
         upload = event.upload
         base_url = get_base_url(request)
