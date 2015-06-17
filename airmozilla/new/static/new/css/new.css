@@ -323,6 +323,9 @@ video.ready {
 .video-outer {
     position: relative;
 }
+.video-outer canvas {
+    display: none;
+}
 .video-outer video.recorder {
     transform: rotateY(180deg);
     -webkit-transform:rotateY(180deg); /* Safari and Chrome */

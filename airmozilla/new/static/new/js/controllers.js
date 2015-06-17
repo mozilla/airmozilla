@@ -266,18 +266,21 @@ angular.module('new.controllers', ['new.services'])
 
         preloadImage($scope.silhouetteURL);
 
-        $scope.fileError = null;
+        // let's assume that we will enable this feature
+        $scope.enableFaceDetection = true;
 
-        // var acceptedFiles = [
-        //     'video/webm',
-        //     'video/quicktime',
-        //     'video/mp4',
-        //     'video/x-flv',
-        //     'video/ogg',
-        //     'video/x-msvideo',
-        //     'video/x-ms-wmv',
-        //     'video/x-m4v'
-        // ];
+        var ccvLoaded = false;
+        staticService($appContainer.data('ccvjs-url'), function() {
+            ccvLoaded = true;
+        });
+        // The face.js file is huge and it might not have downloaded
+        // by the time we need it. So, let's depend on this onload.
+        var facejsLoaded = false;
+        staticService($appContainer.data('facejs-url'), function() {
+            facejsLoaded = true;
+        });
+
+        $scope.fileError = null;
 
         var recorder = null;
         var stream = null;
@@ -290,6 +293,7 @@ angular.module('new.controllers', ['new.services'])
         $scope.showRecorderVideo = false;
         $scope.showPlaybackVideo = false;
         $scope.showSilhouette = false;
+        $scope.showFaceDetection = false;
         $scope.showTips = false;
 
         $scope.toggleSilhouette = function() {
@@ -298,6 +302,14 @@ angular.module('new.controllers', ['new.services'])
                 sessionStorage.removeItem('hide-silhouette');
             } else {
                 sessionStorage.setItem('hide-silhouette', true);
+            }
+        };
+        $scope.toggleFaceDetection = function() {
+            $scope.showFaceDetection = !$scope.showFaceDetection;
+            if ($scope.showFaceDetection) {
+                sessionStorage.removeItem('hide-facedetection');
+            } else {
+                sessionStorage.setItem('hide-facedetection', true);
             }
         };
         $scope.toggleTips = function() {
@@ -323,6 +335,84 @@ angular.module('new.controllers', ['new.services'])
             // });
         }
 
+        var nextFaceMessage = null;
+        var faceMessageLocked = null;
+        function displayFaceMessage(msg) {
+            nextFaceMessage = msg;
+            if (faceMessageLocked) {
+                // console.log('locked!', msg);
+                return;
+            }
+            var outer = document.querySelector('.face-message-outer');
+            var inner = outer.querySelector('.face-message');
+            if (msg.length) {
+                outer.style.display = 'block';
+            } else {
+                outer.style.display = 'none';
+            }
+            inner.textContent = msg;
+            faceMessageLocked = true;
+            setTimeout(function() {
+                faceMessageLocked = false;
+                if (nextFaceMessage !== null) {
+                    displayFaceMessage(nextFaceMessage);
+                    // displayFaceMessage('');
+                }
+            }, 1000);
+        }
+
+        var video;
+        var canvas = document.querySelector('.video-outer canvas');
+        var context = canvas.getContext('2d');
+        var faceFound = false;
+        var faceOnceFound = false;
+        var faceNotFounds = 0;
+
+        var faceDetectionFrame;
+        function faceDetection() {
+            // We draw the video stream onto a canvas which is necessary
+            // so we can submit that canvas to the ccv library.
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            var faces = ccv.detect_objects(
+                {canvas : (ccv.pre(canvas)), cascade: cascade, interval: 2, min_neighbors: 1}
+            );
+            if (faces.length) {
+                // If latest one face was detected, we look at what
+                // percentage it takes up for a whole width.
+                // The numbers below are quite arbitrary, but were picked
+                // by basically temporarly making the otherwise hidden
+                // canvas visible and taking a judgement call of what would
+                // be good numbers of the percentage.
+                if (!faceFound) {
+                    displayFaceMessage("Face found!");
+                }
+                faceFound = faceOnceFound = true;
+                faceNotFounds = 0;  // reset
+
+                var face = faces[0];
+                var percentage = 100 * face.width / canvas.width;
+                if  (percentage < 19.0) {
+                    displayFaceMessage('A bit closer please');
+                } else if (percentage > 30) {
+                    displayFaceMessage('Back a bit please');
+                } else {
+                    displayFaceMessage('Good face distance');
+                }
+
+                // To debug how the face detection looks like,
+                // uncomment this and change the canvas's CSS
+                // to display:block.
+                // context.fillRect(face.x, face.y, face.width, face.height);
+
+            } else {
+                if (faceNotFounds == 10 && faceOnceFound) {
+                    displayFaceMessage('Face disappeared');
+                    faceFound = false;
+                }
+                faceNotFounds++;
+            }
+        }
+
         $scope.startCamera = function() {
             var conf = {
                 audio: true,
@@ -336,7 +426,7 @@ angular.module('new.controllers', ['new.services'])
 
             getUserMedia(conf, function(_stream) {
                 stream = _stream;
-                var video = document.querySelector('video.recorder');
+                video = document.querySelector('video.recorder');
                 video.src = URL.createObjectURL(_stream);
                 video.muted = true;//conf.muted;
                 video.controls = false;//conf.controls;
@@ -353,9 +443,19 @@ angular.module('new.controllers', ['new.services'])
                         if (!sessionStorage.getItem('hide-silhouette')) {
                             $scope.showSilhouette = true;
                         }
-                    }, 500);
+                        if (facejsLoaded && ccvLoaded) {
+                            if (!sessionStorage.getItem('hide-facedetection')) {
+                                $scope.showFaceDetection = true;
+                            }
+                        } else {
+                            $scope.enableFaceDetection = false;
+                        }
 
+                    }, 500);
                 });
+                if (facejsLoaded && ccvLoaded) {
+                    faceDetectionFrame = setInterval(faceDetection, 200);
+                }
             }, function(error) {
                 // XXX this needs better error handling that is user-friendly
                 console.warn('Unable to get the getUserMedia stream');
@@ -387,6 +487,9 @@ angular.module('new.controllers', ['new.services'])
                     startDurationCounter();
                     recorder.startRecording();
                     $scope.recording = true;
+                    if (faceDetectionFrame !== null) {
+                        clearInterval(faceDetectionFrame);
+                    }
                 }
             }, 1000);
         };
