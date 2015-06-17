@@ -1560,6 +1560,11 @@ def event_livehits(request, id):
     return {'hits': total_hits}
 
 
+@json_view
+def event_status(request, slug):
+    return {'status': get_object_or_404(Event, slug=slug).status}
+
+
 def god_mode(request):
     if not (settings.DEBUG and settings.GOD_MODE):
         raise http.Http404()

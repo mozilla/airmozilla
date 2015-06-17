@@ -42,6 +42,7 @@
 <script src="{{ static('main/js/download.js') }}"></script>
 <script src="{{ static('main/js/tearout.js') }}"></script>
 <script src="{{ static('main/js/playbackrate.js') }}"></script>
+<script src="{{ static('main/js/eventstatus.js') }}"></script>
 <script src="{{ static('comments/js/comments.js') }}"></script>
 <script src="{{ static('surveys/js/survey.js') }}"></script>
 <script src="{{ static('main/js/livehits.js') }}"></script>
@@ -57,7 +58,7 @@
     </div>
     {% endif %}
 
-    <div class="entry-content">
+    <div class="entry-content" data-event-status="{{ event.status }}">
       {% if event.is_pending() %}
         <p class="pending">
           Event is currently in a pending state meaning it will soon be made available.
