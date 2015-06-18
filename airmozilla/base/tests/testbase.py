@@ -82,3 +82,12 @@ class Response(object):
 
     def json(self):
         return self.content
+
+    def iter_content(self, chunk_size=1024):
+        increment = 0
+        while True:
+            chunk = self.content[increment: increment + chunk_size]
+            increment += chunk_size
+            if not chunk:
+                break
+            yield chunk

@@ -4,6 +4,7 @@ import datetime
 import json
 import urllib
 import os
+import shutil
 from cStringIO import StringIO
 
 from nose.tools import eq_, ok_
@@ -2401,3 +2402,157 @@ class TestEvents(ManageTestCase):
         ok_(not Upload.objects.all())
         ok_(not VidlySubmission.objects.all())
         ok_(not Picture.objects.all())
+
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_event_fetch_duration(self, mock_popen, rhead):
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+            url = destination = None
+            if command[1] == '-i':
+                # doing a fetch info
+                url = command[2]
+            elif command[1] == '-ss':
+                # screen capturing
+                destination = command[-1]
+                assert os.path.isdir(os.path.dirname(destination))
+            else:
+                raise NotImplementedError(command)
+
+            ffmpeged_urls.append(url)
+
+            # sample_jpg = self.sample_jpg
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if url is not None:
+                        if 'some.flv' in url:
+                            err = """
+                Duration: 00:00:11.01, start: 0.000000, bitrate: 1076 kb/s
+                            """
+                        else:
+                            raise NotImplementedError(url)
+                    # elif destination is not None:
+                    #     shutil.copyfile(sample_jpg, destination)
+                    else:
+                        raise NotImplementedError()
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        def mocked_head(url, **options):
+            return Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        event = Event.objects.get(title='Test event')
+        assert not event.duration
+        url = reverse('manage:event_fetch_duration', args=(event.id,))
+        eq_(self.client.get(url).status_code, 405)
+        response = self.client.post(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {'duration': None})
+
+        event.upload = Upload.objects.create(
+            user=self.user,
+            url='http://s3domaincom/some.flv',
+            size=12345
+        )
+        event.save()
+        response = self.client.post(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {'duration': 11})
+        event = Event.objects.get(id=event.id)
+        eq_(event.duration, 11)
+
+        eq_(len(ffmpeged_urls), 1)
+
+        # hit it a second time
+        response = self.client.post(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {'duration': 11})
+        eq_(len(ffmpeged_urls), 1)
+
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_event_fetch_screencaptures(self, mock_popen, rhead):
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+            url = destination = None
+            if command[1] == '-ss':
+                # screen capturing
+                destination = command[-1]
+                assert os.path.isdir(os.path.dirname(destination))
+            else:
+                raise NotImplementedError(command)
+
+            ffmpeged_urls.append(url)
+
+            sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if destination is not None:
+                        shutil.copyfile(sample_jpg, destination)
+                    else:
+                        raise NotImplementedError()
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        def mocked_head(url, **options):
+            return Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        event = Event.objects.get(title='Test event')
+        assert not event.duration
+        url = reverse('manage:event_fetch_screencaptures', args=(event.id,))
+        eq_(self.client.get(url).status_code, 405)
+        response = self.client.post(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {'pictures': 0})
+
+        event.upload = Upload.objects.create(
+            user=self.user,
+            url='http://s3domaincom/some.flv',
+            size=12345
+        )
+        event.save()
+        response = self.client.post(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {'pictures': 0})
+
+        event.duration = 12
+        event.save()
+        response = self.client.post(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {
+            'pictures': settings.SCREENCAPTURES_NO_PICTURES
+        })
+        assert Picture.objects.filter(event=event).count()
+        eq_(len(ffmpeged_urls), settings.SCREENCAPTURES_NO_PICTURES)
+
+        # hit it a second time
+        response = self.client.post(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {
+            'pictures': settings.SCREENCAPTURES_NO_PICTURES
+        })
+        eq_(len(ffmpeged_urls), settings.SCREENCAPTURES_NO_PICTURES)
