@@ -57,6 +57,7 @@ from airmozilla.manage.tweeter import send_tweet
 from airmozilla.manage import vidly
 from airmozilla.manage import archiver
 from airmozilla.manage import sending
+from airmozilla.manage import videoinfo
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Survey
 from airmozilla.uploads.models import Upload
@@ -1132,6 +1133,40 @@ def event_archive_time(request, id):
         'event': event,
     }
     return render(request, 'manage/event_archive_time.html', context)
+
+
+@require_POST
+@transaction.commit_on_success
+@json_view
+def event_fetch_duration(request, id):
+    event = get_object_or_404(Event, id=id)
+    duration = event.duration
+    if not event.duration and event.upload:
+        duration = videoinfo.fetch_duration(
+            event,
+            video_url=event.upload.url,
+            save=True,
+            verbose=settings.DEBUG
+        )
+
+    return {'duration': duration}
+
+
+@require_POST
+@transaction.commit_on_success
+@json_view
+def event_fetch_screencaptures(request, id):
+    event = get_object_or_404(Event, id=id)
+    pictures = Picture.objects.filter(event=event).count()
+    if not pictures and event.duration and event.upload:
+        pictures = videoinfo.fetch_screencapture(
+            event,
+            video_url=event.upload.url,
+            save=True,
+            verbose=settings.DEBUG,
+        )
+
+    return {'pictures': pictures}
 
 
 @staff_required

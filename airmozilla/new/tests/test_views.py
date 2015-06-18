@@ -18,7 +18,7 @@ from django.core.files import File
 from django.utils import timezone
 from django.core import mail
 
-from airmozilla.base.tests.testbase import DjangoTestCase
+from airmozilla.base.tests.testbase import DjangoTestCase, Response
 from airmozilla.main.models import (
     Event,
     VidlySubmission,
@@ -34,22 +34,6 @@ from airmozilla.manage.tests.views.test_vidlymedia import (
     get_custom_XML,
     SAMPLE_MEDIA_RESULT_SUCCESS
 )
-
-
-class _Response(object):
-    def __init__(self, content, status_code=200, headers=None):
-        self.content = self.text = content
-        self.status_code = status_code
-        self.headers = headers or {}
-
-    def iter_content(self, chunk_size=1024):
-        increment = 0
-        while True:
-            chunk = self.content[increment: increment + chunk_size]
-            increment += chunk_size
-            if not chunk:
-                break
-            yield chunk
 
 
 class TestNew(DjangoTestCase):
@@ -524,7 +508,7 @@ class TestNew(DjangoTestCase):
         mock_popen.side_effect = mocked_popen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -618,7 +602,7 @@ class TestNew(DjangoTestCase):
         mock_popen.side_effect = mocked_popen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -798,7 +782,7 @@ class TestNew(DjangoTestCase):
         mock_popen.side_effect = mocked_popen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )

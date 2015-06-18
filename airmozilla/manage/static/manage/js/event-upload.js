@@ -27,22 +27,48 @@ function postSaveHook(response) {
 
         var data = form.data('vidly-submit-details');
         data.url = response.url;
-        data.csrfmiddlewaretoken = $('input[name="csrfmiddlewaretoken"]', form).val();
+        var csrf_token = $('input[name="csrfmiddlewaretoken"]', form).val();
+        data.csrfmiddlewaretoken = csrf_token;
         $.post(form.data('vidly-shortcut-url'), data)
         .success(function(response) {
-            progress_bar.attr('value', 100);
-            progress_value.text('100 %');
+            progress_bar.attr('value', 90);
+            progress_value.text('90 %');
             data = form.data('event-archive-details');
             data.template_environment = data.shortcode_key_name + '=' + response.shortcode;
             data.csrfmiddlewaretoken = $('input[name="csrfmiddlewaretoken"]', form).val();
             $.post(form.data('event-archive-url'), data)
             .success(function(response) {
+                progress_bar.attr('value', 95);
+                progress_value.text('95 %');
+                setTimeout(function() {
+                    progress_bar.attr('value', 100);
+                    progress_value.text('100 %');
+                }, 1 * 1000);
                 setTimeout(function() {
                     progress.hide();
-                }, 500);
+                }, 2 * 1000);
                 $('.automation-progress .pre-automation').hide();
                 $('.automation-progress .post-automation').show();
                 $('.post-save').hide();  // make sure it's really hidden
+                var post_data = {
+                    csrfmiddlewaretoken: csrf_token
+                };
+                $.post(form.data('event-fetch-duration-url'), post_data)
+                .success(function(response) {
+                    console.log('Successfully fetched event duration');
+                    $.post(form.data('event-fetch-screencaptures-url'), post_data)
+                    .success(function(response) {
+                        console.log('Successfully fetched event duration');
+                    })
+                    .fail(function() {
+                        console.warn('Unable fetch event screen captures');
+                        console.error.apply(console, arguments);
+                    });
+                })
+                .fail(function() {
+                    console.warn('Unable fetch event duration');
+                    console.error.apply(console, arguments);
+                });
             })
             .fail(function() {
                 console.warn('Unable archive event with shortcode');

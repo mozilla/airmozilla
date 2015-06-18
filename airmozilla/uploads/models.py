@@ -25,7 +25,7 @@ class Upload(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return self.file_name
+        return self.file_name or self.url
 
     @property
     def upload_speed(self):

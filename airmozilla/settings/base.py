@@ -289,7 +289,7 @@ except ImportError:
 # When extracting screen captures, how many do we want to extract
 # for each video. This number is static independent of the length
 # of the video.
-SCREENCAPTURES_NO_PICTURES = 15
+SCREENCAPTURES_NO_PICTURES = 12
 
 # Name of the directory that gets created in the temp directory
 # that we fill with screencaps, and that gets later picked up
