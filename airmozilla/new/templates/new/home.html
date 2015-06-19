@@ -18,11 +18,13 @@
   </div>
 </div>
 
-<div ng-controller="UploadProblemController" ng-show="upload.hasFailed()"
-     class="alert alert-danger show-hide" ng-cloak>
-  <h4>Upload Error</h4>
-  <p>An unexpected upload error occurred. Sorry.</p>
-  <button type="button" ng-click="retryUpload()">Retry Upload</button>
+<div ng-controller="UploadProblemController" ng-cloak>
+  <div ng-show="loaded && upload.hasFailed()"
+       class="alert alert-danger show-hide">
+    <h4>Upload Error</h4>
+    <p>An unexpected upload error occurred. Sorry.</p>
+    <button type="button" ng-click="retryUpload()">Retry Upload</button>
+  </div>
 </div>
 
 <ui-view></ui-view>
