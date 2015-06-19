@@ -124,6 +124,8 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
     else:
         live_events = (Event.objects.live()
                        .order_by('start_time'))
+        if not request.user.is_active:
+            live_events = live_events.approved()
 
         if privacy_filter:
             live_events = live_events.filter(**privacy_filter)

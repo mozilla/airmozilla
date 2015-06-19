@@ -3170,3 +3170,45 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_(survey_url not in response.content)
+
+    def test_see_live_unapproved_events(self):
+        event = Event.objects.get(title='Test event')
+        assert event in Event.objects.live()
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Streaming Live Now' in response.content)
+        ok_(event.title in response.content)
+
+        # make it depend on approval
+        group, = Group.objects.all()
+        approval = Approval.objects.create(
+            event=event,
+            group=group
+        )
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Streaming Live Now' not in response.content)
+        ok_(event.title not in response.content)
+
+        approval.approved = True
+        approval.processed = True
+        approval.save()
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Streaming Live Now' in response.content)
+        ok_(event.title in response.content)
+
+        # change it back to un-approved status
+        approval.processed = False
+        approval.processed = False
+        approval.save()
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Streaming Live Now' not in response.content)
+        ok_(event.title not in response.content)
+        # but they should appear if logged in
+        assert self._login()
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        ok_('Streaming Live Now' in response.content)
+        ok_(event.title in response.content)
