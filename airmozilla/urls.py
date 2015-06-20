@@ -21,6 +21,7 @@ urlpatterns = patterns(
     (r'^surveys/', include('airmozilla.surveys.urls', namespace='surveys')),
     (r'^uploads/', include('airmozilla.uploads.urls', namespace='uploads')),
     (r'^roku/', include('airmozilla.roku.urls', namespace='roku')),
+    (r'^popcorn/', include('airmozilla.popcorn.urls', namespace='popcorn')),
     (r'^mozshorts/', include('airmozilla.webrtc.urls', namespace='webrtc')),
     (r'^new/', include('airmozilla.new.urls', namespace='new')),
     ('^(?P<path>favicon\.ico)$', 'django.views.static.serve',
