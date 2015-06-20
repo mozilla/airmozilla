@@ -19,7 +19,7 @@ class AirmozillaBrowserIDBackend(BrowserIDBackend):
             return user
         try:
             user = self.User.objects.get(pk=user_id)
-            cache.set(cache_key, user, 60 * 60)
+            cache.set(cache_key, user, 60 * 60 * 3)  # 3 hours
             return user
         except self.User.DoesNotExist:
             return None
