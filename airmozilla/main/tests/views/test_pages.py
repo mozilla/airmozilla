@@ -3055,7 +3055,14 @@ class TestPages(DjangoTestCase):
         event = Event.objects.get(title='Test event')
         response = self.client.get(event_status_url(event.slug))
         eq_(response.status_code, 200)
-        eq_(json.loads(response.content)['status'], 'scheduled')
+        eq_(json.loads(response.content)['status'], Event.STATUS_SCHEDULED)
+
+        # change the status and it should be reflected immediately
+        event.status = Event.STATUS_PROCESSING
+        event.save()
+        response = self.client.get(event_status_url(event.slug))
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content)['status'], Event.STATUS_PROCESSING)
 
         response = self.client.get(event_status_url('non-existent-slug',))
         eq_(response.status_code, 404)
