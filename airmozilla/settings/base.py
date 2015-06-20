@@ -77,15 +77,16 @@ JINGO_EXCLUDE_APPS = [
     'browserid',
 ]
 
-# BrowserID configuration
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    # this is the first one that matters
+# Note that this is different when running tests.
+# You know in case you're debugging tests.
+AUTHENTICATION_BACKENDS = (
     '%s.auth.backend.AirmozillaBrowserIDBackend' % PROJECT_MODULE,
     # but we're keeping this in case people still have sessions
     # whose backend cookie points to this class path
     'django_browserid.auth.BrowserIDBackend',
-]
+    # Needed because the tests use self.client.login(username=..., password=...)
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 # Domains allowed for log in
 ALLOWED_BID = (
