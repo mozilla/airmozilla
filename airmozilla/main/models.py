@@ -426,8 +426,16 @@ def most_recent_event():
 
 
 @receiver(models.signals.post_save, sender=Event)
-def reset_most_recent_event(sender, instance, *args, **kwargs):
+def reset_most_recent_event(sender, instance, **kwargs):
     cache_key = 'most_recent_event'
+    cache.delete(cache_key)
+
+
+@receiver(models.signals.post_save, sender=Event)
+def reset_event_status_cache(sender, instance, **kwargs):
+    cache_key = 'event_status_{0}'.format(
+        hashlib.md5(instance.slug).hexdigest()
+    )
     cache.delete(cache_key)
 
 

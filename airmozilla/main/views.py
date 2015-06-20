@@ -1564,7 +1564,12 @@ def event_livehits(request, id):
 
 @json_view
 def event_status(request, slug):
-    return {'status': get_object_or_404(Event, slug=slug).status}
+    cache_key = 'event_status_{0}'.format(hashlib.md5(slug).hexdigest())
+    status = cache.get(cache_key)
+    if status is None:
+        status = get_object_or_404(Event, slug=slug).status
+        cache.set(cache_key, status, 60 * 60)
+    return {'status': status}
 
 
 def god_mode(request):
