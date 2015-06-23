@@ -12,23 +12,7 @@ from django.core.cache import cache
 
 from airmozilla.main.models import Event, Template, VidlySubmission, Picture
 from airmozilla.manage import videoinfo
-from airmozilla.base.tests.testbase import DjangoTestCase
-
-
-class _Response(object):
-    def __init__(self, content, status_code=200, headers=None):
-        self.content = self.text = content
-        self.status_code = status_code
-        self.headers = headers or {}
-
-    def iter_content(self, chunk_size=1024):
-        increment = 0
-        while True:
-            chunk = self.content[increment: increment + chunk_size]
-            increment += chunk_size
-            if not chunk:
-                break
-            yield chunk
+from airmozilla.base.tests.testbase import DjangoTestCase, Response
 
 
 class TestVideoinfo(DjangoTestCase):
@@ -77,7 +61,7 @@ class TestVideoinfo(DjangoTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -142,7 +126,7 @@ class TestVideoinfo(DjangoTestCase):
     def test_fetch_duration_oserror(self, mock_popen, rhead):
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -193,7 +177,7 @@ class TestVideoinfo(DjangoTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -256,7 +240,7 @@ class TestVideoinfo(DjangoTestCase):
     ):
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 'Not Found',
                 404
             )
@@ -293,7 +277,7 @@ class TestVideoinfo(DjangoTestCase):
     ):
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '<html>',
                 200,
                 headers={
@@ -336,7 +320,7 @@ class TestVideoinfo(DjangoTestCase):
     ):
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '<html>',
                 200,
                 headers={
@@ -397,11 +381,11 @@ class TestVideoinfo(DjangoTestCase):
 
         def mocked_head(url, **options):
             if 'file.mpg' in url:
-                return _Response(
+                return Response(
                     '',
                     200
                 )
-            return _Response(
+            return Response(
                 '',
                 302,
                 headers={
@@ -412,7 +396,7 @@ class TestVideoinfo(DjangoTestCase):
         rhead.side_effect = mocked_head
 
         def mocked_get(url, **options):
-            return _Response(
+            return Response(
                 '0' * 100000,
                 200,
                 headers={
@@ -515,11 +499,11 @@ class TestVideoinfo(DjangoTestCase):
         def mocked_head(url, **options):
             # print "HEAD URL", url
             if 'file.mp4' in url:
-                return _Response(
+                return Response(
                     '',
                     200
                 )
-            return _Response(
+            return Response(
                 '',
                 302,
                 headers={
@@ -531,7 +515,7 @@ class TestVideoinfo(DjangoTestCase):
 
         def mocked_get(url, **options):
             # print "GET URL", url
-            return _Response(
+            return Response(
                 '0' * 100000,
                 200,
                 headers={
@@ -634,11 +618,11 @@ class TestVideoinfo(DjangoTestCase):
         def mocked_head(url, **options):
             # print "HEAD URL", url
             if 'file.mp4' in url:
-                return _Response(
+                return Response(
                     '',
                     200
                 )
-            return _Response(
+            return Response(
                 '',
                 302,
                 headers={
@@ -650,7 +634,7 @@ class TestVideoinfo(DjangoTestCase):
 
         def mocked_get(url, **options):
             # print "GET URL", url
-            return _Response(
+            return Response(
                 '0' * 100000,
                 200,
                 headers={
@@ -720,7 +704,7 @@ class TestVideoinfo(DjangoTestCase):
     ):
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -784,7 +768,7 @@ class TestVideoinfo(DjangoTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -888,7 +872,7 @@ class TestVideoinfo(DjangoTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -974,7 +958,7 @@ class TestVideoinfo(DjangoTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
@@ -1073,7 +1057,7 @@ class TestVideoinfo(DjangoTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         def mocked_head(url, **options):
-            return _Response(
+            return Response(
                 '',
                 200
             )
