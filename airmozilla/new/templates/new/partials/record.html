@@ -3,26 +3,53 @@
 <h4 ng-if="recording">Recording</h4>
 
 <div ng-if="!cameraStarted">
-  <p>
-    When you start the camera you will be asked to share your computer's
-    camera and microphone. <br>
-    You need to click <b>Share Selected Devices</b>.
-  </p>
-  <button type="button" ng-click="startCamera()">Start Camera</button>
+  <div class="camera-option" style="margin-bottom: 40px">
+    <p>
+      When you start the camera you will be asked to share your computer's
+      camera and microphone. <br>
+      You need to click <b>Share Selected Devices</b>.
+    </p>
+    <button type="button" ng-click="startCamera()">Start Camera</button>
+  </div>
 
-
-  <div class="alert alert-danger" ng-show="showFirefoxE10SWarning">
+  <div class="alert alert-danger" ng-show="showFirefoxE10SWarning" ng-cloak>
+    <a title="Yeah yeah, I get it" class="close" ng-click="hideFirefoxE10SWarning()">&times;</a>
     <h4>Careful!</h4>
-
     <p>
       If you use <b>Firefox version 40 or 41</b> and you have
-      <a href="https://wiki.mozilla.org/Electrolysis">Electrolys</a>
+      <a href="https://wiki.mozilla.org/Electrolysis">Electrolysis</a>
       (aka. e10s, aka. multi-process), it's known to crash the
       browser when you've made a recording and attempt to upload it. <br>
       See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1167730"
       >bug 1167730</a> for an update.<br>
       To be able to proceed, disable "Multi-process" in your Firefox Preferences.
     </p>
+  </div>
+
+  <div ng-if="enableScreenCapture">
+    <h4>Experimental features</h4>
+    <button type="button" ng-click="startScreenCapture()">Start Screen capture</button>
+    <button type="button" ng-click="startScreenCapture(true)">Start Screen capture (with audio)</button>
+    <span ng-show="showScreenCaptureTip"><b>Tip!</b> You might have to select <b>Entire Screen</b> in the drop-down</span>
+    <br><br>
+    <button type="button" ng-click="startWindowCapture()">Start Window capture</button>
+    <button type="button" ng-click="startWindowCapture(true)">Start Window capture (with audio)</button>
+  </div>
+
+  <div class="alert alert-danger show-hide" ng-show="showPermissionDeniedError">
+    <a title="Yeah yeah, I get it" class="close" ng-click="showPermissionDeniedError=false">&times;</a>
+    <h4>Permission Denied?</h4>
+    {% raw %}
+    <p>
+      Either your chose to NOT share your camera or your browser doesn't
+      allow it. </p>
+    <p>
+      To whitelist this site, go to <code>about:config</code>
+      and search to find the <code>media.getusermedia.screensharing.allowed_domains</code>
+      and append <code>{{ ::currentDomain }}</code> to that list.<br>
+      Then refresh and try again.
+    </p>
+    {% endraw %}
   </div>
 
 </div>
@@ -48,7 +75,7 @@
        ng-show="showSilhouette && !recording && showRecorderVideo">
   <video class="recorder"
          ng-show="showRecorderVideo"
-         ng-class="{recording: recording, ready: !recording}"></video>
+         ng-class="{recording: recording, ready: !recording, mirrored: mirroredViewFinder}"></video>
 
   <video class="playback" ng-show="showPlaybackVideo"></video>
 
@@ -75,7 +102,7 @@
         Hide Tips/Instructions
       </span>
     </button>
-    <button class="smaller" ng-show="!recording && showRecorderVideo" ng-click="toggleSilhouette()">
+    <button class="smaller" ng-show="!recording && showRecorderVideo && enableSilhouette" ng-click="toggleSilhouette()">
       <span ng-if="showSilhouette">
         Hide silhouette
       </span>

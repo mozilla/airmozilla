@@ -326,7 +326,7 @@ video.ready {
 .video-outer canvas {
     display: none;
 }
-.video-outer video.recorder {
+.video-outer video.recorder.mirrored {
     transform: rotateY(180deg);
     -webkit-transform:rotateY(180deg); /* Safari and Chrome */
     -moz-transform:rotateY(180deg); /* Firefox */
@@ -350,6 +350,7 @@ video.ready {
 .video-outer .start-stop-button {
     left: 41%;
     top: 74%;
+    box-shadow: 0px 0px 28px 5px #FFF;
 }
 .video-outer .about-filesize {
     font-size: 80%;

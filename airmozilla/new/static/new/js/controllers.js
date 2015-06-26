@@ -8,6 +8,11 @@ function preloadImage(url, cb) {
     img.src = url;
 }
 
+var origTitle = document.title;
+function setDocumentTitle(title) {
+    document.title = title + ' | ' + origTitle;
+}
+
 angular.module('new.controllers', ['new.services'])
 
 .filter('filesize', function () {
@@ -70,6 +75,7 @@ angular.module('new.controllers', ['new.services'])
 .controller('StartController',
     ['$scope', '$http', '$timeout', '$state',
     function($scope, $http, $timeout, $state) {
+        setDocumentTitle('Unfinished Videos');
         var $appContainer = angular.element('#content');
         var yoursUrl = $appContainer.data('yours-url');
         var deleteUrl = $appContainer.data('delete-url');
@@ -84,6 +90,7 @@ angular.module('new.controllers', ['new.services'])
         .success(function(response) {
             $scope.events = response.events;
             var eventIds = [];
+            setDocumentTitle('Unfinished Videos (' + $scope.events.length + ')');
             $scope.events.forEach(function(event) {
                 var nextUrl;
                 if (event.title) {
@@ -198,7 +205,7 @@ angular.module('new.controllers', ['new.services'])
     ['$scope', 'uploadService',
     function($scope, uploadService) {
         $scope.upload = uploadService;
-
+        $scope.loaded = true;
         $scope.retryUpload = function() {
             uploadService.startAndProcess();
         };
@@ -212,6 +219,7 @@ angular.module('new.controllers', ['new.services'])
         $scope, $state, $interval,
         statusService, eventService, uploadService
     ) {
+        setDocumentTitle('Upload a file');
         $scope.fileError = null;
 
         var acceptedFiles = [
@@ -258,6 +266,7 @@ angular.module('new.controllers', ['new.services'])
         $scope, $state, $timeout, $interval,
         statusService, eventService, uploadService, staticService
     ) {
+        setDocumentTitle('Record a video');
         var $appContainer = angular.element('#content');
         staticService($appContainer.data('recordrtc-url'));
         staticService($appContainer.data('humanizeduration-url'));
@@ -265,6 +274,23 @@ angular.module('new.controllers', ['new.services'])
         $scope.silhouetteURL = $appContainer.data('silhouette-url');
 
         preloadImage($scope.silhouetteURL);
+
+        // Whether we're going to try to offer people to record
+        // their screen.
+        $scope.enableScreenCapture = false;
+        if (!$scope.enableScreenCapture) {
+            if (JSON.parse(localStorage.getItem('experimental', 'false'))) {
+                $scope.enableScreenCapture = true;
+            } else {
+                console.log(
+                    'To enable the Experimental Screencast Feature type ' +
+                    'this in and hit Enter:\n\n\t' +
+                    "localStorage.setItem('experimental', true);\n\n" +
+                    'and then refresh this page.'
+                );
+            }
+
+        }
 
         // let's assume that we will enable this feature
         $scope.enableFaceDetection = true;
@@ -288,6 +314,9 @@ angular.module('new.controllers', ['new.services'])
         // If you're running Firefox 40 or 41, you can enable e10s which
         // can crash the browser so we need a warning.
         $scope.showFirefoxE10SWarning = /Firefox\/4[01]/.test(navigator.userAgent);
+        if ($scope.showFirefoxE10SWarning && sessionStorage.getItem('hideFirefoxE10SWarning')) {
+            $scope.showFirefoxE10SWarning = false;
+        }
 
         $scope.cameraStarted = false;
         $scope.showRecorderVideo = false;
@@ -311,6 +340,10 @@ angular.module('new.controllers', ['new.services'])
             } else {
                 sessionStorage.setItem('hide-facedetection', true);
             }
+        };
+        $scope.hideFirefoxE10SWarning = function() {
+            $scope.showFirefoxE10SWarning = false;
+            sessionStorage.setItem('hideFirefoxE10SWarning', 1);
         };
         $scope.toggleTips = function() {
             $scope.showTips = !$scope.showTips;
@@ -424,6 +457,9 @@ angular.module('new.controllers', ['new.services'])
                 // controls: false
             };
 
+            $scope.enableSilhouette = true;
+            $scope.mirroredViewFinder = true;
+
             getUserMedia(conf, function(_stream) {
                 stream = _stream;
                 video = document.querySelector('video.recorder');
@@ -436,6 +472,7 @@ angular.module('new.controllers', ['new.services'])
                     type: 'video'
                 });
                 $scope.$apply(function() {
+
                     $scope.cameraStarted = true;
                     $scope.showRecorderVideo = true;
                     $timeout(function() {
@@ -462,6 +499,68 @@ angular.module('new.controllers', ['new.services'])
                 console.error(error);
             });
 
+        };
+
+        $scope.showScreenCaptureTip = false;
+        $scope.startScreenCapture = function(withAudio, source) {
+
+            source = source || 'screen';
+            if (source === 'screen') {
+                $scope.showScreenCaptureTip = true;
+            }
+            withAudio = withAudio || false;
+            var conf = {
+                video: {
+                    mozMediaSource: source,
+                    mediaSource: source
+                }
+            };
+            if (withAudio) {
+                conf.audio = true;
+            }
+
+            $scope.enableSilhouette = false;
+            $scope.showSilhouette = false;
+            $scope.showFaceDetection = false;
+            $scope.enableFaceDetection = false;
+
+            getUserMedia(conf, function(_stream) {
+                stream = _stream;
+                video = document.querySelector('video.recorder');
+                video.src = URL.createObjectURL(_stream);
+                video.muted = true;
+                video.controls = false;
+                video.play();
+                recorder = RecordRTC(_stream, {
+                    // Hmm, I wonder what other options we have here
+                    type: 'video'
+                });
+                $scope.$apply(function() {
+                    $scope.cameraStarted = true;
+                    $scope.showRecorderVideo = true;
+                    $scope.showScreenCaptureTip = false;
+                });
+            }, function(error) {
+                // XXX this needs better error handling that is user-friendly
+                console.warn('Unable to get the getUserMedia stream for screen');
+                console.error('ERROR', error);
+                if (error.name && error.name === 'PermissionDeniedError') {
+                    console.log('HEREHR');
+                    $scope.$apply(function() {
+                        $scope.showScreenCaptureTip = false;
+                        $scope.showFirefoxE10SWarning = false; // just in case
+                        $scope.showPermissionDeniedError = true;
+                        $scope.currentDomain = document.location.hostname;
+                    });
+
+                }
+            });
+        };
+
+        $scope.startWindowCapture = function(withAudio) {
+            withAudio = withAudio || false;
+            // this is so similar to screen capture that we'll re-use it
+            $scope.startScreenCapture(withAudio, 'window');
         };
 
         $scope.duration = 0;
@@ -543,6 +642,7 @@ angular.module('new.controllers', ['new.services'])
         $scope, $stateParams, $http, $state, $timeout,
         eventService, statusService, localProxy
     ) {
+        setDocumentTitle('Video details');
         $scope.eventService = eventService;
         var $appContainer = angular.element('#content');
         var eventUrl = $appContainer.data('event-url');
@@ -677,6 +777,7 @@ angular.module('new.controllers', ['new.services'])
         $scope, $stateParams, $http, $state, $interval,
         eventService, statusService
     ) {
+        setDocumentTitle('Pick a picture');
         var $appContainer = angular.element('#content');
         $scope.thumbnails = [];
         $scope.picked = null;
@@ -793,6 +894,7 @@ angular.module('new.controllers', ['new.services'])
         $scope, $stateParams, $http, $state, $sce, $timeout,
         statusService, eventService
     ) {
+        setDocumentTitle('Summary');
         var $appContainer = angular.element('#content');
         var id = $stateParams.id;
         var url = $appContainer.data('summary-url').replace('0', id);
@@ -874,6 +976,7 @@ angular.module('new.controllers', ['new.services'])
     ['$scope', '$stateParams', '$http', 'eventService',
     function($scope, $stateParams, $http, eventService) {
         'use strict';
+        setDocumentTitle('Video published');
         var $appContainer = angular.element('#content');
         var id = $stateParams.id;
         var summaryUrl = $appContainer.data('summary-url').replace('0', id);
@@ -906,6 +1009,7 @@ angular.module('new.controllers', ['new.services'])
 .controller('NotFoundController',
     ['$scope',
     function($scope) {
+        setDocumentTitle('Page not found');
         $scope.error = {
             title: 'Not Found',
             message: 'Page not found.'
@@ -917,6 +1021,7 @@ angular.module('new.controllers', ['new.services'])
     ['$scope',
     function($scope) {
         'use strict';
+        setDocumentTitle('Not your video');
         $scope.error = {
             title: 'Not Yours',
             message: 'The page you tried to access tried to access data ' +
