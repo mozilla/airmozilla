@@ -1163,26 +1163,26 @@ def related_content(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
     es = pyelasticsearch.ElasticSearch(settings.RELATED_CONTENT_URL)
-    es.refresh()
+    mlt_query = {
+        "more_like_this": {
+            "fields": ["tags", "title", "channels"],
+            "docs": [
+                {
+                    "_index": "events",
+                    "_type": "event",
+                    "_id": event.id
+                }],
+            "min_term_freq": 1,
+            "max_query_terms": 5,
+        }
+    }
 
     if request.user.is_active:
         if is_contributor(request.user):
             query = {
                 "query": {
                     "filtered": {
-                        "query": {
-                            "more_like_this": {
-                                "fields": ["tags", "title", "channels"],
-                                "docs": [
-                                    {
-                                        "_index": "events",
-                                        "_type": "event",
-                                        "_id": event.id
-                                    }],
-                                "min_term_freq": 1,
-                                "max_query_terms": 5,
-                            }
-                        },
+                        "query": mlt_query,
                         "filter": {
                             "must_not": {
                                 "term": {
@@ -1195,37 +1195,13 @@ def related_content(request, slug):
             }
         else:
             query = {
-                "query": {
-                    "more_like_this": {
-                        "fields": ["tags", "title", "channels"],
-                        "docs": [
-                            {
-                                "_index": "events",
-                                "_type": "event",
-                                "_id": event.id
-                            }],
-                        "min_term_freq": 1,
-                        "max_query_terms": 5,
-                    }
-                }
+                "query": mlt_query
             }
     else:
         query = {
             "query": {
                 "filtered": {
-                    "query": {
-                        "more_like_this": {
-                            "fields": ["tags", "title", "channels"],
-                            "docs": [
-                                {
-                                    "_index": "events",
-                                    "_type": "event",
-                                    "_id": event.id
-                                }],
-                            "min_term_freq": 1,
-                            "max_query_terms": 5,
-                        }
-                    },
+                    "query": mlt_query,
                     "filter": {
                         "bool": {
                             "must": {
@@ -1242,18 +1218,17 @@ def related_content(request, slug):
 
     for doc in hits['hits']:
         print "\t", repr(doc['_source']['title']), doc['_id']
-        ids.append(doc['_id'])
-    ids2 = [int(x) for x in ids]
+        ids.append(int(doc['_id']))
 
     if request.user.is_active:
         if is_contributor(request.user):
             events = Event.objects \
-                          .filter(id__in=ids2)
+                          .filter(id__in=ids)
         else:
             events = Event.objects.scheduled_or_processing()
     else:
         events = Event.objects \
-                      .filter(id__in=ids2)
+                      .filter(id__in=ids)
 
     curated_groups_map = collections.defaultdict(list)
 
