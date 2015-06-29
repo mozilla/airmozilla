@@ -22,6 +22,10 @@
 
 {% block manage_content %}
 
+<h4 style="position: absolute; right: 20px; top: 20px">
+  <a href="{{ url('manage:dashboard_graphs') }}">Graphs</a>
+</h4>
+
 <div ng-app="app" ng-controller="DashboardController">
 
   <div class="loading" ng-show="!groups.length">
