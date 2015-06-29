@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 
 from django.contrib.auth.models import User
 from django.shortcuts import render
@@ -225,3 +226,147 @@ def dashboard_data(request):
     })
 
     return context
+
+
+@staff_required
+def dashboard_graphs(request):  # pragma: no cover
+    """experimental"""
+    return render(request, 'manage/dashboard_graphs.html')
+
+
+@staff_required
+@json_view
+def dashboard_data_graphs(request):  # pragma: no cover
+    """experimental"""
+    YEARS = 3
+    now = timezone.now()
+
+    def get_events(years_back):
+        first_date = datetime.datetime(now.year - years_back + 1, 1, 1)
+
+        objects = (
+            Event.objects
+            .filter(archive_time__lt=now)
+            .filter(created__gt=first_date.replace(tzinfo=timezone.utc))
+            .order_by('created')
+        )
+        buckets = {}
+        for each in objects.values_list('created'):
+            created, = each
+            year = created.year
+            if year not in buckets:
+                buckets[year] = defaultdict(int)
+            next_monday = created + datetime.timedelta(
+                days=7 - created.weekday()
+            )
+            key = next_monday.strftime('%Y-%m-%d')
+            buckets[year][key] += 1
+        legends = sorted(buckets.keys())
+
+        last_year = legends[-1]
+
+        def fake_year(date_str, year):
+            return date_str.replace(str(year), str(last_year))
+
+        data = []
+        for year in legends:
+            group = sorted(
+                {'date': fake_year(k, year), 'value': v}
+                for k, v in buckets[year].items()
+            )
+            data.append(group)
+        return {
+            'type': 'events',
+            'title': 'New Events',
+            'data': data,
+            'description': 'Number of added events per year',
+            'legends': legends,
+        }
+
+    def get_revisions(years_back):
+        first_date = datetime.datetime(now.year - years_back + 1, 1, 1)
+
+        objects = (
+            EventRevision.objects
+            .filter(created__gt=first_date.replace(tzinfo=timezone.utc))
+            .order_by('created')
+        )
+        buckets = {}
+        for each in objects.values_list('created'):
+            created, = each
+            year = created.year
+            if year not in buckets:
+                buckets[year] = defaultdict(int)
+            next_monday = created + datetime.timedelta(
+                days=7 - created.weekday()
+            )
+            key = next_monday.strftime('%Y-%m-%d')
+            buckets[year][key] += 1
+        legends = sorted(buckets.keys())
+
+        last_year = legends[-1]
+
+        def fake_year(date_str, year):
+            return date_str.replace(str(year), str(last_year))
+
+        data = []
+        for year in legends:
+            group = sorted(
+                {'date': fake_year(k, year), 'value': v}
+                for k, v in buckets[year].items()
+            )
+            data.append(group)
+        return {
+            'type': 'revisions',
+            'title': 'Event Revisions',
+            'data': data,
+            'description': 'Number of event edits per year',
+            'legends': legends,
+        }
+
+    def get_users(years_back):
+        first_date = datetime.datetime(now.year - years_back + 1, 1, 1)
+
+        objects = (
+            User.objects
+            .filter(date_joined__gt=first_date.replace(tzinfo=timezone.utc))
+            .order_by('date_joined')
+        )
+        buckets = {}
+        for each in objects.values_list('date_joined'):
+            created, = each
+            year = created.year
+            if year not in buckets:
+                buckets[year] = defaultdict(int)
+            next_monday = created + datetime.timedelta(
+                days=7 - created.weekday()
+            )
+            key = next_monday.strftime('%Y-%m-%d')
+            buckets[year][key] += 1
+        legends = sorted(buckets.keys())
+
+        last_year = legends[-1]
+
+        def fake_year(date_str, year):
+            return date_str.replace(str(year), str(last_year))
+
+        data = []
+        for year in legends:
+            group = sorted(
+                {'date': fake_year(k, year), 'value': v}
+                for k, v in buckets[year].items()
+            )
+            data.append(group)
+        return {
+            'type': 'users',
+            'title': 'New Users',
+            'data': data,
+            'description': 'Number of first joining users per year',
+            'legends': legends,
+        }
+
+    groups = []
+    groups.append(get_events(YEARS))
+    groups.append(get_users(YEARS))
+    groups.append(get_revisions(2))
+    return {'groups': groups}

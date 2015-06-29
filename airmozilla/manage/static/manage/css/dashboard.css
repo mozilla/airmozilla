@@ -30,3 +30,8 @@ tr.counts.small td {
 .prior-count {
     font-size: 50%;
 }
+
+/* hack specifically for the graphs */
+h2.mg-chart-title {
+    text-align: left;
+}
