@@ -50,3 +50,10 @@ textarea#id_short_description {
 .alert-danger h4 {
     color: rgb(60, 60, 60);
 }
+
+ul#id_topics li {
+    margin-bottom: 0;
+}
+ul#id_topics li label {
+    padding-bottom: 0;
+}

@@ -597,6 +597,8 @@ class SuggestedEvent(models.Model):
         default=STATUS_CREATED,
     )
 
+    topics = models.ManyToManyField(Topic)
+
     objects = EventManager()
 
     def __unicode__(self):

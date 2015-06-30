@@ -23,7 +23,8 @@ from airmozilla.main.models import (
     Location,
     Channel,
     Tag,
-    Picture
+    Picture,
+    Topic,
 )
 from airmozilla.base.tests.testbase import Response
 from airmozilla.uploads.models import Upload
@@ -1383,6 +1384,26 @@ class TestPages(DjangoTestCase):
         event = SuggestedEvent.objects.get(pk=event.pk)
         ok_(not event.submitted)
         eq_(event.status, SuggestedEvent.STATUS_RETRACTED)
+
+    def test_submit_event_with_topics(self):
+        event = self._make_suggested_event()
+        topic = Topic.objects.create(
+            topic='Money Matters',
+            is_active=True
+        )
+        group = Group.objects.create(name='PR')
+        richard = User.objects.create_user(
+            'richard',
+            email='richard@mozilla.com'
+        )
+        richard.groups.add(group)
+        topic.groups.add(group)
+        event.topics.add(topic)
+        url = reverse('suggest:summary', args=(event.pk,))
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        ok_(event.topics.all())
 
     def test_title_edit(self):
         event = SuggestedEvent.objects.create(

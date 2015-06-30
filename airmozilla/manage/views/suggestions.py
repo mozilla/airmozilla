@@ -13,7 +13,8 @@ from airmozilla.main.models import (
     Template,
     SuggestedEvent,
     SuggestedEventComment,
-    LocationDefaultEnvironment
+    LocationDefaultEnvironment,
+    Approval,
 )
 from airmozilla.manage import forms
 from airmozilla.manage import sending
@@ -113,6 +114,7 @@ def suggestion_review(request, id):
                     'call_info': event.call_info,
                     'privacy': event.privacy,
                     'popcorn_url': event.popcorn_url,
+                    'topics': [x.pk for x in event.topics.all()],
                 }
                 if dict_event['popcorn_url'] == 'https://':
                     dict_event['popcorn_url'] = ''
@@ -153,9 +155,27 @@ def suggestion_review(request, id):
                     real.save()
                     [real.tags.add(x) for x in event.tags.all()]
                     [real.channels.add(x) for x in event.channels.all()]
+                    [real.topics.add(x) for x in event.topics.all()]
                     event.accepted = real
                     event.save()
 
+                    # create the necessary approval bits
+                    if event.privacy == Event.PRIVACY_PUBLIC:
+                        groups = []
+                        for topic in real.topics.filter(is_active=True):
+                            for group in topic.groups.all():
+                                if group not in groups:
+                                    groups.append(group)
+                        for group in groups:
+                            Approval.objects.create(
+                                event=real,
+                                group=group,
+                            )
+                            sending.email_about_approval_requested(
+                                real,
+                                group,
+                                request
+                            )
                     try:
                         discussion = SuggestedDiscussion.objects.get(
                             event=event,
