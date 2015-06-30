@@ -162,7 +162,7 @@ Event summary | {{ super() }}
     <tr>
       <th>Channels</th>
       <td>{% for channel in event.channels.all() %}
-      {{ channel.name }}{% if not loop.last %}, {% endif %}
+      {{ channel.name }}<br>
       {% endfor %}
       </td>
     </tr>
@@ -182,6 +182,17 @@ Event summary | {{ super() }}
       </td>
     </tr>
     {% endif %}
+    <tr>
+      <th>Topics</th>
+      <td>
+        {% for topic in event.topics.all() %}
+          <span title="Public events require approval from: {% for g in topic.groups.all() %}{{ g }}{% if not loop.last %}, {% endif %}{% endfor %}"
+          >{{ topic.topic }}</span><br>
+        {% else %}
+          none
+        {% endfor %}
+      </td>
+    </tr>
 
     {% if not event.submitted %}
     <tr>

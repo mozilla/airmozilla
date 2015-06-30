@@ -132,7 +132,7 @@
         <td>Tags</td>
         <td>
           {% for tag in event.tags.all() %}
-            &bull; {{ tag.name }}
+            &bull; {{ tag.name }}<br>
           {% endfor %}
         </td>
       </tr>
@@ -140,7 +140,21 @@
         <td>Channels</td>
         <td>
           {% for channel in event.channels.all() %}
-            &bull; {{ channel.name }}
+            &bull; {{ channel.name }}<br>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>Topics</td>
+        <td>
+          {% for topic in event.topics.all() %}
+            &bull; {{ topic.topic }}
+            <abbr title="Groups that will require approval if event is public">
+              ({%- for group in topic.groups.all() -%}
+                {{ group.name }}{% if not loop.last %}, {% endif %}
+              {%- endfor %})
+            </abbr>
+            <br>
           {% endfor %}
         </td>
       </tr>

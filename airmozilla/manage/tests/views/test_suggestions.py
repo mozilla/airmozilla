@@ -18,7 +18,8 @@ from airmozilla.main.models import (
     SuggestedEventComment,
     Template,
     LocationDefaultEnvironment,
-    Approval
+    Approval,
+    Topic,
 )
 from airmozilla.comments.models import (
     Discussion,
@@ -450,6 +451,64 @@ class TestSuggestions(ManageTestCase):
         ok_(real_discussion.notify_all)
         ok_(richard in real_discussion.moderators.all())
         ok_(bob in real_discussion.moderators.all())
+
+    def test_approved_suggested_event_with_topics(self):
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        location = Location.objects.get(id=1)
+        now = timezone.now()
+        tomorrow = now + datetime.timedelta(days=1)
+        channel = Channel.objects.create(name='CHANNEL')
+
+        # create a suggested event that has everything filled in
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE' * 10,
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_PUBLIC,
+            additional_links='ADDITIONAL LINKS',
+            remote_presenters='RICHARD & ZANDR',
+            upcoming=False,
+            popcorn_url='https://goodurl.com/',
+            submitted=now,
+            first_submitted=now,
+        )
+        event.channels.add(channel)
+
+        topic = Topic.objects.create(
+            topic='Money Matters',
+            is_active=True
+        )
+        group = Group.objects.create(name='PR')
+        # put some people in that group
+        user = User.objects.create_user('jessica', email='jessica@muzilla.com')
+        user.groups.add(group)
+        topic.groups.add(group)
+        event.topics.add(topic)
+
+        url = reverse('manage:suggestion_review', args=(event.pk,))
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+
+        # re-load it
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        real = event.accepted
+        assert real.topics.all()
+
+        email_sent = mail.outbox[-2]  # last email goes to the user
+        eq_(email_sent.recipients(), ['jessica@muzilla.com'])
+        ok_('Approval requested' in email_sent.subject)
+        ok_(event.title in email_sent.subject)
+        ok_(
+            'requires approval from someone in your group' in
+            email_sent.body
+        )
+        ok_(reverse('manage:approvals') in email_sent.body)
+        ok_(topic.topic in email_sent.body)
 
     def test_reject_suggested_event(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')

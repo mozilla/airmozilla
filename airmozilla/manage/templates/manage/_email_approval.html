@@ -31,6 +31,12 @@
         <td><b>Description:</b></td>
         <td>{{ event.description | safe }}</td>
     </tr>
+    <tr>
+        <td><b>Topics:</b></td>
+        <td>{% for topic in event.topics.all() %}
+          {{ topic.topic }}{% if not loop.last %}, {% endif %}
+        {% endfor %}</td>
+    </tr>
 </table>
 
 {% endblock %}

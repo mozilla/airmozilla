@@ -169,7 +169,11 @@ class DetailsForm(BaseModelForm):
             'channels',
             'additional_links',
             'remote_presenters',
+            'topics',
         )
+        widgets = {
+            'topics': forms.widgets.CheckboxSelectMultiple()
+        }
 
     def __init__(self, *args, **kwargs):
         super(DetailsForm, self).__init__(*args, **kwargs)
@@ -180,6 +184,12 @@ class DetailsForm(BaseModelForm):
                 Q(never_show=False) | Q(id__in=self.instance.channels.all())
             )
         )
+        self.fields['topics'].queryset = self.fields['topics'].queryset.filter(
+            is_active=True
+        )
+        self.fields['topics'].label = 'Topics (if any)'
+        self.fields['topics'].required = False
+
         if not self.instance.upcoming:
             del self.fields['location']
             del self.fields['start_time']

@@ -208,6 +208,7 @@ class EventEditForm(EventRequestForm):
 
     def __init__(self, *args, **kwargs):
         super(EventEditForm, self).__init__(*args, **kwargs)
+
         if 'pin' in self.fields:
             self.fields['pin'].help_text = (
                 "Use of pins is deprecated. Use Curated groups instead."
@@ -231,6 +232,16 @@ class EventEditForm(EventRequestForm):
             # Checking for id because it might be an instance but never
             # been saved before.
             self.fields['picture'].widget = PictureWidget(self.instance)
+            # make the list of approval objects depend on requested approvals
+            # print Group.approval_set.filter(event=self.instance)
+            group_ids = [
+                x[0] for x in
+                Approval.objects
+                .filter(event=self.instance).values_list('group')
+            ]
+            self.fields['approvals'].queryset = Group.objects.filter(
+                id__in=group_ids
+            )
         elif self.initial.get('picture'):
             self.fields['picture'].widget = PictureWidget(
                 Picture.objects.get(id=self.initial['picture']),
