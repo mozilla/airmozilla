@@ -324,7 +324,7 @@ RUN_SELENIUM_TESTS = False
 # Once the new upload is fully tested and ready to go live we might as
 # well delete this setting and remove the if-statement in
 # main.context_processors.nav_bar.
-USE_NEW_UPLOADER = False
+USE_NEW_UPLOADER = True
 
 
 # When enabled, together with DEBUG==True, by visiting /god-mode/ you
