@@ -170,3 +170,6 @@ optisorl==0.1.1
 
 # sha256: P3_IGWFR8-lX93QnSM4qVkdJLYoLtxuk-a8a6_-mbUE
 pyelasticsearch==1.3
+# sha256: Jo-gDCfedW1xZj3WH3OkqNhydWm7G0dLLOYCBVOCaHI
+# sha256: mXhebPcVzc3lne4FpnbpnwSDWnHnztIByjF0AcMiupY
+certifi==2015.04.28
