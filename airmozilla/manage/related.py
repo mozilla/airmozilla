@@ -23,3 +23,8 @@ def indexing():
         )
 
     es.refresh()
+
+
+def resetting():
+    es = pyelasticsearch.ElasticSearch(settings.RELATED_CONTENT_URL)
+    es.flush()

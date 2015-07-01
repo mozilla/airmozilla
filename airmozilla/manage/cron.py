@@ -110,5 +110,12 @@ def autocompeter_update():
 
 @cronjobs.register
 # @capture
+def related_content_update():
+    related.resetting()
+    related.indexing()
+
+
+@cronjobs.register
+# @capture
 def related_content_indexing():
     related.indexing()
