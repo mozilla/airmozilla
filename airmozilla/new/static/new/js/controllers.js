@@ -699,14 +699,13 @@ angular.module('new.controllers', ['new.services'])
                         }
                     }
                 });
-                if (!$scope.picture) {
+                if (!eventService.getPicture()) {
                     // we need to "force load this"
                     eventService.scrape($scope.event.id);
                     eventService.lookForPicture($scope.event.id);
                 }
             })
             .error(eventService.handleErrorStatus);
-
         }
 
         function setupTagsTextcomplete(response) {
