@@ -51,11 +51,11 @@ HOME=/tmp
 */5 * * * * {{ cron }} render_popcorn 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 # Every Sunday at 8AM
-0 8 * * 0 {{ cron }} related_content_update 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+0 8 * * 0 {{ cron }} related_content_reindex 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 
 # Every 10 minutes
-*/10 * * * * {{ cron }} related_content_indexing 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+*/10 * * * * {{ cron }} related_content_index 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 
 MAILTO=root
