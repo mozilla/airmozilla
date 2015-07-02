@@ -1529,17 +1529,6 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('<p>The description</p>' in response.content)
 
-        # view one of them from the channel
-        url = reverse('main:event', args=('second-event',))
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        # featured but not this channel
-        ok_('Test event' not in response.content)
-        # featured but no event hits
-        ok_('Third test event' not in response.content)
-        # upcoming
-        ok_('Fourth test event' in response.content)
-
     def test_view_channel_in_reverse_order(self):
         channel = Channel.objects.create(
             name='Culture & Context',
@@ -1846,7 +1835,7 @@ class TestPages(DjangoTestCase):
         feed_url_employee = reverse('main:feed', args=('company',))
         feed_url_contributor = reverse('main:feed', args=('contributors',))
 
-        def extrac_content(content):
+        def extract_content(content):
             return (
                 content.split(
                     'type="application/rss+xml"')[0].split('<link')[-1]
@@ -1854,7 +1843,7 @@ class TestPages(DjangoTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        content = extrac_content(response.content)
+        content = extract_content(response.content)
         ok_(feed_url_anonymous in content)
         ok_(feed_url_employee not in content)
         ok_(feed_url_contributor not in content)
@@ -1871,7 +1860,7 @@ class TestPages(DjangoTestCase):
         assert self.client.login(username='nigel', password='secret')
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        content = extrac_content(response.content)
+        content = extract_content(response.content)
         ok_(feed_url_anonymous not in content)
         ok_(feed_url_employee not in content)
         ok_(feed_url_contributor in content)
@@ -1882,7 +1871,7 @@ class TestPages(DjangoTestCase):
         assert self.client.login(username='zandr', password='secret')
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        content = extrac_content(response.content)
+        content = extract_content(response.content)
         ok_(feed_url_anonymous not in content)
         ok_(feed_url_employee in content)
         ok_(feed_url_contributor not in content)
@@ -2329,6 +2318,7 @@ class TestPages(DjangoTestCase):
         event3.channels.add(self.main_channel)
 
         # now, we can expect all of these three to appear in the side bar
+        url = reverse('main:channels')
         response = self.client.get(url)
         eq_(response.status_code, 200)
         # because they don't have any EventHitStats for these
@@ -2390,6 +2380,7 @@ class TestPages(DjangoTestCase):
         # excluded from the Trending sidebar
         poison = Channel.objects.create(
             name='Poisonous',
+            slug='poisonous',
             exclude_from_trending=True
         )
         event2.channels.add(poison)
@@ -2409,9 +2400,9 @@ class TestPages(DjangoTestCase):
         """if you're a contributor your shouldn't be tempted to see private
         events in the sidebar of featured events"""
 
-        # use the calendar page so that we only get events that appear
+        # use the channels page so that we only get events that appear
         # in the side bar
-        url = reverse('main:calendar')
+        url = reverse('main:channels')
         # set up 3 events
         event0 = Event.objects.get(title='Test event')
         now = timezone.now()

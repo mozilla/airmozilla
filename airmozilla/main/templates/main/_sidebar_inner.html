@@ -1,25 +1,27 @@
-{% if sidebar_top %}
+{% set sidebar = get_sidebar() %}
+
+{% if sidebar.sidebar_top %}
 <div class="sidebar-top sidebar-extra">
-{{ sidebar_top.content|safe }}
+{{ sidebar.sidebar_top.content|safe }}
 </div>
 {% endif %}
 
 {% block also_live %}{% endblock %}
-  {% if featured %}
+  {% if sidebar.featured %}
     {% set widget_title = _('Trending') -%}
-    {% set widget_events = featured -%}
+    {% set widget_events = sidebar.featured -%}
     {% include "main/_side_events.html" %}
   {% endif %}
 {% block upcoming %}
-  {% if upcoming %}
+  {% if sidebar.upcoming %}
     {% set widget_title = _('Upcoming') -%}
-    {% set widget_events = upcoming -%}
+    {% set widget_events = sidebar.upcoming -%}
     {% include "main/_side_events.html" %}
   {% endif %}
 {% endblock %}
 
-{% if sidebar_bottom %}
+{% if sidebar.sidebar_bottom %}
 <div class="sidebar-bottom sidebar-extra">
-{{ sidebar_bottom.content|safe }}
+{{ sidebar.sidebar_bottom.content|safe }}
 </div>
 {% endif %}
