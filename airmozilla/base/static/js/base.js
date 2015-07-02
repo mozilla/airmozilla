@@ -27,9 +27,9 @@ var AutoUpdateTime = (function() {
     };
 })();
 
-$(function() {
-    'use strict';
-    $('time.jstime').each(function(i, time) {
+function setupJSTime(container) {
+    $.timeago.settings.allowFuture = true;
+    $('time.jstime', container).each(function(i, time) {
         // Find all relevant <time> elements and replace with formatted time.
         var $element = $(time);
         var datetime = $element.attr('datetime');
@@ -37,10 +37,14 @@ $(function() {
         var parsed = moment(datetime);
         $element.text(parsed.format(format));
     });
-    $.timeago.settings.allowFuture = true;
-    $('time.timeago').timeago();
-    AutoUpdateTime.init('time.autoupdate');
+    $('time.timeago', container).timeago();
+}
 
+$(function() {
+    'use strict';
+
+    setupJSTime(document);
+    AutoUpdateTime.init('time.autoupdate');
     $('button.cancel').click(function() {
         if (!$(this).parents('form').data('changes')) {
             return true;

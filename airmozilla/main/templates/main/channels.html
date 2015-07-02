@@ -11,7 +11,12 @@ Channels | {{ super() }}
 {{ super() }}
 <style type="text/css">
 p.feed { float: right; }
+#content-sub { display: block; } /* un-hide it */
 </style>
+{% endblock %}
+
+{% block sidebar_inner %}
+{% include "main/_sidebar_inner.html" %}
 {% endblock %}
 
 {% block content_main %}

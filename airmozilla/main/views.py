@@ -1165,7 +1165,7 @@ def related_content(request, slug):
     es = pyelasticsearch.ElasticSearch(settings.RELATED_CONTENT_URL)
     mlt_query = {
         "more_like_this": {
-            "fields": ["tags", "title", "channels"],
+            "fields": ["title", "tags", "channels"],
             "docs": [
                 {
                     "_index": "events",
@@ -1173,7 +1173,7 @@ def related_content(request, slug):
                     "_id": event.id
                 }],
             "min_term_freq": 1,
-            "max_query_terms": 5,
+            "max_query_terms": 20,
         }
     }
 
@@ -1213,6 +1213,8 @@ def related_content(request, slug):
             }
         }
 
+    query['from'] = 0
+    query['size'] = settings.RELATED_CONTENT_SIZE
     ids = []
     hits = es.search(query, index='events')['hits']
 
@@ -1220,15 +1222,12 @@ def related_content(request, slug):
         print "\t", repr(doc['_source']['title']), doc['_id']
         ids.append(int(doc['_id']))
 
+    events = Event.objects.scheduled_or_processing().filter(id__in=ids)
     if request.user.is_active:
         if is_contributor(request.user):
-            events = Event.objects \
-                          .filter(id__in=ids)
-        else:
-            events = Event.objects.scheduled_or_processing()
+            events = events.exclude(privacy=Event.PRIVACY_COMPANY)
     else:
-        events = Event.objects \
-                      .filter(id__in=ids)
+        events = events.filter(privacy=Event.PRIVACY_PUBLIC)
 
     curated_groups_map = collections.defaultdict(list)
     events = sorted(events, key=lambda e: ids.index(e.id))

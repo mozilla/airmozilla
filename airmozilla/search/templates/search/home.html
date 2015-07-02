@@ -10,6 +10,10 @@
 
 {% block body_class %}with-sidebar{% endblock %}
 
+{% block sidebar_inner %}
+{% include "main/_sidebar_inner.html" %}
+{% endblock %}
+
 {% block content_main %}
 
   {% if search_error %}

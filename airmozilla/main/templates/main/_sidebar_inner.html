@@ -1,0 +1,25 @@
+{% if sidebar_top %}
+<div class="sidebar-top sidebar-extra">
+{{ sidebar_top.content|safe }}
+</div>
+{% endif %}
+
+{% block also_live %}{% endblock %}
+  {% if featured %}
+    {% set widget_title = _('Trending') -%}
+    {% set widget_events = featured -%}
+    {% include "main/_side_events.html" %}
+  {% endif %}
+{% block upcoming %}
+  {% if upcoming %}
+    {% set widget_title = _('Upcoming') -%}
+    {% set widget_events = upcoming -%}
+    {% include "main/_side_events.html" %}
+  {% endif %}
+{% endblock %}
+
+{% if sidebar_bottom %}
+<div class="sidebar-bottom sidebar-extra">
+{{ sidebar_bottom.content|safe }}
+</div>
+{% endif %}

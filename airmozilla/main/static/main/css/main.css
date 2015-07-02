@@ -291,6 +291,12 @@ body .entry-comments a { background-image: url(img/icn-comment.png); }
 legend { color: #b4b4b4; } /* For IE */
 
 /* @Sidebar *********/
+
+/* By default, the sidebar is hidden. Only templates that need it make it visible */
+#content-sub { display: none; }
+
+#content-sub .entry-header { padding: 1.5em 0 0; }
+#content-sub .entry-title { font-size: 1.7em; }
 .widget h2 { margin-bottom: 20px; }
 #content-sub { background: #2d373b; padding: 24px 24px 4em; }
 .with-sidebar #content-sub { margin-right: -24px; }

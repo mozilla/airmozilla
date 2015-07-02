@@ -1,16 +1,17 @@
-$(document).ready(function() {
+$(function() {
 
-var URL = window.location.pathname + 'related-content'
+    var url = window.location.pathname + 'related-content/';
 
-    $.get(URL, function(response) {
-    // Action to be added if necessary
-        $.post(function(response) {
-        // Action to be added if necessary
-           $('.entry-title').html(data);
-       }
-      });
-   }
-  });
-  
-      
+    $('#content-sub').load(url, function(response) {
+        if ($('#content-sub article').length) {
+            // new HTML contains <time> tags that need the jQuery timeago
+            // functionality added to them.
+            setupJSTime('#content-sub');
+            $('#content-sub').show();
+        } else {
+            $('#content-sub').hide();
+        }
+
+    });
+
 });
