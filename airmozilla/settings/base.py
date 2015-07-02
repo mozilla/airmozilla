@@ -166,8 +166,8 @@ def JINJA_CONFIG():
         ],
         'finalize': lambda x: x if x is not None else '',
     }
-    #config = funfactory_JINJA_CONFIG()
-    #config['extensions'].remove('tower.template.i18n')
+    # config = funfactory_JINJA_CONFIG()
+    # config['extensions'].remove('tower.template.i18n')
     return config
 
 
@@ -225,7 +225,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 # Always use secure cookies
 COOKIES_SECURE = True
 
-#Default for related content
+# Default for related content
 RELATED_CONTENT_URL = 'http://localhost:9200/'
 
 # Defaults for Mozillians
