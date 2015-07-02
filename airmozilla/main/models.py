@@ -122,6 +122,7 @@ class Channel(models.Model):
         blank=True
     )
     feed_size = models.PositiveIntegerField(default=20)
+    youtube_id = models.CharField(max_length=100, null=True)
 
     class Meta:
         ordering = ['name']
@@ -131,6 +132,11 @@ class Channel(models.Model):
 
     def get_children(self):
         return Channel.objects.filter(parent=self)
+
+    @property
+    def youtube_url(self):
+        assert self.youtube_id
+        return 'https://www.youtube.com/channel/{}'.format(self.youtube_id)
 
 
 class Tag(models.Model):

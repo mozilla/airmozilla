@@ -50,9 +50,9 @@ python-dateutil==2.4.2
 # sha256: 0VROl91eYlp3-VOQArzew-EsZzva3UkScXgu8pAWRwo
 # sha256: WMxdXZkq4_42CEwusQPgLsX7tUcHNt8X-WtcO9x8gTg
 django-jsonview==0.5.0
-# sha256: zuWf2ql6QKxQW7Bim9yLqbp5AS0JnvEdbTooS342nJw
-# sha256: 1CcdVvqPDDnYRxFgIhdXTwUMAoHvv68c-ogh8NfypxQ
-httplib2==0.8
+# sha256: w6uhyVOXEVUfTYPoV7MWtRNKHE3c6YqHW3Anvn3W2Yg
+# sha256: _hh_MVM2w9qmYW0J8yem5lYLCC_OWXI_dzNjKf3L_DY
+httplib2==0.9.2
 # sha256: gqOPZ02h-klsD8TfcUy7BYVAvtcqMMUKLjRLDZhMTSE
 oauth2==1.5.211
 # sha256: wn5AqzzPN_MKn3estJFzcNk0HiWr2o6Uub1IxxJ_fUg
@@ -171,3 +171,35 @@ certifi==2015.04.28
 # sha256: U-ZfpgJaWfZOznFHWcHwbE5PuatrJyVhouJvKGpV1C4
 # sha256: DaSDQ73GwBz-Rb0jcm3S5-oMH84klZqEpGglE6D9KxI
 urllib3==1.11
+# sha256: LNfMx5ew9dHvdeoev3SdpHxJctr1NNIv08a0372aiO4
+# sha256: dqOALTWW6nlkjZ4dW1barb8Js949QTq8Z4dCV1PKaSw
+# sha256: -3tajavOzz_ZysDXdT2NxLzXIgVw24Kjk4QU6Ox33H8
+google-api-python-client==1.4.2
+# sha256: YfnZnjzvZf6xv-Oi7vepPrk4GdNFv1S81C9OY9UgTa4
+# sha256: GAKm3TIEXkcqQZ2xRBrsq0adM-DSdJ4ZKr3sUhAXJK8
+# sha256: NQJc2UIsllBJEvBOLxX-eTkKhZe0MMLKXQU0z5MJ_6A
+# sha256: L5btWgwynKFiMLMmyhK3Rh7I9l4L4-T5l1FvNr-Co0U
+# sha256: KP7kQheZHPrZ5qC59-PyYEHiHryWYp6U5YXM0F1J-mU
+# sha256: Mm56hUoX-rB2kSBHR2lfj2ktZ0WIo1XEQfsU9mC_Tmg
+# sha256: zaWpBIVwnKZ5XIYFbD5f5yZgKLBeU_HVJ_35OmNlprg
+# sha256: DLKhR0K1Q_3Wj5MaFM44KRhu0rGyJnoGeHOIyWst2b4
+# sha256: UZH_a5Em0sA53Yf4_wJb7SdLrwf6eK-kb1VrGtcmXW4
+# sha256: gyPgNjey0HLMcEEwC6xuxEjDwolQq0A3YDZ4jpoa9ik
+# sha256: hTys2W0fcB3dZ6oD7MBfUYkBNbcmLpInEBEvEqLtKn8
+pyasn1==0.1.9
+# sha256: EFYZNPGCm8xFXH7NzazbS-X_02lvJvRo6260HhB_ODc
+# sha256: Re5n4SzumNPS7twfVBMxAzEbVNejHkQa0zvM7D0U2Co
+# sha256: 3vGcKuOOHL1ZTbSvLYOsqxfiZCqMkO5SgbZCfVEEeHg
+# sha256: 48xExK5F8DqnO0SIGmKmO8-248mA89CoSigqbXDP6Hw
+# sha256: S4S0-VJ152nXBo9wcRiEkn5Hews56KAawRIVZ9evi5c
+# sha256: bJVSELhvz_NCCVcHIoBWDdrxg6p2H7diQMIMMi4BAh0
+# sha256: r7p41NQF866-bn4x7Ze8NQxmnH07u9cabeAoWh7FWjA
+# sha256: W3_Lw3NyEUySiMvVqgQVLzU-1RFNMbxen5Lyf3Hh5FM
+# sha256: Fj08aJqPBpDB7Ih5mymjSwb5QB4pikVlouT6QARFppw
+# sha256: 2iWQwkk_JqUfjeU-KAXC63ESw7ROw1Bg5uo5e5LdFzI
+# sha256: n_RooKQKdFsEZSfxc8dj4Bp3TB72DSO365BIRiCmXZ4
+pyasn1-modules==0.0.8
+# sha256: P9p5fdxMElvOLKZEYGvgnL8fbegtfRHghNwLyY20-z4
+oauth2client==1.5.1
+# sha256: ow4jCut-vtvLXamZmhf6ijDlEubVsG9z1HxuA8jjV_0
+uritemplate==0.6

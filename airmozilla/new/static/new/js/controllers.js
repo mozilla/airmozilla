@@ -117,7 +117,7 @@ angular.module('new.controllers', ['new.services'])
                 // query for the state of.
                 eventIds.push(event.id);
 
-                if (!event.pictures) {
+                if (!event.pictures && !event.picture) {
                     $http.post(scrapeUrl.replace('0', event.id))
                     .success(function(scrapeResponse) {
                         event.pictures = scrapeResponse.no_pictures;
@@ -135,6 +135,9 @@ angular.module('new.controllers', ['new.services'])
                 $http.post(videosUrl, {ids: eventIds})
                 .success(function(response) {
                     $scope.events.forEach(function(event) {
+                        if (!event.upload) {
+                            return;
+                        }
                         if (!response[event.id] || (response[event.id] && !response[event.id].tag)) {
                             // it must have been a straggler what wasn't submitted
                             $http.post(archiveUrl.replace('0', event.id))
@@ -254,6 +257,86 @@ angular.module('new.controllers', ['new.services'])
             uploadService.startAndProcess();
             $state.go('preemptiveDetails');
 
+        };
+
+    }
+])
+
+.controller('YouTubeController',
+    ['$scope', '$state', '$interval', '$sce',
+     'statusService', 'eventService', 'youtubeService',
+    function(
+        $scope, $state, $interval, $sce,
+        statusService, eventService, youtubeService
+    ) {
+        setDocumentTitle('Share a YouTube™ Video');
+
+
+        $scope.urlError = null;
+        $scope.serverError = null;
+        $scope.url = '';
+
+        $scope.cancel = function() {
+            $scope.info = null;
+            $scope.urlError = null;
+        };
+
+        $scope.startExtraction = function() {
+
+            if (!$scope.url.trim()) {
+                return;
+            }
+            $scope.urlError = null;
+            $scope.serverError = null;
+
+            // console.log($scope.url);
+            // make sure there's no lingering started event
+            sessionStorage.removeItem('lastNewId');
+
+            $scope.fetching = true;
+            youtubeService.extractVideoInfo($scope.url.trim())
+            .success(function(response) {
+                if (response.error) {
+                    $scope.urlError = response.error;
+                } else {
+                    $scope.embedURL = $sce.trustAsResourceUrl(
+                        'https://www.youtube-nocookie.com/embed/' +
+                        response.id + '?rel=0&showinfo=0'
+                    );
+                    $scope.info = response;
+                    $scope.info.externalURL = (
+                        'https://www.youtube.com/watch?v=' + response.id
+                    );
+
+                }
+            })
+            .error(function() {
+                console.error.apply(console, arguments);
+                $scope.serverError = true;
+            })
+            .finally(function() {
+                $scope.fetching = false;
+            });
+        };
+
+        $scope.createEvent = function() {
+            $scope.creating = true;
+            $scope.serverError = false;
+            statusService.set('Fetching details from YouTube', 3);
+            youtubeService.createEvent($scope.info)
+            .success(function(response) {
+
+                eventService.setId(response.id);
+                $state.go('details', {id: response.id});
+                statusService.set('Details fetched', 2);
+            })
+            .error(function() {
+                console.error.apply(console, arguments);
+                $scope.serverError = true;
+            })
+            .finally(function() {
+                $scope.creating = false;
+            });
         };
 
     }
@@ -677,7 +760,9 @@ angular.module('new.controllers', ['new.services'])
                     $state.go('published', {id: eventService.getId()});
                 }
                 $scope.event = response.event;
-                if ($scope.event.picture) {
+                if ($scope.event.placeholder_img) {
+                    eventService.setPicture($scope.event.placeholder_img);
+                } else if ($scope.event.picture) {
                     eventService.setPicture($scope.event.picture);
                 }
                 $scope.loading = false;
@@ -932,8 +1017,16 @@ angular.module('new.controllers', ['new.services'])
             }
             $scope.event = response.event;
             $scope.pictures = response.pictures;
-            $scope.loadingVideo = true;
-            fetchVideo();
+            if ($scope.event.upload) {
+                $scope.loadingVideo = true;
+                fetchVideo();
+            } else if ($scope.event.youtube_id) {
+                $scope.event.youtubeSrc = $sce.trustAsResourceUrl(
+                    'https://www.youtube-nocookie.com/embed/' +
+                    $scope.event.youtube_id +
+                    '?rel=0&showinfo=0'
+                );
+            }
         })
         .error(eventService.handleErrorStatus)
         .finally(function() {
@@ -981,17 +1074,18 @@ angular.module('new.controllers', ['new.services'])
             $scope.event._absURL = document.location.protocol + '//' +
             document.location.hostname +
             response.event.url;
+            if (!$scope.event.youtube_id) {
+                $http.get(videoUrl)
+                .success(function(response) {
+                    $scope.video = response;
+                })
+                .error(eventService.handleErrorStatus);
+            }
         })
         .error(eventService.handleErrorStatus)
         .finally(function() {
             $scope.loading = false;
         });
-
-        $http.get(videoUrl)
-        .success(function(response) {
-            $scope.video = response;
-        })
-        .error(eventService.handleErrorStatus);
 
     }
 ])

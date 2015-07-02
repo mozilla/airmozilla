@@ -403,7 +403,7 @@ class EventTweetForm(BaseModelForm):
 class ChannelForm(BaseModelForm):
     class Meta:
         model = Channel
-        exclude = ('created',)
+        exclude = ('created', 'youtube_id')
 
     def __init__(self, *args, **kwargs):
         super(ChannelForm, self).__init__(*args, **kwargs)

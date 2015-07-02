@@ -393,3 +393,5 @@ ELASTICSEARCH_INDEX = 'events'
 
 # legacy junk in settings/local.py on production deployments
 BASE_PASSWORD_HASHERS = HMAC_KEYS = []
+
+YOUTUBE_API_KEY = None
