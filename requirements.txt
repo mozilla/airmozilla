@@ -85,9 +85,9 @@ django-cronjobs==0.2.3
 django-bootstrap-form==3.1
 # sha256: jiOPwzhIDdvXgwiOhFgqN6dfB8mSdTNzMsmjmbIBkfI
 regex==2014.12.24
-# sha256: ngIjuJUY7axhqXtW_3jycQVs4IyKF8a2RK7yRPrIPyM
-# sha256: mtSFI-JzXivaPvY1QHN3jIf9cY5OVmGh0bcODKBbYZ4
-requests-oauthlib==0.4.2
+# sha256: ZY2auoUzi-jB0VMsn7WAezgdxxZuRp_w9i_KpCQNnrg
+# sha256: x9LubC6MWKD9YMLX0hzpPI0rIuep8jLUv5FTJq-0ea8
+requests-oauthlib==0.5.0
 # sha256: PCzNDHsT4v3NdXGY84XWS-cINBs5fEFPDAU4tW5rskw
 bleach==1.2.1
 # sha256: o71QUd0X6dUOip8tNiUI6C1wYwEP3AbV4HzjYI54D-Y

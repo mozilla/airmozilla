@@ -5,7 +5,7 @@ $(function() {
   'use strict';
 
   var $counter = $('.char-counter');
-  function char_counter() {
+  $('textarea').on('keyup', function() {
     var $element = $(this);
     var len = $.trim($element.val()).length;
     var max = $element.data('maxlength');
@@ -15,8 +15,7 @@ $(function() {
       $counter.removeClass('over');
     }
     $counter.text(max - len);
-  }
-  $('textarea').on('keyup', char_counter).trigger('keyup');
+  }).trigger('keyup');
 
   $('button[name="cancel"]').click(function() {
     if ($('input[name="event_edit_url"]').length) {
@@ -34,7 +33,7 @@ $(function() {
     var $textarea = $('textarea');
     var text = $textarea.val();
     $.each(tags, function(i, tag) {
-      var searchfor = '#' + tag;
+      var searchfor = '#' + tag.replace(/ /g, '');
       if (text.match(searchfor)) {
         count++;
       }
@@ -42,17 +41,17 @@ $(function() {
     if (count) {
       // remove them all
       $.each(tags, function(i, tag) {
-        var searchfor = '#' + tag;
+        var searchfor = '#' + tag.replace(/ /g, '');
         text = text.replace(searchfor, '');
       });
     } else {
       // add them all
       text = $.trim(text);
       $.each(tags, function(i, tag) {
-        text += ' #' + tag;
+        text += ' #' + tag.replace(/ /g, '');
       });
     }
-    $textarea.val($.trim(text))
+    $textarea.val($.trim(text));
     $textarea.trigger('keyup');
     return false;
   });

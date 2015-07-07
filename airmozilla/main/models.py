@@ -640,6 +640,7 @@ class EventTweet(models.Model):
     sent_date = models.DateTimeField(blank=True, null=True)
     error = models.TextField(blank=True, null=True)
     tweet_id = models.CharField(max_length=20, blank=True, null=True)
+    failed_attempts = models.IntegerField(default=0)
 
     def __unicode__(self):
         return self.text

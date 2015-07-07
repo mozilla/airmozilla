@@ -336,3 +336,7 @@ GOD_MODE = False
 # If you want to disable all of the browser ID stuff, set this to True.
 # That means you won't be able to sign in at all. Or sign out.
 BROWSERID_DISABLED = False
+
+
+# How many times to try sending out an event tweet.
+MAX_TWEET_ATTEMPTS = 3
