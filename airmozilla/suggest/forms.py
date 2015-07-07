@@ -1,8 +1,5 @@
 from django import forms
 from django.conf import settings
-from django.template.defaultfilters import filesizeformat
-from django.utils.timesince import timesince
-from django.utils.safestring import mark_safe
 from django.db.models import Q
 
 from slugify import slugify
@@ -18,7 +15,6 @@ from airmozilla.main.models import (
     SuggestedEventComment
 )
 from airmozilla.comments.models import SuggestedDiscussion
-from airmozilla.uploads.models import Upload
 from . import utils
 
 
@@ -28,7 +24,6 @@ class StartForm(BaseModelForm):
         label='What kind of event is this?',
         choices=[
             ('upcoming', 'Upcoming'),
-            ('pre-recorded', 'Pre-recorded'),
             ('popcorn', 'Popcorn')
         ],
         widget=forms.widgets.RadioSelect()
@@ -41,10 +36,6 @@ class StartForm(BaseModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super(StartForm, self).__init__(*args, **kwargs)
-        # self.fields['upcoming'].label = ''
-        # self.fields['upcoming'].widget = forms.widgets.RadioSelect(
-        #     choices=[(True, 'Upcoming'), (False, 'Pre-recorded')]
-        # )
 
 
 class TitleForm(BaseModelForm):
@@ -68,41 +59,6 @@ class TitleForm(BaseModelForm):
                 if Event.objects.filter(slug=cleaned_data['slug']):
                     raise forms.ValidationError('Slug already taken')
         return cleaned_data
-
-
-class ChooseFileForm(BaseModelForm):
-
-    class Meta:
-        model = SuggestedEvent
-        fields = ('upload',)
-
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user')
-        super(ChooseFileForm, self).__init__(*args, **kwargs)
-        this_or_nothing = (
-            Q(suggested_event__isnull=True) |
-            Q(suggested_event=self.instance)
-        )
-        uploads = (
-            Upload.objects
-            .filter(user=self.user)
-            .filter(this_or_nothing)
-            .order_by('-created')
-        )
-        self.fields['upload'].widget = forms.widgets.RadioSelect(
-            choices=[(x.pk, self.describe_upload(x)) for x in uploads]
-        )
-
-    @staticmethod
-    def describe_upload(upload):
-        html = (
-            '%s <br><span class="metadata">(%s) uploaded %s ago</span>' % (
-                upload.file_name,
-                filesizeformat(upload.size),
-                timesince(upload.created)
-            )
-        )
-        return mark_safe(html)
 
 
 class PopcornForm(BaseModelForm):
