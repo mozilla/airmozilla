@@ -28,7 +28,7 @@
 
   {% set count_tweets=tweets.count() %}
   {% if count_tweets %}
-  <div class="alert alert-block">
+  <div class="alert alert-warning">
     <button type="button" class="close" data-dismiss="alert">&times;</button>
     <h4>Note!</h4>
     <p><a href="{{ url('manage:event_tweets', event.pk) }}">
@@ -51,10 +51,12 @@
   {% include "manage/_default_form.html" %}
 
   <p><strong>About when the tweet will be sent</strong></p>
-  <p>If the event needs approval, it will not be sent until it has been approved.<br>
-  If you enter a date and time, it will not be sent till after that.<br>
-  If you don't enter a date and time and the event does not need approval, the tweet
-  will be sent as soon as you save it.</p>
+  <ul>
+    <li>If the event needs approval, it will not be sent until it has been approved.</li>
+    <li>If you enter a date and time, it will not be sent till after that.</li>
+    <li>If you don't enter a date and time and the event does not need approval, the tweet
+      will be sent as soon as you save it.</li>
+  </ul>
 
   <p>This event: <strong>
   {% if not event.is_scheduled() %}

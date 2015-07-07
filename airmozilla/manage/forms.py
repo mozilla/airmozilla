@@ -352,9 +352,13 @@ class EventTweetForm(BaseModelForm):
                 % pack_tags([x.name for x in event.tags.all()])
             )
 
-        if event.placeholder_img:
+        if event.placeholder_img or event.picture:
             from airmozilla.main.helpers import thumbnail
-            thumb = thumbnail(event.placeholder_img, '100x100')
+            if event.picture:
+                pic = event.picture.file
+            else:
+                pic = event.placeholder_img
+            thumb = thumbnail(pic, '160x90')
 
             self.fields['include_placeholder'].help_text = (
                 '<img src="%(url)s" alt="placeholder" class="thumbnail" '

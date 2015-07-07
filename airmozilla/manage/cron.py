@@ -17,7 +17,7 @@ from . import autocompeter
 @cronjobs.register
 @capture
 def send_unsent_tweets():
-    tweeter.send_unsent_tweets()
+    tweeter.send_unsent_tweets(verbose=True)
 
 
 @cronjobs.register
