@@ -101,12 +101,6 @@ def suggest_breadcrumbs(event):
                 'description': 'Popcorn URL',
                 'available': True,
             })
-        else:
-            links.append({
-                'url': reverse('suggest:file', args=(event.pk,)),
-                'description': 'File',
-                'available': True,
-            })
 
     available = state['view'] != 'suggest:description'
     # description

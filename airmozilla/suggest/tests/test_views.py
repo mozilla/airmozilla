@@ -142,61 +142,6 @@ class TestPages(DjangoTestCase):
         eq_(event.status, SuggestedEvent.STATUS_CREATED)
         self.assertRedirects(response, url)
 
-    def test_start_pre_recorded(self):
-        url = reverse('suggest:start')
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-
-        response = self.client.post(url, {
-            'title': 'A New World',
-            'event_type': 'pre-recorded'
-        })
-        eq_(response.status_code, 302)
-
-        event = SuggestedEvent.objects.get(title='A New World')
-        ok_(not event.upcoming)
-        eq_(event.popcorn_url, None)
-        eq_(event.slug, 'a-new-world')
-        ok_(event.start_time)
-        eq_(event.location.name, self.precorded_location.name)
-        eq_(event.location.timezone, self.precorded_location.timezone)
-        url = reverse('uploads:upload')
-        self.assertRedirects(response, url)
-
-    @patch('requests.head')
-    def test_start_pre_recorded_and_upload_file(self, rhead):
-        def mocked_head(url, **options):
-            return HeadResponse(**{'content-length': 123456})
-        rhead.side_effect = mocked_head
-
-        url = reverse('suggest:start')
-        response = self.client.post(url, {
-            'title': 'A New World',
-            'event_type': 'pre-recorded'
-        })
-        eq_(response.status_code, 302)
-        url = reverse('uploads:upload')
-        self.assertRedirects(response, url)
-
-        event = SuggestedEvent.objects.get(title='A New World')
-
-        # now go there and save an upload
-        save_url = reverse('uploads:save')
-        response = self.client.post(save_url, {
-            'url': 'https://aws.com/foo.mpg'
-        })
-        eq_(response.status_code, 200)
-        information = json.loads(response.content)
-        eq_(
-            information['suggested_event']['url'],
-            reverse('suggest:description', args=(event.pk,))
-        )
-        upload = Upload.objects.get(url='https://aws.com/foo.mpg')
-        # reload
-        event = SuggestedEvent.objects.get(pk=event.pk)
-        eq_(event.upload, upload)
-        eq_(upload.suggested_event, event)
-
     def test_start_popcorn(self):
         url = reverse('suggest:start')
         response = self.client.get(url)
@@ -217,44 +162,6 @@ class TestPages(DjangoTestCase):
         eq_(event.location.name, self.precorded_location.name)
         eq_(event.location.timezone, self.precorded_location.timezone)
         self.assertRedirects(response, url)
-
-    def test_start_with_file_upload_id(self):
-        upload = Upload.objects.create(
-            user=self.user,
-            url='https://s3.com/file',
-            size=1234
-        )
-        url = reverse('suggest:start')
-        response = self.client.get(url, {'upload': upload.pk})
-        eq_(response.status_code, 200)
-
-    def test_start_with_file_upload_twice(self):
-        upload = Upload.objects.create(
-            user=self.user,
-            url='https://s3.com/file',
-            file_name='file.mpg',
-            size=1234
-        )
-        suggested_event = SuggestedEvent.objects.create(
-            user=self.user,
-            title='Cool Title',
-            slug='cool-title',
-            upload=upload
-        )
-        url = reverse('suggest:start')
-        response = self.client.get(url, {'upload': upload.pk})
-        eq_(response.status_code, 302)
-        """
-        self.assertRedirects(
-            response,
-            reverse('uploads:home')
-        )
-        """
-        response = self.client.get(reverse('uploads:home'))
-        eq_(response.status_code, 200)
-        ok_('The file upload you selected belongs to a requested event '
-            'with the title' in response.content)
-        ok_(suggested_event.title in response.content)
 
     def test_start_duplicate_slug(self):
         event = Event.objects.get(slug='test-event')
@@ -490,33 +397,6 @@ class TestPages(DjangoTestCase):
         response = self.client.post(url)
         eq_(response.status_code, 400)
 
-    def test_file(self):
-        event = SuggestedEvent.objects.create(
-            user=self.user,
-            title='Cool Title',
-            slug='cool-title',
-        )
-        assert event.upcoming
-        url = reverse('suggest:file', args=(event.pk,))
-        response = self.client.get(url)
-        eq_(response.status_code, 302)
-        # you have no business here on an upcoming event
-        self.assertRedirects(
-            response,
-            reverse('suggest:description', args=(event.pk,))
-        )
-        event.upcoming = False
-        now = timezone.now()
-        event.start_time = now
-        event.location = self.precorded_location
-        event.save()
-
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        # expect a link to the upload history page
-        uploads_url = reverse('uploads:home')
-        ok_(uploads_url in response.content)
-
     @patch('requests.get')
     def test_popcorn(self, rget):
 
@@ -582,101 +462,6 @@ class TestPages(DjangoTestCase):
                 os.path.join(
                     self.tmp_dir, event.placeholder_img.path)
                 ))
-
-    def test_file_not_your_suggested_event(self):
-        event = SuggestedEvent.objects.create(
-            user=User.objects.create(username='someoneelse'),
-            title='Cool Title',
-            slug='cool-title',
-        )
-        url = reverse('suggest:file', args=(event.pk,))
-        response = self.client.get(url)
-        eq_(response.status_code, 400)
-
-    def test_file_with_uploads_to_choose(self):
-        now = timezone.now()
-        event = SuggestedEvent.objects.create(
-            user=self.user,
-            title='Cool Title',
-            slug='cool-title',
-            upcoming=False,
-            location=self.precorded_location,
-            start_time=now
-        )
-        other_event = SuggestedEvent.objects.create(
-            user=self.user,
-            title='Other Title',
-            slug='other-title',
-            upcoming=False,
-            location=self.precorded_location,
-            start_time=now
-        )
-
-        # make some uploads
-        upload1 = Upload.objects.create(
-            user=self.user,
-            url='http://1',
-            file_name='File 1',
-            size=1000000
-        )
-        Upload.objects.create(
-            user=User.objects.create(username='someoneelse'),
-            url='http://1',
-            file_name='File 2',
-            size=1000000
-        )
-        Upload.objects.create(
-            user=self.user,
-            url='http://1',
-            file_name='File 3',
-            size=1000000,
-            suggested_event=other_event
-        )
-        upload4 = Upload.objects.create(
-            user=self.user,
-            url='http://1',
-            file_name='File 4',
-            size=1000000,
-        )
-
-        url = reverse('suggest:file', args=(event.pk,))
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        ok_('File 1' in response.content)
-        ok_('File 4' in response.content)
-        # someone elses
-        ok_('File 2' not in response.content)
-        # busy
-        ok_('File 3' not in response.content)
-
-        response = self.client.post(url, {
-            'upload': upload1.pk
-        })
-        eq_(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            reverse('suggest:description', args=(event.pk,))
-        )
-
-        event = SuggestedEvent.objects.get(pk=event.pk)
-        eq_(event.upload, upload1)
-
-        upload1 = Upload.objects.get(pk=upload1.pk)
-        eq_(upload1.suggested_event, event)
-
-        # let's say we change our minds
-        response = self.client.post(url, {
-            'upload': upload4.pk
-        })
-        eq_(response.status_code, 302)
-        event = SuggestedEvent.objects.get(pk=event.pk)
-        eq_(event.upload, upload4)
-
-        upload1 = Upload.objects.get(pk=upload1.pk)
-        eq_(upload1.suggested_event, None)
-
-        upload4 = Upload.objects.get(pk=upload4.pk)
-        eq_(upload4.suggested_event, event)
 
     def test_description(self):
         event = SuggestedEvent.objects.create(

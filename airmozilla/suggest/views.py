@@ -24,7 +24,6 @@ from airmozilla.main.models import (
     SuggestedEventComment,
     Location
 )
-from airmozilla.uploads.models import Upload
 from airmozilla.comments.models import SuggestedDiscussion
 from airmozilla.base.utils import tz_apply
 
@@ -97,43 +96,11 @@ def start(request):
                 event.popcorn_url = 'https://'
                 event.save()
                 url = reverse('suggest:popcorn', args=(event.pk,))
-            else:
-                request.session['active_suggested_event'] = event.pk
-                if request.session.get('active_event'):
-                    del request.session['active_event']
-                url = reverse('uploads:upload')
             return redirect(url)
     else:
         initial = {
             'event_type': 'upcoming'
         }
-        if request.GET.get('upload'):
-            try:
-                upload = Upload.objects.get(
-                    pk=request.GET['upload'],
-                    user=request.user
-                )
-                # is that upload used by some other suggested event
-                # in progress?
-                try:
-                    suggested_event = SuggestedEvent.objects.get(
-                        upload=upload
-                    )
-                    # that's bad!
-                    messages.warning(
-                        request,
-                        'The file upload you selected belongs to a requested '
-                        'event with the title: %s' % suggested_event.title
-                    )
-                    return redirect('uploads:home')
-                except SuggestedEvent.DoesNotExist:
-                    pass
-
-                initial['event_type'] = 'pre-recorded'
-                request.session['active_upload'] = upload.pk
-            except Upload.DoesNotExist:
-                pass
-
         form = forms.StartForm(user=request.user, initial=initial)
 
         data['suggestions'] = (
@@ -166,60 +133,6 @@ def title(request, id):
 
     data = {'form': form, 'event': event}
     return render(request, 'suggest/title.html', data)
-
-
-@login_required
-@transaction.commit_on_success
-def choose_file(request, id):
-    event = get_object_or_404(SuggestedEvent, pk=id)
-    if event.user != request.user:
-        return http.HttpResponseBadRequest('Not your event')
-    if event.upcoming:
-        return redirect(reverse('suggest:description', args=(event.pk,)))
-
-    if request.method == 'POST':
-        form = forms.ChooseFileForm(
-            request.POST,
-            user=request.user,
-            instance=event
-        )
-        if form.is_valid():
-            event = form.save()
-            event.upload.suggested_event = event
-            event.upload.save()
-            # did any *other* upload belong to this suggested event?
-            other_uploads = (
-                Upload.objects
-                .filter(suggested_event=event)
-                .exclude(pk=event.upload.pk)
-            )
-            for upload in other_uploads:
-                upload.suggested_event = None
-                upload.save()
-            if request.session.get('active_suggested_event'):
-                del request.session['active_suggested_event']
-            # XXX use next_url() instead?
-            url = reverse('suggest:description', args=(event.pk,))
-            return redirect(url)
-    else:
-        initial = {}
-        if request.GET.get('upload'):
-            try:
-                upload = Upload.objects.get(
-                    pk=request.GET['upload'],
-                    user=request.user
-                )
-                initial['upload'] = upload.pk
-            except Upload.DoesNotExist:
-                pass
-        form = forms.ChooseFileForm(
-            user=request.user,
-            instance=event,
-            initial=initial
-        )
-
-    data = {'form': form, 'event': event}
-    return render(request, 'suggest/file.html', data)
 
 
 @login_required
