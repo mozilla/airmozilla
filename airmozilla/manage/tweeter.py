@@ -66,7 +66,8 @@ def send_tweet(event_tweet, save=True):
             pic = event_tweet.event.placeholder_img
         thumb = thumbnail(
             pic,
-            '385x218'  # 16/9 ratio
+            '385x218',  # 16/9 ratio
+            crop='center'
         )
         file_path = thumb.storage.path(thumb.name)
     else:

@@ -335,7 +335,11 @@ class EventTweetForm(BaseModelForm):
     def __init__(self, event, *args, **kwargs):
         super(EventTweetForm, self).__init__(*args, **kwargs)
         self.fields['text'].help_text = (
-            '<b class="char-counter">140</b> characters left'
+            '<b class="char-counter">140</b> characters left. '
+            '<span class="char-counter-warning"><b>Note!</b> Sometimes '
+            'Twitter can count it as longer than it appears if you '
+            'include a URL. '
+            'It\'s usually best to leave a little room.</span>'
         )
         # it's a NOT NULL field but it defaults to NOW()
         # in the views code
@@ -358,7 +362,7 @@ class EventTweetForm(BaseModelForm):
                 pic = event.picture.file
             else:
                 pic = event.placeholder_img
-            thumb = thumbnail(pic, '160x90')
+            thumb = thumbnail(pic, '160x90', crop='center')
 
             self.fields['include_placeholder'].help_text = (
                 '<img src="%(url)s" alt="placeholder" class="thumbnail" '
