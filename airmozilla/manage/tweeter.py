@@ -124,9 +124,10 @@ def _send(text, file_path=None):
     t0 = time.time()
     if file_path:
         with open(file_path, 'rb') as f:
-            new_entry = twitter.update_status_with_media(
+            media_upload = twitter.upload_media(media=f)
+            new_entry = twitter.update_status(
                 status=text,
-                media=f
+                media_ids=media_upload['media_id']
             )
     else:
         new_entry = twitter.update_status(
