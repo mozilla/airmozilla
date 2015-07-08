@@ -349,13 +349,9 @@ class Event(models.Model):
     # duration time.
     # This gets used both for SuggestedEvent and Event models.
     ESTIMATED_DURATION_CHOICES = (
-        (60 * 15, '15 minutes'),
         (60 * 30, '30 minutes'),
-        (60 * 45, '45 minutes'),
         (60 * 60, '1 hour'),
-        (60 * (60 + 15), '1 hour 15 minutes'),
         (60 * (60 + 30), '1 hour 30 minutes'),
-        (60 * (60 + 45), '1 hour 45 minutes'),
         (60 * 60 * 2, '2 hours'),
         (60 * (60 * 2 + 30), '2 hours 30 minutes'),
         (60 * 60 * 3, '3 hours'),
