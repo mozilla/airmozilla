@@ -1,7 +1,6 @@
 $(function() {
     var $survey = $('#survey');
     if (!$survey.length) {
-        console.log("No #survey container on this page");
         return;
     }
 

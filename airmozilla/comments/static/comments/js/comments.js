@@ -122,7 +122,6 @@ var Comments = (function() {
             req.then(function(response) {
                 if (!response.discussion.enabled) {
                     container.remove();
-                    console.log('Discussion not enabled on this page');
                     return;
                 }
                 can_manage_comments = response.can_manage_comments;
@@ -210,7 +209,6 @@ var Comments = (function() {
     $(function() {
         var container = $('#comments');
         if (!container.length) {
-            console.log('No #comments container on this page');
             return;
         }
         if (!$('input[name="name"]', container).val()) {
