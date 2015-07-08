@@ -91,14 +91,22 @@ class TweeterTestCase(TestCase):
         assert not event_tweet.sent_date
         assert not event_tweet.tweet_id
 
-        def mocked_update_status_with_media(status, media):
-            ok_(media.name)
+        def mocked_update_status(status, media_ids):
+            ok_(isinstance(media_ids, int))
             eq_(status, event_tweet.text)
             return {'id': '0000000001'}
 
         mocker = mock.MagicMock()
-        mocker.update_status_with_media.side_effect = (
-            mocked_update_status_with_media
+        mocker.update_status.side_effect = (
+            mocked_update_status
+        )
+
+        def mocked_upload_media(media):
+            ok_(media.name)
+            return {'media_id': 1234567890}
+
+        mocker.upload_media.side_effect = (
+            mocked_upload_media
         )
         mocked_twython.return_value = mocker
 
