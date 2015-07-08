@@ -5,6 +5,7 @@ $(function() {
   'use strict';
 
   var $counter = $('.char-counter');
+  var $counterWarning = $('.char-counter-warning').hide();
   $('textarea').on('keyup', function() {
     var $element = $(this);
     var len = $.trim($element.val()).length;
@@ -15,6 +16,11 @@ $(function() {
       $counter.removeClass('over');
     }
     $counter.text(max - len);
+    if (max - len <= 30) {
+        $counterWarning.show();
+    } else {
+        $counterWarning.hide();
+    }
   }).trigger('keyup');
 
   $('button[name="cancel"]').click(function() {
