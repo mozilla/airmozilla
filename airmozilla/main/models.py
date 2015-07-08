@@ -344,6 +344,28 @@ class Event(models.Model):
                                            on_delete=models.SET_NULL)
     topics = models.ManyToManyField(Topic)
     duration = models.PositiveIntegerField(null=True)  # seconds
+
+    # Choices for when you enter a suggested event and specify the estimated
+    # duration time.
+    # This gets used both for SuggestedEvent and Event models.
+    ESTIMATED_DURATION_CHOICES = (
+        (60 * 15, '15 minutes'),
+        (60 * 30, '30 minutes'),
+        (60 * 45, '45 minutes'),
+        (60 * 60, '1 hour'),
+        (60 * (60 + 15), '1 hour 15 minutes'),
+        (60 * (60 + 30), '1 hour 30 minutes'),
+        (60 * (60 + 45), '1 hour 45 minutes'),
+        (60 * 60 * 2, '2 hours'),
+        (60 * (60 * 2 + 30), '2 hours 30 minutes'),
+        (60 * 60 * 3, '3 hours'),
+        (60 * (60 * 3 + 30), '3 hours 30 minutes'),
+        (60 * 60 * 4, '4 hours'),
+    )
+    estimated_duration = models.PositiveIntegerField(
+        default=60 * 60,  # seconds
+        null=True,
+    )
     mozillian = models.CharField(max_length=200, null=True)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
@@ -598,6 +620,10 @@ class SuggestedEvent(models.Model):
     )
 
     topics = models.ManyToManyField(Topic)
+    estimated_duration = models.PositiveIntegerField(
+        default=60 * 60,  # seconds
+        null=True,
+    )
 
     objects = EventManager()
 

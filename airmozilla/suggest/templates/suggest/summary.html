@@ -147,6 +147,10 @@ Event summary | {{ super() }}
         {% endif %}
       </td>
     </tr>
+    <tr>
+      <th>Estimated duration</th>
+      <td>{{ show_duration(event.estimated_duration) }}</td>
+    </tr>
     {% endif %}
     <tr>
       <th>Privacy</th>

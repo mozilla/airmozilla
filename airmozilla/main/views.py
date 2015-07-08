@@ -1298,11 +1298,15 @@ def calendar_data(request):
     event_objects = []
     for event in events.select_related('location'):
         start_time = event.start_time
+        end_time = start_time + datetime.timedelta(
+            seconds=max(event.duration or event.estimated_duration, 60 * 20)
+        )
         # We don't need 'end' because we don't yet know how long the event
         # was or will be.
         event_objects.append({
             'title': event.title,
             'start': start_time.isoformat(),
+            'end': end_time.isoformat(),
             'url': reverse('main:event', args=(event.slug,)),
             'description': short_desc(event),
             'allDay': False,

@@ -97,6 +97,9 @@ class EventRequestForm(BaseModelForm):
             'additional_links': forms.Textarea(attrs={'rows': 3}),
             'remote_presenters': forms.Textarea(attrs={'rows': 3}),
             'start_time': forms.DateTimeInput(format='%Y-%m-%d %H:%M'),
+            'estimated_duration': forms.widgets.Select(
+                choices=Event.ESTIMATED_DURATION_CHOICES
+            ),
         }
         exclude = ('featured', 'status', 'archive_time', 'slug')
         # Fields specified to enforce order
@@ -104,6 +107,7 @@ class EventRequestForm(BaseModelForm):
             'title', 'placeholder_img', 'picture',
             'description',
             'short_description', 'location', 'start_time',
+            'estimated_duration',
             'channels', 'tags', 'call_info',
             'remote_presenters',
             'additional_links', 'privacy', 'popcorn_url'
@@ -197,7 +201,9 @@ class EventEditForm(EventRequestForm):
             'title', 'slug', 'status', 'privacy', 'featured', 'template',
             'template_environment', 'placeholder_img', 'picture',
             'location',
-            'description', 'short_description', 'start_time', 'archive_time',
+            'description', 'short_description', 'start_time',
+            'estimated_duration',
+            'archive_time',
             'channels', 'tags',
             'call_info', 'additional_links', 'remote_presenters',
             'approvals',
@@ -242,6 +248,10 @@ class EventEditForm(EventRequestForm):
             self.fields['approvals'].queryset = Group.objects.filter(
                 id__in=group_ids
             )
+            # If the event has a duration, it doesn't make sense to
+            # show the estimated_duration widget.
+            if self.instance.duration:
+                del self.fields['estimated_duration']
         elif self.initial.get('picture'):
             self.fields['picture'].widget = PictureWidget(
                 Picture.objects.get(id=self.initial['picture']),
@@ -277,6 +287,7 @@ class EventExperiencedRequestForm(EventEditForm):
             'template_environment', 'placeholder_img', 'picture',
             'description',
             'short_description', 'location', 'start_time',
+            'estimated_duration',
             'channels', 'tags', 'call_info',
             'additional_links', 'remote_presenters',
             'approvals', 'pin', 'popcorn_url', 'recruitmentmessage'

@@ -521,6 +521,7 @@ class TestPages(DjangoTestCase):
 
         data = {
             'start_time': '2021-01-01 12:00:00',
+            'estimated_duration': str(60 * 60 * 2),
             'timezone': 'US/Pacific',
             'location': mv.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,
@@ -541,6 +542,7 @@ class TestPages(DjangoTestCase):
         eq_(event.start_time.strftime('%Y-%m-%d'), '2021-01-01')
         eq_(event.start_time.strftime('%H:%M'), '20:00')
         eq_(event.start_time.tzname(), 'UTC')
+        eq_(event.estimated_duration, 60 * 60 * 2)
         eq_(event.location, mv)
         eq_([x.name for x in event.tags.all()], ['foo', 'bar'])
         eq_(event.channels.all()[0], channel)
@@ -591,6 +593,7 @@ class TestPages(DjangoTestCase):
 
         data = {
             'start_time': '2021-01-01 12:00:00',
+            'estimated_duration': '3600',
             'timezone': 'US/Pacific',
             'location': mv.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,
@@ -659,6 +662,7 @@ class TestPages(DjangoTestCase):
 
         data = {
             'start_time': '2021-01-01 12:00:00',
+            'estimated_duration': '3600',
             'timezone': 'US/Pacific',
             'location': babylon.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,
@@ -759,6 +763,7 @@ class TestPages(DjangoTestCase):
         future = future.replace(tzinfo=tz)
         data = {
             'start_time': future.strftime('%Y-%m-%d %H:%M'),
+            'estimated_duration': '3600',
             'timezone': 'US/Pacific',
             'location': mv.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,

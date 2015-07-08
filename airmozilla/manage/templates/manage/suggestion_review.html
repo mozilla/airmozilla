@@ -59,6 +59,12 @@
         <td>{{ event.start_time|js_date }}</td>
       </tr>
       <tr>
+        <td>Estimated duration</td>
+        <td>
+          {{ show_duration(event.estimated_duration) }}
+        </td>
+      </tr>
+      <tr>
         <td>Location</td>
         <td>{{ event.location }}</td>
       </tr>

@@ -153,11 +153,13 @@
 
               {% if event.location and not event.location.name.startswith('Cyberspace')
                  and not event.is_prerecorded() %}
-                {{ _('Location') }}: {{ event.location.name }}<br>
+                Location: {{ event.location.name }}<br>
               {% endif %}
 
               {% if event.duration %}
                 Duration: {{ show_duration(event.duration) }}<br>
+              {% elif event.is_upcoming() %}
+                Estimated duration: {{ show_duration(event.estimated_duration) }}<br>
               {% endif %}
             </p>
           </div>
