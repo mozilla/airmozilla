@@ -605,6 +605,12 @@ angular.module('new.controllers', ['new.services'])
                 video.src = url;
                 video.muted = false;
                 video.controls = true;
+                video.onended = function() {
+                    // Hack necessary because without it, in Firefox, you
+                    // can't re-watch the video you just recorded.
+                    video.pause();
+                    video.src = URL.createObjectURL(recorder.getBlob());
+                };
                 $scope.$apply(function() {
                     $scope.showRecorderVideo = false;
                     $scope.showPlaybackVideo = true;
