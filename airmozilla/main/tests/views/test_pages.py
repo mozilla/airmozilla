@@ -2116,6 +2116,69 @@ class TestPages(DjangoTestCase):
         structure = json.loads(response.content)
         ok_(not structure)
 
+    def test_calendar_data_event_duration(self):
+        url = reverse('main:calendar_data')
+        event = Event.objects.get(title='Test event')
+        event.start_time = datetime.datetime(
+            2015, 7, 13, 10, 30,
+            tzinfo=timezone.utc
+        )
+        event.estimated_duration = 60 * 30  # half hour
+        event.save()
+
+        query = {
+            'start': '2015-07-01',
+            'end': '2015-07-31'
+        }
+        response = self.client.get(url, query)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        event_item, = structure
+        assert event_item['title'] == event.title
+        fmt = '%Y-%m-%dT%H:%M:%S'
+        start = datetime.datetime.strptime(
+            event_item['start'].split('+')[0],
+            fmt
+        )
+        end = datetime.datetime.strptime(
+            event_item['end'].split('+')[0],
+            fmt
+        )
+        eq_((end - start).seconds, 60 * 30)
+
+        event.duration = 60  # only 1 minute!
+        event.save()
+        response = self.client.get(url, query)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        event_item, = structure
+        start = datetime.datetime.strptime(
+            event_item['start'].split('+')[0],
+            fmt
+        )
+        end = datetime.datetime.strptime(
+            event_item['end'].split('+')[0],
+            fmt
+        )
+        # minimum for display on the week/day graph is 20 min
+        eq_((end - start).seconds, 60 * 20)
+
+        event.duration = 60 * 37  # 37 minutes
+        event.save()
+        response = self.client.get(url, query)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        event_item, = structure
+        start = datetime.datetime.strptime(
+            event_item['start'].split('+')[0],
+            fmt
+        )
+        end = datetime.datetime.strptime(
+            event_item['end'].split('+')[0],
+            fmt
+        )
+        eq_((end - start).seconds, 60 * 37)
+
     def test_calendar_data_privacy(self):
         url = reverse('main:calendar_data')
         response = self.client.get(url)

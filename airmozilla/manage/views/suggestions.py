@@ -114,6 +114,7 @@ def suggestion_review(request, id):
                     'call_info': event.call_info,
                     'privacy': event.privacy,
                     'popcorn_url': event.popcorn_url,
+                    'estimated_duration': event.estimated_duration,
                     'topics': [x.pk for x in event.topics.all()],
                 }
                 if dict_event['popcorn_url'] == 'https://':

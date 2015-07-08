@@ -30,6 +30,7 @@ class TweeterTestCase(TestCase):
         'tags': 'xxx',
         'template': '1',
         'start_time': '2012-3-4 12:00',
+        'estimated_duration': '3600',
         'timezone': 'US/Pacific'
     }
     placeholder = 'airmozilla/manage/tests/firefox.png'

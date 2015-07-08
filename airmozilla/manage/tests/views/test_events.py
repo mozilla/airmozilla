@@ -71,6 +71,7 @@ class TestEvents(ManageTestCase):
         'tags': 'xxx',
         'template': '1',
         'start_time': '2012-3-4 12:00',
+        'estimated_duration': '3600',
     }
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
@@ -845,6 +846,7 @@ class TestEvents(ManageTestCase):
             'privacy': event.privacy,
             'status': event.status,
             'start_time': event.start_time.strftime('%Y-%m-%d %H:%M'),
+            'estimated_duration': event.estimated_duration,
             'channels': [x.pk for x in event.channels.all()],
             'enable_discussion': True,
         }
@@ -880,6 +882,7 @@ class TestEvents(ManageTestCase):
             'privacy': event.privacy,
             'status': event.status,
             'start_time': event.start_time.strftime('%Y-%m-%d %H:%M'),
+            'estimated_duration': event.estimated_duration,
             'channels': [x.pk for x in event.channels.all()],
             'enable_discussion': True,
             'curated_groups': 'badasses'
@@ -909,6 +912,7 @@ class TestEvents(ManageTestCase):
             'privacy': event.privacy,
             'status': event.status,
             'start_time': event.start_time.strftime('%Y-%m-%d %H:%M'),
+            'estimated_duration': event.estimated_duration,
             'channels': [x.pk for x in event.channels.all()],
             'enable_discussion': True,
             'picture': picture.id,

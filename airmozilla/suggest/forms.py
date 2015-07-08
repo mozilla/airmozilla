@@ -164,6 +164,7 @@ class DetailsForm(BaseModelForm):
             'location',
             'call_info',
             'start_time',
+            'estimated_duration',
             'privacy',
             'tags',
             'channels',
@@ -172,7 +173,11 @@ class DetailsForm(BaseModelForm):
             'topics',
         )
         widgets = {
-            'topics': forms.widgets.CheckboxSelectMultiple()
+            'topics': forms.widgets.CheckboxSelectMultiple(),
+            'estimated_duration': forms.widgets.Select(
+                choices=Event.ESTIMATED_DURATION_CHOICES
+            ),
+
         }
 
     def __init__(self, *args, **kwargs):
