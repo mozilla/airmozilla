@@ -1033,7 +1033,9 @@ def events_calendar_ical(request, privacy=None):
         vevent.add('dtstart').value = event.start_time
         vevent.add('dtend').value = (
             event.start_time +
-            datetime.timedelta(seconds=(event.duration or 3600))
+            datetime.timedelta(
+                seconds=event.duration or event.estimated_duration
+            )
         )
         vevent.add('description').value = short_desc(event, strip_html=True)
         if event.location:

@@ -1462,7 +1462,9 @@ def event_assignments_ical(request):
             event.start_time - datetime.timedelta(minutes=30)
         )
         vevent.add('dtend').value = (
-            event.start_time + datetime.timedelta(hours=1)
+            event.start_time + datetime.timedelta(
+                seconds=event.estimated_duration
+            )
         )
         emails = [u.email for u in assignment.users.all().order_by('email')]
         vevent.add('description').value = 'Assigned to: ' + ', '.join(emails)
