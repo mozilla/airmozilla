@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     '%s.webrtc' % PROJECT_MODULE,
     '%s.staticpages' % PROJECT_MODULE,
     '%s.new' % PROJECT_MODULE,
+    '%s.popcorn' % PROJECT_MODULE,
 
     'bootstrapform',
     'sorl.thumbnail',
