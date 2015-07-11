@@ -1,0 +1,32 @@
+{% extends 'main/main_base.html' %}
+
+{% block site_css %}
+{{ super() }}
+{% compress css %}
+<link href="{{ static('comments/css/comments.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ static('surveys/css/survey.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ static('main/css/event.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ static('popcorn/css/editor.css') }}" rel="stylesheet" type="text/css">
+{% endcompress %}
+{% endblock %}
+
+{% block site_js %}
+{{ super() }}
+{% compress js %}
+<script src="{{ static('popcorn/PopcornEditor/src/PopcornEditor.js') }}"></script>
+<script src="{{ static('popcorn/js/editor.js') }}"></script>
+{% endcompress %}
+{% endblock %}
+
+{% block page_title %}
+Air Mozilla | Mozilla, in Video
+{% endblock %}
+
+{% block full_width_content %}
+<div id="editor"></div>
+{% endblock %}
+
+{% block content_main %}{% endblock %}
+
+{% block sidebar%}
+{% endblock %}
