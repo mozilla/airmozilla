@@ -84,6 +84,12 @@ def synchronize_vidly_submissions():
 
 @cronjobs.register
 @capture
+def tweet_new_published_events():
+    tweeter.tweet_new_published_events(verbose=True)
+
+
+@cronjobs.register
+@capture
 def autocompeter_reset():
     autocompeter.update(
         verbose=True,
