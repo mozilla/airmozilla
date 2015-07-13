@@ -1,18 +1,24 @@
+import datetime
 import time
 import os
 import stat
 import logging
+import urlparse
 
 import twython
+from funfactory.urlresolvers import reverse
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.importlib import import_module
 from django.utils import timezone
+from django.contrib.sites.models import Site
 from django.conf import settings
 from django.db.models import Q
+from django.db import transaction
 
 from airmozilla.main.helpers import thumbnail
 from airmozilla.main.models import EventTweet, Event, Approval
+from airmozilla.base.utils import shorten_url, unhtml
 
 
 def send_unsent_tweets(verbose=False):
@@ -168,3 +174,69 @@ class ConsoleTweeter(object):  # pragma: no cover
 
     def updateStatus(self, status):
         return self.update_status_with_media(None, status)
+
+
+@transaction.atomic
+def tweet_new_published_events(verbose=False):
+    """Create EventTweet instances for events that have recently been
+    published and are ready for public consumption."""
+    now = timezone.now()
+    yesterday = now - datetime.timedelta(hours=24)
+    events = Event.objects.scheduled().filter(
+        created__gt=yesterday,
+        created__lt=now,
+        privacy=Event.PRIVACY_PUBLIC,
+    ).approved().exclude(
+        id__in=EventTweet.objects.values('event_id')
+    )
+    site = Site.objects.get_current()
+    base_url = 'https://%s' % site.domain  # yuck!
+    if verbose:  # pragma: no cover
+        print events
+    for event in events:
+        # we have to try to manually create an appropriate tweet
+        url = reverse('main:event', args=(event.slug,))
+        abs_url = urlparse.urljoin(base_url, url)
+        try:
+            abs_url = shorten_url(abs_url)
+        except (ImproperlyConfigured, ValueError) as err:  # pragma: no cover
+            if verbose:  # pragma: no cover
+                print "Failed to shorten URL"
+                print err
+
+        text = event.title
+        if len(text) > 115:
+            # Why not 140?
+            # We've found that sometimes when you're trying to tweet
+            # a piece of text that actually is less than 140 when
+            # doing text+URL you can get strange errors from Twitter
+            # that it's still too long.
+            text = text[:115]
+
+        text = unhtml('%s\n%s' % (
+            text,
+            abs_url
+        ))
+        text += '\n'
+        tags = (
+            event.tags.all()
+            .extra(
+                select={'lower_name': 'lower(name)'}
+            ).order_by('lower_name')
+        )
+        for tag in tags:
+            _tag = '#' + tag.name.replace(' ', '')
+            # see comment above why we use 115 instead of 140
+            if len(text + _tag) + 1 < 115:
+                text += '%s ' % _tag
+            else:
+                break
+        text = text.strip()
+
+        event_tweet = EventTweet.objects.create(
+            event=event,
+            text=text,
+            include_placeholder=True,
+        )
+        if verbose:  # pragma: no cover
+            print "Created", repr(event_tweet)

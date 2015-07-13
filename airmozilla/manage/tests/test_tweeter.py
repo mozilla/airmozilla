@@ -10,11 +10,17 @@ from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.manage.tweeter import send_tweet, send_unsent_tweets
+from airmozilla.base.tests.testbase import Response
+from airmozilla.manage.tweeter import (
+    send_tweet,
+    send_unsent_tweets,
+    tweet_new_published_events,
+)
 from airmozilla.main.models import (
     Event,
     EventTweet,
-    Approval
+    Approval,
+    Tag,
 )
 
 
@@ -303,3 +309,86 @@ class TweeterTestCase(TestCase):
         send_unsent_tweets()
 
         eq_(len(sends), 3)
+
+    @mock.patch('requests.get')
+    def test_tweet_new_published_events(self, rget):
+
+        def mocked_read(url, params):
+            return Response({
+                u'status_code': 200,
+                u'data': {
+                    u'url': u'http://mzl.la/1adh2wT',
+                    u'hash': u'1adh2wT',
+                    u'global_hash': u'1adh2wU',
+                    u'long_url': u'https://air.mozilla.org/it-buildout/',
+                    u'new_hash': 0
+                },
+                u'status_txt': u'OK'
+            })
+
+        rget.side_effect = mocked_read
+
+        event = Event.objects.get(title='Test event')
+        event_tag, = event.tags.all()
+        tweet_new_published_events()
+
+        assert not EventTweet.objects.all()
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        recently = timezone.now()
+        event.created = recently
+        event.archive_time = recently
+        event.save()
+
+        tweet_new_published_events()
+        tweet, = EventTweet.objects.all()
+        ok_(event.title in tweet.text)
+        ok_('http://mzl.la/1adh2wT' in tweet.text)
+        ok_(tweet.include_placeholder)
+        ok_('#' + event_tag.name in tweet.text)
+
+        # run it again and no new EventTweet should be created
+        tweet_new_published_events()
+        eq_(EventTweet.objects.count(), 1)
+
+    @mock.patch('requests.get')
+    def test_tweet_new_published_events_almost_too_long(self, rget):
+
+        def mocked_read(url, params):
+            return Response({
+                u'status_code': 200,
+                u'data': {
+                    u'url': u'http://mzl.la/1adh2wT',
+                    u'hash': u'1adh2wT',
+                    u'global_hash': u'1adh2wU',
+                    u'long_url': u'https://air.mozilla.org/it-buildout/',
+                    u'new_hash': 0
+                },
+                u'status_txt': u'OK'
+            })
+
+        rget.side_effect = mocked_read
+
+        event = Event.objects.get(title='Test event')
+        recently = timezone.now()
+        event.title = 'A Much Longer Test Title'
+        event.created = recently
+        event.archive_time = recently
+        event.save()
+        tags = (
+            'firefox',
+            'Intern Firefox OS',
+            'abba',
+            'somereallylongwordthatisactuallyatag',
+        )
+        for tag in tags:
+            event.tags.add(Tag.objects.create(name=tag))
+
+        tweet_new_published_events()
+        tweet, = EventTweet.objects.all()
+        ok_(event.title in tweet.text)
+        ok_('http://mzl.la/1adh2wT' in tweet.text)
+        ok_(tweet.include_placeholder)
+        ok_('#abba' in tweet.text)
+        ok_('#firefox' in tweet.text)
+        ok_('#InternFirefoxOS' in tweet.text)
+        ok_('#somereallylongwordthatisactuallyatag' not in tweet.text)
