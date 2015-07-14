@@ -559,6 +559,81 @@ class TestNew(DjangoTestCase):
         vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
         ok_(vidly_submission.finished)
 
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_trigger_vidly_media_webhook_private(self, p_urllib2):
+
+        vidly_actions = []
+
+        def make_mock_request(url, querystring):
+            xml_qs = urllib.unquote(querystring)
+            vidly_actions.append(
+                re.findall('<Action>(.*)</Action>', xml_qs)[0]
+            )
+            return mock.MagicMock()
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='abc123',
+                status='Finished',
+                private='false'
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        # the webhook is supposed to be sent back when the file has
+        # been submitted and successfully transcoded.
+
+        file_url = 'https://s3.com/foo.webm'
+        event = self._create_event(file_url)
+
+        tag = 'abc123'
+        vidly_submission = VidlySubmission.objects.create(
+            event=event,
+            url=file_url,
+            tag=tag,
+            token_protection=False
+        )
+
+        event.template = self._create_default_archive_template()
+        event.template_environment = {'tag': tag}
+        event.privacy = Event.PRIVACY_COMPANY
+        event.duration = 123
+        with open(self.sample_jpg) as fp:
+            picture = Picture.objects.create(
+                event=event,
+                file=File(fp)
+            )
+        event.picture = picture
+        event.save()
+
+        url = reverse('new:vidly_media_webhook')
+
+        xml_string = SAMPLE_MEDIA_RESULT_SUCCESS
+        xml_string = re.sub(
+            '<SourceFile>(.*)</SourceFile>',
+            '<SourceFile>{0}</SourceFile>'.format(file_url),
+            xml_string
+        )
+        xml_string = re.sub(
+            '<MediaShortLink>(.*)</MediaShortLink>',
+            '<MediaShortLink>{0}</MediaShortLink>'.format(tag),
+            xml_string
+        )
+        response = self.client.post(url, {'xml': xml_string})
+        eq_(response.status_code, 200)
+        eq_('OK\n', response.content)
+
+        event = Event.objects.get(id=event.id)
+        ok_(event.archive_time)
+
+        eq_(vidly_actions, ['UpdateMedia'])
+
+        vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
+        ok_(vidly_submission.finished)
+        ok_(vidly_submission.token_protection)
+
     @mock.patch('requests.head')
     @mock.patch('subprocess.Popen')
     def test_trigger_vidly_media_webhook_pending(self, mock_popen, rhead):
@@ -1444,6 +1519,76 @@ class TestNew(DjangoTestCase):
         ok_(submission.token_protection)
 
         eq_(vidly_actions, ['GetStatus', 'UpdateMedia'])
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_event_publish_private_event_not_finished(self, p_urllib2):
+        """test publishing when the vidly submission has finished"""
+        group, group_users = self._create_approval_group()
+
+        vidly_actions = []
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='abc123',
+                status='Processing'
+            )
+            return StringIO(xml_string)
+
+        def make_mock_request(url, querystring):
+            xml_qs = urllib.unquote(querystring)
+            vidly_actions.append(
+                re.findall('<Action>(.*)</Action>', xml_qs)[0]
+            )
+            return mock.MagicMock()
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = self._create_event()
+        event.template = self._create_default_archive_template()
+        event.template_environment = {'tag': 'abc123'}
+        event.privacy = Event.PRIVACY_PUBLIC
+        event.save()
+
+        channel = Channel.objects.create(name='Peterism', slug='peter')
+        event.channels.add(channel)
+
+        topic = Topic.objects.create(topic='Money Matters')
+        topic.groups.add(group)
+        event.topics.add(topic)
+
+        # also, create a default one
+        Channel.objects.create(
+            name='Clips', slug='clips', default=True
+        )
+
+        submission = VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+            url='https://example.com/file.mov'
+        )
+        assert not submission.token_protection
+
+        with open(self.sample_jpg) as fp:
+            picture = Picture.objects.create(
+                event=event,
+                file=File(fp),
+            )
+        event.picture = picture
+
+        # let's pretend you went back to set the privacy to non-public
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+
+        url = reverse('new:publish', args=(event.id,))
+        response = self.post_json(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), True)
+
+        submission = VidlySubmission.objects.get(id=submission.id)
+        ok_(submission.token_protection)
+
+        eq_(vidly_actions, ['GetStatus'])
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_event_publish_default_channel(self, p_urllib2):
