@@ -391,6 +391,19 @@ def vidly_media_webhook(request):
 
                 event = vidly_submission.event
 
+                if (
+                    task['Private'] == 'false' and
+                    event.privacy != Event.PRIVACY_PUBLIC
+                ):
+                    # the event is private but the video is not
+                    vidly.update_media_protection(
+                        vidly_submission.tag,
+                        True  # make it private
+                    )
+                    if not vidly_submission.token_protection:
+                        vidly_submission.token_protection = True
+                        vidly_submission.save()
+
                 # Awesome!
                 # This event now has a fully working transcoded piece of
                 # media.
@@ -420,9 +433,10 @@ def vidly_media_webhook(request):
                     vidly_submission.errored = timezone.now()
                     vidly_submission.save()
         except VidlySubmission.DoesNotExist:
-            # remember, we can't trust the XML since it's publically
+            # remember, we can't trust the XML since it's publicly
             # available and exposed as a webhook
             pass
+
     except KeyError:
         # If it doesn't have a "Result" or "Task", it was just a notification
         # that the media was added.
@@ -600,11 +614,13 @@ def event_publish(request, event):
                 submission.token_protection = True
                 submission.save()
             if results['Private'] == 'false':
-                # it needs to change
-                vidly.update_media_protection(
-                    tag,
-                    True
-                )
+                # We can only do this if the video has been successfully
+                # transcoded.
+                if results['Status'] == 'Finished':
+                    vidly.update_media_protection(
+                        tag,
+                        True
+                    )
         if results.get('Status') == 'Finished':
             event.status = Event.STATUS_SCHEDULED
             # If it's definitely finished, it means we managed to ask
