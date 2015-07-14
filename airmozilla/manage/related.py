@@ -11,7 +11,13 @@ def index(all=False, flush_first=False, since=datetime.timedelta(minutes=10)):
     es = pyelasticsearch.ElasticSearch(settings.RELATED_CONTENT_URL)
 
     if flush_first:
-        es.flush(settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX)
+        try:
+            es.flush(
+                settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
+            )
+        except pyelasticsearch.exceptions.ElasticHttpNotFoundError:
+            # if the index isn't there we can't flush it
+            pass
 
     if all:
         events = Event.objects.scheduled_or_processing()

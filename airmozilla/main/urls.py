@@ -65,7 +65,7 @@ urlpatterns = patterns(
     url(r'^(?P<slug>[-\w]+)/video/$', views.EventVideoView.as_view(),
         name='event_video'),
     url(r'^(?P<slug>[-\w]+)/related-content/$', views.related_content,
-        name='related-content'),
+        name='related_content'),
     url(r'^(?P<slug>[-\w]+)/permission-denied/$', views.permission_denied,
         name='permission_denied'),
     url(r'^(?P<slug>[-\w]+)/edit/$', views.EventEditView.as_view(),

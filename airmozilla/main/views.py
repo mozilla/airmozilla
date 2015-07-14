@@ -1230,8 +1230,7 @@ def related_content(request, slug):
         ids.append(int(doc['_id']))
 
     events = Event.objects.scheduled_or_processing() \
-        .filter(id__in=ids) \
-        .exclude(status=Event.STATUS_REMOVED)
+        .filter(id__in=ids)
 
     if request.user.is_active:
         if is_contributor(request.user):
