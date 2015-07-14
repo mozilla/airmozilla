@@ -184,3 +184,32 @@ class TestEventEmails(DjangoTestCase):
 
         user_profile, = UserProfile.objects.filter(user=event.creator)
         ok_(user_profile.optout_event_emails)
+
+    def test_opt_out_invalid_link(self):
+        event = Event.objects.get(title='Test event')
+        event.created = timezone.now()
+        assert event.creator.email
+        event.save()
+
+        attempted, successful, skipped = eventemails.send_new_event_emails()
+        eq_(attempted, 1)
+        eq_(successful, 1)
+        eq_(skipped, 0)
+
+        email_sent = mail.outbox[-1]
+        # need to extract the unsubscribe link from in there
+        html_body, _ = email_sent.alternatives[0]
+        unsubscribe_link, = [
+            x for x in re.findall('href="(.*?)"', html_body)
+            if x.count('/unsubscribe/')
+        ]
+        unsubscribe_link = urlparse.urlparse(unsubscribe_link).path
+        # mess with it
+        unsubscribe_link = re.sub('\d', '0', unsubscribe_link)
+        # let's go there
+        response = self.client.get(unsubscribe_link)
+        eq_(response.status_code, 200)
+        ok_('Sorry' in response.content)
+        # let's hit it
+        response = self.client.post(unsubscribe_link)
+        eq_(response.status_code, 400)
