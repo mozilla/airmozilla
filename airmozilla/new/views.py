@@ -794,10 +794,7 @@ def event_pictures_rotate(request, event):
     direction = post.get('direction', 'left')
     for picture in Picture.objects.filter(event=event):
         img = Image.open(picture.file.path)
-        if picture.file.name.lower().endswith('.png'):
-            format = 'png'
-        else:
-            format = 'jpeg'
+        format = picture.file.name.lower().endswith('.png') and 'png' or 'jpeg'
         img = img.rotate(direction == 'left' and 90 or 270)
         f = StringIO()
         try:
