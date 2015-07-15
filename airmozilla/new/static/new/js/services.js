@@ -287,7 +287,14 @@ angular.module('new.services', [])
             S3Upload.prototype.executeOnSignedUrl = function(file, callback, opts) {
                 var type = opts && opts.type || file.type;
                 var name = opts && opts.name || file.name;
-                name = 'foo.webm';
+                if (!name) {
+                    if (type === 'video/webm') {
+                        name = 'file.webm';
+                    } else {
+                        console.warn('type', type);
+                        throw "No name and unrecognized type";
+                    }
+                }
                 var this_s3upload = this;
                 $http({
                     url: signURL,
