@@ -126,10 +126,20 @@ class EventRequestForm(BaseModelForm):
             approvals = event.approval_set.all()
             self.initial['approvals'] = [app.group for app in approvals]
             if event.location:
+                self.fields['start_time'].help_text = (
+                    'Time zone of this date is that of {0}.'.format(
+                        event.location.timezone
+                    )
+                )
                 # when the django forms present the start_time form field,
                 # it's going to first change it to UTC, then strftime it
                 self.initial['start_time'] = (
                     event.location_time.replace(tzinfo=utc)
+                )
+            else:
+                self.fields['start_time'].help_text = (
+                    'Since there is no location, time zone of this date '
+                    ' is UTC.'
                 )
 
             if event.pk:
