@@ -130,7 +130,7 @@
         <td>
           <select name="status" ng-model="search_status">
             <option value="" class="select-label">By status</option>
-            <option value="initiated">Initiated</option>
+            <option value="submitted">Submitted</option>
             <option value="pending">Pending</option>
             <option value="processing">Processing</option>
             <option value="scheduled">Scheduled</option>
@@ -198,7 +198,7 @@
         </td>
         <td>
           <span class="label"
-           ng-class="{'label-default': event.status=='initiated',
+           ng-class="{'label-default': event.status=='submitted',
                       'label-primary': event.status=='pending' || event.status=='processing',
                       'label-success': event.status=='scheduled',
                       'label-danger': event.status=='removed'}"

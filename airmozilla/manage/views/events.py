@@ -199,10 +199,9 @@ def events(request):
 @json_view
 def events_data(request):
     events = []
-    totally_initated = Q(title='') & Q(status=Event.STATUS_INITIATED)
     qs = (
         Event.objects
-        .exclude(totally_initated)
+        .exclude(status=Event.STATUS_INITIATED)
         .order_by('-modified')
     )
     form = forms.EventsDataForm(request.GET)
