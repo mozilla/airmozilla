@@ -45,6 +45,7 @@ class TestRoku(DjangoTestCase):
 
         now = timezone.now()
         event.start_time = now - datetime.timedelta(seconds=3600)
+        event.archive_time = None
         event.save()
         assert not event.archive_time
         assert event in Event.objects.live()
