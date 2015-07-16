@@ -456,6 +456,10 @@ def event_edit(request, id):
         if form.is_valid():
             event = form.save(commit=False)
             _event_process(request, form, event)
+            if not event.location:
+                event.start_time = event.start_time.replace(
+                    tzinfo=timezone.utc
+                )
             event.save()
             form.save_m2m()
             edit_url = reverse('manage:event_edit', args=(event.pk,))

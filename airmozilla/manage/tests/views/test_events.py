@@ -1272,6 +1272,34 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 302)
         self.assertRedirects(response, url)
 
+    def test_editing_event_without_location(self):
+        # Edit an event that doesn't have a location, and keep it that way.
+        # It should not affect the start_time.
+        event = Event.objects.get(title='Test event')
+        event.location = None
+        event.save()
+        start_time_before = event.start_time
+        url = reverse('manage:event_edit', args=(event.id,))
+        response = self.client.post(url, {
+            'title': event.title,
+            'description': event.description,
+            'short_description': event.short_description,
+            'location': '',
+            'status': event.status,
+            'slug': event.slug,
+            'start_time': event.start_time.strftime('%Y-%m-%d %H:%M'),
+            'channels': [x.id for x in event.channels.all()],
+            'tags': [x.id for x in event.tags.all()],
+            'estimated_duration': event.estimated_duration,
+            'privacy': event.privacy,
+        })
+        eq_(response.status_code, 302)
+
+        # reload and check the start_time
+        event = Event.objects.get(id=event.id)
+        start_time_after = event.start_time
+        eq_(start_time_before, start_time_after)
+
     def test_editing_event_tags(self):
         # you create an event, edit the tags and mix the case
         with open(self.placeholder) as fp:
