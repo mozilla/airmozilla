@@ -134,6 +134,7 @@ def suggestion_review(request, id):
                     if real.popcorn_url and not event.upcoming:
                         real.archive_time = real.start_time
                     if event.upcoming:
+                        real.status = Event.STATUS_SUBMITTED
                         # perhaps we have a default location template
                         # environment
                         if real.location:

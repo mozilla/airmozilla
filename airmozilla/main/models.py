@@ -277,12 +277,13 @@ class Event(models.Model):
         '<code>variable1=value</code>, one per line.'
     )
     STATUS_INITIATED = 'initiated'
+    STATUS_SUBMITTED = 'submitted'
     STATUS_SCHEDULED = 'scheduled'
     STATUS_PENDING = 'pending'
     STATUS_PROCESSING = 'processing'
     STATUS_REMOVED = 'removed'
     STATUS_CHOICES = (
-        (STATUS_INITIATED, 'Initiated'),
+        (STATUS_SUBMITTED, 'Submitted'),
         (STATUS_SCHEDULED, 'Scheduled'),
         (STATUS_PENDING, 'Pending'),
         (STATUS_PROCESSING, 'Processing'),

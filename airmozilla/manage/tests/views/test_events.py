@@ -194,16 +194,7 @@ class TestEvents(ManageTestCase):
         results = json.loads(response.content)
         eq_(results['events'][0]['id'], event.id)
 
-        event.status = Event.STATUS_INITIATED
-        event.save()
-        response = self.client.get(reverse('manage:events_data'))
-        eq_(response.status_code, 200)
-        results = json.loads(response.content)
-        # still there
-        eq_(results['events'][0]['id'], event.id)
-
-        event.status = Event.STATUS_PENDING  # anything not initiated
-        event.title = ''
+        event.status = Event.STATUS_PENDING
         event.save()
         response = self.client.get(reverse('manage:events_data'))
         eq_(response.status_code, 200)
@@ -216,7 +207,6 @@ class TestEvents(ManageTestCase):
         response = self.client.get(reverse('manage:events_data'))
         eq_(response.status_code, 200)
         results = json.loads(response.content)
-        # not included now
         ok_(not results['events'])
 
     def test_events_with_event_without_location(self):
@@ -348,6 +338,7 @@ class TestEvents(ManageTestCase):
             privacy=Event.PRIVACY_PUBLIC,
             placeholder_img=event.placeholder_img,
             location=event.location,
+            status=Event.STATUS_PENDING,
         )
         Event.objects.create(
             title='MoCo Only Event',
@@ -357,6 +348,7 @@ class TestEvents(ManageTestCase):
             privacy=Event.PRIVACY_PUBLIC,
             placeholder_img=event.placeholder_img,
             location=event.location,
+            status=Event.STATUS_PENDING,
         )
         url = reverse('manage:events_data')
         response = self.client.get(url)
@@ -488,6 +480,7 @@ class TestEvents(ManageTestCase):
             privacy=Event.PRIVACY_CONTRIBUTORS,
             placeholder_img=event.placeholder_img,
             location=event.location,
+            status=Event.STATUS_SCHEDULED,
         )
         event3 = Event.objects.create(
             title='MoCo Only Event',
@@ -497,6 +490,7 @@ class TestEvents(ManageTestCase):
             privacy=Event.PRIVACY_COMPANY,
             placeholder_img=event.placeholder_img,
             location=event.location,
+            status=Event.STATUS_SCHEDULED,
         )
         response = self.client.get(reverse('manage:events_data'))
         eq_(response.status_code, 200)
