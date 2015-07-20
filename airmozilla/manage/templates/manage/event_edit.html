@@ -187,11 +187,15 @@
       {% if loop.last %}</ul>{% endif %}
     {% endfor %}
 
+    <p>
     {% if tweets %}
-    <p><a href="{{ url('manage:event_tweets', event.pk) }}" class="btn btn-primary btn-sm">Manage tweets</a></p>
+      <a href="{{ url('manage:event_tweets', event.pk) }}" class="btn btn-primary btn-sm">Manage tweets</a>
+    {% elif event.is_public() %}
+      <a href="{{ url('manage:new_event_tweet', event.pk) }}" class="btn btn-primary btn-sm">Prepare a new tweet</a>
     {% else %}
-    <p><a href="{{ url('manage:new_event_tweet', event.pk) }}" class="btn btn-primary btn-sm">Prepare a new tweet</a></p>
+      Not a public event
     {% endif %}
+    </p>
 
     {% if is_vidly_event %}
     <p style="margin-top:25px"><strong>Vid.ly Media</strong></p>
