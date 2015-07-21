@@ -16,6 +16,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.contrib.sites.models import RequestSite
 from django.core.mail.backends.filebased import EmailBackend
 
+from airmozilla.base.akamai_token_v2 import AkamaiToken
+
 
 class EmlEmailBackend(EmailBackend):
     """
@@ -155,6 +157,33 @@ def edgecast_tokenize(seconds=None, **kwargs):
         raise EdgecastEncryptionError(err)
 
     return out.strip()
+
+
+def akamai_tokenize(
+    window_seconds=180,
+    token_name='hdnea',
+    start_time='now',
+    ip=None,
+    url=None,
+    access_list='/Akamai_Restricted/*',
+    key=None,
+    escape_early=False,
+    verbose=False,
+    **other
+):
+    config = other
+    config['key'] = key or settings.AKAMAI_SECURE_KEY
+    assert config['key'], "no key set up"
+    config['window_seconds'] = window_seconds
+    config['start_time'] = start_time
+    config['token_name'] = token_name
+    config['ip'] = ip
+    config['acl'] = access_list
+    config['verbose'] = verbose
+    config['escape_early'] = escape_early
+    generator = AkamaiToken(**config)
+    token = generator.generateToken()
+    return token
 
 
 def fix_base_url(base_url):

@@ -41,7 +41,8 @@ from airmozilla.main.models import (
 )
 from airmozilla.base.utils import (
     paginate,
-    edgecast_tokenize
+    edgecast_tokenize,
+    akamai_tokenize,
 )
 from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion
@@ -375,6 +376,7 @@ class EventView(View):
                 'datetime': datetime.datetime.utcnow(),
                 'vidly_tokenize': vidly.tokenize,
                 'edgecast_tokenize': edgecast_tokenize,
+                'akamai_tokenize': akamai_tokenize,
                 'popcorn_url': event.popcorn_url,
                 'autoplay': autoplay and 'true' or 'false',  # javascript
             }

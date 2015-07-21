@@ -3,7 +3,7 @@ import datetime
 import pytz
 from unittest import TestCase
 
-from nose.tools import eq_, assert_raises
+from nose.tools import eq_, ok_, assert_raises
 from mock import patch
 
 from airmozilla.base import utils
@@ -52,8 +52,9 @@ class TestEdgecastTokenize(TestCase):
         tz = pytz.timezone('America/Los_Angeles')
         now += tz.utcoffset(now)
         now_ts = int(time.mktime(now.timetuple()))
-        eq_(utils.edgecast_tokenize(90),
-            '42624d7f743086e6138f?ec_expire=%s' % (now_ts + 90))
+        token = utils.edgecast_tokenize(90)
+        expected_token = '42624d7f743086e6138f?ec_expire=%s' % (now_ts + 90)
+        eq_(token[:-2], expected_token[:-2])
 
     @patch('airmozilla.base.utils.subprocess')
     def test_edgecast_tokenize_erroring(self, p_subprocess):
@@ -63,6 +64,26 @@ class TestEdgecastTokenize(TestCase):
 
         p_subprocess.Popen = mocked_popen
         assert_raises(utils.EdgecastEncryptionError, utils.edgecast_tokenize)
+
+
+class TestAkamaiTokenize(TestCase):
+
+    def test_akamai_tokenize(self):
+        key = 'a0b378a82fd2521125fb849f'
+        token = utils.akamai_tokenize(key=key)
+        ok_(token)
+        # the default token_name is 'hdnea'
+        ok_(token.startswith('hdnea='))
+        new_token = utils.akamai_tokenize(key=key)
+        # window is too small for it to change
+        eq_(new_token, token)
+        different_token = utils.akamai_tokenize(key=key[::-1])
+        ok_(token != different_token)
+        assert_raises(
+            TypeError,
+            utils.akamai_tokenize,
+            key='wrong length'
+        )
 
 
 class TestBitlyURLShortener(TestCase):

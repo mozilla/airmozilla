@@ -93,6 +93,9 @@ VIDLY_USER_KEY = ''
 # And this is needed for EdgeCast
 EDGECAST_SECURE_KEY = ''
 
+# Needed for secure streams with Akamai
+AKAMAI_SECURE_KEY = ''
+
 # Needed to be able to look up vouced users
 MOZILLIANS_API_KEY = ''
 MOZILLIANS_API_APPNAME = 'air_mozilla'

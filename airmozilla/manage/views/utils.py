@@ -51,6 +51,7 @@ def get_var_templates(template):
     exceptions = (
         'vidly_tokenize',
         'edgecast_tokenize',
+        'akamai_tokenize',
         'popcorn_url',
         'event',
     )
