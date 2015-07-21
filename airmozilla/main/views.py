@@ -4,7 +4,6 @@ import json
 import urllib
 import time
 import collections
-import pyelasticsearch
 
 from django import http
 from django.conf import settings
@@ -52,12 +51,15 @@ from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion
 from airmozilla.surveys.models import Survey
 from airmozilla.manage import vidly
+from airmozilla.manage import related
 from airmozilla.main.helpers import short_desc
 from airmozilla.base import mozillians
 from airmozilla.base.utils import get_base_url
 from airmozilla.staticpages.views import staticpage
 from . import cloud
 from . import forms
+
+import pyelasticsearch
 
 
 def debugger__(request):  # pragma: no cover
@@ -1162,54 +1164,82 @@ class EventsFeed(Feed):
 def related_content(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
-    es = pyelasticsearch.ElasticSearch(settings.RELATED_CONTENT_URL)
+    index = settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
+    doc_type = 'event'
+    
+    es = related.get_connection()
 
     fields = ['title', 'tags']
     if list(event.channels.all()) != [
             Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)]:
         fields.append('channel')
 
-    mlt_query = {
-        "more_like_this": {
-            "fields": fields,
-            "docs": [
+    mlt_query1 = {
+        'more_like_this': {
+            'fields': ['title'],
+            'docs': [
                 {
-                    "_index": settings.ELASTICSEARCH_PREFIX
-                    + settings.ELASTICSEARCH_INDEX,
-                    "_type": "event",
-                    "_id": event.id
+                    '_index': index,
+                    '_type': doc_type,
+                    '_id': event.id
                 }],
-            "min_term_freq": 1,
-            "max_query_terms": 20,
+            'min_term_freq': 1,
+            'max_query_terms': 20,
+            'min_doc_freq': 1,
+            'boost': 1.0,
+        }
+    }
+    mlt_query2 = {
+        'more_like_this': {
+            'fields': ['tags'],
+            'docs': [
+                {
+                    '_index': index,
+                    '_type': doc_type,
+                    '_id': event.id
+                }],
+            'min_term_freq': 1,
+            'max_query_terms': 20,
+            'min_doc_freq': 1,
+            'boost': -0.5,
         }
     }
 
     if request.user.is_active:
-        if is_contributor(request.user):
+       if is_contributor(request.user):
             query = {
-                "query": {
-                    "filtered": {
-                        "query": mlt_query,
-                        "filter": {
-                            "must_not": {
-                                "term": {
-                                    "privacy": Event.PRIVACY_COMPANY
-                                }
-                            }
-                        }
+            'fields': fields,
+            'query': {
+                'bool': {
+                    'should': [mlt_query1, mlt_query2],
+                }
+            },
+            "filter": {
+                "must_not": {
+                    "term": {
+                        "privacy": Event.PRIVACY_COMPANY
                     }
                 }
             }
-        else:
-            query = {
-                "query": mlt_query
+        }
+       else:
+            query = {            
+                'fields': fields,
+                'query': {
+                    'bool': {
+                        'should': [mlt_query1, mlt_query2],
+                    }
+                }
             }
     else:
         query = {
-            "query": {
-                "filtered": {
-                    "query": mlt_query,
-                    "filter": {
+                'fields': fields,
+                'query': {
+                    'bool': {
+                        'should': [mlt_query1, mlt_query2],
+                    }
+                },
+                "filter": {
                         "bool": {
                             "must": {
                                 "term": {"privacy": Event.PRIVACY_PUBLIC}
@@ -1217,14 +1247,11 @@ def related_content(request, slug):
                         }
                     }
                 }
-            }
-        }
 
     query['from'] = 0
     query['size'] = settings.RELATED_CONTENT_SIZE
     ids = []
-    hits = es.search(query, index='events')['hits']
-
+    hits = es.search(query, index=index)['hits']
     for doc in hits['hits']:
         print "\t", repr(doc['_source']['title']), doc['_id'], doc['_score']
         ids.append(int(doc['_id']))
