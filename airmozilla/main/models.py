@@ -129,8 +129,9 @@ class Template(models.Model):
         ' <code>request</code>, <code>datetime</code>, <code>event</code> '
         ' objects, <code>popcorn_url</code> and the <code>md5</code> function.'
         ' You can also reference <code>autoplay</code> and it\'s always safe.'
-        ' Additionally we have <code>vidly_tokenize(tag, seconds)</code> and'
-        ' <code>edgecast_tokenize([seconds], **kwargs)</code>.<br>'
+        ' Additionally we have <code>vidly_tokenize(tag, seconds)</code>,'
+        ' <code>edgecast_tokenize([seconds], **kwargs)</code> and '
+        ' <code>akamai_tokenize([seconds], **kwargs)</code><br>'
         ' Warning! Changes affect'
         ' all events associated with this template.'
     )

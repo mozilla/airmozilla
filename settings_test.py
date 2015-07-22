@@ -38,6 +38,8 @@ AWS_ACCESS_KEY_ID = AWS_SECRET_ACCESS_KEY = 'something'
 
 EDGECAST_SECURE_KEY = 'soemthing'
 
+AKAMAI_SECURE_KEY = 'something'
+
 BROWSERID_AUDIENCES = ['http://testserver']
 
 import tempfile
