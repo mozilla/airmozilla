@@ -75,7 +75,6 @@ $(function() {
             } else {
                 player_wrapper = player_wrapper.detach();
             }
-
             if (placeholder === null) {
                 placeholder = $('<div>')
                     .addClass('tearout-placeholder');
@@ -113,5 +112,11 @@ $(function() {
             placeholder.insertBefore($('.tearout'));
         }
     });
+
+    // It doesn't really matter which of tearout.js or this file that does
+    // this as long as one of them do.
+    setTimeout(function() {
+        $('.play-options:hidden').fadeIn(400);
+    }, 1000);
 
 });
