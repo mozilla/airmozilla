@@ -14,9 +14,11 @@ def badges(request):
     # Event manager badge for unprocessed events
     if request.user.has_perm('main.change_event_others'):
         events = Event.objects.filter(
-            Q(status=Event.STATUS_INITIATED) |
+            Q(status=Event.STATUS_SUBMITTED) |
             Q(approval__approved=False) |
             Q(approval__processed=False)
+        ).exclude(
+            status=Event.STATUS_INITIATED
         ).distinct().count()
         if events > 0:
             context['badges']['events'] = events
