@@ -81,6 +81,11 @@ app.controller('CronLoggerController', ['$scope', '$http',
         $scope.search_job = null;
         $scope.$watch('search_job', function(new_value, old_value) {
             if (new_value !== old_value) {
+                if (new_value !== undefined) {
+                    document.location.hash = new_value.value;
+                } else {
+                    document.location.hash = '';
+                }
                 reset();
                 load();
             }
@@ -101,6 +106,12 @@ app.controller('CronLoggerController', ['$scope', '$http',
                 }).finally(function() {
                     $scope.loading = false;
                 });
+        }
+        if (document.location.hash) {
+            $scope.search_job = {'value': document.location.hash.substring(
+                1,
+                document.location.hash.length
+            )};
         }
         // initial load
         load();
