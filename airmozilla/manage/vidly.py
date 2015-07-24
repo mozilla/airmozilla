@@ -215,6 +215,12 @@ def statistics(shortcode):
     ET.SubElement(filter, 'MediaShortLink').text = shortcode
     xml_string = ET.tostring(root)
     response_content = _download(xml_string)
+    # Due to a bug in Vid.ly's XML API, we get back invalid XML.
+    # In particular it happens because they don't escape (or CDATA)
+    # the word "AT&T".
+    # See https://encoding.zendesk.com/tickets/14772/
+    # for those who can view that.
+    response_content = response_content.replace('AT&T', 'AT&amp;T')
     root = ET.fromstring(response_content)
     success = root.find('Success')
     if success is None:
