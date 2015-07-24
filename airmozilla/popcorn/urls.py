@@ -10,4 +10,7 @@ urlpatterns = patterns(
     url(r'^edit/(?P<slug>[-\w]+)/$',
         views.EditorView.as_view(),
         name='render_editor'),
+    url(r'^data/$',
+        views.popcorn_data,
+        name='popcorn_data'),
 )

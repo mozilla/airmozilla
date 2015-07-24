@@ -19,7 +19,7 @@ var PopcornEditor = (function () {
   };
 
   // List of events that PopcornEditor supports
-  PopcornEditor.events = {save: 'save'};
+  PopcornEditor.events = {save: 'save', loaded: 'loaded'};
 
   /**
    * Sets the given handler as the handler for the event
@@ -42,6 +42,85 @@ var PopcornEditor = (function () {
          data: data,
          type: 'load'
       }, window.location.origin);
+  };
+
+  /**
+   * Given a javascript object which fits the schema defined below, popcorn
+   * editor will load that video into the editor.
+   *
+   * @param video : javascript object of video
+   */
+  PopcornEditor.createTemplate = function (video) {
+    var videoUrl = video.url;
+    data = {
+        "template": "basic",
+        "background": "#FFFFFF",
+        "data": {
+            "targets": [{
+                "id": "Target0",
+                "name": "video-container",
+                "element": "video-container",
+            }],
+            "media": [{
+                "id": "Media0",
+                "name": "Media0",
+                "url": "#t=,30",
+                "target": "video",
+                "duration": video.duration,
+                "popcornOptions": {
+                    "frameAnimation": true,
+                },
+                "controls": true,
+                "tracks": [{
+                    "name": "",
+                    "id": "0",
+                    "order": 0,
+                    "trackEvents": [{
+                        "id": "TrackEvent0",
+                        "type": "sequencer",
+                        "popcornOptions": {
+                            "start": 0,
+                            "source": [video.url],
+                            "fallback": "",
+                            "denied": false,
+                            "end": video.duration,
+                            "from": 0,
+                            "title": video.title,
+                            "type": "AirMozilla",
+                            "thumbnailSrc": video.thumbnail,
+                            "duration": video.duration,
+                            "linkback": "",
+                            "contentType": "",
+                            "hidden": false,
+                            "target": "video-container",
+                            "left": 0,
+                            "top": 0,
+                            "width": 100,
+                            "height": 100,
+                            "volume": 100,
+                            "mute": false,
+                            "zindex": 1000,
+                            "id": "TrackEvent0"
+                        },
+                        "track": "0",
+                        "name": "TrackEvent0"
+                    }]
+                }],
+                "clipData": {
+                    videoUrl : {
+                        "type": video.type,
+                        "title": video.title,
+                        "source": video.url,
+                        "thumbnail": video.thumbnail,
+                        "duration": video.duration
+                    }
+                },
+                "currentTime": 0,
+            }]
+        },
+        "tags": ["popcorn"],
+    }
+    return data;
   };
 
   window.addEventListener('message', function (e) {

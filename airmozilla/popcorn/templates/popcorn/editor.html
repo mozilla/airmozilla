@@ -23,7 +23,7 @@ Air Mozilla | Mozilla, in Video
 {% endblock %}
 
 {% block full_width_content %}
-<div id="editor"></div>
+<div id="editor" data-slug="{{ slug }}" data-url="{{ url('popcorn:popcorn_data') }}"></div>
 {% endblock %}
 
 {% block content_main %}{% endblock %}

@@ -11,6 +11,7 @@ class PopcornEdit(models.Model):
     event = models.ForeignKey(Event)
     user = models.ForeignKey(User, null=True)
     upload = models.ForeignKey(Upload, null=True)
+    failed_attempts = models.PositiveIntegerField(default=0)
 
     last_error = models.TextField(null=True)
 
