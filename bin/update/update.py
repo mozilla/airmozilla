@@ -85,6 +85,9 @@ def update_db(ctx):
         ctx.local(
             '%s/bin/python manage.py migrate airmozilla.starred' % venv_path
         )
+        ctx.local(
+            '%s/bin/python manage.py migrate airmozilla.popcorn' % venv_path
+        )
 
 
 @task
