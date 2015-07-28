@@ -191,8 +191,6 @@ def tweet_new_published_events(verbose=False):
     )
     site = Site.objects.get_current()
     base_url = 'https://%s' % site.domain  # yuck!
-    if verbose:  # pragma: no cover
-        print events
     for event in events:
         # we have to try to manually create an appropriate tweet
         url = reverse('main:event', args=(event.slug,))
