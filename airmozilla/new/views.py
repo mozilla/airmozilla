@@ -11,8 +11,9 @@ from django.utils import timezone
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 from django.utils.functional import wraps
-from django.views.decorators.http import require_POST
 from django.template.base import TemplateDoesNotExist
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.contrib.auth.models import User
@@ -135,6 +136,7 @@ def save_upload(request):
     return {'id': event.id}
 
 
+@never_cache
 @xhr_login_required
 @transaction.commit_on_success
 @must_be_your_event
@@ -445,6 +447,7 @@ def vidly_media_webhook(request):
     return http.HttpResponse('OK\n')
 
 
+@never_cache
 @login_required
 @must_be_your_event
 @json_view
@@ -487,6 +490,7 @@ def event_picture(request, event):
     return context
 
 
+@never_cache
 @login_required
 @must_be_your_event
 @json_view
@@ -544,6 +548,7 @@ def _videos_by_tags(tags):
     return video_contexts
 
 
+@never_cache
 @login_required
 @must_be_your_event
 @json_view
@@ -672,6 +677,7 @@ def event_publish(request, event):
     return True
 
 
+@never_cache
 @login_required
 @json_view
 def your_events(request):
