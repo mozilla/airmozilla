@@ -99,6 +99,10 @@ class Channel(models.Model):
         associated with the event. You can have multiple of these.
         It doesn't matter if the channel is "never_show".
     """)
+    no_automated_tweets = models.BooleanField(default=False, help_text="""
+        If an event belongs to a channel with this on, that event
+        will not cause automatic EventTweets to be generated.
+    """)
 
     class Meta:
         ordering = ['name']

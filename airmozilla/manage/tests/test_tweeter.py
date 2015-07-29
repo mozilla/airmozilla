@@ -21,6 +21,7 @@ from airmozilla.main.models import (
     EventTweet,
     Approval,
     Tag,
+    Channel,
 )
 
 
@@ -392,3 +393,22 @@ class TweeterTestCase(TestCase):
         ok_('#firefox' in tweet.text)
         ok_('#InternFirefoxOS' in tweet.text)
         ok_('#somereallylongwordthatisactuallyatag' not in tweet.text)
+
+    def test_tweet_new_published_events_excluded_channel(self):
+        event = Event.objects.get(title='Test event')
+        event.created = timezone.now()
+        event.archive_time = timezone.now()
+        event.save()
+
+        event.channels.add(Channel.objects.create(
+            name='Normal',
+            slug='normal',
+        ))
+        event.channels.add(Channel.objects.create(
+            name='Excluded',
+            slug='excluded',
+            no_automated_tweets=True,
+        ))
+
+        tweet_new_published_events()
+        ok_(not EventTweet.objects.all())
