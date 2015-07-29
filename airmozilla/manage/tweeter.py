@@ -189,9 +189,15 @@ def tweet_new_published_events(verbose=False):
     ).approved().exclude(
         id__in=EventTweet.objects.values('event_id')
     )
+
     site = Site.objects.get_current()
     base_url = 'https://%s' % site.domain  # yuck!
     for event in events:
+        if event.channels.filter(no_automated_tweets=True):
+            if verbose:
+                print "Skipping", repr(event.title), "because it's part of"
+                print event.channels.filter(no_automated_tweets=True)
+            continue
         # we have to try to manually create an appropriate tweet
         url = reverse('main:event', args=(event.slug,))
         abs_url = urlparse.urljoin(base_url, url)
