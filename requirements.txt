@@ -151,6 +151,9 @@ amqp==1.4.6
 # sha256: B6nGUKHyDgQM9f_9C82SCoHQc0kVEw2JjAMlxfr7LsQ
 # sha256: uiqjz1S7cQ9G8WiJ-hgzExdFipLiUxvo4-jTg-_UoU0
 django-celery==3.1.16
+# sha256: XiUmfxT5tEFeSY-Qzdh1VGjfYnBqCrsfWxWf43NtP9k
+# sha256: TMuoh3T1LzpRSNh4dNePq3Zgu_Uilvb4YwgURekFY_8
+popcoder==0.1.1
 
 # We can get rid of this when we finally upgrade to Python 2.7
 # sha256: fLtRSjUvghxpuOi9qmsuWXKFR6iWVQPHWGUsKCbRV7U

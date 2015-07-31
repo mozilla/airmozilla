@@ -1,15 +1,22 @@
 from urlparse import urlparse
+from xml.parsers.expat import ExpatError
 
 from jsonview.decorators import json_view
 import requests
+import xmltodict
 
 from django import http
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.utils import timezone
 
 from airmozilla.main.helpers import thumbnail
 from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.main.views import EventView
+from airmozilla.manage.archiver import email_about_archiver_error
+from airmozilla.manage import vidly
 from airmozilla.popcorn.models import PopcornEdit
 
 
@@ -104,6 +111,62 @@ def popcorn_data(request):
         return {
             "metadata": data,
         }
+
+
+# Note that this view is publically available.
+# That means we can't trust the content but we can take it as a hint.
+@csrf_exempt
+@require_POST
+def vidly_webhook(request):
+    if not request.POST.get('xml'):
+        return http.HttpResponseBadRequest("no 'xml'")
+
+    xml_string = request.POST['xml'].strip()
+    try:
+        struct = xmltodict.parse(xml_string)
+    except ExpatError:
+        return http.HttpResponseBadRequest("Bad 'xml'")
+
+    try:
+        task = struct['Response']['Result']['Task']
+    except KeyError:
+        # If it doesn't have a "Result" or "Task", it was just a notification
+        # that the media was added.
+        pass
+
+    migrate_submission(
+        get_object_or_404(
+            VidlySubmission,
+            url=task['SourceFile'],
+            tag=task['MediaShortLink'],
+        )
+    )
+
+    return http.HttpResponse('OK\n')
+
+
+def migrate_submission(vidly_submission):
+    shortlink = vidly_submission.tag
+    results = vidly.query(shortlink)
+
+    if results[shortlink]['Status'] == 'Finished':
+        if not vidly_submission.finished:
+            vidly_submission.finished = timezone.now()
+            vidly_submission.save()
+
+        event = vidly_submission.event
+        event.template_environment['tag'] = shortlink
+        event.save()
+
+    elif results[shortlink]['Status'] == 'Error':
+        if not vidly_submission.errored:
+            vidly_submission.errored = timezone.now()
+            vidly_submission.save()
+
+            email_about_archiver_error(
+                event=vidly_submission.event,
+                tag=shortlink,
+            )
 
 
 class EditorView(EventView):

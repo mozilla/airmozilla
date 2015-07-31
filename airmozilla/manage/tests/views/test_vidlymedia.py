@@ -26,8 +26,7 @@ from airmozilla.manage.tests.test_vidly import (
 )
 from .base import ManageTestCase
 
-SAMPLE_MEDIA_SUBMITTED_XML = """
-<?xml version="1.0"?>
+SAMPLE_MEDIA_SUBMITTED_XML = """<?xml version="1.0"?>
 <Response>
 <Message>All medias have been added.</Message>
 <MessageCode>2.1</MessageCode>
@@ -81,7 +80,7 @@ SAMPLE_MEDIA_RESULT_FAILED = """
     </Task>
   </Result>
 </Response>
-"""
+""".strip()
 
 SAMPLE_MEDIA_RESULT_SUCCESS = """
 <?xml version="1.0"?>
@@ -125,7 +124,7 @@ SAMPLE_MEDIA_RESULT_SUCCESS = """
         </Task>
     </Result>
 </Response>
-"""
+""".strip()
 
 
 class TestVidlyMedia(ManageTestCase):
