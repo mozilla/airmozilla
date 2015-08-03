@@ -43,6 +43,8 @@ INSTALLED_APPS = (
     '%s.new' % PROJECT_MODULE,
     '%s.popcorn' % PROJECT_MODULE,
 
+    'djcelery',
+    'kombu.transport.django',
     'bootstrapform',
     'sorl.thumbnail',
     'south',
@@ -341,3 +343,14 @@ BROWSERID_DISABLED = False
 
 # How many times to try sending out an event tweet.
 MAX_TWEET_ATTEMPTS = 3
+
+
+# Where do we store jobs for the celery message queue
+BROKER_URL = 'django://'
+
+CELERY_ALWAYS_EAGER = False
+
+BROKER_CONNECTION_TIMEOUT = 0.1
+CELERY_RESULT_BACKEND = 'amqp'
+CELERY_IGNORE_RESULT = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = False

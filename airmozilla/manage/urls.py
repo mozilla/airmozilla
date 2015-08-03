@@ -25,6 +25,7 @@ from .views import (
     permissions,
     autocompeter,
     uploads,
+    taskstester,
 )
 
 
@@ -290,4 +291,8 @@ urlpatterns = patterns(
     url(r'^autocompeter/test/$',
         autocompeter.autocompeter_test,
         name='autocompeter_test'),
+    url(r'^tasks/tester/$',
+        taskstester.tasks_tester,
+        name='tasks_tester'),
+
 )

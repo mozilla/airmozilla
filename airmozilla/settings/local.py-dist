@@ -149,3 +149,11 @@ AWS_SECRET_ACCESS_KEY = ''
 # Setting this to 'air.mozilla.org' will mean it can use the production
 # domain even when you run it locally.
 #AUTOCOMPETER_DOMAIN = ''
+
+# If you don't want to run a separate Celeryd process you can set this to True
+#CELERY_ALWAYS_EAGER = True
+
+# By default Celeryd is configured to simply write to its own database.
+# For production we probably want to override this with a RabbitMQ URL
+# or something like that.
+#BROKER_URL = 'django://'

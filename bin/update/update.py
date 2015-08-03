@@ -58,36 +58,39 @@ def update_db(ctx):
             '%s/bin/python manage.py syncdb' % venv_path
         )
         ctx.local(
-            '%s/bin/python manage.py migrate --delete-ghost-migrations '
-            '--noinput airmozilla.main' % venv_path
+            '%s/bin/python manage.py migrate' % venv_path
         )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.comments' % venv_path
-        )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.uploads' % venv_path
-        )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.subtitles' % venv_path
-        )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.search' % venv_path
-        )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.surveys' % venv_path
-        )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.cronlogger' % venv_path
-        )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.staticpages' % venv_path
-        )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.starred' % venv_path
-        )
-        ctx.local(
-            '%s/bin/python manage.py migrate airmozilla.popcorn' % venv_path
-        )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate --delete-ghost-migrations '
+        #     '--noinput airmozilla.main' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.comments' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.uploads' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.subtitles' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.search' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.surveys' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.cronlogger' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.staticpages' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.starred' % venv_path
+        # )
+        # ctx.local(
+        #     '%s/bin/python manage.py migrate airmozilla.popcorn' % venv_path
+        # )
 
 
 @task

@@ -35,13 +35,13 @@ html2text==2014.12.29
 requests==2.5.1
 # sha256: Wa85MButOX4IXlCAmH-U7zBnLxz45z0Z0zB7O2PDy0s
 pyquery==1.2.8
-# sha256: VDjXSekjyRR0H-KkELUoq-JwUwAPv4eLxDdCjQiuCrE
-# sha256: e0ZyF7n0tLNXjqgMGH1KZFhBN-s5pP0J06k5uyWiRzE
-# sha256: _iM9iNuVAbn4doWmVuCAQioE3fsR8AInX4KYbXFwSfg
-# sha256: OH-Wj955OxQoZYApFlYYOfVZHYtLFMlBEl6w_Kfk5Y0
-# sha256: qUE4tjiQdJH0c8h16MlSA6agLv71K2VivjAuQ1AW9PM
-# sha256: TH1S2kEIdel3YFwZTJP7KaLZIfmSNLUBM8Zip9Qmj9Y
-pytz==2014.10
+# sha256: bOkY5I2u1knhOqTrLOmdgCEkEUAb5CKIyURzqBEJJE4
+# sha256: ZEHnmPiGN0TJBXTeJTvtMoxHf9LIbK9SuNnYXx7Ln5Y
+# sha256: TWTtG54OcwlfXPqH8Ol920yEAEno7-t-Y7RhGLodYjo
+# sha256: p4tITVRy3Yxoj4s-7hhkaiXGbORbLCZlKFD2r5zlKxc
+# sha256: xO5wy0B_koRResNo8SHPB5anE0uWHlPZ2vGqro9E-5A
+# sha256: APNfsOfi_DSM0JHSXTbGdotyFGPRI5bWipSRqKX5Hs8
+pytz==2015.4
 # sha256: BTWn4nAUh0snrjpNM-h0njRb36YnZhlSCLeZa_EQBoI
 cssselect==0.9.1
 # sha256: PpVEXB21AKNEB5pHsXHEXvGPV9GI3_2w5BZccb6o6z0
@@ -135,3 +135,25 @@ xmltodict==0.9.2
 # sha256: dYSYx38W4muLYa8m-NDbsRm3E_LY0WZoHsiSMR81IMQ
 # sha256: 2Qg_keId-FDIE7ODWNyD3xbX8lMYChNE7P7c4kIT7PI
 boto==2.38.0
+# sha256: 2_WWGNWp7_Fy0lAh82YUvlrwUB5FJ5dcpQS5WGPxT-0
+# sha256: CST5QHDG_FfUCLFphIxbOIMmaP_-Bg5ItIA_sj4OPq8
+celery==3.1.18
+# sha256: aI-UZrHDrhQQY4Hm29MoEV51xSYMVC60jmxGkx9pKMw
+billiard==3.3.0.20
+# sha256: _qhlOuS4en6wmWWUCfCeaANqe4PwoVoLxq7629mKUdw
+# sha256: H1ZavUTEt9-qTdVD1S-YLS8AaroKKzgwVCtNJagB_gk
+kombu==3.0.26
+# sha256: N4Ethjya0-NcBzTELgvwMgzow77YLNIK1UyzTRWBV7o
+anyjson==0.3.3
+# sha256: 406XZaYSD0ZkwSD0GYp4bDmg-35KWb0ZotbjqIS2OIk
+# sha256: 68_IZ95aaPn1uhTRHbrYjmr_hDWo05M51c6w5bBt5kA
+amqp==1.4.6
+# sha256: B6nGUKHyDgQM9f_9C82SCoHQc0kVEw2JjAMlxfr7LsQ
+# sha256: uiqjz1S7cQ9G8WiJ-hgzExdFipLiUxvo4-jTg-_UoU0
+django-celery==3.1.16
+
+# We can get rid of this when we finally upgrade to Python 2.7
+# sha256: fLtRSjUvghxpuOi9qmsuWXKFR6iWVQPHWGUsKCbRV7U
+# sha256: AfwKKh4BmQqXsJZhXBEyj6QwbO0XM8mNiEFgOHdg1Hk
+# sha256: ZfNCpgSi4QKHB8XgVSZqskMcJuIP4QeAtCMyCHCITaw
+importlib==1.0.3
