@@ -5,6 +5,7 @@ import hmac
 import urllib
 import os
 import time
+import uuid
 
 from django import http
 from django.shortcuts import render
@@ -18,7 +19,6 @@ from django.db import transaction
 
 import requests
 from funfactory.urlresolvers import reverse
-from slugify import slugify
 from jsonview.decorators import json_view
 
 from airmozilla.main.models import Event, SuggestedEvent
@@ -72,10 +72,12 @@ def sign(request):
         return http.HttpResponseBadRequest('Missing s3_object_name')
 
     now = datetime.datetime.utcnow()
-    name, ext = os.path.splitext(object_name)
-    name = slugify(name)
-    name = hashlib.md5(name).hexdigest()[:5]
-    name = '%s-%s-%s' % (request.user.id, name, now.strftime('%H%M%S'))
+    _, ext = os.path.splitext(object_name)
+    name = uuid.uuid4().hex[:13]
+    name = '%s-%s' % (
+        now.strftime('%Y%m%d%H%M%S'),
+        name
+    )
     ext = ext.lower()
     directory = now.strftime('%Y/%m/%d')
     object_name = os.path.join(directory, '%s%s' % (name, ext))
