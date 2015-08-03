@@ -2,7 +2,10 @@ from django.conf import settings
 from django.conf.urls import patterns, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
+import djcelery
 from funfactory.monkeypatches import patch
+
+
 patch()
 
 
@@ -43,3 +46,6 @@ if settings.DEBUG:  # pragma: no cover
         }),
     )
     urlpatterns += staticfiles_urlpatterns()
+
+
+djcelery.setup_loader()

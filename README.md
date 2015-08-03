@@ -208,6 +208,25 @@ And last but not least:
 
 Now you should be able to open `http://localhost:8000`.
 
+
+**Step 6 - Running the Celeryd message queue worker**
+
+We use a message queue to execute some slow tasks in the background.
+By default it doesn't need neither RabbitMQ or Redis to hold the jobs.
+Instead, by default, it uses our own Django and PostgreSQL which we
+use for everything else.
+
+To start the message queue worker use:
+
+```
+./manage.py celeryd
+```
+
+To test that this is working, once you've signed in to the site for the
+first time, and signed in as a super user you will get an extra link
+in the Management pages called "Tasks Tester". Click that to make a
+test that your message queue is working.
+
 Random/Sample data
 ------------------
 

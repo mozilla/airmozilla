@@ -73,3 +73,6 @@ AUTOCOMPETER_DOMAIN = ''
 # make sure these are definitely off
 GOD_MODE = False
 BROWSERID_DISABLED = False
+
+# Don't actually use celery in tests
+CELERY_ALWAYS_EAGER = True
