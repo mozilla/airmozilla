@@ -14,8 +14,6 @@ class Command(BaseCommand):  # pragma: no cover
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""
-        DROP TABLE  celery_taskmeta;
-        DROP TABLE  celery_tasksetmeta;
         DROP TABLE  djkombu_message;
         DROP TABLE  djkombu_queue;
         DROP TABLE  djcelery_taskstate;
