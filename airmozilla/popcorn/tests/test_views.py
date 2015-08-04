@@ -1,13 +1,22 @@
-from airmozilla.base.tests.testbase import DjangoTestCase, Response
-from airmozilla.main.models import Event
-from airmozilla.popcorn.models import PopcornEdit
-
+from cStringIO import StringIO
 import mock
 import json
 
-from nose.tools import eq_, ok_
-
 from funfactory.urlresolvers import reverse
+from nose.tools import eq_, ok_
+import xmltodict
+
+from django.core import mail
+from django.test.utils import override_settings
+
+from airmozilla.base.tests.testbase import DjangoTestCase, Response
+from airmozilla.main.models import Event, VidlySubmission
+from airmozilla.manage.tests.views.test_vidlymedia import (
+    get_custom_XML,
+    SAMPLE_MEDIA_RESULT_SUCCESS,
+    SAMPLE_MEDIA_RESULT_FAILED,
+)
+from airmozilla.popcorn.models import PopcornEdit
 
 
 class TestPopcornEvent(DjangoTestCase):
@@ -147,3 +156,144 @@ class TestPopcornEvent(DjangoTestCase):
 
         response = self.client.get(url, {'slug': event.slug})
         eq_(response.status_code, 200)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_vidly_webhook(self, p_urllib2):
+        xml_string = SAMPLE_MEDIA_RESULT_SUCCESS
+        success_xml = xmltodict.parse(xml_string)
+
+        url = reverse('popcorn:vidly_webhook')
+        task = success_xml['Response']['Result']['Task']
+        tag = task['MediaShortLink']
+        file_url = task['SourceFile']
+
+        def make_mock_request(url, querystring):
+            return mock.MagicMock()
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag=tag,
+                status='Finished',
+                private='false'
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        event.template.name = 'this is a vid.ly video'
+        event.template.save()
+
+        event.template_environment = {'tag': tag}
+        event.save()
+
+        vidly_submission = VidlySubmission.objects.create(
+            event=event,
+            url=file_url,
+            tag=tag,
+            token_protection=False
+        )
+
+        response = self.client.post(url, {'xml': xml_string})
+        eq_(response.status_code, 200)
+        eq_('OK\n', response.content)
+
+        # Check that submission was created
+        vidly_submission = VidlySubmission.objects.get(id=vidly_submission.id)
+        ok_(vidly_submission.finished)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_vidly_webhook_input_error(self, p_urllib2):
+        def make_mock_request(url, querystring):
+            return mock.MagicMock()
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='abc123',
+                status='Finished',
+                private='false'
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        url = reverse('popcorn:vidly_webhook')
+
+        response = self.client.post(url)
+        eq_(response.status_code, 400)
+        eq_("no 'xml'", response.content)
+
+        response = self.client.post(url, {'xml': '<bad < xml}'})
+        eq_(response.status_code, 400)
+        eq_("Bad 'xml'", response.content)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_vidly_webhook_404(self, p_urllib2):
+        xml_string = SAMPLE_MEDIA_RESULT_SUCCESS
+
+        def make_mock_request(url, querystring):
+            return mock.MagicMock()
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='abc123',
+                status='Finished',
+                private='false'
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        url = reverse('popcorn:vidly_webhook')
+
+        response = self.client.post(url, {'xml': xml_string})
+        eq_(response.status_code, 404)
+
+    @override_settings(ADMINS=(('F', 'foo@bar.com'), ('B', 'bar@foo.com')))
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_vidly_webhook_status_error(self, p_urllib2):
+        xml_string = SAMPLE_MEDIA_RESULT_FAILED
+        success_xml = xmltodict.parse(xml_string)
+
+        def make_mock_request(url, querystring):
+            return mock.MagicMock()
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag=task['MediaShortLink'],
+                status='Error',
+                private='false'
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        url = reverse('popcorn:vidly_webhook')
+        task = success_xml['Response']['Result']['Task']
+        tag = task['MediaShortLink']
+        file_url = task['SourceFile']
+
+        event = Event.objects.get(title='Test event')
+        event.template.name = 'this is a vid.ly video'
+        event.template.save()
+
+        event.template_environment = {'tag': tag}
+        event.save()
+
+        VidlySubmission.objects.create(
+            event=event,
+            url=file_url,
+            tag=tag,
+            token_protection=False
+        )
+
+        response = self.client.post(url, {'xml': xml_string})
+        eq_(response.status_code, 200)
+        eq_('OK\n', response.content)
+
+        email_sent = mail.outbox[-1]
+        ok_(tag in email_sent.subject)

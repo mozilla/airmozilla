@@ -13,4 +13,7 @@ urlpatterns = patterns(
     url(r'^data/$',
         views.popcorn_data,
         name='popcorn_data'),
+    url(r'^vidlywebhook/$',
+        views.vidly_webhook,
+        name='vidly_webhook'),
 )

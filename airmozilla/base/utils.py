@@ -4,6 +4,7 @@ import re
 import urllib
 import subprocess
 import os
+import urlparse
 
 import pytz
 import requests
@@ -13,7 +14,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ImproperlyConfigured
-from django.contrib.sites.models import RequestSite
+from django.contrib.sites.models import RequestSite, Site
 from django.core.mail.backends.filebased import EmailBackend
 
 from airmozilla.base.akamai_token_v2 import AkamaiToken
@@ -241,3 +242,9 @@ def prepare_vidly_video_url(url):
             url += '?'
         url += 'nocopy'
     return url
+
+
+def build_absolute_url(uri):
+    site = Site.objects.get_current()
+    base = 'https://%s' % site.domain  # yuck!
+    return urlparse.urljoin(base, uri)

@@ -1,5 +1,4 @@
 import uuid
-import urlparse
 
 from html2text import html2text
 
@@ -8,13 +7,8 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
-from django.contrib.sites.models import Site
 
-
-def build_absolute_url(uri):
-    site = Site.objects.get_current()
-    base = 'https://%s' % site.domain  # yuck!
-    return urlparse.urljoin(base, uri)
+from airmozilla.base.utils import build_absolute_url
 
 
 def _get_unsubscribe_url(user):
