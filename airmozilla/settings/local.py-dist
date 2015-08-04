@@ -152,6 +152,7 @@ AWS_SECRET_ACCESS_KEY = ''
 
 # If you don't want to run a separate Celeryd process you can set this to True
 #CELERY_ALWAYS_EAGER = True
+#CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 # By default Celeryd is configured to simply write to its own database.
 # For production we probably want to override this with a RabbitMQ URL

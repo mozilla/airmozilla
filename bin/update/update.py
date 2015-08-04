@@ -55,6 +55,9 @@ def update_db(ctx):
 
     with ctx.lcd(settings.SRC_DIR):
         ctx.local(
+            '%s/bin/python manage.py reset-old-djcelery-tables' % venv_path
+        )
+        ctx.local(
             '%s/bin/python manage.py syncdb' % venv_path
         )
         ctx.local(
