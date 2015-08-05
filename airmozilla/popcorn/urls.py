@@ -16,4 +16,7 @@ urlpatterns = patterns(
     url(r'^vidlywebhook/$',
         views.vidly_webhook,
         name='vidly_webhook'),
+    url(r'^save/$',
+        views.save_edit,
+        name='save_edit'),
 )

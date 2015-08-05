@@ -157,6 +157,49 @@ class TestPopcornEvent(DjangoTestCase):
         response = self.client.get(url, {'slug': event.slug})
         eq_(response.status_code, 200)
 
+    def test_save_edit(self):
+        event = Event.objects.get(title='Test event')
+        event.template.name = 'this is a vid.ly video'
+        event.template.save()
+
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        url = reverse('popcorn:save_edit')
+
+        self._login()
+
+        response = self.client.post(url, {
+            'slug': event.slug,
+        })
+        # Should error due to missing data field
+        eq_(response.status_code, 400)
+
+        response = self.client.post(url, {
+            'data': '{}',
+        })
+        # Should error due to missing slug field
+        eq_(response.status_code, 400)
+
+        response = self.client.post(url, {
+            'slug': 'does_not_exist',
+            'data': '{}',
+        })
+        eq_(response.status_code, 404)
+
+        response = self.client.post(url, {
+            'slug': event.slug,
+            'data': '{}',
+        })
+
+        edit = PopcornEdit.objects.get(
+            event=event,
+            status=PopcornEdit.STATUS_PENDING,
+        )
+
+        eq_(response.status_code, 200)
+        eq_(edit.id, json.loads(response.content)['id'])
+
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_vidly_webhook(self, p_urllib2):
         xml_string = SAMPLE_MEDIA_RESULT_SUCCESS
