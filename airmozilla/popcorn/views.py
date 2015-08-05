@@ -8,6 +8,7 @@ import xmltodict
 
 from django import http
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -105,8 +106,8 @@ def popcorn_data(request):
             'thumbnail': thumb.url,
             'url': video_url,
             'title': event.title,
-            "duration": event.duration,
-            "type": "AirMozilla",
+            'duration': event.duration,
+            'type': 'AirMozilla',
         }
 
         return {
@@ -117,6 +118,7 @@ def popcorn_data(request):
 @json_view
 @login_required
 @require_POST
+@transaction.atomic
 def save_edit(request):
     slug = request.POST.get('slug')
     if not slug:

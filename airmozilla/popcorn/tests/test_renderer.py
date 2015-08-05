@@ -72,7 +72,7 @@ class TestPopcornRender(DjangoTestCase):
         edit = PopcornEdit.objects.create(
             event=event,
             status=PopcornEdit.STATUS_PENDING,
-            data={},
+            data={'background': '#000', 'data': {}},
             user=event.creator,
         )
 

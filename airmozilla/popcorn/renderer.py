@@ -1,3 +1,4 @@
+import datetime
 import os
 import tempfile
 import time
@@ -20,7 +21,7 @@ from airmozilla.uploads.models import Upload
 
 
 @transaction.atomic
-def render_edit(edit_id):
+def render_edit(edit_id, verbose=False):
     edit = PopcornEdit.objects.get(id=edit_id)
     event = edit.event
 
@@ -30,20 +31,30 @@ def render_edit(edit_id):
             os.stat(filepath)[os.stat.st_size] > 0):
         edit.status = PopcornEdit.STATUS_PROCESSING
         edit.save()
-        process_json(edit.data, out=filepath)
+        if verbose:
+            print 'Rendering file at %s' % filepath
+        process_json(
+            data=edit.data['data'],
+            out=filepath,
+            background_color=edit.data['background']
+        )
 
-    upload_file_name = '%s.webm' % uuid4().hex[:13]
+    prefix = datetime.datetime.utcnow().strftime('%Y/%m/%d/')
+    upload_file_name = prefix + uuid4().hex[:13] + '.webm'
+
+    if verbose:
+        print 'Connecting to s3 and uploading as %s' % upload_file_name
     # Uploads file to s3
     connection = boto.connect_s3(
         settings.AWS_ACCESS_KEY_ID,
         settings.AWS_SECRET_ACCESS_KEY,
     )
 
-    nonexistent = connection.lookup(settings.S3_UPLOAD_BUCKET)
-    if nonexistent:
+    bucket = connection.lookup(settings.S3_UPLOAD_BUCKET)
+    if bucket is None:
+        if verbose:
+            print 'Creating bucket %s' % settings.S3_UPLOAD_BUCKET
         bucket = connection.create_bucket(settings.S3_UPLOAD_BUCKET)
-    else:
-        bucket = connection.get_bucket(settings.S3_UPLOAD_BUCKET)
 
     video_key = Key(bucket)
 
@@ -53,11 +64,14 @@ def render_edit(edit_id):
     end = time.time()
 
     video_url = video_key.generate_url(expires_in=0, query_auth=False)
+    if verbose:
+        print 'Video uploaded to S3 at url: %s' % video_url
     video_url = prepare_vidly_video_url(video_url)
 
     filesize = os.stat(filepath).st_size
 
-    Upload.objects.create(
+    upload = Upload.objects.create(
+        event=event,
         user=edit.user,
         url=video_url,
         file_name=upload_file_name,
@@ -65,6 +79,9 @@ def render_edit(edit_id):
         size=filesize,
         upload_time=int(end - start)
     )
+
+    if verbose:
+        print 'Upload object created with id: %s' % upload.id
 
     webhook_url = build_absolute_url(reverse('popcorn:vidly_webhook'))
     token_protection = event.privacy != Event.PRIVACY_PUBLIC
@@ -75,6 +92,9 @@ def render_edit(edit_id):
         hd=True,
         notify_url=webhook_url,
     )
+
+    if verbose:
+        print 'Vidly media added with tag %s' % tag
 
     VidlySubmission.objects.create(
         event=event,
@@ -92,16 +112,20 @@ def render_edit(edit_id):
     edit.finished = timezone.now()
     edit.save()
 
+    if verbose:
+        print 'Removing file at %s' % filepath
     os.remove(filepath)
 
 
 def render_all_videos(verbose=False):
     # Re process if start time is more than 2 hours
-    pending_edits = PopcornEdit.objects.filter(PopcornEdit.STATUS_PENDING)
+    pending_edits = PopcornEdit.objects.filter(
+        status=PopcornEdit.STATUS_PENDING
+    )
     if pending_edits.count() > 1:
         if verbose:
             print "Currently more than one edit. Skipping for now"
             print pending_edits.count()
     pending_edits = pending_edits[:1]
     for pending_edit in pending_edits:
-        render_edit(pending_edit.id)
+        render_edit(pending_edit.id, verbose=verbose)

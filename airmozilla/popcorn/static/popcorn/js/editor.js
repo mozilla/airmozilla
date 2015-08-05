@@ -5,7 +5,7 @@ $(document).ready(function () {
     })
     .done(function (response) {
       if(response.data) {
-        PopcornEditor.loadInfo(response.data);
+        PopcornEditor.loadInfo(response);
       } else {
         PopcornEditor.loadInfo(PopcornEditor.createTemplate(response.metadata));
       }
@@ -19,7 +19,7 @@ $(document).ready(function () {
   PopcornEditor.init('editor', '/static/popcorn/PopcornEditor/editor.html');
   PopcornEditor.listen('save', function (message) {
     $.post($('#editor').data('save'), {
-      data: JSON.stringify(message.data),
+      data: JSON.stringify(message),
       slug: $('#editor').data('slug'),
       csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
     })

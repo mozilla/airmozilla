@@ -56,9 +56,9 @@ SAMPLE_MEDIA_RESULT_SUCCESS = """
 """
 
 
-def run(file_url, tag):
+def run(webhook_url, file_url, tag):
     print (file_url, tag)
-    url = BASE_URL + '/new/vidly/webhook/'
+    url = BASE_URL + webhook_url
     xml_string = SAMPLE_MEDIA_RESULT_SUCCESS.format(
         file_url=file_url,
         tag=tag,
@@ -72,10 +72,11 @@ def run(file_url, tag):
 
 def main(args):
     try:
-        file_url, tag = args
-        run(file_url, tag)
+        webhook_url, file_url, tag = args
+        run(webhook_url, file_url, tag)
     except ValueError:
-        print "USAGE: %s http://fileurl.com/file.mp4 abc123" % __file__
+        print "USAGE: %s /new/vidly/webhook/ http://fileurl.com/file.mp4 "\
+            + "abc123" % __file__
         return 1
     return 0
 
