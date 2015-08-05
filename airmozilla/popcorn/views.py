@@ -1,3 +1,4 @@
+import json
 from urlparse import urlparse
 from xml.parsers.expat import ExpatError
 
@@ -90,7 +91,7 @@ def popcorn_data(request):
     slug = request.GET.get('slug')
     if not slug:
         return http.HttpResponseBadRequest('slug')
-    event = get_object_or_404(Event, slug=request.GET['slug'])
+    event = get_object_or_404(Event, slug=slug)
 
     for edit in PopcornEdit.objects.filter(
             event__slug=slug,
@@ -111,6 +112,35 @@ def popcorn_data(request):
         return {
             "metadata": data,
         }
+
+
+@json_view
+@login_required
+@require_POST
+def save_edit(request):
+    slug = request.POST.get('slug')
+    if not slug:
+        return http.HttpResponseBadRequest('slug')
+    data = request.POST.get('data')
+    if not data:
+        return http.HttpResponseBadRequest('data')
+    try:
+        data = json.loads(data)
+    except ValueError as exception:
+        return http.HttpResponseBadRequest(exception)
+
+    event = get_object_or_404(Event, slug=slug)
+
+    edit = PopcornEdit.objects.create(
+        event=event,
+        status=PopcornEdit.STATUS_PENDING,
+        data=data,
+        user=request.user,
+    )
+
+    return {
+        'id': edit.id,
+    }
 
 
 # Note that this view is publically available.
