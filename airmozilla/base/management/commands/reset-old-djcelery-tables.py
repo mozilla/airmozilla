@@ -1,3 +1,4 @@
+from django.db.utils import ProgrammingError
 from django.core.management.base import BaseCommand
 
 
@@ -13,15 +14,19 @@ class Command(BaseCommand):  # pragma: no cover
     def handle(self, *args, **options):
         from django.db import connection
         cursor = connection.cursor()
-        cursor.execute("""
-        DROP TABLE  djcelery_taskstate;
-        DROP TABLE  djcelery_workerstate;
-        DROP TABLE  djcelery_periodictasks;
-        DROP TABLE  djcelery_periodictask;
-        DROP TABLE  djcelery_intervalschedule;
-        DROP TABLE  djcelery_crontabschedule;
+        try:
+            cursor.execute("""
+            DROP TABLE  djcelery_taskstate;
+            DROP TABLE  djcelery_workerstate;
+            DROP TABLE  djcelery_periodictasks;
+            DROP TABLE  djcelery_periodictask;
+            DROP TABLE  djcelery_intervalschedule;
+            DROP TABLE  djcelery_crontabschedule;
 
-        DELETE FROM south_migrationhistory WHERE app_name = 'djcelery';
-        DELETE FROM south_migrationhistory WHERE app_name = 'django';
-        """)
-        connection.commit()
+            DELETE FROM south_migrationhistory WHERE app_name = 'djcelery';
+            DELETE FROM south_migrationhistory WHERE app_name = 'django';
+            """)
+            connection.commit()
+        except ProgrammingError as exception:
+            print "Unable delete old celery tabes"
+            print exception
