@@ -128,8 +128,8 @@ readability-api==0.2.4
 django-jsonfield==0.9.13
 # sha256: vPcTcdmXu0ajFop7Y6rma1bMyswCWvkxDbQxVoHviGg
 python-memcached==1.53
-# sha256: BYpoit1Ha8YkNi6MkT_xNyJp0dthoMaoXzUi9Di-4FA
-selenium==2.44.0
+# sha256: 8Eag1Mf-ukOMlOOmnhgzjM3Ms4oBcf20SVvW2lbhNtY
+selenium==2.47.1
 # sha256: J10eaMlc1-PucD3cPqcnjoKB92FoDWvdY3vNAKXFmQE
 xmltodict==0.9.2
 # sha256: dYSYx38W4muLYa8m-NDbsRm3E_LY0WZoHsiSMR81IMQ
