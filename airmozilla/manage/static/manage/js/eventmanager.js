@@ -184,7 +184,13 @@ function EventManagerController($scope, $http, $interval, $localForage) {
             if (unmatched) return false;
         }
         if ($scope.search_location) {
-            if (!search_location_regex.test(event.location)) {
+            if (['blank', 'empty', 'pre-recorded'].indexOf($scope.search_location) > -1) {
+                // then strangely match those with no location or
+                // a location called "Pre-recorded"
+                if (event.location && event.location != 'Pre-recorded') {
+                    return false;
+                }
+            } else if (!search_location_regex.test(event.location)) {
                 return false;
             }
         }
