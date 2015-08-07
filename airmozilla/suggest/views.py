@@ -22,7 +22,6 @@ from airmozilla.main.models import (
     Event,
     Channel,
     SuggestedEventComment,
-    Location
 )
 from airmozilla.comments.models import SuggestedDiscussion
 from airmozilla.base.utils import tz_apply
@@ -76,11 +75,6 @@ def start(request):
                 notify_all=True,
             )
             if not event.upcoming:
-                location, __ = Location.objects.get_or_create(
-                    name=settings.DEFAULT_PRERECORDED_LOCATION[0],
-                    timezone=settings.DEFAULT_PRERECORDED_LOCATION[1]
-                )
-                event.location = location
                 now = datetime.datetime.utcnow().replace(tzinfo=utc)
                 event.start_time = now
                 event.save()
