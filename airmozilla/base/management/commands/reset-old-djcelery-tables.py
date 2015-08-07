@@ -16,14 +16,14 @@ class Command(BaseCommand):  # pragma: no cover
         cursor = connection.cursor()
         try:
             cursor.execute("""
-            DROP TABLE  celery_taskmeta;
-            DROP TABLE  celery_tasksetmeta;
-            DROP TABLE  djcelery_taskstate;
-            DROP TABLE  djcelery_workerstate;
-            DROP TABLE  djcelery_periodictasks;
-            DROP TABLE  djcelery_periodictask;
-            DROP TABLE  djcelery_intervalschedule;
-            DROP TABLE  djcelery_crontabschedule;
+            DROP TABLE IF EXISTS celery_taskmeta;
+            DROP TABLE IF EXISTS celery_tasksetmeta;
+            DROP TABLE IF EXISTS djcelery_taskstate;
+            DROP TABLE IF EXISTS djcelery_workerstate;
+            DROP TABLE IF EXISTS djcelery_periodictasks;
+            DROP TABLE IF EXISTS djcelery_periodictask;
+            DROP TABLE IF EXISTS djcelery_intervalschedule;
+            DROP TABLE IF EXISTS djcelery_crontabschedule;
 
             DELETE FROM south_migrationhistory WHERE app_name = 'djcelery';
             """)
@@ -35,8 +35,8 @@ class Command(BaseCommand):  # pragma: no cover
         cursor = connection.cursor()
         try:
             cursor.execute("""
-            DROP TABLE  djkombu_message;
-            DROP TABLE  djkombu_queue;
+            DROP TABLE IF EXISTS djkombu_message;
+            DROP TABLE IF EXISTS djkombu_queue;
 
             DELETE FROM south_migrationhistory WHERE app_name = 'django';
             """)
