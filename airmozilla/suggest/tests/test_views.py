@@ -49,10 +49,6 @@ class TestPages(DjangoTestCase):
         super(TestPages, self).setUp()
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
-        self.precorded_location = Location.objects.create(
-            name=settings.DEFAULT_PRERECORDED_LOCATION[0],
-            timezone=settings.DEFAULT_PRERECORDED_LOCATION[1]
-        )
         self.tmp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
@@ -159,8 +155,7 @@ class TestPages(DjangoTestCase):
         eq_(event.popcorn_url, 'https://')
         eq_(event.slug, 'a-new-world')
         ok_(event.start_time)
-        eq_(event.location.name, self.precorded_location.name)
-        eq_(event.location.timezone, self.precorded_location.timezone)
+        eq_(event.location, None)
         self.assertRedirects(response, url)
 
     def test_start_duplicate_slug(self):
@@ -429,7 +424,6 @@ class TestPages(DjangoTestCase):
         event.popcorn_url = 'https://'
         now = timezone.now()
         event.start_time = now
-        event.location = self.precorded_location
         event.save()
 
         response = self.client.get(url)

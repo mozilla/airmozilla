@@ -1487,13 +1487,12 @@ def executive_summary(request):
         events = Event.objects.all().approved().filter(
             start_time__gte=start, start_time__lt=end
         )
-        uploads_name = settings.DEFAULT_PRERECORDED_LOCATION[0]  # name
         rows.append((
             label,
             (start, end, end - datetime.timedelta(days=1)),
             events.count(),
             events.filter(location__name__istartswith='Cyberspace').count(),
-            events.filter(location__name=uploads_name).count(),
+            events.filter(location__isnull=True).count(),
         ))
 
     # Now for stats on views, which is done by their archive date
