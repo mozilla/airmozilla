@@ -89,7 +89,10 @@
           <span class="badge" title="Only events that are Mozillians profiles"
            ng-class="{active: search_only==='mozillian'}" ng-click="selectSearchOnly('mozillian')">M</span>
         </th>
-        <th style="width: 14%">Location</th>
+        <th style="width: 14%">
+          Location
+          <abbr title="To find those with NO location, type in 'blank' or 'pre-recorded' or 'empty'">Note!</abbr>
+        </th>
         <th style="width: 190px">
           <a ng-click="setSorting('start_time_iso')">Start time</a>
           <a class="reverse-toggle"
