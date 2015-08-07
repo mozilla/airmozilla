@@ -20,14 +20,14 @@ class CalendarLiveServerTestCase(DjangoLiveServerTestCase):
         driver = self.driver
         driver.get(self.base_url)
         driver.find_element_by_link_text("CALENDAR").click()
-        eq_("Sun", driver.find_element_by_xpath("//th").text)
+        eq_("Mon", driver.find_element_by_xpath("//th").text)
         driver.find_element_by_id("startsOnMonday").click()
-        eq_("Mon", driver.find_element_by_xpath("//th").text)
+        eq_("Sun", driver.find_element_by_xpath("//th").text)
         driver.refresh()
-        eq_("Mon", driver.find_element_by_xpath("//th").text)
-        ok_(driver.find_element_by_id("startsOnMonday").is_selected())
+        eq_("Sun", driver.find_element_by_xpath("//th").text)
+        ok_(not driver.find_element_by_id("startsOnMonday").is_selected())
         driver.find_element_by_xpath("(//button[@type='button'])[5]").click()
-        ok_(re.match("Mon", driver.find_element_by_xpath("//th[2]").text))
+        ok_(re.match("Sun", driver.find_element_by_xpath("//th[2]").text))
 
     def test_persistent_calendar_view(self):
         driver = self.driver

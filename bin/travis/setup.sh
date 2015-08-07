@@ -24,6 +24,5 @@ CACHES = {
     }
 }
 
-# See https://bugzilla.mozilla.org/show_bug.cgi?id=1186673
-#RUN_SELENIUM_TESTS = True
+RUN_SELENIUM_TESTS = True
 SETTINGS
