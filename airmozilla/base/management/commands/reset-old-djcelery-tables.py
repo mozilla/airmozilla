@@ -16,6 +16,8 @@ class Command(BaseCommand):  # pragma: no cover
         cursor = connection.cursor()
         try:
             cursor.execute("""
+            DROP TABLE  celery_taskmeta;
+            DROP TABLE  celery_tasksetmeta;
             DROP TABLE  djcelery_taskstate;
             DROP TABLE  djcelery_workerstate;
             DROP TABLE  djcelery_periodictasks;
@@ -24,9 +26,21 @@ class Command(BaseCommand):  # pragma: no cover
             DROP TABLE  djcelery_crontabschedule;
 
             DELETE FROM south_migrationhistory WHERE app_name = 'djcelery';
-            DELETE FROM south_migrationhistory WHERE app_name = 'django';
             """)
             connection.commit()
         except ProgrammingError as exception:
             print "Unable delete old celery tabes"
+            print exception
+
+        cursor = connection.cursor()
+        try:
+            cursor.execute("""
+            DROP TABLE  djkombu_message;
+            DROP TABLE  djkombu_queue;
+
+            DELETE FROM south_migrationhistory WHERE app_name = 'django';
+            """)
+            connection.commit()
+        except ProgrammingError as exception:
+            print "Unable delete old djkombu tabes"
             print exception
