@@ -18,7 +18,6 @@ class ManageTestCase(DjangoTestCase):
         super(ManageTestCase, self).setUp()
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
         assert self.client.login(username='fake', password='fake')
-        self._upload_media('airmozilla/manage/tests/firefox.png')
 
     def _delete_test(self, obj, remove_view, redirect_view):
         """Common test for deleting an object in the management interface,

@@ -23,7 +23,6 @@ class TestRoku(DjangoTestCase):
     That's because this whole app is very much an experiment.
     """
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    main_image = 'airmozilla/manage/tests/firefox.png'
 
     def test_categories_feed(self):
         url = reverse('roku:categories_feed')

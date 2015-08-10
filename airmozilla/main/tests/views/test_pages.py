@@ -44,7 +44,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 class TestPages(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    main_image = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):
         super(TestPages, self).setUp()
@@ -53,8 +52,6 @@ class TestPages(DjangoTestCase):
         event.start_time = timezone.now()
         event.archive_time = None
         event.save()
-
-        self._upload_media(self.main_image)
 
         self.main_channel = Channel.objects.get(
             slug=settings.DEFAULT_CHANNEL_SLUG
@@ -1465,7 +1462,7 @@ class TestPages(DjangoTestCase):
             description="""
             <p>The description</p>
             """,
-            image='animage.png',
+            image='firefox.png',
         )
 
         event = Event.objects.create(
@@ -1551,7 +1548,7 @@ class TestPages(DjangoTestCase):
             description="""
             <p>The description</p>
             """,
-            image='animage.png',
+            image='firefox.png',
         )
         event = Event.objects.get(title='Test event')
         one = Event.objects.create(
@@ -1627,7 +1624,7 @@ class TestPages(DjangoTestCase):
             description="""
             <p>The description</p>
             """,
-            image='animage.png',
+            image='firefox.png',
         )
 
         for i in range(1, 40):

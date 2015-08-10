@@ -21,7 +21,6 @@ from airmozilla.popcorn.models import PopcornEdit
 
 class TestPopcornEvent(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    main_image = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):
         super(TestPopcornEvent, self).setUp()

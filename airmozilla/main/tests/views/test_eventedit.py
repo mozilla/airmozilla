@@ -19,7 +19,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 class TestEventEdit(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    main_image = 'airmozilla/manage/tests/firefox.png'
     other_image = 'airmozilla/manage/tests/other_logo.png'
     third_image = 'airmozilla/manage/tests/other_logo_reversed.png'
 
