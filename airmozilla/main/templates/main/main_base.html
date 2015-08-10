@@ -82,7 +82,8 @@ Air Mozilla | Mozilla, in Video
     <a href="//www.mozilla.org/" id="tabzilla" data-infobar="update">mozilla</a>
   </header>
 
-  <div id="content" {% block content_tag %}{% endblock %}>
+  <div id="content" {% block content_tag %}{% endblock %}
+       data-thumbnails-url="{{ url('main:thumbnails') }}">
     <div id="content-main" class="main" role="main">
       {% if messages %}
           {% for message in messages %}
@@ -180,6 +181,7 @@ Air Mozilla | Mozilla, in Video
   <script src="{{ static('js/layzr-images.js') }}"></script>
   <script src="{{ static('starred/js/star_event.js') }}"></script>
   <script src="{{ static('main/js/nav.js') }}"></script>
+  <script src="{{ static('main/js/thumbnailhover.js') }}"></script>
   {% endcompress %}
 
   {% if not BROWSERID_DISABLED %}

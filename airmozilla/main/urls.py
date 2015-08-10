@@ -21,6 +21,7 @@ urlpatterns = patterns(
         kwargs={'template': 'main/login.html'}),
     url(r'^login-failure/$', views.page, name='login_failure',
         kwargs={'template': 'main/login_failure.html'}),
+    url(r'^thumbnails/$', views.thumbnails, name='thumbnails'),
     url(r'^calendar/$', views.calendar, name='calendar'),
     url(r'^calendar/data.json$', views.calendar_data, name='calendar_data'),
     url(r'^calendars/$', views.calendars, name='calendars'),

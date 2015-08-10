@@ -44,6 +44,7 @@ from airmozilla.base.utils import (
     edgecast_tokenize,
     akamai_tokenize,
 )
+from airmozilla.main.helpers import thumbnail
 from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion
 from airmozilla.surveys.models import Survey
@@ -1593,3 +1594,21 @@ def god_mode(request):
 
     context = {}
     return render(request, 'main/god_mode.html', context)
+
+
+@json_view
+def thumbnails(request):
+    form = forms.ThumbnailsForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+    id = form.cleaned_data['id']
+    width = form.cleaned_data['width']
+    height = form.cleaned_data['height']
+    geometry = '%sx%s' % (width, height)
+    event = get_object_or_404(Event, id=id)
+    thumbnails = []
+    for picture in Picture.objects.filter(event=event).order_by('created'):
+        thumb = thumbnail(picture.file, geometry, crop='center')
+        thumbnails.append(thumb.url)
+
+    return {'thumbnails': thumbnails}
