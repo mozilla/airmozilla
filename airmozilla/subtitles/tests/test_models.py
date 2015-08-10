@@ -1,7 +1,6 @@
-from django.test import TestCase
-
 from nose.tools import ok_
 
+from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.main.models import Event
 from airmozilla.subtitles.models import AmaraVideo
 
@@ -85,8 +84,7 @@ SAMPLE_TRANSCRIPT = {
 }
 
 
-class AmaraVideoTestCase(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class AmaraVideoTestCase(DjangoTestCase):
 
     def test_basic_save(self):
         event = Event.objects.get(title='Test event')

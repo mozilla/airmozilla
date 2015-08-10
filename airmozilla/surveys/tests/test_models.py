@@ -8,7 +8,6 @@ from airmozilla.surveys.models import Survey, Question, Answer
 
 
 class SurveyTestCase(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_basic_save(self):
         survey = Survey.objects.create(name='Basic survey')

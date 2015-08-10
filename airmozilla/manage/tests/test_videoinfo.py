@@ -16,7 +16,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase, Response
 
 
 class TestVideoinfo(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
     sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
     sample_jpg2 = 'airmozilla/manage/tests/tucker.jpg'
 

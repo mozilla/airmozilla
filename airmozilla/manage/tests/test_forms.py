@@ -1,8 +1,8 @@
 from nose.tools import eq_, ok_
 
-from django.test import TestCase
 from django.contrib.auth.models import User
 
+from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.manage import forms
 from airmozilla.main.models import (
     Event,
@@ -11,8 +11,7 @@ from airmozilla.main.models import (
 )
 
 
-class TestForms(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class TestForms(DjangoTestCase):
 
     def test_event_assignment_form(self):
         event = Event.objects.get(title='Test event')

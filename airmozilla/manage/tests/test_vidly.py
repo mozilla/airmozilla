@@ -5,7 +5,6 @@ from nose.tools import eq_, ok_, assert_raises
 import mock
 
 from airmozilla.base.tests.testbase import DjangoTestCase
-
 from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.manage import vidly
 
@@ -135,7 +134,6 @@ SAMPLE_MEDIA_UPDATE_FAILED_XML = (
 
 
 class TestVidlyTokenize(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_secure_token(self, p_urllib2):

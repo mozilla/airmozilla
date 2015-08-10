@@ -43,7 +43,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 
 class TestPages(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def setUp(self):
         super(TestPages, self).setUp()

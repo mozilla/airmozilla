@@ -15,7 +15,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 
 class TestSearch(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
     placeholder_path = 'airmozilla/manage/tests/firefox.png'
     placeholder = os.path.basename(placeholder_path)
 

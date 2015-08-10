@@ -8,7 +8,6 @@ from airmozilla.main.models import Event
 
 
 class StarredEventTestCase(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_basic_save(self):
         event = Event.objects.get(title='Test event')

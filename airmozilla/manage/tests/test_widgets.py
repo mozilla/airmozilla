@@ -13,7 +13,6 @@ from airmozilla.main.models import (
 
 
 class TestWidgets(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_picture_gallery_widget(self):
 

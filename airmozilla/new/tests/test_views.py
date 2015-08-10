@@ -37,7 +37,6 @@ from airmozilla.manage.tests.views.test_vidlymedia import (
 
 
 class TestNew(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
     sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
 
     def _create_event(self, file_url=None, user=None):

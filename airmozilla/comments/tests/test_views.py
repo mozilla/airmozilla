@@ -63,7 +63,6 @@ MOZILLIAN_USER = """
 
 
 class TestComments(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def _create_discussion(self, event, enabled=True, moderate_all=True,
                            notify_all=True):

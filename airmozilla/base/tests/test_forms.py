@@ -8,7 +8,6 @@ from airmozilla.base.forms import GallerySelect
 
 
 class TestGallerySelect(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_render_with_name(self):
         instance = GallerySelect()

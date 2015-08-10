@@ -1,6 +1,5 @@
 import datetime
 
-from django.test import TestCase
 from django.contrib.auth.models import User, Group, Permission
 from django.core import mail
 from django.test.client import RequestFactory
@@ -9,8 +8,8 @@ from django.utils import timezone
 from nose.tools import ok_
 from funfactory.urlresolvers import reverse
 
+from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.suggest import sending
-
 from airmozilla.main.models import (
     Event,
     SuggestedEvent,
@@ -19,8 +18,7 @@ from airmozilla.main.models import (
 )
 
 
-class TestSending(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class TestSending(DjangoTestCase):
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
     def shortDescription(self):

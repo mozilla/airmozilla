@@ -10,8 +10,9 @@ from .base import ManageTestCase
 
 class TestManagementRoles(ManageTestCase):
     """Basic tests to ensure management roles / permissions are working."""
-    fixtures = ['airmozilla/manage/tests/main_testdata.json',
-                'airmozilla/manage/tests/manage_groups_testdata.json']
+    fixtures = ManageTestCase.fixtures + [
+        'airmozilla/manage/tests/manage_groups_testdata.json'
+    ]
 
     def setUp(self):
         super(TestManagementRoles, self).setUp()

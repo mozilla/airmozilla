@@ -17,7 +17,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 
 class TestAutocompeter(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_update_without_key(self):
         with self.settings(AUTOCOMPETER_KEY=None):

@@ -10,7 +10,6 @@ from airmozilla.starred.context_processors import stars
 
 
 class StarsTestCase(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_stars_anonymous(self):
         request = RequestFactory().get('/some/page/')

@@ -11,8 +11,6 @@ from airmozilla.manage.tests.test_vidly import get_custom_XML
 
 class TestVidlySynchronization(DjangoTestCase):
 
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
-
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_synchronize_all_correct_token_protection(self, p_urllib2):
         # If a VidlySubmission is token_protected by belongs to

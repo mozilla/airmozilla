@@ -1,7 +1,6 @@
 import datetime
 
 from django.contrib.auth.models import Group, User
-from django.test import TestCase
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.core.files import File
@@ -19,13 +18,15 @@ from airmozilla.main.models import (
     CuratedGroup,
     VidlySubmission
 )
+
+from airmozilla.base.tests.testbase import DjangoTestCase
 # This must be imported otherwise django-nose won't import
 # that foreign key reference when you run only the tests in this file.
 from airmozilla.uploads.models import Upload
 Upload = Upload  # shut up pyflakes
 
 
-class EventTests(TestCase):
+class EventTests(DjangoTestCase):
 
     def test_location_time(self):
         date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
@@ -49,6 +50,9 @@ class EventTests(TestCase):
         eq_(event.location_time.hour, 19)
 
     def test_most_recent_event(self):
+        # this test does not benefit from the standard fixtures
+        Event.objects.all().delete()
+
         date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
         mountain_view = Location.objects.create(
             name='Mountain View',
@@ -75,102 +79,7 @@ class EventTests(TestCase):
         eq_(most_recent_event(), event1)
 
 
-class EventStateTests(TestCase):
-    # def test_event_state(self):
-    #     time_now = timezone.now()
-    #     time_soon = time_now + datetime.timedelta(hours=1)
-    #     time_before = time_now - datetime.timedelta(hours=1)
-    #     # initiated event
-    #     initiated = Event.objects.create(
-    #         status=Event.STATUS_INITIATED,
-    #         start_time=time_now,
-    #     )
-    #     # ok_(initiated in Event.objects.initiated())
-    #     ok_(not initiated.needs_approval())
-    #     # scheduled event with pending approval
-    #     to_approve = Event.objects.create(
-    #         status=Event.STATUS_SCHEDULED,
-    #         start_time=time_now,
-    #     )
-    #     # ok_(to_approve not in Event.objects.initiated())
-    #     ok_(to_approve in Event.approved_objects.all())
-    #     ok_(not to_approve.needs_approval())
-    #
-    #     app = Approval.objects.create(event=to_approve, group=None)
-    #     # attaching the Approval makes the event unapproved
-    #     ok_(to_approve not in Event.approved_objects.all())
-    #     # ok_(to_approve in Event.objects.initiated())
-    #     ok_(to_approve.needs_approval())
-    #
-    #     app.processed = True
-    #     app.approved = True
-    #     app.save()
-    #     ok_(to_approve in Event.approved_objects.all())
-    #     to_approve.status = Event.STATUS_REMOVED
-    #     to_approve.save()
-    #     # ok_(to_approve in Event.objects.archived_and_removed())
-    #     # ok_(to_approve not in Event.objects.initiated())
-    #     # upcoming event
-    #     upcoming = Event.objects.create(
-    #         status=Event.STATUS_SCHEDULED,
-    #         start_time=time_soon,
-    #         archive_time=None
-    #     )
-    #     ok_(upcoming in Event.approved_objects.upcoming())
-    #     ok_(upcoming in Event.objects.upcoming())
-    #     upcoming.status = Event.STATUS_REMOVED
-    #     upcoming.save()
-    #     # ok_(upcoming in Event.objects.archived_and_removed())
-    #     ok_(upcoming not in Event.objects.upcoming())
-    #     # live event
-    #     live = Event.objects.create(
-    #         status=Event.STATUS_SCHEDULED,
-    #         start_time=time_now,
-    #         archive_time=None
-    #     )
-    #     ok_(live in Event.approved_objects.live())
-    #     ok_(live in Event.objects.live())
-    #     live.status = Event.STATUS_REMOVED
-    #     live.save()
-    #     # ok_(live in Event.objects.archived_and_removed())
-    #     ok_(live not in Event.objects.live())
-    #     # archiving event
-    #     archiving = Event.objects.create(
-    #         status=Event.STATUS_SCHEDULED,
-    #         start_time=time_before,
-    #         archive_time=time_soon
-    #     )
-    #     ok_(archiving in Event.approved_objects.all())
-    #     # ok_(archiving in Event.objects.archiving())
-    #     ok_(archiving not in Event.objects.live())
-    #     archiving.status = Event.STATUS_REMOVED
-    #     archiving.save()
-    #     # ok_(archiving in Event.objects.archived_and_removed())
-    #     # ok_(archiving not in Event.objects.archiving())
-    #     # archived event
-    #     archived = Event.objects.create(
-    #         status=Event.STATUS_SCHEDULED,
-    #         start_time=time_before,
-    #         archive_time=time_before
-    #     )
-    #     ok_(archived in Event.approved_objects.archived())
-    #     ok_(archived in Event.objects.archived())
-    #     archived.status = Event.STATUS_REMOVED
-    #     archived.save()
-    #     # ok_(archived in Event.objects.archived_and_removed())
-    #     ok_(archived not in Event.objects.archived())
-
-    # def test_needs_approval_if_not_approved(self):
-    #     time_now = timezone.now()
-    #     to_approve = Event.objects.create(
-    #         status=Event.STATUS_SCHEDULED,
-    #         start_time=time_now,
-    #     )
-    #     app = Approval.objects.create(event=to_approve, group=None)
-    #     ok_(to_approve.needs_approval())
-    #     app.processed = True
-    #     app.save()
-    #     ok_(not to_approve.needs_approval())
+class EventStateTests(DjangoTestCase):
 
     def test_event_needs_approval(self):
         event = Event.objects.create(
@@ -270,8 +179,7 @@ class EventStateTests(TestCase):
         ok_(event in Event.objects.upcoming().approved())
 
 
-class ForeignKeyTests(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class ForeignKeyTests(DjangoTestCase):
 
     def _successful_delete(self, obj):
         """Delete an object and ensure it's deleted."""
@@ -394,8 +302,7 @@ class ForeignKeyTests(TestCase):
         self._refresh_ok(oldslug, exists=False)
 
 
-class RecruitmentMessageTests(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class RecruitmentMessageTests(DjangoTestCase):
 
     def test_create(self):
         msg = RecruitmentMessage.objects.create(
@@ -442,8 +349,7 @@ class RecruitmentMessageTests(TestCase):
         eq_(Event.objects.all().count(), 1)
 
 
-class PictureTests(TestCase):
-    main_image = 'airmozilla/manage/tests/firefox.png'
+class PictureTests(DjangoTestCase):
 
     def test_create_picture(self):
         # the only thing you should need is the picture itself
@@ -458,8 +364,7 @@ class PictureTests(TestCase):
             ok_("Something" in repr(picture))
 
 
-class CuratedGroupsTest(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class CuratedGroupsTest(DjangoTestCase):
 
     def test_get_names(self):
         event = Event.objects.get(title='Test event')
@@ -485,8 +390,7 @@ class CuratedGroupsTest(TestCase):
         eq_(CuratedGroup.get_names(event), ['ABBA Fans'])
 
 
-class VidlySubmissionTests(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class VidlySubmissionTests(DjangoTestCase):
 
     def test_get_least_square_slope(self):
         eq_(VidlySubmission.get_least_square_slope(), None)
