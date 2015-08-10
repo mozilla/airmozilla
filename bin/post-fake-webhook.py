@@ -75,8 +75,10 @@ def main(args):
         webhook_url, file_url, tag = args
         run(webhook_url, file_url, tag)
     except ValueError:
-        print "USAGE: %s /new/vidly/webhook/ http://fileurl.com/file.mp4 "\
-            + "abc123" % __file__
+        print (
+            "USAGE: %s /new/vidly/webhook/ http://fileurl.com/file.mp4 "
+            "abc123"
+        ) % __file__
         return 1
     return 0
 
