@@ -25,7 +25,7 @@ $(function() {
             };
             $.getJSON($('#content').data('thumbnails-url'), data)
             .then(function(response) {
-                if (response.thumbnails) {
+                if (response.thumbnails.length) {
                     fetched[eventid] = response.thumbnails;
                     if (stillover) {
                         showThumbnails(img, response.thumbnails);
@@ -48,6 +48,6 @@ $(function() {
         if (timer) {
             clearInterval(timer);
         }
-    })
+    });
 
 });
