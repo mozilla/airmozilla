@@ -896,7 +896,12 @@ class PictureForm(BaseModelForm):
 
     class Meta:
         model = Picture
-        fields = ('file', 'notes', 'default_placeholder')
+        fields = ('file', 'notes', 'default_placeholder', 'is_active')
+        help_texts = {
+            'is_active': (
+                "Only active pictures is a choice when users pick picture."
+            ),
+        }
 
 
 class AutocompeterUpdateForm(BaseForm):

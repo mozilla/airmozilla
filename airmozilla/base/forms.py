@@ -42,8 +42,19 @@ class GallerySelect(forms.widgets.Widget):
                 Q(event__isnull=True) |
                 Q(event=self.event)
             )
+            # If the current event does use an inactive picture,
+            # let it still be a choice.
+            if self.event.picture_id:
+                qs = qs.filter(
+                    Q(is_active=True) | Q(id=self.event.picture_id)
+                )
+            else:
+                qs = qs.filter(is_active=True)
         else:
-            qs = qs.filter(event__isnull=True)
+            qs = qs.filter(
+                event__isnull=True,
+                is_active=True,
+            )
         for pic in qs.order_by('event', '-created'):
             thumb = thumbnail(pic.file, '160x90', crop='center')
             pictures.append({
