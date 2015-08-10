@@ -35,3 +35,7 @@ div.thumbnail {
 .clearfix {
     clear: both;
 }
+
+img.inactive {
+    opacity: 0.4;
+}

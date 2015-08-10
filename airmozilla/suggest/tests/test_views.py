@@ -606,6 +606,9 @@ class TestPages(DjangoTestCase):
         eq_(discussion.moderators.all().count(), 1)
         ok_(self.user in discussion.moderators.all())
 
+        # assert that we're still signed in
+        assert self.client.session['_auth_user_id']
+
         # do it a second time and it shouldn't add us as a moderator again
         response = self.client.post(url, data)
         eq_(response.status_code, 302)

@@ -122,7 +122,8 @@
       ng-class="{'current-event-picture': current_event_picture == picture.id, 'clearfix': $index % 4 == 0}">
     <div class="thumbnail">
       <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
-        <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=201x113">
+        <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=201x113"
+             ng-class="{inactive: !picture.is_active}">
         <span class="label label-primary picture-metadata">
           {{ picture.width }}x{{ picture.height }}
           {{ picture.size | filesize }}
@@ -130,6 +131,10 @@
         <span ng-if="picture.default_placeholder"
               class="label label-success picture-default-placeholder">
           Default placeholder
+        </span>
+        <span ng-if="!picture.is_active"
+              class="label label-danger picture-default-placeholder">
+          Inactive!
         </span>
 
       </a>

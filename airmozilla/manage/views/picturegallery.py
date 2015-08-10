@@ -104,6 +104,7 @@ def _get_all_pictures(event=None):
         'modified_user',
         'event_id',
         'default_placeholder',
+        'is_active',
     )
     qs = Picture.objects.all()
     if event:
@@ -111,6 +112,7 @@ def _get_all_pictures(event=None):
             Q(event__isnull=True) |
             Q(event=event)
         )
+        qs = qs.exclude(is_active=False)
     else:
         qs = qs.filter(event__isnull=True)
     for picture_dict in qs.order_by('event', '-created').values(*values):
@@ -124,6 +126,7 @@ def _get_all_pictures(event=None):
             'events': event_map[picture.id],
             'event': picture.event_id,
             'default_placeholder': picture.default_placeholder,
+            'is_active': picture.is_active,
         }
         if cant_delete.get(picture.id):
             item['cant_delete'] = True

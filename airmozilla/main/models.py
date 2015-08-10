@@ -867,6 +867,7 @@ class Picture(models.Model):
     # suggested_event = models.ForeignKey(SuggestedEvent, null=True)
     default_placeholder = models.BooleanField(default=False)
     notes = models.CharField(max_length=100, blank=True)
+    is_active = models.BooleanField(default=True)
     modified_user = models.ForeignKey(User, null=True,
                                       on_delete=models.SET_NULL)
     created = models.DateTimeField(default=_get_now)
