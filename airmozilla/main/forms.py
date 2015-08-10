@@ -141,3 +141,9 @@ class ExecutiveSummaryForm(BaseForm):
         if value and value.weekday() != 0:
             raise forms.ValidationError("Not a Monday")
         return value
+
+
+class ThumbnailsForm(BaseForm):
+    id = forms.IntegerField()
+    width = forms.IntegerField()
+    height = forms.IntegerField()

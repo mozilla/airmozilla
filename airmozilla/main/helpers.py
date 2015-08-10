@@ -182,14 +182,19 @@ def show_thumbnail(
     alt=None,
     image=None,
     url_prefix='',
+    live=False,
 ):
     alt = alt or event.title
     if not image:
         image = event.picture and event.picture.file or event.placeholder_img
     thumb = thumbnail(image, geometry, crop=crop)
+    data = ''
+    if not live and event:
+        data = ' data-eventid="%s"' % event.id
     html = (
         '<img src="%(url)s" width="%(width)s" height="%(height)s" '
-        'alt="%(alt)s" class="wp-post-image">' % {
+        'alt="%(alt)s"%(data)s class="wp-post-image">' % {
+            'data': data,
             'url': urlparse.urljoin(url_prefix, thumb.url),
             'width': thumb.width,
             'height': thumb.height,
@@ -205,7 +210,8 @@ def show_lazyr_thumbnail(
     geometry='160x90',
     crop='center',
     alt=None,
-    image=None
+    image=None,
+    live=False,
 ):
     placeholder_url = get_default_placeholder_thumb_url(geometry, crop)
     if placeholder_url is None:
@@ -221,10 +227,14 @@ def show_lazyr_thumbnail(
     if not image:
         image = event.picture and event.picture.file or event.placeholder_img
     thumb = thumbnail(image, geometry, crop=crop)
+    data = ''
+    if not live:
+        data = ' data-eventid="%s"' % event.id
     html = (
         '<img src="%(placeholder)s" data-layzr="%(url)s" '
         'width="%(width)s" height="%(height)s" '
-        'alt="%(alt)s" class="wp-post-image">' % {
+        'alt="%(alt)s"%(data)s class="wp-post-image">' % {
+            'data': data,
             'placeholder': placeholder_url,
             'url': thumb.url,
             'width': thumb.width,

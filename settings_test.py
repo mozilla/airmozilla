@@ -76,3 +76,5 @@ BROWSERID_DISABLED = False
 
 # Don't actually use celery in tests
 CELERY_ALWAYS_EAGER = True
+
+SCREENCAPTURES_NO_PICTURES = 5 # faster

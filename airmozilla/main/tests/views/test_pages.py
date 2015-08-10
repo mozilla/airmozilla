@@ -3282,3 +3282,42 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Streaming Live Now' in response.content)
         ok_(event.title in response.content)
+
+    def test_thumbnails(self):
+        event = Event.objects.get(title='Test event')
+
+        url = reverse('main:thumbnails')
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {'id': event.id})
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {
+            'id': event.id,
+            'width': 'xxx',
+            'height': '90'
+        })
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {
+            'id': event.id,
+            'width': '160',
+            'height': '90'
+        })
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content)['thumbnails'], [])
+
+        # make some pictures for this
+        for i in range(4):
+            with open(self.main_image) as fp:
+                Picture.objects.create(file=File(fp), event=event)
+
+        response = self.client.get(url, {
+            'id': event.id,
+            'width': '160',
+            'height': '90'
+        })
+        eq_(response.status_code, 200)
+        thumbnail_urls = json.loads(response.content)['thumbnails']
+        eq_(len(thumbnail_urls), 4)

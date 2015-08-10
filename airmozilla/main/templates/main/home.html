@@ -31,7 +31,8 @@ p.feed { float: right; }
       </header>
       <div class="entry-summary">
         <a href="{{ href }}">
-          {{ show_thumbnail(live, '160x90') }}
+          {# setting live=True here will prevent the thumbnail rotating effect #}
+          {{ show_thumbnail(live, '160x90', live=True) }}
         </a>
         <a class="star live" data-id="{{ event.id }}" title="Save as a starred event"></a>
         <p>{{ short_desc(live, 16) | safe_html }}
