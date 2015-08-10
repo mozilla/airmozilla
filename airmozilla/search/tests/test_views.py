@@ -22,8 +22,6 @@ class TestSearch(DjangoTestCase):
     def test_basic_search(self):
         Event.objects.all().delete()
 
-        self._upload_media(self.placeholder_path)
-
         today = timezone.now()
         event = Event.objects.create(
             title='Entirely Different',

@@ -105,8 +105,6 @@ def truncate_chars(text, chars, ellipsis=u'…'):
 def thumbnail(filename, geometry, **options):
     try:
         return get_thumbnail(filename, geometry, **options)
-    except IOError:
-        return None
     except IntegrityError:
         # annoyingly, this happens sometimes because kvstore in sorl
         # doesn't check before writing properly

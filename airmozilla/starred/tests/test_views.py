@@ -13,7 +13,6 @@ from airmozilla.starred.models import (
 
 class TestStarredEvent(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    main_image = 'airmozilla/manage/tests/firefox.png'
     sync_url = reverse('starred:sync')
     home_url = reverse('starred:home')
 

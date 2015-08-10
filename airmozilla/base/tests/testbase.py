@@ -13,6 +13,12 @@ from django.core.files import File
 
 class DjangoTestCase(TestCase):
 
+    main_image = 'airmozilla/manage/tests/firefox.png'
+
+    def setUp(self):
+        super(DjangoTestCase, self).setUp()
+        self._upload_media(self.main_image)
+
     def shortDescription(self):
         return None
 

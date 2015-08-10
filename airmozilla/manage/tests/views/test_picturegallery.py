@@ -13,7 +13,6 @@ from .base import ManageTestCase
 
 class TestPictureGallery(ManageTestCase):
 
-    main_image = 'airmozilla/manage/tests/firefox.png'
     other_image = 'airmozilla/manage/tests/other_logo.png'
 
     def test_load_gallery(self):
