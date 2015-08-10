@@ -11,18 +11,20 @@ $(function() {
     }
 
     var fetched = {};
+    var startedFetching = [];
     var stillover = false;
     $('#content').on('mouseover', 'img[data-eventid]', function() {
         var img = $(this);
         var eventid = img.data('eventid');
         if (fetched[eventid]) {
             showThumbnails(img, fetched[eventid]);
-        } else {
+        } else if (startedFetching.indexOf(eventid) === -1) {
             var data = {
                 id: eventid,
                 width: img.attr('width'),
                 height: img.attr('height'),
             };
+            startedFetching.push(eventid);
             $.getJSON($('#content').data('thumbnails-url'), data)
             .then(function(response) {
                 if (response.thumbnails.length) {
