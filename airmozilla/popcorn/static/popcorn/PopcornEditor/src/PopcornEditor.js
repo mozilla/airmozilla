@@ -28,7 +28,6 @@ var PopcornEditor = (function () {
    * @param handler : [function] takes event
    */
   PopcornEditor.listen = function (eventName, handler) {
-    console.log(this);
     listeners[eventName] = handler;
   }
 
@@ -107,18 +106,19 @@ var PopcornEditor = (function () {
                     }]
                 }],
                 "clipData": {
-                    videoUrl : {
-                        "type": video.type,
-                        "title": video.title,
-                        "source": video.url,
-                        "thumbnail": video.thumbnail,
-                        "duration": video.duration
-                    }
                 },
                 "currentTime": 0,
             }]
         },
         "tags": ["popcorn"],
+    }
+    // Need to dynamically set the clipdata key
+    data.data.media[0].clipData[videoUrl] = {
+        "type": video.type,
+        "title": video.title,
+        "source": video.url,
+        "thumbnail": video.thumbnail,
+        "duration": video.duration
     }
     return data;
   };
