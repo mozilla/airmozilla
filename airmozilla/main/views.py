@@ -1611,4 +1611,6 @@ def thumbnails(request):
         thumb = thumbnail(picture.file, geometry, crop='center')
         thumbnails.append(thumb.url)
 
+    from time import sleep
+    sleep(3)
     return {'thumbnails': thumbnails}
