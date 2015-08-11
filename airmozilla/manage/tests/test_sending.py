@@ -140,7 +140,7 @@ class TestSending(DjangoTestCase):
         ok_(summary_url in email_sent.body)
 
     def test_email_about_approval_requested(self):
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
 
         event, = Event.objects.all()[:1]
         Approval.objects.create(event=event, group=group)

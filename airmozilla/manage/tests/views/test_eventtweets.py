@@ -137,7 +137,7 @@ class TestEventTweets(ManageTestCase):
     def test_event_tweets_states(self):
         event = Event.objects.get(title='Test event')
         assert event in Event.objects.approved()
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         Approval.objects.create(
             event=event,
             group=group,
@@ -208,7 +208,7 @@ class TestEventTweets(ManageTestCase):
     def test_all_event_tweets_states(self):
         event = Event.objects.get(title='Test event')
         assert event in Event.objects.approved()
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         Approval.objects.create(
             event=event,
             group=group,

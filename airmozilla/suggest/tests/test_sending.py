@@ -21,10 +21,6 @@ from airmozilla.main.models import (
 class TestSending(DjangoTestCase):
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
-    def shortDescription(self):
-        # Stop nose using the test docstring and instead the test method name.
-        pass
-
     def test_email_about_suggested_event_comment(self):
         # first we need to add two users
         zandr = User.objects.create(
@@ -32,7 +28,7 @@ class TestSending(DjangoTestCase):
             email='zandr@mozilla.com'
         )
         permission = Permission.objects.get(codename='add_event')
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         group.permissions.add(permission)
         zandr.groups.add(group)
 
@@ -84,7 +80,7 @@ class TestSending(DjangoTestCase):
             email='zandr@mozilla.com'
         )
         permission = Permission.objects.get(codename='add_event')
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         group.permissions.add(permission)
         zandr.groups.add(group)
 

@@ -56,12 +56,5 @@
             "username": "sdkjf",
             "email": "askjdf@slkjsk.com"
         }
-    },
-    {
-        "pk": 1,
-        "model": "auth.group",
-        "fields": {
-            "name": "testapprover"
-        }
     }
 ]

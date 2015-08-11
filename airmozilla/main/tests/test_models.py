@@ -251,7 +251,7 @@ class ForeignKeyTests(DjangoTestCase):
     def test_group_remove(self):
         """Deleting a Group does not delete associated Approval."""
         event = Event.objects.get(id=22)
-        group = Group.objects.get(id=1)
+        group = Group.objects.create(name='testapprover')
         approval = Approval(event=event, group=group)
         approval.save()
         self._successful_delete(group)

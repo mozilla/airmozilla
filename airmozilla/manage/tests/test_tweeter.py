@@ -237,7 +237,7 @@ class TweeterTestCase(DjangoTestCase):
         mocked_twython.return_value = mocker
 
         # change so that it needs an approval
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         approval = Approval.objects.create(
             event=event,
             group=group,
