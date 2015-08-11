@@ -10,7 +10,6 @@ from airmozilla.staticpages.views import can_view_staticpage
 
 
 class TestStaticPages(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_can_view_staticpage(self):
         from airmozilla.main.views import is_contributor

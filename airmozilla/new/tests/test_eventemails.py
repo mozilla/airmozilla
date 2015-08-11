@@ -27,7 +27,6 @@ from airmozilla.new import eventemails
 
 
 class TestEventEmails(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
     sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
 
     def test_basic_send(self):

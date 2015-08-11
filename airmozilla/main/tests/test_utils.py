@@ -6,7 +6,6 @@ from airmozilla.main.utils import get_event_channels
 
 
 class TestEventsToChannels(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_basic_case(self):
         event = Event.objects.get(title='Test event')

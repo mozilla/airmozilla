@@ -14,7 +14,6 @@ from airmozilla.popcorn.models import PopcornEdit
 
 
 class TestPopcornRender(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
     @mock.patch('airmozilla.popcorn.renderer.Key')

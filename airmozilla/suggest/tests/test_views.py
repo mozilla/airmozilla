@@ -42,7 +42,6 @@ class HeadResponse(object):
 
 
 class TestPages(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):

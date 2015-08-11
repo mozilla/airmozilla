@@ -12,7 +12,7 @@ from django.core.files import File
 
 
 class DjangoTestCase(TestCase):
-
+    fixtures = ['airmozilla/manage/tests/main_testdata.json']
     main_image = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):
@@ -20,7 +20,8 @@ class DjangoTestCase(TestCase):
         self._upload_media(self.main_image)
 
     def shortDescription(self):
-        return None
+        # Stop nose using the test docstring and instead the test method name.
+        pass
 
     def post_json(self, path, data=None, **extra):
         data = data or {}

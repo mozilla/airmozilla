@@ -6,12 +6,12 @@ import mock
 from nose.tools import eq_, ok_
 
 from django.conf import settings
-from django.test import TestCase
 from django.core.cache import cache
 from django.contrib.auth.models import User
 
 from funfactory.urlresolvers import reverse
 
+from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.uploads.models import Upload
 from airmozilla.main.models import Event
 
@@ -21,8 +21,7 @@ class HeadResponse(object):
         self.headers = headers
 
 
-class TestUploads(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class TestUploads(DjangoTestCase):
 
     def _login(self):
         user = User.objects.create_user('richard', password='secret')

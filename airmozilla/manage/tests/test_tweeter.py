@@ -4,13 +4,12 @@ from nose.tools import eq_, ok_
 import mock
 
 from django.contrib.auth.models import User, Group
-from django.test import TestCase
 from django.conf import settings
 from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.base.tests.testbase import Response
+from airmozilla.base.tests.testbase import Response, DjangoTestCase
 from airmozilla.manage.tweeter import (
     send_tweet,
     send_unsent_tweets,
@@ -25,8 +24,7 @@ from airmozilla.main.models import (
 )
 
 
-class TweeterTestCase(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class TweeterTestCase(DjangoTestCase):
 
     event_base_data = {
         'status': Event.STATUS_SCHEDULED,

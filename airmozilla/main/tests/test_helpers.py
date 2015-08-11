@@ -81,7 +81,6 @@ class TestThumbnailHelper(DjangoTestCase):
 
 
 class TestShowThumbnailHelper(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_show_thumbnail(self):
         event = Event.objects.get(title='Test event')

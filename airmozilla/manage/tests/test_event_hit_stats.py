@@ -4,8 +4,8 @@ from nose.tools import eq_, ok_
 import mock
 
 from django.utils import timezone
-from django.test import TestCase
 
+from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.manage import event_hit_stats
 from airmozilla.main.models import Event, EventHitStats, Template
 
@@ -28,9 +28,7 @@ def non_signal_save(obj, **kwargs):
     obj.__class__.objects.filter(pk=obj.pk).update(**kwargs)
 
 
-class EventHitStatsTestCase(TestCase):
-
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class EventHitStatsTestCase(DjangoTestCase):
 
     @mock.patch('urllib2.urlopen')
     def test_update(self, p_urlopen):

@@ -1,7 +1,6 @@
 import datetime
 from cStringIO import StringIO
 
-from django.test import TestCase
 from django.core import mail
 from django.conf import settings
 from django.utils import timezone
@@ -12,6 +11,7 @@ from funfactory.urlresolvers import reverse
 import mock
 from nose.tools import eq_, ok_
 
+from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.manage.archiver import archive
 from airmozilla.main.models import Event, Template, VidlySubmission
 
@@ -48,8 +48,7 @@ SAMPLE_MEDIALIST_XML = (
 )
 
 
-class ArchiverTestCase(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
+class ArchiverTestCase(DjangoTestCase):
 
     def _age_event_created(self, event, save=True):
         extra_seconds = settings.PESTER_INTERVAL_DAYS * 24 * 60 * 60 + 1

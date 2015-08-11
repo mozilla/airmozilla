@@ -8,11 +8,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 
 class ManageTestCase(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
-
-    def shortDescription(self):
-        # Stop nose using the test docstring and instead the test method name.
-        pass
 
     def setUp(self):
         super(ManageTestCase, self).setUp()

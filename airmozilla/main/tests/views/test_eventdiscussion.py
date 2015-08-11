@@ -9,7 +9,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 
 class TestEventDiscussion(DjangoTestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
 
     def test_link_to_it(self):
         event = Event.objects.get(title='Test event')

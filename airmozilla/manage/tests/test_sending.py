@@ -1,6 +1,5 @@
 import datetime
 
-from django.test import TestCase
 from django.contrib.auth.models import User, Group
 from django.core import mail
 from django.test.client import RequestFactory
@@ -9,6 +8,7 @@ from django.utils import timezone
 from nose.tools import eq_, ok_
 from funfactory.urlresolvers import reverse
 
+from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.manage import sending
 from airmozilla.main.models import (
     Event,
@@ -19,13 +19,7 @@ from airmozilla.main.models import (
 )
 
 
-class TestSending(TestCase):
-    fixtures = ['airmozilla/manage/tests/main_testdata.json']
-    placeholder = 'airmozilla/manage/tests/firefox.png'
-
-    def shortDescription(self):
-        # Stop nose using the test docstring and instead the test method name.
-        pass
+class TestSending(DjangoTestCase):
 
     def test_email_about_suggestion_comment(self):
         user, = User.objects.all()[:1]
@@ -41,7 +35,7 @@ class TestSending(TestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            placeholder_img=self.placeholder,
+            placeholder_img=self.main_image,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             first_submitted=now,
         )
@@ -76,7 +70,7 @@ class TestSending(TestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            placeholder_img=self.placeholder,
+            placeholder_img=self.main_image,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             first_submitted=now,
             submitted=now,
@@ -122,7 +116,7 @@ class TestSending(TestCase):
             description='DESCRIPTION',
             start_time=tomorrow,
             location=location,
-            placeholder_img=self.placeholder,
+            placeholder_img=self.main_image,
             privacy=Event.PRIVACY_CONTRIBUTORS,
             first_submitted=now,
             submitted=now,
