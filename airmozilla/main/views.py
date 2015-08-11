@@ -11,6 +11,7 @@ from django.contrib.sites.models import RequestSite
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.contrib.syndication.views import Feed
@@ -1530,6 +1531,7 @@ def executive_summary(request):
     return render(request, 'main/executive_summary.html', context)
 
 
+@never_cache
 @json_view
 def event_livehits(request, id):
     event = get_object_or_404(Event, id=id)
@@ -1570,6 +1572,7 @@ def event_livehits(request, id):
     return {'hits': total_hits}
 
 
+@never_cache
 @json_view
 def event_status(request, slug):
     cache_key = 'event_status_{0}'.format(hashlib.md5(slug).hexdigest())
