@@ -15,6 +15,7 @@ class TestTags(ManageTestCase):
         eq_(response.status_code, 200)
 
     def test_tags_data(self):
+        Tag.objects.create(name='testing')
         url = reverse('manage:tags_data')
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -34,7 +35,8 @@ class TestTags(ManageTestCase):
         """Removing a tag works correctly and leaves associated events
            with null tags."""
         event = Event.objects.get(id=22)
-        tag = Tag.objects.get(id=1)
+        tag = Tag.objects.create(name='testing')
+        event.tags.add(tag)
         assert tag in event.tags.all()
         event.tags.add(Tag.objects.create(name='othertag'))
         eq_(event.tags.all().count(), 2)
@@ -44,15 +46,15 @@ class TestTags(ManageTestCase):
 
     def test_tag_edit(self):
         """Test tag editor; timezone switch works correctly."""
-        tag = Tag.objects.get(id=1)
-        url = reverse('manage:tag_edit', kwargs={'id': 1})
+        tag = Tag.objects.create(name='testing')
+        url = reverse('manage:tag_edit', kwargs={'id': tag.id})
         response = self.client.get(url)
         eq_(response.status_code, 200)
         response = self.client.post(url, {
             'name': 'different',
         })
         self.assertRedirects(response, reverse('manage:tags'))
-        tag = Tag.objects.get(id=1)
+        tag = Tag.objects.get(id=tag.id)
         eq_(tag.name, 'different')
 
         Tag.objects.create(name='alreadyinuse')

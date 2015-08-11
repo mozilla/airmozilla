@@ -16,7 +16,8 @@ from airmozilla.main.models import (
     RecruitmentMessage,
     Picture,
     CuratedGroup,
-    VidlySubmission
+    VidlySubmission,
+    Tag,
 )
 
 from airmozilla.base.tests.testbase import DjangoTestCase
@@ -276,6 +277,7 @@ class ForeignKeyTests(DjangoTestCase):
     def test_tags_remove(self):
         """Deleting all Tags does not delete associated Event."""
         event = Event.objects.get(id=22)
+        event.tags.add(Tag.objects.create(name='testing'))
         tags = event.tags.all()
         ok_(tags.exists())
         for tag in tags:

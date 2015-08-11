@@ -328,6 +328,7 @@ class TweeterTestCase(DjangoTestCase):
         rget.side_effect = mocked_read
 
         event = Event.objects.get(title='Test event')
+        event.tags.add(Tag.objects.create(name='testing'))
         event_tag, = event.tags.all()
         tweet_new_published_events()
 
