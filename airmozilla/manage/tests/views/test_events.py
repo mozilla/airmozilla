@@ -107,7 +107,7 @@ class TestEvents(ManageTestCase):
         self.assertRedirects(response_cancel, reverse('manage:events'))
 
     def test_event_request_with_approvals(self):
-        group1, = Group.objects.all()
+        group1 = Group.objects.create(name='testapprover')
         group2 = Group.objects.create(name='Group2')
         permission = Permission.objects.get(codename='change_approval')
         group1.permissions.add(permission)

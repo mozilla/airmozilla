@@ -312,7 +312,7 @@ class TestPages(DjangoTestCase):
         """Event view page loads correctly if the event is public and
            scheduled and approved; request a login otherwise."""
         event = Event.objects.get(title='Test event')
-        group = Group.objects.get()
+        group = Group.objects.create(name='testapprover')
         approval = Approval(event=event, group=group)
         approval.save()
         event_page = reverse('main:event', kwargs={'slug': event.slug})
@@ -485,7 +485,7 @@ class TestPages(DjangoTestCase):
         date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
         event.start_time = date
         event.save()
-        group = Group.objects.get()
+        group = Group.objects.create(name='testapprover')
         approval = Approval(event=event, group=group)
         approval.approved = True
         approval.save()
@@ -3246,7 +3246,8 @@ class TestPages(DjangoTestCase):
         ok_(event.title in response.content)
 
         # make it depend on approval
-        group, = Group.objects.all()
+
+        group = Group.objects.create(name='testapprover')
         approval = Approval.objects.create(
             event=event,
             group=group

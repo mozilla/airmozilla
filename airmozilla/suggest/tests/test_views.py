@@ -47,6 +47,7 @@ class TestPages(DjangoTestCase):
     def setUp(self):
         super(TestPages, self).setUp()
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
+        Group.objects.create(name='testapprover')
         assert self.client.login(username='fake', password='fake')
         self.tmp_dir = tempfile.mkdtemp()
 

@@ -105,7 +105,7 @@ class TestUsersAndGroups(ManageTestCase):
         ok_(same_user.get('is_inactive'))
         ok_(not same_user.get('groups'))
 
-        testgroup, = Group.objects.all()
+        testgroup = Group.objects.create(name='testapprover')
         user.groups.add(testgroup)
         response = self.client.get(url)
         eq_(response.status_code, 200)

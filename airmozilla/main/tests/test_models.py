@@ -16,7 +16,8 @@ from airmozilla.main.models import (
     RecruitmentMessage,
     Picture,
     CuratedGroup,
-    VidlySubmission
+    VidlySubmission,
+    Tag,
 )
 
 from airmozilla.base.tests.testbase import DjangoTestCase
@@ -250,7 +251,7 @@ class ForeignKeyTests(DjangoTestCase):
     def test_group_remove(self):
         """Deleting a Group does not delete associated Approval."""
         event = Event.objects.get(id=22)
-        group = Group.objects.get(id=1)
+        group = Group.objects.create(name='testapprover')
         approval = Approval(event=event, group=group)
         approval.save()
         self._successful_delete(group)
@@ -276,6 +277,7 @@ class ForeignKeyTests(DjangoTestCase):
     def test_tags_remove(self):
         """Deleting all Tags does not delete associated Event."""
         event = Event.objects.get(id=22)
+        event.tags.add(Tag.objects.create(name='testing'))
         tags = event.tags.all()
         ok_(tags.exists())
         for tag in tags:

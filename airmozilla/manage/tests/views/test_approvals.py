@@ -18,7 +18,7 @@ class TestApprovals(ManageTestCase):
 
     def test_approvals(self):
         event = Event.objects.get(title='Test event')
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         Approval.objects.create(event=event, group=group)
 
         response = self.client.get(reverse('manage:approvals'))
@@ -44,7 +44,7 @@ class TestApprovals(ManageTestCase):
 
     def test_approvals_with_original_suggested_event(self):
         event = Event.objects.get(title='Test event')
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         Approval.objects.create(event=event, group=group)
 
         self.user.groups.add(group)
@@ -74,14 +74,14 @@ class TestApprovals(ManageTestCase):
 
     def test_approval_review(self):
         event = Event.objects.get(title='Test event')
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         app = Approval.objects.create(event=event, group=group)
 
         url = reverse('manage:approval_review', kwargs={'id': app.id})
         response_not_in_group = self.client.get(url)
         self.assertRedirects(response_not_in_group,
                              reverse('manage:approvals'))
-        User.objects.get(username='fake').groups.add(1)
+        User.objects.get(username='fake').groups.add(group)
         response = self.client.get(url)
         eq_(response.status_code, 200)
         response_approve = self.client.post(url, {'approve': 'approve'})
@@ -93,7 +93,7 @@ class TestApprovals(ManageTestCase):
 
     def test_approval_review_no_placeholder_img(self):
         event = Event.objects.get(title='Test event')
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         app = Approval.objects.create(event=event, group=group)
         event.placeholder_img = None
         with open(self.placeholder) as fp:
@@ -106,14 +106,14 @@ class TestApprovals(ManageTestCase):
         event.save()
 
         url = reverse('manage:approval_review', kwargs={'id': app.id})
-        User.objects.get(username='fake').groups.add(1)
+        User.objects.get(username='fake').groups.add(group)
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('Picture' in response.content)
 
     def test_approval_reconsider(self):
         event = Event.objects.get(title='Test event')
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         app = Approval.objects.create(event=event, group=group)
         self.user.groups.add(group)
 
@@ -168,14 +168,14 @@ class TestApprovals(ManageTestCase):
             privacy=Event.PRIVACY_PUBLIC,
             submitted=now,
         )
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         app = Approval.objects.create(event=event, group=group)
 
         url = reverse('manage:approval_review', kwargs={'id': app.id})
         response_not_in_group = self.client.get(url)
         self.assertRedirects(response_not_in_group,
                              reverse('manage:approvals'))
-        User.objects.get(username='fake').groups.add(1)
+        User.objects.get(username='fake').groups.add(group)
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('Originally requested by' in response.content)

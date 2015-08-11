@@ -237,7 +237,7 @@ class TweeterTestCase(DjangoTestCase):
         mocked_twython.return_value = mocker
 
         # change so that it needs an approval
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         approval = Approval.objects.create(
             event=event,
             group=group,
@@ -328,6 +328,7 @@ class TweeterTestCase(DjangoTestCase):
         rget.side_effect = mocked_read
 
         event = Event.objects.get(title='Test event')
+        event.tags.add(Tag.objects.create(name='testing'))
         event_tag, = event.tags.all()
         tweet_new_published_events()
 

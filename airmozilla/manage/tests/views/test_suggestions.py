@@ -339,7 +339,7 @@ class TestSuggestions(ManageTestCase):
         channel = Channel.objects.create(name='CHANNEL')
 
         # we need a group that can approve events
-        group = Group.objects.get(name='testapprover')
+        group = Group.objects.create(name='testapprover')
         permission = Permission.objects.get(codename='change_approval')
         group.permissions.add(permission)
 

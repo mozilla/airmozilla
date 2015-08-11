@@ -15,13 +15,7 @@
             "slug": "main"
         }
     },
-    {
-        "pk": 1,
-        "model": "main.tag",
-        "fields": {
-            "name": "testing"
-        }
-    },
+
     {
         "pk": 22,
         "model": "main.event",
@@ -31,9 +25,6 @@
             "description": "sadfasdf",
             "title": "Test event",
             "start_time": "2012-06-21T19:30:00Z",
-            "tags": [
-                1
-            ],
             "call_info": "",
             "additional_links": "",
             "archive_time": "2012-06-21T20:00:00Z",
@@ -64,13 +55,6 @@
         "fields": {
             "username": "sdkjf",
             "email": "askjdf@slkjsk.com"
-        }
-    },
-    {
-        "pk": 1,
-        "model": "auth.group",
-        "fields": {
-            "name": "testapprover"
         }
     }
 ]

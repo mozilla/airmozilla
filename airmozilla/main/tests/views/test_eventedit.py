@@ -280,6 +280,7 @@ class TestEventEdit(DjangoTestCase):
         other than the placeholder_img
         """
         event = Event.objects.get(title='Test event')
+        event.tags.add(Tag.objects.create(name='testing'))
         self._attach_file(event, self.main_image)
         assert event.tags.all()
         assert event.channels.all()
@@ -338,6 +339,7 @@ class TestEventEdit(DjangoTestCase):
         to another one.
         """
         event = Event.objects.get(title='Test event')
+        event.tags.add(Tag.objects.create(name='testing'))
         self._attach_file(event, self.main_image)
         assert event.tags.all()
         assert event.channels.all()
@@ -635,6 +637,7 @@ class TestEventEdit(DjangoTestCase):
 
     def test_view_revision_change_links(self):
         event = Event.objects.get(title='Test event')
+        event.tags.add(Tag.objects.create(name='testing'))
         self._attach_file(event, self.main_image)
         url = reverse('main:event_edit', args=(event.slug,))
         user = self._login()
@@ -729,6 +732,7 @@ class TestEventEdit(DjangoTestCase):
 
     def test_view_revision_change(self):
         event = Event.objects.get(title='Test event')
+        event.tags.add(Tag.objects.create(name='testing'))
         self._attach_file(event, self.main_image)
 
         # base revision
