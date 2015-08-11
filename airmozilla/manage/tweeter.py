@@ -172,7 +172,7 @@ class ConsoleTweeter(object):  # pragma: no cover
         from random import randint
         return {'id': str(randint(1000000, 10000000))}
 
-    def updateStatus(self, status):
+    def update_status(self, status):
         return self.update_status_with_media(None, status)
 
 
