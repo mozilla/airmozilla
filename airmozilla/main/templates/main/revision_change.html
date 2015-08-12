@@ -54,18 +54,22 @@ div.change label {
           {{ show_thumbnail(None, image=difference.before, alt='Previous image') }}
         </div>
         {% endif %}
+        {% if difference.after %}
         <div class="change-to" style="text-align: center">
           {{ show_thumbnail(None, image=difference.after, alt='New image') }}
         </div>
+        {% endif %}
       {% elif difference.key == 'picture' %}
         {% if difference.before %}
         <div class="change-from" style="text-align: center">
           {{ show_thumbnail(None, image=difference.before.file, alt='Previous image') }}
         </div>
         {% endif %}
+        {% if difference.after %}
         <div class="change-to" style="text-align: center">
           {{ show_thumbnail(None, image=difference.after.file, alt='New image') }}
         </div>
+        {% endif %}
       {% elif difference.key == 'recruitmentmessage' %}
         <div class="change-from">
           {% if difference.before %}

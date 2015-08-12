@@ -782,7 +782,10 @@ class EventEditView(EventView):
                     ):
                         current_value = event.picture.file.url
                     else:
-                        current_value = event.placeholder_img.url
+                        if event.placeholder_img:
+                            current_value = event.placeholder_img.url
+                        else:
+                            current_value = None
 
                 elif key == 'tags':
                     current_value = ', '.join(x.name for x in event.tags.all())
@@ -845,7 +848,11 @@ class EventEditView(EventView):
                 elif key == 'placeholder_img':
                     if value:
                         changes[key] = {
-                            'from': event.placeholder_img.url,
+                            'from': (
+                                event.placeholder_img and
+                                event.placeholder_img.url or
+                                ''
+                            ),
                             'to': '__saved__event_placeholder_img'
                         }
                         event.placeholder_img = value
@@ -869,7 +876,7 @@ class EventEditView(EventView):
                 if key in changes:
                     # you wanted to change it, but has your reference changed
                     # since you loaded it?
-                    previous_value = previous[key]
+                    previous_value = previous.get(key)
                     if previous_value != current_value:
                         conflict_errors.append(key)
                         continue
