@@ -63,8 +63,9 @@ oauthlib==0.7.2
 six==1.9.0
 # sha256: AW21Ktp2WXYb2l7gNy9g2H2-8F1S9GaqYZci526qA9E
 awesome-slugify==1.6
-# sha256: hPtZujVa8xIv8lqpikSYECSgI4S6d8fx0Fuevv5MCxQ
-sorl-thumbnail==11.12
+# sha256: zpHFsRKi75MKCWJa29mWgr1i80vhljwo8__A0BOKB_0
+# sha256: uyd9yY2qB-iS1Cm3Pu10lBH37_Hub-7xQqGeApWC6M0
+sorl-thumbnail==12.3
 # sha256: 22FYVWYhAfnq6NFed7wjtxD-iJHcn-gujcV3EOYa7Dc
 south==0.7.5
 # sha256: qw3sUihmd-lE3cAOr2oOuJr0ixpmljJOopNRNC0cSD8
