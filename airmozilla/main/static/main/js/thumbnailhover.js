@@ -34,9 +34,11 @@ $(function() {
             startedFetching.push(eventid);
             $.getJSON($('#content').data('thumbnails-url'), data)
             .then(function(response) {
-                if (response.thumbnails.length && stillover) {
+                if (response.thumbnails.length) {
                     fetched[eventid] = response.thumbnails;
-                    showThumbnails(img, response.thumbnails);
+                    if (stillover) {
+                        showThumbnails(img, response.thumbnails);
+                    }
                 }
             })
             .fail(function() {
