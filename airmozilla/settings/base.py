@@ -347,3 +347,6 @@ CELERY_ALWAYS_EAGER = False
 BROKER_CONNECTION_TIMEOUT = 0.1
 CELERYD_CONCURRENCY = 2
 CELERY_IGNORE_RESULT = True
+
+
+THUMBNAIL_BACKEND = 'airmozilla.base.thumbnailer.OptimizingThumbnailBackend'
