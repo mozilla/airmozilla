@@ -350,3 +350,8 @@ CELERY_IGNORE_RESULT = True
 
 
 THUMBNAIL_BACKEND = 'airmozilla.base.thumbnailer.OptimizingThumbnailBackend'
+
+
+# This turns of the thumbnail optimizer using pngquant so it's
+# not used unless you explicitely turn it on. 
+PNGQUANT_LOCATION = None
