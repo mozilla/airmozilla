@@ -19,8 +19,9 @@ Air Mozilla | Mozilla, in Video
   {% compress css %}
     <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('starred/css/star_event.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ static('main/css/fonts.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/main.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('main/css/minimal-tabzilla.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ static('main/css/tabzilla.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/autocompeter/autocompeter.min.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('main/css/autocompeter.css') }}" rel="stylesheet" type="text/css">
     <link href="{{ static('browserid/persona-buttons.css') }}" rel="stylesheet" type="text/css">
@@ -79,7 +80,10 @@ Air Mozilla | Mozilla, in Video
     {% block banner %}
       {% include "main/_banner_small.html" %}
     {% endblock %}
-    <a href="//www.mozilla.org/" id="tabzilla" data-infobar="update">mozilla</a>
+    <div id="tabzilla">
+      <a href="https://www.mozilla.org/">Mozilla</a>
+    </div>
+
   </header>
 
   <div id="content" {% block content_tag %}{% endblock %}
@@ -198,11 +202,5 @@ Air Mozilla | Mozilla, in Video
   <script src="{{ static('main/js/autocompeter.js') }}"></script>
   {% endcompress %}
   {% endif %}
-
-  {% compress js %}
-  <script src="{{ static('main/js/include-tabzilla.js') }}"></script>
-  <script src="{{ static('main/js/tabzilla.js') }}"></script>
-  {% endcompress %}
-
 
 {% endblock %}
