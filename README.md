@@ -631,6 +631,19 @@ data so that you're now a superuser.
 >>> my_user.save()
 ```
 
+Optimizing thumbnails
+---------------------
+
+By default, all the thumbnails that are generated from uploads and from
+scraped screencaptures get generated as `.png` files. These tend to be
+pretty large and can be optimized down without virtually any visual
+difference. To enable it, install [pngquant](https://pngquant.org/) and
+the override the local settings and set it like this:
+
+```
+PNGQUANT_LOCATION = 'pngquant'
+```
+
 Adding a sample video
 ---------------------
 
