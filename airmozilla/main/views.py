@@ -1166,7 +1166,7 @@ def related_content(request, slug):
 
     index = settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
     doc_type = 'event'
-    
+
     es = related.get_connection()
 
     fields = ['title', 'tags']
@@ -1223,7 +1223,7 @@ def related_content(request, slug):
             }
         }
        else:
-            query = {            
+            query = {
                 'fields': fields,
                 'query': {
                     'bool': {
@@ -1253,7 +1253,10 @@ def related_content(request, slug):
     ids = []
     hits = es.search(query, index=index)['hits']
     for doc in hits['hits']:
-        print "\t", repr(doc['_source']['title']), doc['_id'], doc['_score']
+        # print "DOC"
+        # from pprint import pprint
+        # pprint(doc)
+        # print "\t", repr(doc['_source']['title']), doc['_id'], doc['_score']
         ids.append(int(doc['_id']))
 
     events = Event.objects.scheduled_or_processing() \

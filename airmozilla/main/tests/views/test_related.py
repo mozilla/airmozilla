@@ -18,6 +18,7 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 class RelatedTestCase(DjangoTestCase):
     fixtures = ['airmozilla/manage/tests/main_testdata.json']
+    main_image = 'airmozilla/manage/tests/firefox.png'
 
     def setUp(self):
         super(RelatedTestCase, self).setUp()
@@ -25,6 +26,7 @@ class RelatedTestCase(DjangoTestCase):
 
     def test_related_content_logged(self):
         event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
         # make another event which is similar
         other = Event.objects.create(
             title='Event test',
@@ -33,6 +35,7 @@ class RelatedTestCase(DjangoTestCase):
             start_time=event.start_time,
             archive_time=event.archive_time,
             privacy=event.privacy,
+            placeholder_img=event.placeholder_img,
             )
         # for i in range(10):
         #     Event.objects.create(
