@@ -1,9 +1,10 @@
 import datetime
 
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import User, Group
 from django.core import mail
 from django.test.client import RequestFactory
 from django.utils import timezone
+from django.conf import settings
 
 from nose.tools import ok_
 from funfactory.urlresolvers import reverse
@@ -22,22 +23,15 @@ class TestSending(DjangoTestCase):
     placeholder = 'airmozilla/manage/tests/firefox.png'
 
     def test_email_about_suggested_event_comment(self):
-        # first we need to add two users
+        # first we need to add a user
         zandr = User.objects.create(
             username='zandr',
             email='zandr@mozilla.com'
         )
-        permission = Permission.objects.get(codename='add_event')
-        group = Group.objects.create(name='testapprover')
-        group.permissions.add(permission)
-        zandr.groups.add(group)
-
-        richard = User.objects.create(
-            username='richard',
-            email='richard@mozilla.com',
-            is_staff=True,
-            is_superuser=True
+        group, _ = Group.objects.get_or_create(
+            name=settings.NOTIFICATIONS_GROUP_NAME
         )
+        zandr.groups.add(group)
 
         user, = User.objects.all()[:1]
         now = timezone.now()
@@ -67,29 +61,21 @@ class TestSending(DjangoTestCase):
         sending.email_about_suggested_event_comment(comment, request)
         email_sent = mail.outbox[-1]
         ok_(email_sent.alternatives)
-        ok_(richard.email in email_sent.recipients())
         ok_(zandr.email in email_sent.recipients())
         ok_('TITLE' in email_sent.subject)
         summary_url = reverse('suggest:summary', args=(suggested_event.pk,))
         ok_(summary_url in email_sent.body)
 
     def test_email_about_suggested_event(self):
-        # first we need to add two users
+        # first we need to add a user
         zandr = User.objects.create(
             username='zandr',
             email='zandr@mozilla.com'
         )
-        permission = Permission.objects.get(codename='add_event')
-        group = Group.objects.create(name='testapprover')
-        group.permissions.add(permission)
-        zandr.groups.add(group)
-
-        richard = User.objects.create(
-            username='richard',
-            email='richard@mozilla.com',
-            is_staff=True,
-            is_superuser=True
+        group, _ = Group.objects.get_or_create(
+            name=settings.NOTIFICATIONS_GROUP_NAME
         )
+        zandr.groups.add(group)
 
         user, = User.objects.all()[:1]
         now = timezone.now()
@@ -115,7 +101,6 @@ class TestSending(DjangoTestCase):
         sending.email_about_suggested_event(suggested_event, request)
         email_sent = mail.outbox[-1]
         ok_(email_sent.alternatives)
-        ok_(richard.email in email_sent.recipients())
         ok_(zandr.email in email_sent.recipients())
         ok_('TITLE' in email_sent.subject)
         ok_('TITLE' in email_sent.body)

@@ -1,9 +1,9 @@
+from html2text import html2text
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.contrib.auth.models import Permission, User
-
-from html2text import html2text
+from django.contrib.auth.models import Group
 
 from airmozilla.main.models import (
     SuggestedEventComment
@@ -11,21 +11,23 @@ from airmozilla.main.models import (
 from airmozilla.base.utils import fix_base_url
 
 
-def _get_add_event_emails(exclude_superusers=False):
-    permission = Permission.objects.get(codename='add_event')
+def _get_notifications_group_emails():
+    """return a list of email addresses of users who belong to a certain
+    group."""
+    group, _ = Group.objects.get_or_create(
+        name=settings.NOTIFICATIONS_GROUP_NAME
+    )
     emails = set()
-    for group in permission.group_set.all():
-        emails.update([u.email for u in group.user_set.filter(is_active=True)])
-    if not exclude_superusers:
-        for superuser in User.objects.filter(is_superuser=True):
-            if superuser.email:
-                emails.add(superuser.email)
+    for user in group.user_set.filter(is_active=True):
+        emails.add(user.email)
     return list(emails)
 
 
 def email_about_suggested_event_comment(comment, base_url):
     base_url = fix_base_url(base_url)
-    emails = _get_add_event_emails()
+    emails = _get_notifications_group_emails()
+    if not emails:
+        return
     event_title = comment.suggested_event.title
     if len(event_title) > 30:
         event_title = '%s...' % event_title[:27]
@@ -56,7 +58,9 @@ def email_about_suggested_event_comment(comment, base_url):
 
 def email_about_suggested_event(event, base_url):
     base_url = fix_base_url(base_url)
-    emails = _get_add_event_emails()
+    emails = _get_notifications_group_emails()
+    if not emails:
+        return
     event_title = event.title
     if len(event_title) > 30:
         event_title = '%s...' % event_title[:27]

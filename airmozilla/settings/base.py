@@ -353,5 +353,10 @@ THUMBNAIL_BACKEND = 'airmozilla.base.thumbnailer.OptimizingThumbnailBackend'
 
 
 # This turns of the thumbnail optimizer using pngquant so it's
-# not used unless you explicitely turn it on. 
+# not used unless you explicitely turn it on.
 PNGQUANT_LOCATION = None
+
+
+# The user group where being a member means you get an email about
+# all new event requests
+NOTIFICATIONS_GROUP_NAME = 'Event Notifications'

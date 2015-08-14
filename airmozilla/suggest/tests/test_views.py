@@ -47,7 +47,6 @@ class TestPages(DjangoTestCase):
     def setUp(self):
         super(TestPages, self).setUp()
         self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
-        Group.objects.create(name='testapprover')
         assert self.client.login(username='fake', password='fake')
         self.tmp_dir = tempfile.mkdtemp()
 
@@ -1112,14 +1111,6 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
 
     def test_submit_event(self):
-        # create a superuser who will automatically get all notifications
-        User.objects.create(
-            username='zandr',
-            email='zandr@mozilla.com',
-            is_staff=True,
-            is_superuser=True
-        )
-
         event = self._make_suggested_event()
         ok_(not event.submitted)
         eq_(event.status, SuggestedEvent.STATUS_CREATED)
@@ -1128,14 +1119,14 @@ class TestPages(DjangoTestCase):
 
         # before we submit it, we need to create some users
         # who should get the email notification
-        approvers = Group.objects.get(name='testapprover')
+        group, _ = Group.objects.get_or_create(
+            name=settings.NOTIFICATIONS_GROUP_NAME
+        )
         richard = User.objects.create_user(
             'richard',
             email='richard@mozilla.com'
         )
-        richard.groups.add(approvers)
-        permission = Permission.objects.get(codename='add_event')
-        approvers.permissions.add(permission)
+        richard.groups.add(group)
 
         response = self.client.post(url)
         eq_(response.status_code, 302)
@@ -1152,7 +1143,6 @@ class TestPages(DjangoTestCase):
         ok_(event.title in email_sent.subject)
         eq_(email_sent.from_email, settings.EMAIL_FROM_ADDRESS)
         ok_('richard@mozilla.com' in email_sent.recipients())
-        ok_('zandr@mozilla.com' in email_sent.recipients())
         ok_('US/Pacific' in email_sent.body)
         ok_(event.user.email in email_sent.body)
         ok_(event.title in email_sent.body)
@@ -1255,21 +1245,21 @@ class TestPages(DjangoTestCase):
 
         # before anything, we need to create some users
         # who should get the email notification
-        approvers = Group.objects.get(name='testapprover')
+        group, _ = Group.objects.get_or_create(
+            name=settings.NOTIFICATIONS_GROUP_NAME
+        )
         richard = User.objects.create_user(
             'richard',
             email='richard@mozilla.com'
         )
-        richard.groups.add(approvers)
+        richard.groups.add(group)
         mrinactive = User.objects.create_user(
             'mrinactive',
             email='mr@inactive.com',
         )
         mrinactive.is_active = False
         mrinactive.save()
-        mrinactive.groups.add(approvers)
-        permission = Permission.objects.get(codename='add_event')
-        approvers.permissions.add(permission)
+        mrinactive.groups.add(group)
 
         data = {
             'save_comment': 1,
@@ -1312,10 +1302,7 @@ class TestPages(DjangoTestCase):
         ok_(event.submitted)
 
         email_sent = mail.outbox[-1]
-
-        ok_('zandr@mozilla.com' in email_sent.recipients())
         ok_('richard@mozilla.com' in email_sent.recipients())
-        ok_(self.user.email in email_sent.recipients())
         ok_('mr@inactive.com' not in email_sent.recipients())
 
         ok_('TitleTitle' in email_sent.subject)
@@ -1348,14 +1335,14 @@ class TestPages(DjangoTestCase):
 
         # before anything, we need to create some users
         # who should get the email notification
-        approvers = Group.objects.get(name='testapprover')
+        group, _ = Group.objects.get_or_create(
+            name=settings.NOTIFICATIONS_GROUP_NAME
+        )
         richard = User.objects.create_user(
             'richard',
             email='richard@mozilla.com'
         )
-        richard.groups.add(approvers)
-        permission = Permission.objects.get(codename='add_event')
-        approvers.permissions.add(permission)
+        richard.groups.add(group)
 
         data = {
             'save_comment': 1,
@@ -1413,14 +1400,14 @@ class TestPages(DjangoTestCase):
 
         # before anything, we need to create some users
         # who should get the email notification
-        approvers = Group.objects.get(name='testapprover')
+        group, _ = Group.objects.get_or_create(
+            name=settings.NOTIFICATIONS_GROUP_NAME
+        )
         richard = User.objects.create_user(
             'richard',
             email='richard@mozilla.com'
         )
-        richard.groups.add(approvers)
-        permission = Permission.objects.get(codename='add_event')
-        approvers.permissions.add(permission)
+        richard.groups.add(group)
 
         data = {
             'save_comment': 1,
