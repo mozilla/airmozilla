@@ -67,6 +67,16 @@ class TestPopcornRender(DjangoTestCase):
         p_key.side_effect = make_mock_key
 
         event = Event.objects.get(title='Test event')
+        event.template.name = 'Vid.ly Template'
+        event.template.save()
+
+        VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+            url='http://s3.com/file.mpg',
+            hd=True,
+            token_protection=False
+        )
 
         edit = PopcornEdit.objects.create(
             event=event,
@@ -77,9 +87,13 @@ class TestPopcornRender(DjangoTestCase):
 
         render_edit(edit.id)
 
-        vidly_submission = VidlySubmission.objects.get(
-             event=event,
+        assert VidlySubmission.objects.filter(event=event).count() == 2
+        vidly_submission, = (
+            VidlySubmission.objects
+            .filter(event=event)
+            .order_by('-submission_time')[:1]
         )
+        assert vidly_submission.tag != 'abc123'  # the original was 'abc123'
 
         edit = PopcornEdit.objects.get(id=edit.id)
 

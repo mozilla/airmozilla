@@ -86,10 +86,21 @@ def render_edit(edit_id, verbose=False):
     webhook_url = build_absolute_url(reverse('popcorn:vidly_webhook'))
     token_protection = event.privacy != Event.PRIVACY_PUBLIC
 
+    # if the original submission was *without* HD stick to that
+    hd = True
+    if 'vid.ly' in event.template.name.lower():
+        submissions = (
+            VidlySubmission.objects
+            .filter(event=event)
+            .order_by('submission_time')
+        )
+        for submission in submissions[:1]:
+            hd = submission.hd
+
     tag, error = vidly.add_media(
         url=video_url,
         token_protection=token_protection,
-        hd=True,
+        hd=hd,
         notify_url=webhook_url,
     )
 
