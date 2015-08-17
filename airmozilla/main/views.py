@@ -59,8 +59,6 @@ from airmozilla.staticpages.views import staticpage
 from . import cloud
 from . import forms
 
-import pyelasticsearch
-
 
 def debugger__(request):  # pragma: no cover
     r = http.HttpResponse()
@@ -1206,23 +1204,23 @@ def related_content(request, slug):
     }
 
     if request.user.is_active:
-       if is_contributor(request.user):
+        if is_contributor(request.user):
             query = {
-            'fields': fields,
-            'query': {
-                'bool': {
-                    'should': [mlt_query1, mlt_query2],
-                }
-            },
-            "filter": {
-                "must_not": {
-                    "term": {
-                        "privacy": Event.PRIVACY_COMPANY
+                'fields': fields,
+                'query': {
+                    'bool': {
+                        'should': [mlt_query1, mlt_query2],
+                    }
+                },
+                'filter': {
+                    'must_not': {
+                        'term': {
+                            'privacy': Event.PRIVACY_COMPANY
+                        }
                     }
                 }
             }
-        }
-       else:
+        else:
             query = {
                 'fields': fields,
                 'query': {
@@ -1233,20 +1231,20 @@ def related_content(request, slug):
             }
     else:
         query = {
-                'fields': fields,
-                'query': {
-                    'bool': {
-                        'should': [mlt_query1, mlt_query2],
-                    }
-                },
-                "filter": {
-                        "bool": {
-                            "must": {
-                                "term": {"privacy": Event.PRIVACY_PUBLIC}
-                            }
-                        }
+            'fields': fields,
+            'query': {
+                'bool': {
+                    'should': [mlt_query1, mlt_query2],
+                }
+            },
+            "filter": {
+                "bool": {
+                    "must": {
+                        "term": {"privacy": Event.PRIVACY_PUBLIC}
                     }
                 }
+            }
+        }
 
     query['from'] = 0
     query['size'] = settings.RELATED_CONTENT_SIZE

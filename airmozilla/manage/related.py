@@ -41,7 +41,9 @@ def index(all=False, flush_first=False, since=datetime.timedelta(minutes=10)):
         )
 
     es.refresh(settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX)
-    # print es.delete_index(settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX)
+    # print es.delete_index(settings.ELASTICSEARCH_PREFIX
+    #                       + settings.ELASTICSEARCH_INDEX)
+
 
 def flush(es=None):
     es = es or get_connection()
@@ -53,39 +55,47 @@ def flush(es=None):
         # if the index isn't there we can't flush it
         pass
     try:
-        es.create_index(settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX, settings={
-            'mappings': {
-                doc_type: {
-                    'properties': {
-                        'privacy': {
-                            'type': 'string',
-                            'analyzer': 'keyword'
-                        },
-                        'title': {
-                            'type': 'string',
-                            # 'index': 'not_analyzed',
-                            # supposedly faster for querying but uses more disk space
-                            'term_vector': 'yes',
-                        },
-                        'channels': {
-                            'type': 'string',
-                            'analyzer': 'keyword'
-                        },
-                        'tags': {
-                            'type': 'string',
-                            # 'fields': {
-                            #     'raw': {
-                            #         'type': 'string',
-                            #         'index': 'not_analyzed',
-                            #         'term_vector': 'yes',
-                            #     }
-                            # }
-                            'analyzer': 'keyword',
-                        }
-                    }
-                }
-            }
-        })
+        es.create_index(settings.ELASTICSEARCH_PREFIX
+                        + settings.ELASTICSEARCH_INDEX, settings={
+                            'mappings': {
+                                doc_type: {
+                                    'properties': {
+                                        'privacy': {
+                                            'type': 'string',
+                                            'analyzer': 'keyword'
+                                        },
+                                        'title': {
+                                            'type': 'string',
+                                            # 'index': 'not_analyzed',
+                                            # supposedly faster for querying
+                                            # but uses more disk space
+                                            'term_vector': 'yes',
+                                        },
+                                        'channels': {
+                                            'type': 'string',
+                                            'analyzer': 'keyword'
+                                        },
+                                        'tags': {
+                                            'type': 'string',
+                                            # 'fields': {
+                                            #     'raw': {
+                                            #         'type': 'string',
+                                            #         'index': 'not_analyzed',
+                                            #         'term_vector': 'yes',
+                                            #     }
+                                            # }
+                                            'analyzer': 'keyword',
+                                        }
+                                    }
+                                }
+                            }
+                        })
     # print es.create_index(index)
     except pyelasticsearch.exceptions.IndexAlreadyExistsError:
         print 'Index already created'
+
+
+def delete():
+    es = get_connection()
+    print es.delete_index(settings.ELASTICSEARCH_PREFIX
+                          + settings.ELASTICSEARCH_INDEX)
