@@ -839,6 +839,8 @@ class EventEditView(EventView):
                             tag_obj = Tag.objects.get(name__iexact=tag)
                         except Tag.DoesNotExist:
                             tag_obj = Tag.objects.create(name=tag)
+                        except Tag.MultipleObjectsReturned:
+                            tag_obj, = Tag.objects.filter(name__iexact=tag)[:1]
                         event.tags.add(tag_obj)
                     if prev != value:
                         changes['tags'] = {

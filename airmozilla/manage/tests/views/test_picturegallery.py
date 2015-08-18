@@ -1,3 +1,4 @@
+import os
 import json
 
 from nose.tools import eq_, ok_
@@ -14,6 +15,7 @@ from .base import ManageTestCase
 class TestPictureGallery(ManageTestCase):
 
     other_image = 'airmozilla/manage/tests/other_logo.png'
+    jpeg_image = 'airmozilla/manage/tests/tucker.jpg'
 
     def test_load_gallery(self):
         url = reverse('manage:picturegallery')
@@ -254,6 +256,7 @@ class TestPictureGallery(ManageTestCase):
         ok_('?event=%d' % event.id in response.content)
 
     def test_redirect_picture_thumbnail(self):
+        assert self.main_image.endswith('.png')
         with open(self.main_image) as fp:
             picture = Picture.objects.create(
                 file=File(fp),
@@ -264,6 +267,31 @@ class TestPictureGallery(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 302)
         ok_(settings.MEDIA_URL in response['Location'])
+        ok_(response['Location'].endswith('.png'))
+        thumbnail_path = os.path.join(
+            settings.MEDIA_ROOT,
+            response['Location'].split(settings.MEDIA_URL)[1]
+        )
+        ok_(os.path.isfile(thumbnail_path))
+
+    def test_redirect_picture_thumbnail_jpeg(self):
+        assert self.jpeg_image.endswith('.jpg')
+        with open(self.jpeg_image) as fp:
+            picture = Picture.objects.create(
+                file=File(fp),
+                notes="Some notes"
+            )
+
+        url = reverse('manage:redirect_picture_thumbnail', args=(picture.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        ok_(settings.MEDIA_URL in response['Location'])
+        ok_(response['Location'].endswith('.jpg'))
+        thumbnail_path = os.path.join(
+            settings.MEDIA_ROOT,
+            response['Location'].split(settings.MEDIA_URL)[1]
+        )
+        ok_(os.path.isfile(thumbnail_path))
 
     def test_picture_event_associate(self):
         with open(self.main_image) as fp:

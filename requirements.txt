@@ -162,3 +162,6 @@ popcoder==0.1.1
 # sha256: AfwKKh4BmQqXsJZhXBEyj6QwbO0XM8mNiEFgOHdg1Hk
 # sha256: ZfNCpgSi4QKHB8XgVSZqskMcJuIP4QeAtCMyCHCITaw
 importlib==1.0.3
+# sha256: mQhmz0JSqSNPH5espWOSj9zcWh_paH6xUGBx6BntbXg
+# sha256: pRyvRYsgcdqn7Vgv4mJMJTNxDz-wOTkj8WSKoB14s7Q
+optisorl==0.1.1
