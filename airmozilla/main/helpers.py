@@ -102,16 +102,26 @@ def truncate_chars(text, chars, ellipsis=u'…'):
 
 
 @register.function
-def thumbnail(filename, geometry, **options):
+def thumbnail(imagefile, geometry, **options):
+    if not options.get('format'):
+        # then let's try to do it by the file name
+        filename = imagefile
+        if hasattr(imagefile, 'name'):
+            # it's an ImageFile object
+            filename = imagefile.name
+        if filename.lower().endswith('.png'):
+            options['format'] = 'PNG'
+        else:
+            options['format'] = 'JPEG'
     try:
-        return get_thumbnail(filename, geometry, **options)
+        return get_thumbnail(imagefile, geometry, **options)
     except IntegrityError:
         # annoyingly, this happens sometimes because kvstore in sorl
         # doesn't check before writing properly
         # see https://bugzilla.mozilla.org/show_bug.cgi?id=817765
         # try again
         time.sleep(1)
-        return thumbnail(filename, geometry, **options)
+        return thumbnail(imagefile, geometry, **options)
 
 
 @register.function

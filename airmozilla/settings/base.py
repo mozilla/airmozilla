@@ -210,9 +210,6 @@ CALENDAR_SIZE = 30
 # How many events should appear in the syndication feeds
 FEED_SIZE = 20
 
-# Use PNG for thumbnailing
-THUMBNAIL_FORMAT = 'PNG'
-
 # Number of upcoming events to display in the sidebar
 UPCOMING_SIDEBAR_COUNT = 5
 
@@ -349,7 +346,7 @@ CELERYD_CONCURRENCY = 2
 CELERY_IGNORE_RESULT = True
 
 
-THUMBNAIL_BACKEND = 'airmozilla.base.thumbnailer.OptimizingThumbnailBackend'
+THUMBNAIL_BACKEND = 'optisorl.backend.OptimizingThumbnailBackend'
 
 
 # This turns of the thumbnail optimizer using pngquant so it's
