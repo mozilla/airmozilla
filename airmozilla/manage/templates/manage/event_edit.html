@@ -80,12 +80,21 @@
     </p>
     {% endif %}
 
-    {% if total_hits %}
-    <p>
-      <strong>
-        Total Hits: {{ thousands(total_hits) }}
-      </strong>
-    </p>
+    {% if archived_hits or live_hits %}
+    <dl class="hits">
+      {% if archived_hits %}
+        <dt>Archived hits:</dt>
+        <dd>{{ thousands(archived_hits) }}</dd>
+      {% endif %}
+      {% if live_hits %}
+        <dt>Live hits:</dt>
+        <dd>{{ thousands(live_hits) }}</dd>
+      {% endif %}
+      {% if archived_hits and live_hits %}
+        <dt>Total hits:</dt>
+        <dd>{{ thousands(archived_hits + live_hits) }}</dd>
+      {% endif %}
+    </dl>
     {% endif %}
 
     {% if suggested_event and suggested_event.upload %}

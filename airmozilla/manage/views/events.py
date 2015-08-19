@@ -46,6 +46,7 @@ from airmozilla.main.models import (
     SuggestedEventComment,
     VidlySubmission,
     EventHitStats,
+    EventLiveHits,
     CuratedGroup,
     EventAssignment,
     Picture,
@@ -583,10 +584,13 @@ def event_edit(request, id):
     except Survey.DoesNotExist:
         context['survey'] = None
 
-    context['total_hits'] = 0
+    context['archived_hits'] = 0
+    context['live_hits'] = 0
 
     for each in EventHitStats.objects.filter(event=event).values('total_hits'):
-        context['total_hits'] += each['total_hits']
+        context['archived_hits'] += each['total_hits']
+    for each in EventLiveHits.objects.filter(event=event).values('total_hits'):
+        context['live_hits'] += each['total_hits']
 
     context['count_event_uploads'] = Upload.objects.filter(event=event).count()
 
