@@ -26,6 +26,7 @@ from .views import (
     autocompeter,
     uploads,
     taskstester,
+    chapters,
 )
 
 
@@ -243,6 +244,18 @@ urlpatterns = patterns(
     url(r'^recruitmentmessages/(?P<id>\d+)/delete/$',
         recruitmentmessages.recruitmentmessage_delete,
         name='recruitmentmessage_delete'),
+    url(r'^events/(?P<event_id>\d+)/chapters/$',
+        chapters.event_chapters,
+        name='event_chapters'),
+    url(r'^events/(?P<event_id>\d+)/chapters/new/$',
+        chapters.event_chapter_new,
+        name='event_chapter_new'),
+    url(r'^events/(?P<event_id>\d+)/chapters/(?P<id>\d+)/$',
+        chapters.event_chapter_edit,
+        name='event_chapter_edit'),
+    url(r'^events/(?P<event_id>\d+)/chapters/(?P<id>\d+)/delete/$',
+        chapters.event_chapter_delete,
+        name='event_chapter_delete'),
     url(r'^uploads/$',
         uploads.uploads,
         name='uploads'),

@@ -36,6 +36,7 @@ def show_duration(duration, include_seconds=False):
     seconds = duration % 3600
     minutes = seconds / 60
     seconds = seconds % 60
+    print duration, "->", (hours, minutes, seconds)
     out = []
     if hours > 1:
         out.append('%d hours' % hours)
@@ -51,6 +52,22 @@ def show_duration(duration, include_seconds=False):
         elif seconds:
             out.append('1 second')
     return ' '.join(out)
+
+
+@register.function
+def show_duration_compact(duration):
+    hours = duration / 3600
+    seconds = duration % 3600
+    minutes = seconds / 60
+    seconds = seconds % 60
+    out = []
+    if hours:
+        out.append('%dh' % hours)
+    if hours or minutes:
+        out.append('%dm' % minutes)
+    if hours or minutes or seconds:
+        out.append('%ds' % seconds)
+    return ''.join(out)
 
 
 @register.function

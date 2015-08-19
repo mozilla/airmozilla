@@ -34,10 +34,12 @@ from airmozilla.main.models import (
     RecruitmentMessage,
     Picture,
     Topic,
+    Chapter,
 )
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
 from airmozilla.staticpages.models import StaticPage
+from airmozilla.base.helpers import show_duration_compact
 
 from .widgets import PictureWidget
 
@@ -480,6 +482,56 @@ class RecruitmentMessageEditForm(BaseModelForm):
             'notes': forms.Textarea(attrs={'rows': 3})
         }
         exclude = ('modified_user', 'created')
+
+
+class EventChapterEditForm(BaseModelForm):
+    timestamp = forms.CharField(widget=forms.widgets.TextInput(
+        attrs={
+            'placeholder': 'For example: 22m0s'
+        }
+    ))
+
+    class Meta:
+        model = Chapter
+        widgets = {
+            'text': forms.widgets.TextInput()
+        }
+        exclude = ('user', 'created', 'event')
+
+    def __init__(self, *args, **kwargs):
+        self.max_timestamp = None
+        if kwargs.get('instance'):
+            self.max_timestamp = kwargs['instance'].event.duration
+            if kwargs['instance'].timestamp:
+                kwargs['instance'].timestamp = show_duration_compact(
+                    kwargs['instance'].timestamp
+                )
+        super(EventChapterEditForm, self).__init__(*args, **kwargs)
+
+    def clean_timestamp(self):
+        value = self.cleaned_data['timestamp'].strip().replace(' ', '')
+        hours = re.findall('(\d{1,2})h', value)
+        minutes = re.findall('(\d{1,2})m', value)
+        seconds = re.findall('(\d{1,2})s', value)
+        if seconds:
+            seconds = int(seconds[0])
+        else:
+            seconds = 0
+        if minutes:
+            minutes = int(minutes[0])
+        else:
+            minutes = 0
+        if hours:
+            hours = int(hours[0])
+        else:
+            hours = 0
+        total = seconds + minutes * 60 + hours * 60 * 60
+        if not total:
+            raise forms.ValidationError('Must be greater than zero')
+        if self.max_timestamp:
+            if total >= self.max_timestamp:
+                raise forms.ValidationError('Longer than video duration')
+        return total
 
 
 class SurveyEditForm(BaseModelForm):

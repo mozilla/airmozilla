@@ -303,6 +303,12 @@
       {% endif %}
     </p>
 
+    <p style="margin-top:25px"><strong>Chapters</strong></p>
+    <p>
+      <a href="{{ url('manage:event_chapters', event.id) }}"
+         class="btn btn-primary btn-sm">Chapters ({{ chapters_count }})</a>
+    </p>
+
     {% if is_superuser %}
     <p style="margin-top:25px"><strong>Archive Time</strong></p>
     <p>
