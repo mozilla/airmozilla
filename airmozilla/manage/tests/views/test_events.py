@@ -2141,7 +2141,7 @@ class TestEvents(ManageTestCase):
         url = reverse('manage:event_edit', args=(event.id,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Total Hits:' not in response.content)
+        ok_('Archived hits:' not in response.content)
 
         event.template_environment = {'tag': 'abc123'}
         event.save()
@@ -2154,7 +2154,7 @@ class TestEvents(ManageTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Total Hits:' in response.content)
+        ok_('Archived hits:' in response.content)
         ok_('1,234' in response.content)
 
     @mock.patch('airmozilla.manage.vidly.urllib2')

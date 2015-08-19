@@ -31,3 +31,12 @@ table.suggested-event-upload .file-name {
 .really-delete-confirmation {
     display: none;
 }
+
+dl.hits dt {
+    float: left;
+    width: 100px;
+    clear: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
