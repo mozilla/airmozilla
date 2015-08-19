@@ -48,7 +48,8 @@ from airmozilla.main.models import (
     EventHitStats,
     CuratedGroup,
     EventAssignment,
-    Picture
+    Picture,
+    Chapter,
 )
 from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
@@ -566,6 +567,8 @@ def event_edit(request, id):
         .filter(event=event)
         .select_related('group')
     )
+
+    context['chapters_count'] = Chapter.objects.filter(event=event).count()
 
     try:
         context['assignment'] = EventAssignment.objects.get(event=event)

@@ -44,6 +44,7 @@
 <script src="{{ static('main/js/playbackrate.js') }}"></script>
 <script src="{{ static('main/js/startat.js') }}"></script>
 <script src="{{ static('main/js/eventstatus.js') }}"></script>
+<script src="{{ static('main/js/chapters.js') }}"></script>
 <script src="{{ static('comments/js/comments.js') }}"></script>
 <script src="{{ static('surveys/js/survey.js') }}"></script>
 <script src="{{ static('main/js/livehits.js') }}"></script>
@@ -166,17 +167,34 @@
           </div>
         </div>
 
+      {% if chapters %}
+        <div class="tab">
+          <input type="radio" id="tab-chapters" name="tab-group-1">
+          <label for="tab-chapters">Chapters</label>
+          <div class="content chapters extra-long">
+            <ul>
+              {% for chapter in chapters %}
+              <li>
+                <a href="#@{{ show_duration_compact(chapter.timestamp) }}" data-ts="{{ chapter.timestamp }}">
+                  <b>{{ show_duration(chapter.timestamp) }}</b>
+                  {{ chapter.text }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
 
       {% if event.additional_links %}
         <div class="tab">
           <input type="radio" id="tab-1" name="tab-group-1">
           <label for="tab-1">Additional Links</label>
-          <div class="content additional-links">
+          <div class="content additional-links extra-long">
             {{ event.additional_links | urlize|nl2br }}
           </div>
         </div>
       {% endif %}
-
 
       <div class="tab">
         <input type="radio" id="tab-2" name="tab-group-1">

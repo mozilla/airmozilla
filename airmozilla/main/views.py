@@ -39,6 +39,7 @@ from airmozilla.main.models import (
     Picture,
     VidlySubmission,
     EventLiveHits,
+    Chapter,
 )
 from airmozilla.base.utils import (
     paginate,
@@ -434,6 +435,13 @@ class EventView(View):
             # needed for the _event_privacy.html template
             'curated_groups': CuratedGroup.get_names(event),
         })
+
+        context['chapters'] = []
+        for chapter in Chapter.objects.filter(event=event):
+            context['chapters'].append({
+                'timestamp': chapter.timestamp,
+                'text': chapter.text,
+            })
 
         if (
             not (event.is_pending() or event.is_processing()) and
