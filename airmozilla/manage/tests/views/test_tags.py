@@ -94,7 +94,7 @@ class TestTags(ManageTestCase):
 
         merge_url = reverse('manage:tag_merge', args=(t1.id,))
         ok_(merge_url in response.content)
-        response = self.client.post(merge_url, {'name': t2.name})
+        response = self.client.post(merge_url, {'keep': t2.id})
         eq_(response.status_code, 302)
         self.assertRedirects(
             response,

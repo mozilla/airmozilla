@@ -92,7 +92,7 @@ def tag_edit(request, id):
         'is_repeated': repeated > 1
     }
     if repeated:
-        context['repeated_form'] = forms.TagMergeForm(name=tag.name)
+        context['repeated_form'] = forms.TagMergeForm(this_tag=tag)
     return render(request, 'manage/tag_edit.html', context)
 
 
@@ -115,22 +115,20 @@ def tag_remove(request, id):
 @transaction.commit_on_success
 def tag_merge(request, id):
     tag = get_object_or_404(Tag, id=id)
-    name_to_keep = request.POST['name']
-
-    tag_to_keep = None
-    for t in Tag.objects.filter(name__iexact=tag.name):
-        if t.name == name_to_keep:
-            tag_to_keep = t
-            break
+    tag_to_keep = get_object_or_404(Tag, id=request.POST['keep'])
 
     merge_count = 0
-    for t in Tag.objects.filter(name__iexact=tag.name):
-        if t.name != name_to_keep:
-            for event in Event.objects.filter(tags=t):
-                event.tags.remove(t)
-                event.tags.add(tag_to_keep)
-            t.delete()
-            merge_count += 1
+    other_tags = (
+        Tag.objects
+        .filter(name__iexact=tag.name)
+        .exclude(id=tag_to_keep.id)
+    )
+    for t in other_tags:
+        for event in Event.objects.filter(tags=t):
+            event.tags.remove(t)
+            event.tags.add(tag_to_keep)
+        t.delete()
+        merge_count += 1
 
     messages.info(
         request,

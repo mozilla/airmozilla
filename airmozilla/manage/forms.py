@@ -771,12 +771,12 @@ class TagEditForm(BaseModelForm):
 
 class TagMergeForm(BaseForm):
 
-    name = forms.ChoiceField(
+    keep = forms.ChoiceField(
         label='Name to keep',
         widget=forms.widgets.RadioSelect()
     )
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, this_tag, *args, **kwargs):
         super(TagMergeForm, self).__init__(*args, **kwargs)
 
         def describe_tag(tag):
@@ -787,9 +787,9 @@ class TagMergeForm(BaseForm):
                 tmpl = '%s (%d times)'
             return tmpl % (tag.name, count)
 
-        self.fields['name'].choices = [
-            (x.name, describe_tag(x))
-            for x in Tag.objects.filter(name__iexact=name)
+        self.fields['keep'].choices = [
+            (x.id, describe_tag(x))
+            for x in Tag.objects.filter(name__iexact=this_tag.name)
         ]
 
 
