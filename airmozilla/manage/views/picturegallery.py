@@ -232,6 +232,7 @@ def picture_add(request):
         if form.is_valid():
             picture = form.save(commit=False)
             picture.modified_user = request.user
+            picture.is_active = True
             picture.save()
             return redirect('manage:picturegallery')
     else:
