@@ -63,9 +63,9 @@ def render_edit(edit_id, verbose=False):
     end = time.time()
 
     video_url = video_key.generate_url(expires_in=0, query_auth=False)
+    video_url = prepare_vidly_video_url(video_url)
     if verbose:
         print 'Video uploaded to S3 at url: %s' % video_url
-    video_url = prepare_vidly_video_url(video_url)
 
     filesize = os.stat(filepath).st_size
 
@@ -78,6 +78,8 @@ def render_edit(edit_id, verbose=False):
         size=filesize,
         upload_time=int(end - start)
     )
+    edit.upload = upload
+    edit.save()
 
     if verbose:
         print 'Upload object created with id: %s' % upload.id

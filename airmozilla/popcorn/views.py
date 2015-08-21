@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db.models import Q
 
 from airmozilla.main.helpers import thumbnail
 from airmozilla.main.models import Event, VidlySubmission
@@ -96,7 +97,8 @@ def popcorn_data(request):
 
     for edit in PopcornEdit.objects.filter(
             event__slug=slug,
-            status=PopcornEdit.STATUS_SUCCESS).order_by('-created')[:1]:
+            status=PopcornEdit.STATUS_SUCCESS,
+            is_active=True).order_by('-created')[:1]:
         data = edit.data
         return {'data': edit.data}
     else:
@@ -133,6 +135,14 @@ def save_edit(request):
 
     event = get_object_or_404(Event, slug=slug)
 
+    # Check to see if there is already an edit waiting to be processed
+    for p_edit in PopcornEdit.objects.filter(
+            event__slug=slug,
+            is_active=True).order_by('-created')[:1]:
+        if p_edit.status != PopcornEdit.STATUS_SUCCESS:
+            msg = 'Already processing edit. Please try again soon.'
+            return http.HttpResponseForbidden(msg)
+
     edit = PopcornEdit.objects.create(
         event=event,
         status=PopcornEdit.STATUS_PENDING,
@@ -143,6 +153,100 @@ def save_edit(request):
     return {
         'id': edit.id,
     }
+
+
+@require_POST
+@json_view
+@login_required
+@transaction.atomic
+def revert(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+    tag = request.POST.get('tag', '').strip()
+    if not tag:
+        return http.HttpResponseBadRequest("No 'tag'")
+
+    vidly_submission = VidlySubmission.objects.get(tag=tag, event=event)
+
+    migrate_submission(vidly_submission)
+    # reload the event
+    event = Event.objects.get(id=event.id)
+    assert event.template_environment['tag'] == tag, "migration failed"
+
+    edits = PopcornEdit.objects.filter(
+        event=event
+    ).order_by('-created')
+    for edit in edits:
+        if edit.upload.url != vidly_submission.url:
+            edit.is_active = False
+            edit.save()
+        else:
+            break
+
+    return redirect('popcorn:edit_status', event.slug)
+
+
+@login_required
+def edit_status(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+
+    edits = PopcornEdit.objects.filter(
+        event=event,
+        status__in=[
+            PopcornEdit.STATUS_PENDING,
+            PopcornEdit.STATUS_PROCESSING,
+            PopcornEdit.STATUS_SUCCESS
+        ],
+        is_active=True,
+    ).order_by('-created')
+
+    first_submission, = (
+        VidlySubmission.objects
+        .filter(event=event, finished__isnull=False)
+        .order_by('submission_time')
+    )[:1]
+
+    any_revertable_edits = False
+    for edit in edits:
+        if edit.status == PopcornEdit.STATUS_SUCCESS:
+
+            submission = VidlySubmission.objects.get(
+                event=event,
+                url=edit.upload.url,
+            )
+            edit._tag = submission.tag
+            edit._tag_finished = submission.finished
+            if submission.finished:
+                any_revertable_edits = True
+
+    is_processing = is_waiting = is_transcoding = False
+    if edits:
+        status = edits[0].status
+        if status == PopcornEdit.STATUS_PENDING:
+            is_waiting = True
+        elif status == PopcornEdit.STATUS_PROCESSING:
+            is_processing = True
+        elif status == PopcornEdit.STATUS_SUCCESS:
+            # but has the vidlysubmission finished?
+            submission = VidlySubmission.objects.get(
+                event=event,
+                url=edit.upload.url
+            )
+            if not submission.finished:
+                is_transcoding = True
+
+    context = {
+        'PopcornEdit': PopcornEdit,
+        'edits': edits,
+        'event': event,
+        'VidlySubmission': VidlySubmission,
+        'first_submission': first_submission,
+        'is_processing': is_processing,
+        'is_waiting': is_waiting,
+        'is_transcoding': is_transcoding,
+        'any_revertable_edits': any_revertable_edits,
+    }
+
+    return render(request, 'popcorn/status.html', context)
 
 
 # Note that this view is publically available.
@@ -222,8 +326,29 @@ class EditorView(EventView):
         if not self.can_edit_event(event, request):
             return self.cant_edit_event(event, request)
 
+        edit = None
+        for p_edit in PopcornEdit.objects.filter(
+                event=event,
+                status=PopcornEdit.STATUS_SUCCESS,
+                is_active=True).order_by('-created')[:1]:
+            edit = p_edit
+
+        pending_or_processing = (
+            PopcornEdit.objects
+            .filter(event=event, is_active=True)
+            .filter(
+                Q(status=PopcornEdit.STATUS_PENDING) |
+                Q(status=PopcornEdit.STATUS_PROCESSING)
+            )
+            .exists()
+        )
+        if pending_or_processing:
+            return redirect('popcorn:edit_status', event.slug)
+
         context = {
             'event': event,
+            'edit': edit,
+            'PopcornEdit': PopcornEdit,
             'slug': slug,
         }
 

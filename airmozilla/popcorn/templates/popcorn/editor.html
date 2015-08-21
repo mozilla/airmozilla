@@ -22,14 +22,14 @@
 Air Mozilla | Mozilla, in Video
 {% endblock %}
 
+{% block content_main %}{% endblock %}
+
 {% block full_width_content %}
 <div id="editor"
      data-slug="{{ slug }}"
      data-url="{{ url('popcorn:popcorn_data') }}"
      data-save="{{ url('popcorn:save_edit') }}">{{ csrf() }}</div>
 {% endblock %}
-
-{% block content_main %}{% endblock %}
 
 {% block sidebar%}
 {% endblock %}

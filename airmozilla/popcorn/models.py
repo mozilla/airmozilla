@@ -38,3 +38,5 @@ class PopcornEdit(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     finished = models.DateTimeField(null=True)
+
+    is_active = models.BooleanField(default=True)

@@ -19,4 +19,10 @@ urlpatterns = patterns(
     url(r'^save/$',
         views.save_edit,
         name='save_edit'),
+    url(r'^status/(?P<slug>[-\w]+)/$',
+        views.edit_status,
+        name='edit_status'),
+    url(r'^status/(?P<slug>[-\w]+)/revert/$',
+        views.revert,
+        name='revert'),
 )

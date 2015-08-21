@@ -2,3 +2,16 @@
   margin: 20px 40px;
   height: 600px;
 }
+
+.status {
+  font-family: "Open Sans Light","Lucida Sans","Lucida Grande","Lucida Sans Unicode",Verdana,sans-serif;
+  font-weight: bold;
+  padding: 3px;
+  border-radius: 2px;
+  text-align: center;
+}
+
+.status-error {
+  color: #96151B;
+  background-color: #FBE3E4;
+}

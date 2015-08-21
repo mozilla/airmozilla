@@ -1,16 +1,19 @@
-from cStringIO import StringIO
-import mock
+import datetime
 import json
+from cStringIO import StringIO
 
+import mock
 from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 import xmltodict
 
 from django.core import mail
 from django.test.utils import override_settings
+from django.utils import timezone
 
 from airmozilla.base.tests.testbase import DjangoTestCase, Response
-from airmozilla.main.models import Event, VidlySubmission
+from airmozilla.main.models import Event, VidlySubmission, Template
+from airmozilla.uploads.models import Upload
 from airmozilla.manage.tests.views.test_vidlymedia import (
     get_custom_XML,
     SAMPLE_MEDIA_RESULT_SUCCESS,
@@ -338,3 +341,121 @@ class TestPopcornEvent(DjangoTestCase):
 
         email_sent = mail.outbox[-1]
         ok_(tag in email_sent.subject)
+
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_edit_status_and_revert(self, p_urllib2):
+
+        def make_mock_request(url, querystring):
+            return mock.MagicMock()
+
+        def mocked_urlopen(request):
+            xml_string = get_custom_XML(
+                tag='xyz123',  # the original
+                status='Finished',
+            )
+            return StringIO(xml_string)
+
+        p_urllib2.Request.side_effect = make_mock_request
+        p_urllib2.urlopen = mocked_urlopen
+
+        # You arrive on the status page after you've done an edit
+        # or because the event has an ongoing edit
+        event = Event.objects.get(title='Test event')
+        assert not VidlySubmission.objects.filter(event=event).exists()
+        then = timezone.now() - datetime.timedelta(days=1)
+        VidlySubmission.objects.create(
+            event=event,
+            tag='xyz123',
+            url='https://file.com/move.mov',
+            submission_time=then,
+            hd=True,
+            finished=then + datetime.timedelta(seconds=100)
+        )
+        template, = Template.objects.all()
+        template.name = 'Vid.ly'
+        template.save()
+        event.template_environment = {'tag': 'xyz123'}
+        event.template = template
+        event.save()
+
+        url = reverse('popcorn:edit_status', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        user = self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # because there are no edits to revert to
+        ok_('Revert to this version' not in response.content)
+
+        # let's add 2 more edits
+        edit1 = PopcornEdit.objects.create(
+            event=event,
+            user=user,
+            upload=None,
+            status=PopcornEdit.STATUS_PENDING,
+            data={'fancy': 'edits'},
+        )
+        assert edit1.is_active
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # because there are no edits to revert to
+        ok_('Revert to this version' not in response.content)
+        ok_('<b>Pending</b>' in response.content)
+
+        # Suppose we start processing it
+        edit1.status = PopcornEdit.STATUS_PROCESSING
+        edit1.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # because there are no edits to revert to
+        ok_('Revert to this version' not in response.content)
+        ok_('<b>Pending</b>' not in response.content)
+        ok_('<b>Processing</b>' in response.content)
+
+        # Now let's suppose all goes well and it uploads a file and
+        # everything is hunky dory.
+        upload1 = Upload.objects.create(
+            event=event,
+            url='http://files.com/edit1.webm',
+            size=1234,
+            upload_time=10,  # 10 seconds to upload
+            user=user,
+        )
+        submission1 = VidlySubmission.objects.create(
+            event=event,
+            url='http://files.com/edit1.webm',
+            tag='abc123',
+            hd=True,
+        )
+        edit1.upload = upload1
+        edit1.status = PopcornEdit.STATUS_SUCCESS
+        edit1.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Revert to this version' not in response.content)
+        ok_('Waiting for transcoding to finish' in response.content)
+
+        # suppose now that the transcoding does finish!
+        submission1.finished = timezone.now()
+        submission1.save()
+        event.template_environment['tag'] = submission1.tag
+        event.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # Now we should be able to reverse to the original
+        ok_('Revert to this version' in response.content)
+        ok_('<button name="tag" value="xyz123">' in response.content)
+
+        # let's revert to the original
+        url = reverse('popcorn:revert', args=(event.slug,))
+        response = self.client.post(url)
+        eq_(response.status_code, 400)
+
+        response = self.client.post(url, {'tag': 'xyz123'})
+        eq_(response.status_code, 302)
+
+        # reload edit1
+        edit1 = PopcornEdit.objects.get(id=edit1.id)
+        ok_(not edit1.is_active)

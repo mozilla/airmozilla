@@ -1,0 +1,34 @@
+.status-success {
+    background-color: #E6EFC2;
+}
+.status-success h2 {
+    color: #56651A;
+}
+
+.status-processing {
+    background-color: #E5EDF8;
+}
+.status-processing h2 {
+    color: #244E87;
+}
+.status-pending {
+    background-color: #FFF6BF;
+}
+.status-pending h2 {
+    color: #8C7800;
+}
+
+.status {
+    padding: 15px;
+    border-radius: 2px;
+    text-align: center;
+}
+
+.revisions-header {
+    margin: 20px 0;
+}
+
+#revisions td {
+    text-align: center;
+    padding: 5px;
+}
