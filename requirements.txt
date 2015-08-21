@@ -167,9 +167,14 @@ importlib==1.0.3
 # sha256: mQhmz0JSqSNPH5espWOSj9zcWh_paH6xUGBx6BntbXg
 # sha256: pRyvRYsgcdqn7Vgv4mJMJTNxDz-wOTkj8WSKoB14s7Q
 optisorl==0.1.1
-
 # sha256: P3_IGWFR8-lX93QnSM4qVkdJLYoLtxuk-a8a6_-mbUE
 pyelasticsearch==1.3
+# sha256: hmHkF0e4hcES2UK1KP7D6W4QNrXGcTqmBfL-JLYYRsI
+# sha256: kMhZbpZK95ApZS0nNEIDVZkGZxRrghHyQPmci0MrC6w
+elasticsearch==1.6.0
 # sha256: Jo-gDCfedW1xZj3WH3OkqNhydWm7G0dLLOYCBVOCaHI
 # sha256: mXhebPcVzc3lne4FpnbpnwSDWnHnztIByjF0AcMiupY
 certifi==2015.04.28
+# sha256: U-ZfpgJaWfZOznFHWcHwbE5PuatrJyVhouJvKGpV1C4
+# sha256: DaSDQ73GwBz-Rb0jcm3S5-oMH84klZqEpGglE6D9KxI
+urllib3==1.11
