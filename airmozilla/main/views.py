@@ -1243,6 +1243,8 @@ def related_content(request, slug):
         }
 
     ids = []
+    query['from'] = 0
+    query['size'] = settings.RELATED_CONTENT_SIZE
     hits = es.search(query, index=index)['hits']
     for doc in hits['hits']:
         ids.append(int(doc['_id']))
