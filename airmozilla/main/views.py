@@ -1203,19 +1203,23 @@ def related_content(request, slug):
         }
     }
 
+    query_ = {
+        'bool': {
+            'should': [mlt_query1, mlt_query2],
+        }
+    }
+
     if request.user.is_active:
         if is_contributor(request.user):
             query = {
                 'fields': fields,
-                'query': {
-                    'bool': {
-                        'should': [mlt_query1, mlt_query2],
-                    }
-                },
+                'query': query_,
                 'filter': {
-                    'must_not': {
-                        'term': {
-                            'privacy': Event.PRIVACY_COMPANY
+                    'bool': {
+                        'must_not': {
+                            'term': {
+                                'privacy': Event.PRIVACY_COMPANY
+                            }
                         }
                     }
                 }
@@ -1223,20 +1227,12 @@ def related_content(request, slug):
         else:
             query = {
                 'fields': fields,
-                'query': {
-                    'bool': {
-                        'should': [mlt_query1, mlt_query2],
-                    }
-                }
+                'query': query_
             }
     else:
         query = {
             'fields': fields,
-            'query': {
-                'bool': {
-                    'should': [mlt_query1, mlt_query2],
-                }
-            },
+            'query': query_,
             "filter": {
                 "bool": {
                     "must": {
@@ -1246,15 +1242,9 @@ def related_content(request, slug):
             }
         }
 
-    query['from'] = 0
-    query['size'] = settings.RELATED_CONTENT_SIZE
     ids = []
     hits = es.search(query, index=index)['hits']
     for doc in hits['hits']:
-        # print "DOC"
-        # from pprint import pprint
-        # pprint(doc)
-        # print "\t", repr(doc['_source']['title']), doc['_id'], doc['_score']
         ids.append(int(doc['_id']))
 
     events = Event.objects.scheduled_or_processing() \

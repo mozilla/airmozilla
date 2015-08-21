@@ -5,12 +5,24 @@ from django.conf import settings
 from django.utils import timezone
 
 from airmozilla.main.models import Event
+from pyelasticsearch import bulk_chunks
 
 doc_type = 'event'
 
 
 def get_connection():
     return pyelasticsearch.ElasticSearch(settings.RELATED_CONTENT_URL)
+
+
+def documents(events, es):
+    for event in events:
+        yield es.index_op(doc={
+            'title': event.title,
+            'privacy': event.privacy,
+            'tags': [x.name for x in event.tags.all()],
+            'channels': [x.name for x in event.channels.all()]
+            },
+            id=event.id)
 
 
 def index(all=False, flush_first=False, since=datetime.timedelta(minutes=10)):
@@ -26,23 +38,18 @@ def index(all=False, flush_first=False, since=datetime.timedelta(minutes=10)):
         events = Event.objects.scheduled_or_processing() \
             .filter(modified__gte=now-since)
 
-    for event in events:
-        # should do bulk ops
-        es.index(
-            settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX,
-            'event',
-            {
-                'title': event.title,
-                'privacy': event.privacy,
-                'tags': [x.name for x in event.tags.all()],
-                'channels': [x.name for x in event.channels.all()],
-            },
-            id=event.id,
-        )
+    # bulk_chunks() breaks our documents into smaller requests for speed:
+    for chunk in bulk_chunks(documents(events, es),
+                             docs_per_chunk=500,
+                             bytes_per_chunk=10000):
+
+        es.bulk(chunk, doc_type='event',
+                index=settings.ELASTICSEARCH_PREFIX
+                + settings.ELASTICSEARCH_INDEX)
 
     es.refresh(settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX)
-    # print es.delete_index(settings.ELASTICSEARCH_PREFIX
-    #                       + settings.ELASTICSEARCH_INDEX)
+#    print es.delete_index(settings.ELASTICSEARCH_PREFIX
+#                          + settings.ELASTICSEARCH_INDEX)
 
 
 def flush(es=None):
@@ -66,7 +73,6 @@ def flush(es=None):
                                         },
                                         'title': {
                                             'type': 'string',
-                                            # 'index': 'not_analyzed',
                                             # supposedly faster for querying
                                             # but uses more disk space
                                             'term_vector': 'yes',
@@ -77,20 +83,13 @@ def flush(es=None):
                                         },
                                         'tags': {
                                             'type': 'string',
-                                            # 'fields': {
-                                            #     'raw': {
-                                            #         'type': 'string',
-                                            #         'index': 'not_analyzed',
-                                            #         'term_vector': 'yes',
-                                            #     }
-                                            # }
                                             'analyzer': 'keyword',
                                         }
                                     }
                                 }
                             }
                         })
-    # print es.create_index(index)
+
     except pyelasticsearch.exceptions.IndexAlreadyExistsError:
         print 'Index already created'
 
