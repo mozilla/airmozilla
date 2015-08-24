@@ -60,8 +60,8 @@ def welcome():
 
 
 def check_python_version():
-    # it must be python 2.6 or python 2.7
-    if sys.version_info >= (2, 6) and sys.version_info < (3,):
+    # it must be python 2.7
+    if sys.version_info >= (2, 7) and sys.version_info < (3,):
         print "Great! You have Python", sys.version.split()[0], "installed."
         _proceed()
     else:
@@ -69,7 +69,7 @@ def check_python_version():
         Sorry. Can't continue.
 
         You have Python %s installed and running this guide.
-        It needs to be Python 2.6 or Python 2.7.
+        It needs to be Python 2.7.
 
         Either go and install one of those and try again or if you already
         actually have it installed, try to start this guide with it

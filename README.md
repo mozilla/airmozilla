@@ -26,7 +26,7 @@ How to get it running locally from scratch
 ### First of all...
 
 All of these manual steps can be done with one optimistic script. All you
-need is to have Python (2.6 or 2.7) installed.
+need is to have Python (2.7) installed.
 
 [Download this file](https://raw.githubusercontent.com/mozilla/airmozilla/master/devup.py)
 and manually run:
@@ -49,7 +49,7 @@ Not system people deploying the code for production.
 
 **Step 1 - The stuff you need**
 
-You're going to need Git, Python 2.6 or Python 2.7, a PostgreSQL database
+You're going to need Git, Python 2.7, a PostgreSQL database
 (partially works with MySQL and SQLite too) and the necessary python dev
 libraries so you can install binary python packages. On a mac, that means you
 need to install XCode and on Linux you'll need to install `python-dev`.
@@ -347,7 +347,7 @@ When a pull request is made, our automation will check a couple of things:
    This rule is there to remove any debate about how to style code as per
    how a machine likes it. It makes it non-subjective and clear.
 
-2. All tests are run on Travis in Python 2.6. If any test fails, the pull
+2. All tests are run on Travis in Python 2.7. If any test fails, the pull
    request fails.
 
 3. Test coverage regression. Test coverage is measured for every pull request

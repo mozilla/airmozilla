@@ -567,6 +567,7 @@ class TestPages(DjangoTestCase):
         eq_(response.context['form']['enable_discussion'].value(), False)
 
     def test_details_enable_discussion(self):
+        assert self.client.login(username='fake', password='fake')
         event = SuggestedEvent.objects.create(
             user=self.user,
             title='Cool Title',

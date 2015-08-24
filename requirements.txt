@@ -6,9 +6,11 @@ psycopg2==2.5.4
 Jinja2==2.5.5
 # sha256: KjGJ950ce4ohSaDng8C0IX-tmzCm59YEUPJVPcLA5X4
 simplejson==3.6.5
-# tar.gz
+# sha256: AQR0SbxuRnkiF_5i3rpoOXmmCzPefv2Z7VZM9DkHAhs
+# sha256: Io9zwgUJ9dxh5ZaAN2urCrL__sBbJVGNg8CLoLDUhHs
+# sha256: RTTY00HzX-m_131JgyNB9xAvXioICGtXpQG0v2wg7nM
+# sha256: 8vRszUmctDPDLOE2_AlvhY3rXJEp1kdyAAqU_FevGnc
 # sha256: JukyDnP1ghgmtrJAijv_Cowp5FFZUwBpoRfv0572Gfg
-# zip
 # sha256: M6XQFF6CMm54Hd7hrTdfksuE-M-v6lbpUEaCrf9kpe4
 Pillow==2.7.0
 # tar.gz

@@ -16,7 +16,7 @@ def main():
     parser.add_option('-u', '--user',
                       help=('Prefix cron with this user. '
                             'Only define for cron.d style crontabs.'))
-    parser.add_option('-p', '--python', default='/usr/bin/python2.6',
+    parser.add_option('-p', '--python', default='/usr/bin/python2.7',
                       help='Python interpreter to use.')
 
     (opts, args) = parser.parse_args()
