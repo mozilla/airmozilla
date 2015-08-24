@@ -28,7 +28,7 @@ def update_code(ctx, tag):
         # writing, but because virtualenv is using it, it fails.
         # So we delete it and let virtualenv create a new one.
         ctx.local('rm -f %s/bin/python' % venv_path)
-        ctx.local('virtualenv %s' % venv_path)
+        ctx.local('virtualenv-2.7 %s' % venv_path)
 
         # Activate virtualenv to append to path.
         activate_env = os.path.join(
@@ -38,7 +38,7 @@ def update_code(ctx, tag):
 
         ctx.local('%s/bin/pip install bin/peep-2.4.1.tar.gz' % venv_path)
         ctx.local('%s/bin/peep install -r requirements.txt' % venv_path)
-        ctx.local('virtualenv --relocatable %s' % venv_path)
+        ctx.local('virtualenv-2.7 --relocatable %s' % venv_path)
 
 
 @task
