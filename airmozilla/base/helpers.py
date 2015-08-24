@@ -14,14 +14,12 @@ def abs_static(context, path):
     with 'http'.
     """
     path = static(path)
-    # print "AFTER", path
     prefix = context['request'].is_secure() and 'https' or 'http'
 
     if path.startswith('/') and not path.startswith('//'):
         # e.g. '/media/foo.png'
         root_url = '%s://%s' % (prefix, RequestSite(context['request']).domain)
         path = root_url + path
-        # print "path now", path
 
     if path.startswith('//'):
         path = '%s:%s' % (prefix, path)
@@ -36,7 +34,6 @@ def show_duration(duration, include_seconds=False):
     seconds = duration % 3600
     minutes = seconds / 60
     seconds = seconds % 60
-    print duration, "->", (hours, minutes, seconds)
     out = []
     if hours > 1:
         out.append('%d hours' % hours)
