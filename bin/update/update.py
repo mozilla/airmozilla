@@ -21,8 +21,8 @@ venv_path = '../venv'
 def update_code(ctx, tag):
     """Update the code to a specific git reference (tag/sha/etc)."""
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local('git checkout %s' % tag)
-        ctx.local('git pull -f')
+        ctx.local('git fetch')
+        ctx.local('git checkout -f %s' % tag)
         ctx.local("find . -type f -name '*.pyc' -delete")
         # Creating a virtualenv tries to open virtualenv/bin/python for
         # writing, but because virtualenv is using it, it fails.
