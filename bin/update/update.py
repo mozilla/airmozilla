@@ -134,7 +134,7 @@ def deploy(ctx):
     install_cron()
     checkin_changes()
     deploy_app()
-    # update_celery()
+    update_celery()
     update_info()
 
 
