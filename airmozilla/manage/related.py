@@ -11,7 +11,7 @@ doc_type = 'event'
 
 
 def get_connection():
-    return pyelasticsearch.ElasticSearch(settings.RELATED_CONTENT_URL)
+    return pyelasticsearch.ElasticSearch(settings.ELASTICSEARCH_URL)
 
 
 def documents(events, es):
@@ -91,7 +91,7 @@ def flush(es=None):
                         })
 
     except pyelasticsearch.exceptions.IndexAlreadyExistsError:
-        print 'Index already created'
+        pass  # Index already created
 
 
 def delete():

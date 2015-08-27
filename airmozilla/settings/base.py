@@ -227,8 +227,12 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 # Always use secure cookies
 COOKIES_SECURE = True
 
-# Default for related content
-RELATED_CONTENT_URL = 'http://localhost:9200/'
+# URL to connect to ElasticSearch
+ELASTICSEARCH_URL = 'http://localhost:9200/'
+
+# This is here in order to override the code related to elastic search
+# once things are said and done, ie. it works, this will be deleted
+USE_RELATED_CONTENT = False
 
 # Number of related events to display (max)
 RELATED_CONTENT_SIZE = 6
@@ -365,10 +369,6 @@ PNGQUANT_LOCATION = None
 # The user group where being a member means you get an email about
 # all new event requests
 NOTIFICATIONS_GROUP_NAME = 'Event Notifications'
-
-# This is here in order to override the code related to elastic search
-# once things are said and done, ie. it works, this will be deleted
-USE_RELATED_CONTENT = False
 
 
 # Adding prefix to airmozilla events index
