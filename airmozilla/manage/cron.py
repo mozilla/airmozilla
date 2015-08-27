@@ -109,12 +109,12 @@ def autocompeter_update():
 
 
 @cronjobs.register
-# @capture
+@capture
 def related_content_reindex():
     related.index(all=True, flush_first=True)
 
 
 @cronjobs.register
-# @capture
+@capture
 def related_content_index():
     related.index()
