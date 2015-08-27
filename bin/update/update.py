@@ -23,9 +23,6 @@ def update_code(ctx, tag):
     with ctx.lcd(settings.SRC_DIR):
         ctx.local('git fetch')
         ctx.local('git checkout -f %s' % tag)
-        if tag == 'master':
-            # it's a specific branch
-            ctx.local('git pull')
         ctx.local("find . -type f -name '*.pyc' -delete")
         # Creating a virtualenv tries to open virtualenv/bin/python for
         # writing, but because virtualenv is using it, it fails.
