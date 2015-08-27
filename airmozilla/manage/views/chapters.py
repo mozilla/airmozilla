@@ -15,7 +15,7 @@ from .decorators import (
 
 
 @staff_required
-@permission_required('chapters.change_chapter')
+@permission_required('main.change_chapter')
 def event_chapters(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     context = {}
@@ -25,7 +25,7 @@ def event_chapters(request, event_id):
 
 
 @staff_required
-@permission_required('chapters.add_chapter')
+@permission_required('main.add_chapter')
 @cancel_redirect(
     lambda r, event_id: reverse('manage:event_chapters', args=(event_id,))
 )
@@ -48,7 +48,7 @@ def event_chapter_new(request, event_id):
 
 
 @staff_required
-@permission_required('chapters.change_chapter')
+@permission_required('main.change_chapter')
 @cancel_redirect(
     lambda r, event_id, id: reverse('manage:event_chapters', args=(event_id,))
 )
@@ -71,7 +71,7 @@ def event_chapter_edit(request, event_id, id):
 
 
 @staff_required
-@permission_required('chapters.delete_chapter')
+@permission_required('main.delete_chapter')
 @transaction.commit_on_success
 def event_chapter_delete(request, event_id, id):
     if request.method == 'POST':
