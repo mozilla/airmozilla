@@ -1,5 +1,8 @@
 from nose.tools import eq_, ok_
 
+from django.contrib.auth.models import Group, Permission
+from django.db.models import Q
+
 from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Chapter
@@ -7,6 +10,24 @@ from .base import ManageTestCase
 
 
 class TestEventChapters(ManageTestCase):
+
+    def setUp(self):
+        super(TestEventChapters, self).setUp()
+        self.user.is_superuser = False
+        self.user.is_staff = True
+        self.user.save()
+
+        # now let's give this user the relevant permissions
+        producers = Group.objects.create(name='Producer')
+        self.user.groups.add(producers)
+        # and we grant a couple of relevant permissions to this group
+        permissions = Permission.objects.filter(
+            Q(codename='add_chapter') |
+            Q(codename='change_chapter') |
+            Q(codename='delete_chapter')
+        )
+        for permission in permissions:
+            producers.permissions.add(permission)
 
     def test_chapters(self):
         event = Event.objects.get(title='Test event')
