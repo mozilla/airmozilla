@@ -91,7 +91,7 @@ def flush(es=None):
                         })
 
     except pyelasticsearch.exceptions.IndexAlreadyExistsError:
-        print 'Index already created'
+        pass  # Index already created
 
 
 def delete():
