@@ -27,8 +27,7 @@ def render_edit(edit_id, verbose=False):
 
     filename = '%s.webm' % edit.id
     filepath = os.path.join(tempfile.gettempdir(), filename)
-    if not (os.path.isfile(filepath) and
-            os.stat(filepath)[os.stat.st_size] > 0):
+    if not (os.path.isfile(filepath) and os.stat(filepath).st_size > 0):
         edit.status = PopcornEdit.STATUS_PROCESSING
         edit.save()
         if verbose:
