@@ -12,6 +12,7 @@ from . import archiver
 from . import videoinfo
 from . import vidly_synchronization
 from . import autocompeter
+from . import related
 
 
 @cronjobs.register
@@ -105,3 +106,15 @@ def autocompeter_update():
         # this number is supposed to match that of the cronjob itself
         since=datetime.timedelta(minutes=10)
     )
+
+
+@cronjobs.register
+# @capture
+def related_content_reindex():
+    related.index(all=True, flush_first=True)
+
+
+@cronjobs.register
+# @capture
+def related_content_index():
+    related.index()

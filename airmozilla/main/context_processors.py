@@ -73,71 +73,92 @@ def dev(request):
     }
 
 
+def search_form(request):
+    return {'search_form': SearchForm(request.GET)}
+
+
+def base(request):
+
+    def get_feed_data():
+        feed_privacy = _get_feed_privacy(request.user)
+
+        if getattr(request, 'channels', None):
+            channels = request.channels
+        else:
+            channels = Channel.objects.filter(
+                slug=settings.DEFAULT_CHANNEL_SLUG
+            )
+
+        if settings.DEFAULT_CHANNEL_SLUG in [x.slug for x in channels]:
+            title = 'Air Mozilla RSS'
+            url = reverse('main:feed', args=(feed_privacy,))
+        else:
+            _channel = channels[0]
+            title = 'Air Mozilla - %s - RSS' % _channel.name
+            url = reverse(
+                'main:channel_feed',
+                args=(_channel.slug, feed_privacy)
+            )
+        return {
+            'title': title,
+            'url': url,
+        }
+
+    return {
+        # used for things like {% if event.attr == Event.ATTR1 %}
+        'Event': Event,
+        'get_feed_data': get_feed_data,
+    }
+
+
 def sidebar(request):
     # none of this is relevant if you're in certain URLs
 
-    if '/manage/' in request.path_info:
-        return {}
-    if '/roku/' in request.path_info:
-        # Special circumstance here.
-        # We have a static page with URL "/roku" (which django redirects
-        # to "/roku/"). On that page we want sidebar stuff.
-        # But on all XML related roku views we don't want sidebar stuff.
-        if not request.path_info.endswith('/roku/'):
-            return {}
+    def get_sidebar():
+        data = {}
 
-    data = {
-        # used for things like {% if event.attr == Event.ATTR1 %}
-        'Event': Event,
-    }
+        if not getattr(request, 'show_sidebar', True):
+            return data
 
-    data['search_form'] = SearchForm(request.GET)
+        # if viewing a specific page is limited by channel, apply that
+        # filtering here too
+        if getattr(request, 'channels', None):
+            channels = request.channels
+        else:
+            channels = Channel.objects.filter(
+                slug=settings.DEFAULT_CHANNEL_SLUG
+            )
 
-    if not getattr(request, 'show_sidebar', True):
+        if settings.DEFAULT_CHANNEL_SLUG in [x.slug for x in channels]:
+            sidebar_channel = settings.DEFAULT_CHANNEL_SLUG
+        else:
+            _channel = channels[0]
+            sidebar_channel = _channel.slug
+
+        data['upcoming'] = get_upcoming_events(channels, request.user)
+        data['featured'] = get_featured_events(channels, request.user)
+
+        data['sidebar_top'] = None
+        data['sidebar_bottom'] = None
+        sidebar_urls_q = (
+            Q(url='sidebar_top_%s' % sidebar_channel) |
+            Q(url='sidebar_bottom_%s' % sidebar_channel) |
+            Q(url='sidebar_top_*') |
+            Q(url='sidebar_bottom_*')
+        )
+        # to avoid having to do 2 queries, make a combined one
+        # set it up with an iterator
+        for page in StaticPage.objects.filter(sidebar_urls_q):
+            if page.url.startswith('sidebar_top_'):
+                data['sidebar_top'] = page
+            elif page.url.startswith('sidebar_bottom_'):
+                data['sidebar_bottom'] = page
+
         return data
 
-    # if viewing a specific page is limited by channel, apply that filtering
-    # here too
-    if getattr(request, 'channels', None):
-        channels = request.channels
-    else:
-        channels = Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG)
-
-    feed_privacy = _get_feed_privacy(request.user)
-
-    if settings.DEFAULT_CHANNEL_SLUG in [x.slug for x in channels]:
-        feed_title = 'Air Mozilla RSS'
-        feed_url = reverse('main:feed', args=(feed_privacy,))
-        sidebar_channel = settings.DEFAULT_CHANNEL_SLUG
-    else:
-        _channel = channels[0]
-        feed_title = 'Air Mozilla - %s - RSS' % _channel.name
-        feed_url = reverse('main:channel_feed',
-                           args=(_channel.slug, feed_privacy))
-        sidebar_channel = _channel.slug
-    data['feed_title'] = feed_title
-    data['feed_url'] = feed_url
-
-    data['upcoming'] = get_upcoming_events(channels, request.user)
-    data['featured'] = get_featured_events(channels, request.user)
-
-    data['sidebar_top'] = None
-    data['sidebar_bottom'] = None
-    sidebar_urls_q = (
-        Q(url='sidebar_top_%s' % sidebar_channel) |
-        Q(url='sidebar_bottom_%s' % sidebar_channel) |
-        Q(url='sidebar_top_*') |
-        Q(url='sidebar_bottom_*')
-    )
-    # to avoid having to do 2 queries, make a combined one
-    # set it up with an iterator
-    for page in StaticPage.objects.filter(sidebar_urls_q):
-        if page.url.startswith('sidebar_top_'):
-            data['sidebar_top'] = page
-        elif page.url.startswith('sidebar_bottom_'):
-            data['sidebar_bottom'] = page
-
-    return data
+    # Make this context processor return a closure so it's explicit
+    # from the template if you need its data.
+    return {'get_sidebar': get_sidebar}
 
 
 def get_upcoming_events(channels, user,

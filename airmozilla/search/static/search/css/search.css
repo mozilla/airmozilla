@@ -1,3 +1,5 @@
+#content-sub { display: block; } /* un-hide it */
+
 .entry-title a b,
 .entry-summary p.desc b,
 .entry-summary p .transcript { font-style: italic; }

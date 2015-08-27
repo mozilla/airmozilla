@@ -74,6 +74,7 @@ AUTOCOMPETER_DOMAIN = ''
 GOD_MODE = False
 BROWSERID_DISABLED = False
 
+
 # Don't actually use celery in tests
 CELERY_ALWAYS_EAGER = True
 
@@ -83,3 +84,6 @@ SCREENCAPTURES_NO_PICTURES = 5 # faster
 # slows down the tests significantly and we have deliberate
 # tests that re-enables it.
 PNGQUANT_LOCATION = None
+
+# Elastic search test indexing
+ELASTICSEARCH_INDEX = 'test-events'

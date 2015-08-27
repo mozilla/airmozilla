@@ -51,6 +51,7 @@ from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion
 from airmozilla.surveys.models import Survey
 from airmozilla.manage import vidly
+from airmozilla.manage import related
 from airmozilla.main.helpers import short_desc
 from airmozilla.base import mozillians
 from airmozilla.base.utils import get_base_url
@@ -1156,6 +1157,119 @@ class EventsFeed(Feed):
 
     def item_pubdate(self, event):
         return event.start_time
+
+
+def related_content(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+
+    index = settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
+    doc_type = 'event'
+
+    es = related.get_connection()
+
+    fields = ['title', 'tags']
+    if list(event.channels.all()) != [
+            Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)]:
+        fields.append('channel')
+
+    mlt_query1 = {
+        'more_like_this': {
+            'fields': ['title'],
+            'docs': [
+                {
+                    '_index': index,
+                    '_type': doc_type,
+                    '_id': event.id
+                }],
+            'min_term_freq': 1,
+            'max_query_terms': 20,
+            'min_doc_freq': 1,
+            'boost': 1.0,
+        }
+    }
+    mlt_query2 = {
+        'more_like_this': {
+            'fields': ['tags'],
+            'docs': [
+                {
+                    '_index': index,
+                    '_type': doc_type,
+                    '_id': event.id
+                }],
+            'min_term_freq': 1,
+            'max_query_terms': 20,
+            'min_doc_freq': 1,
+            'boost': -0.5,
+        }
+    }
+
+    query_ = {
+        'bool': {
+            'should': [mlt_query1, mlt_query2],
+        }
+    }
+
+    if request.user.is_active:
+        if is_contributor(request.user):
+            query = {
+                'fields': fields,
+                'query': query_,
+                'filter': {
+                    'bool': {
+                        'must_not': {
+                            'term': {
+                                'privacy': Event.PRIVACY_COMPANY
+                            }
+                        }
+                    }
+                }
+            }
+        else:
+            query = {
+                'fields': fields,
+                'query': query_
+            }
+    else:
+        query = {
+            'fields': fields,
+            'query': query_,
+            "filter": {
+                "bool": {
+                    "must": {
+                        "term": {"privacy": Event.PRIVACY_PUBLIC}
+                    }
+                }
+            }
+        }
+
+    ids = []
+    query['from'] = 0
+    query['size'] = settings.RELATED_CONTENT_SIZE
+    hits = es.search(query, index=index)['hits']
+    for doc in hits['hits']:
+        ids.append(int(doc['_id']))
+
+    events = Event.objects.scheduled_or_processing() \
+        .filter(id__in=ids)
+
+    if request.user.is_active:
+        if is_contributor(request.user):
+            events = events.exclude(privacy=Event.PRIVACY_COMPANY)
+    else:
+        events = events.filter(privacy=Event.PRIVACY_PUBLIC)
+
+    curated_groups_map = collections.defaultdict(list)
+    events = sorted(events, key=lambda e: ids.index(e.id))
+
+    def get_curated_groups(event):
+        return curated_groups_map.get('event_id')
+
+    context = {
+        'events': events,
+        'get_curated_groups': get_curated_groups,
+    }
+
+    return render(request, 'main/es.html', context)
 
 
 def channels(request):

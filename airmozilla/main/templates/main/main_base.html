@@ -6,7 +6,8 @@ Air Mozilla | Mozilla, in Video
 {% endblock %}
 
 {% block extra_head %}
-<link rel="alternate" title="{{ feed_title }}" href="{{ feed_url }}" type="application/rss+xml">
+{% set feed = get_feed_data() %}
+<link rel="alternate" title="{{ feed.title }}" href="{{ feed.url }}" type="application/rss+xml">
 <meta property="og:title" content="{{ self.page_title() }}">
 <meta property="og:url" content="{{ request.build_absolute_uri() }}">
 <meta property="og:description" content="Air Mozilla is the Internet multimedia presence of Mozilla, with live and pre-recorded shows, interviews, news snippets, tutorial videos, and features about the Mozilla community.">
@@ -103,31 +104,7 @@ Air Mozilla | Mozilla, in Video
     </div>
     {% block sidebar %}
     <div id="content-sub" class="sub sidebar widgets" role="complementary">
-      {% if sidebar_top %}
-      <div class="sidebar-top sidebar-extra">
-      {{ sidebar_top.content|safe }}
-      </div>
-      {% endif %}
-
-      {% block also_live %}{% endblock %}
-        {% if featured %}
-          {% set widget_title = _('Trending') -%}
-          {% set widget_events = featured -%}
-          {% include "main/_side_events.html" %}
-        {% endif %}
-      {% block upcoming %}
-        {% if upcoming %}
-          {% set widget_title = _('Upcoming') -%}
-          {% set widget_events = upcoming -%}
-          {% include "main/_side_events.html" %}
-        {% endif %}
-      {% endblock %}
-
-      {% if sidebar_bottom %}
-      <div class="sidebar-bottom sidebar-extra">
-      {{ sidebar_bottom.content|safe }}
-      </div>
-      {% endif %}
+      {% block sidebar_inner %}{% endblock %}
     </div>
     {% endblock %}
   </div>

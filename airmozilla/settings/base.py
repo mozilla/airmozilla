@@ -107,7 +107,9 @@ LOGIN_REDIRECT_URL_FAILURE = '/login-failure/'
 
 TEMPLATE_CONTEXT_PROCESSORS += (
     'airmozilla.manage.context_processors.badges',
+    'airmozilla.main.context_processors.base',
     'airmozilla.main.context_processors.nav_bar',
+    'airmozilla.main.context_processors.search_form',
     'airmozilla.main.context_processors.sidebar',
     'airmozilla.main.context_processors.analytics',
     'airmozilla.main.context_processors.dev',
@@ -166,8 +168,8 @@ def JINJA_CONFIG():
         ],
         'finalize': lambda x: x if x is not None else '',
     }
-    #config = funfactory_JINJA_CONFIG()
-    #config['extensions'].remove('tower.template.i18n')
+    # config = funfactory_JINJA_CONFIG()
+    # config['extensions'].remove('tower.template.i18n')
     return config
 
 
@@ -224,6 +226,12 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 # Always use secure cookies
 COOKIES_SECURE = True
+
+# Default for related content
+RELATED_CONTENT_URL = 'http://localhost:9200/'
+
+# Number of related events to display (max)
+RELATED_CONTENT_SIZE = 6
 
 # Defaults for Mozillians
 MOZILLIANS_API_BASE = 'https://mozillians.org'
@@ -332,6 +340,7 @@ GOD_MODE = False
 BROWSERID_DISABLED = False
 
 
+
 # How many times to try sending out an event tweet.
 MAX_TWEET_ATTEMPTS = 3
 
@@ -353,7 +362,15 @@ THUMBNAIL_BACKEND = 'optisorl.backend.OptimizingThumbnailBackend'
 # not used unless you explicitely turn it on.
 PNGQUANT_LOCATION = None
 
-
 # The user group where being a member means you get an email about
 # all new event requests
 NOTIFICATIONS_GROUP_NAME = 'Event Notifications'
+
+# This is here in order to override the code related to elastic search
+# once things are said and done, ie. it works, this will be deleted
+USE_RELATED_CONTENT = False
+
+
+# Adding prefix to airmozilla events index
+ELASTICSEARCH_PREFIX = 'airmozilla'
+ELASTICSEARCH_INDEX = 'events'
