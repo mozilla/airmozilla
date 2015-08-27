@@ -1162,7 +1162,7 @@ class EventsFeed(Feed):
 def related_content(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
-    index = settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
+    index = related.get_index()
     doc_type = 'event'
 
     es = related.get_connection()

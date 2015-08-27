@@ -28,6 +28,7 @@ from .views import (
     taskstester,
     errors,
     chapters,
+    related,
 )
 
 
@@ -311,5 +312,8 @@ urlpatterns = patterns(
     url(r'^errors/trigger/$',
         errors.error_trigger,
         name='error_trigger'),
+    url(r'^related/$',
+        related.related_content,
+        name='related_content'),
 
 )

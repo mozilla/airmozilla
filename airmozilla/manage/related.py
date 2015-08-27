@@ -14,6 +14,10 @@ def get_connection():
     return pyelasticsearch.ElasticSearch(settings.ELASTICSEARCH_URL)
 
 
+def get_index():
+    return settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
+
+
 def documents(events, es):
     for event in events:
         yield es.index_op(doc={
@@ -30,71 +34,72 @@ def index(all=False, flush_first=False, since=datetime.timedelta(minutes=10)):
 
     if flush_first:
         flush(es)
+        create(es)
 
     if all:
         events = Event.objects.scheduled_or_processing()
     else:
         now = timezone.now()
-        events = Event.objects.scheduled_or_processing() \
+        events = (
+            Event.objects.scheduled_or_processing()
             .filter(modified__gte=now-since)
+        )
 
     # bulk_chunks() breaks our documents into smaller requests for speed:
+    index = get_index()
     for chunk in bulk_chunks(documents(events, es),
                              docs_per_chunk=500,
                              bytes_per_chunk=10000):
 
-        es.bulk(chunk, doc_type='event',
-                index=settings.ELASTICSEARCH_PREFIX
-                + settings.ELASTICSEARCH_INDEX)
+        es.bulk(chunk, doc_type='event', index=index)
 
-    es.refresh(settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX)
-#    print es.delete_index(settings.ELASTICSEARCH_PREFIX
-#                          + settings.ELASTICSEARCH_INDEX)
+    es.refresh(index)
 
 
 def flush(es=None):
     es = es or get_connection()
+    index = get_index()
     try:
-        es.flush(
-            settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
-        )
+        es.flush(index)
     except pyelasticsearch.exceptions.ElasticHttpNotFoundError:
         # if the index isn't there we can't flush it
         pass
-    try:
-        es.create_index(settings.ELASTICSEARCH_PREFIX
-                        + settings.ELASTICSEARCH_INDEX, settings={
-                            'mappings': {
-                                doc_type: {
-                                    'properties': {
-                                        'privacy': {
-                                            'type': 'string',
-                                            'analyzer': 'keyword'
-                                        },
-                                        'title': {
-                                            'type': 'string',
-                                            # supposedly faster for querying
-                                            # but uses more disk space
-                                            'term_vector': 'yes',
-                                        },
-                                        'channels': {
-                                            'type': 'string',
-                                            'analyzer': 'keyword'
-                                        },
-                                        'tags': {
-                                            'type': 'string',
-                                            'analyzer': 'keyword',
-                                        }
-                                    }
-                                }
-                            }
-                        })
 
+
+def create(es=None):
+    es = es or get_connection()
+    index = get_index()
+    try:
+        es.create_index(index, settings={
+            'mappings': {
+                doc_type: {
+                    'properties': {
+                        'privacy': {
+                            'type': 'string',
+                            'analyzer': 'keyword'
+                        },
+                        'title': {
+                            'type': 'string',
+                            # supposedly faster for querying
+                            # but uses more disk space
+                            'term_vector': 'yes',
+                        },
+                        'channels': {
+                            'type': 'string',
+                            'analyzer': 'keyword'
+                        },
+                        'tags': {
+                            'type': 'string',
+                            'analyzer': 'keyword',
+                        }
+                    }
+                }
+            }
+        })
     except pyelasticsearch.exceptions.IndexAlreadyExistsError:
         pass  # Index already created
 
 
-def delete():
-    es = get_connection()
-    print es.delete_index(settings.ELASTICSEARCH_PREFIX
-                          + settings.ELASTICSEARCH_INDEX)
+def delete(es=None):
+    es = es or get_connection()
+    es.delete_index(get_index())

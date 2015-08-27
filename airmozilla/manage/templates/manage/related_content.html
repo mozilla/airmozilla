@@ -1,0 +1,26 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "related_content" %}
+
+{% block manage_title %}
+  Related Content
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+
+<p>
+  There are <b>{{ count_indexed }} documents</b> indexed and
+  <b>{{ count_events }} events</b> (scheduled or processing).
+</p>
+
+<form method="post" class="form-horizontal" role="form">
+  {{ csrf() }}
+  {{ bootstrapform_horizontal(form) }}
+  <div>
+    <button type="submit" class="btn btn-primary submit" name="submit">Re-Index</button>
+  </div>
+</form>
+
+
+{% endblock %}

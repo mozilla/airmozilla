@@ -989,3 +989,16 @@ class TriggerErrorForm(BaseForm):
 
     message = forms.CharField()
     capture_with_raven = forms.BooleanField(required=False)
+
+
+class ReindexRelatedContentForm(BaseForm):
+
+    all = forms.BooleanField(required=False)
+    since = forms.IntegerField(
+        required=False,
+        help_text='minutes',
+        widget=forms.widgets.NumberInput(attrs={
+            'style': 'width: 200px',
+        })
+    )
+    delete_and_recreate = forms.BooleanField(required=False)
