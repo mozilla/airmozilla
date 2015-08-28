@@ -26,6 +26,7 @@ from .views import (
     autocompeter,
     uploads,
     taskstester,
+    errors,
     chapters,
 )
 
@@ -307,5 +308,8 @@ urlpatterns = patterns(
     url(r'^tasks/tester/$',
         taskstester.tasks_tester,
         name='tasks_tester'),
+    url(r'^errors/trigger/$',
+        errors.error_trigger,
+        name='error_trigger'),
 
 )

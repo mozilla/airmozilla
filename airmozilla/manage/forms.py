@@ -983,3 +983,9 @@ class ISODateTimeField(forms.DateTimeField):
 class EventsDataForm(BaseForm):
 
     since = ISODateTimeField(required=False)
+
+
+class TriggerErrorForm(BaseForm):
+
+    message = forms.CharField()
+    capture_with_raven = forms.BooleanField(required=False)
