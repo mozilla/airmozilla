@@ -3,7 +3,7 @@ $(function() {
 
     var attempts = 0;
     var waiter = setInterval(function() {
-        if (typeof jwplayer === 'function' && jwplayer(playerid).getState()) {
+        if (typeof jwplayer === 'function' && typeof playerid !== 'undefined' && jwplayer(playerid).getState()) {
             jwplayer_player = jwplayer();
             clearInterval(waiter);
         } else {
