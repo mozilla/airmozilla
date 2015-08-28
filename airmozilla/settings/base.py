@@ -318,7 +318,7 @@ CONTRIBUTORS = (
     'koddsson',
     'KrystalYu',
     'anuragchaudhury',
-    'blossomica',
+    'gloriadwomoh',
     'a-buck',
 )
 
