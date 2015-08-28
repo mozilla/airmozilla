@@ -768,8 +768,19 @@ class TagEditForm(BaseModelForm):
     class Meta:
         model = Tag
 
+    def clean_name(self):
+        value = self.cleaned_data['name']
+        other_tags = Tag.objects.filter(name__iexact=value)
+        if self.instance:
+            other_tags = other_tags.exclude(id=self.instance.id)
+        if other_tags.exists():
+            raise forms.ValidationError(
+                'Used by another tag. Consider merging.'
+            )
+        return value
 
-class TagMergeForm(BaseForm):
+
+class TagMergeRepeatedForm(BaseForm):
 
     keep = forms.ChoiceField(
         label='Name to keep',
@@ -777,7 +788,7 @@ class TagMergeForm(BaseForm):
     )
 
     def __init__(self, this_tag, *args, **kwargs):
-        super(TagMergeForm, self).__init__(*args, **kwargs)
+        super(TagMergeRepeatedForm, self).__init__(*args, **kwargs)
 
         def describe_tag(tag):
             count = Event.objects.filter(tags=tag).count()
@@ -791,6 +802,26 @@ class TagMergeForm(BaseForm):
             (x.id, describe_tag(x))
             for x in Tag.objects.filter(name__iexact=this_tag.name)
         ]
+
+
+class TagMergeForm(BaseForm):
+
+    name = forms.CharField()
+
+    def __init__(self, this_tag, *args, **kwargs):
+        super(TagMergeForm, self).__init__(*args, **kwargs)
+        self.this_tag = this_tag
+
+    def clean_name(self):
+        value = self.cleaned_data['name']
+        other_tags = (
+            Tag.objects
+            .filter(name__iexact=value)
+            .exclude(id=self.this_tag.id)
+        )
+        if not other_tags.exists():
+            raise forms.ValidationError('Not found')
+        return value
 
 
 class VidlyResubmitForm(VidlyURLForm):

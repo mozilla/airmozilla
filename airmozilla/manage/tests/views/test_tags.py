@@ -61,12 +61,10 @@ class TestTags(ManageTestCase):
         response = self.client.post(url, {
             'name': 'ALREADYINUSE',
         })
-        eq_(response.status_code, 302)
-        # because this is causeing a duplicate it redirects back
-        self.assertRedirects(response, url)
-        eq_(Tag.objects.filter(name__iexact='Alreadyinuse').count(), 2)
+        eq_(response.status_code, 200)
+        ok_('Used by another tag' in response.content)
 
-    def test_tag_merge(self):
+    def test_tag_merge_repeated(self):
         t1 = Tag.objects.create(name='Tagg')
         t2 = Tag.objects.create(name='TaGG')
         t3 = Tag.objects.create(name='tAgg')
@@ -92,7 +90,7 @@ class TestTags(ManageTestCase):
         response = self.client.get(edit_url)
         eq_(response.status_code, 200)
 
-        merge_url = reverse('manage:tag_merge', args=(t1.id,))
+        merge_url = reverse('manage:tag_merge_repeated', args=(t1.id,))
         ok_(merge_url in response.content)
         response = self.client.post(merge_url, {'keep': t2.id})
         eq_(response.status_code, 302)
@@ -109,3 +107,24 @@ class TestTags(ManageTestCase):
         eq_(Event.objects.filter(tags__name='TaGG').count(), 3)
         eq_(Event.objects.filter(tags__name='Tagg').count(), 0)
         eq_(Event.objects.filter(tags__name='tAgg').count(), 0)
+
+    def test_tag_merge(self):
+        t1 = Tag.objects.create(name='Tagg')
+        event = Event.objects.get(title='Test event')
+        event.tags.add(t1)
+
+        t2 = Tag.objects.create(name='Other')
+        event.tags.add(t2)
+
+        # Now suppose you want to only use the 'Other' tag and
+        # move all tags called 'Tagg' to that.
+        url = reverse('manage:tag_merge', args=(t1.id,))
+        # But before we do that, let's make a typo!
+        response = self.client.post(url, {'name': 'UTHER'})
+        eq_(response.status_code, 400)
+        # Now let's spell it correctly
+        response = self.client.post(url, {'name': 'OTHER'})
+        eq_(response.status_code, 302)
+
+        ok_(not Tag.objects.filter(name__iexact='Tagg'))
+        eq_(list(event.tags.all()), list(Tag.objects.filter(name='Other')))

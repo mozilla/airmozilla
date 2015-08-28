@@ -1,5 +1,6 @@
 import collections
 
+from django import http
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
@@ -91,13 +92,16 @@ def tag_edit(request, id):
         'repeated': repeated,
         'is_repeated': repeated > 1
     }
-    if repeated:
-        context['repeated_form'] = forms.TagMergeForm(this_tag=tag)
+
+    if repeated > 1:
+        context['repeated_form'] = forms.TagMergeRepeatedForm(this_tag=tag)
+    else:
+        context['merge_form'] = forms.TagMergeForm(this_tag=tag)
     return render(request, 'manage/tag_edit.html', context)
 
 
 @staff_required
-@permission_required('main.change_event')
+@permission_required('main.remove_tag')
 @transaction.commit_on_success
 def tag_remove(request, id):
     if request.method == 'POST':
@@ -110,10 +114,42 @@ def tag_remove(request, id):
 
 
 @staff_required
-@permission_required('main.change_event')
+@permission_required('main.change_tag')
 @cancel_redirect('manage:tags')
 @transaction.commit_on_success
 def tag_merge(request, id):
+    tag = get_object_or_404(Tag, id=id)
+    form = forms.TagMergeForm(tag, request.POST)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+    destination = get_object_or_404(
+        Tag,
+        name__iexact=form.cleaned_data['name']
+    )
+
+    count_events = 0
+    for event in Event.objects.filter(tags=tag):
+        event.tags.remove(tag)
+        event.tags.add(destination)
+        count_events += 1
+    tag.delete()
+
+    messages.info(
+        request,
+        '"%s" is the new cool tag (affected %s events)' % (
+            destination.name,
+            count_events,
+        )
+    )
+
+    return redirect('manage:tags')
+
+
+@staff_required
+@permission_required('main.change_tag')
+@cancel_redirect('manage:tags')
+@transaction.commit_on_success
+def tag_merge_repeated(request, id):
     tag = get_object_or_404(Tag, id=id)
     tag_to_keep = get_object_or_404(Tag, id=request.POST['keep'])
 
