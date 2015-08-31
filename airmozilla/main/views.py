@@ -18,6 +18,7 @@ from django.contrib.syndication.views import Feed
 from django.views.generic.base import View
 from django.db.models import Count, Q, F
 from django.db import transaction
+from django.contrib import messages
 
 from slugify import slugify
 from funfactory.urlresolvers import reverse
@@ -1549,6 +1550,96 @@ def unpicked_pictures(request):
         'pictures_counts': pictures_counts,
     }
     return render(request, 'main/unpicked_pictures.html', context)
+
+
+@login_required
+@transaction.atomic
+def too_few_tags(request):
+    """returns a report of all events that very few tags"""
+    if request.method == 'POST':
+        form = forms.EventEditTagsForm(request.POST)
+        if form.is_valid():
+            event = get_object_or_404(Event, id=form.cleaned_data['event_id'])
+            assert request.user.is_active
+            if is_contributor(request.user):
+                assert event.privacy != Event.PRIVACY_COMPANY
+
+            if not EventRevision.objects.filter(event=event).count():
+                EventRevision.objects.create_from_event(event)
+
+            value = set([
+                x.strip()
+                for x in form.cleaned_data['tags'].split(',')
+                if x.strip()
+            ])
+            prev = set([x.name for x in event.tags.all()])
+            for tag in prev - value:
+                tag_obj = Tag.objects.get(name=tag)
+                event.tags.remove(tag_obj)
+            added = []
+            for tag in value - prev:
+                try:
+                    tag_obj = Tag.objects.get(name__iexact=tag)
+                except Tag.DoesNotExist:
+                    tag_obj = Tag.objects.create(name=tag)
+                except Tag.MultipleObjectsReturned:
+                    tag_obj, = Tag.objects.filter(name__iexact=tag)[:1]
+                event.tags.add(tag_obj)
+                added.append(tag_obj)
+            EventRevision.objects.create_from_event(
+                event,
+                user=request.user
+            )
+            messages.success(
+                request,
+                'Thank you for adding: %s' % ', '.join(x.name for x in added)
+            )
+            return redirect('main:too_few_tags')
+
+    zero_tags = (
+        Event.objects.scheduled_or_processing()
+        .exclude(id__in=Event.tags.through.objects.values('event_id'))
+    )
+    few_tags = (
+        Event.tags.through.objects
+        .filter(event__status=Event.STATUS_SCHEDULED)
+        .values('event_id')
+        .annotate(count=Count('event'))
+        .filter(count__lt=2)
+    )
+    assert request.user.is_active
+    if is_contributor(request.user):
+        few_tags = few_tags.exclude(event__privacy=Event.PRIVACY_COMPANY)
+        zero_tags = zero_tags.exclude(privacy=Event.PRIVACY_COMPANY)
+
+    count = zero_tags.count()
+    count += few_tags.count()
+    try:
+        event, = zero_tags.order_by('?')[:1]
+    except ValueError:
+        try:
+            first, = few_tags.order_by('?')[:1]
+            event = Event.objects.get(id=first['event_id'])
+        except ValueError:
+            # there's nothing!
+            event = None
+            assert count == 0
+
+    context = {
+        'count': count,
+        'event': event,
+    }
+    if event:
+        initial = {
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'event_id': event.id,
+        }
+        context['form'] = forms.EventEditTagsForm(
+            initial=initial,
+            instance=event
+        )
+
+    return render(request, 'main/too_few_tags.html', context)
 
 
 def contributors(request):

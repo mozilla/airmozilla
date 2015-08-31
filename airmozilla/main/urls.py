@@ -53,6 +53,8 @@ urlpatterns = patterns(
         views.event_livehits, name='event_livehits'),
     url(r'^unpicked-pictures/$', views.unpicked_pictures,
         name='unpicked_pictures'),
+    url(r'^too-few-tags/$', views.too_few_tags,
+        name='too_few_tags'),
     url(r'^contributors/$',
         views.contributors,
         name='contributors'),
