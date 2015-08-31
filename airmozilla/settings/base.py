@@ -235,7 +235,7 @@ ELASTICSEARCH_URL = 'http://localhost:9200/'
 USE_RELATED_CONTENT = False
 
 # Number of related events to display (max)
-RELATED_CONTENT_SIZE = 6
+RELATED_CONTENT_SIZE = 4
 
 # Defaults for Mozillians
 MOZILLIANS_API_BASE = 'https://mozillians.org'
