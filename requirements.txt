@@ -129,8 +129,9 @@ ordereddict==1.1
 readability-api==0.2.4
 # sha256: Eq491FQ_jcXMX0vdf2_RaPTRYkQU11OkQVc8zBh6jkM
 django-jsonfield==0.9.13
-# sha256: vPcTcdmXu0ajFop7Y6rma1bMyswCWvkxDbQxVoHviGg
-python-memcached==1.53
+# sha256: O2iaE1r7L9ttoimNUhN4D0Oj8hDPjJYNULJSrLP2KQI
+# sha256: VEQZ_V4zMAg13jsvhGKhRd2kUdXjCIpp4M0NorW8D3o
+python-memcached==1.57
 # sha256: Yi0GwHE6foAiRVt1lXNgJGsUU6vLb6mw_vPbjG6sE_M
 # sha256: 8Eag1Mf-ukOMlOOmnhgzjM3Ms4oBcf20SVvW2lbhNtY
 selenium==2.47.1
