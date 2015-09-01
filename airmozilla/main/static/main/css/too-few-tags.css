@@ -1,0 +1,14 @@
+p.links {
+    position: absolute;
+    top: 110px;
+    left: 0;
+    margin-bottom: 100px;
+}
+span.saving {
+    display: none;
+}
+span.saving img {
+    /* override the colors it gets from being part of `.entry-summary img` */
+    background-color: #20272A;
+    border-color: #20272A;
+}

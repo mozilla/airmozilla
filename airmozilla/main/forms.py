@@ -62,8 +62,6 @@ class EventEditForm(BaseModelForm):
             Channel.objects
             .filter(Q(never_show=False) | Q(id__in=self.event.channels.all()))
         )
-        # print self.fields['channels'].queryset
-        # print self.fields['channels'].queryset.query
 
         self.fields['placeholder_img'].required = False
         self.fields['placeholder_img'].label = (
@@ -147,3 +145,13 @@ class ThumbnailsForm(BaseForm):
     id = forms.IntegerField()
     width = forms.IntegerField()
     height = forms.IntegerField()
+
+
+class EventEditTagsForm(BaseModelForm):
+
+    event_id = forms.CharField(widget=forms.HiddenInput())
+    tags = forms.CharField(required=False)
+
+    class Meta:
+        model = Event
+        fields = ['tags', 'event_id']
