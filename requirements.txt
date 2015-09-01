@@ -165,10 +165,9 @@ popcoder==0.1.2
 # sha256: AfwKKh4BmQqXsJZhXBEyj6QwbO0XM8mNiEFgOHdg1Hk
 # sha256: ZfNCpgSi4QKHB8XgVSZqskMcJuIP4QeAtCMyCHCITaw
 importlib==1.0.3
-
-# sha256: mQhmz0JSqSNPH5espWOSj9zcWh_paH6xUGBx6BntbXg
-# sha256: pRyvRYsgcdqn7Vgv4mJMJTNxDz-wOTkj8WSKoB14s7Q
-optisorl==0.1.1
+# sha256: mYHQvei5cART1vadTQBef9fwC8yE3kJJ3Fx3JK2lPcs
+# sha256: 5PXx9lpdenkrHtmzfxh1lNDYIVSoWU0jTcBVHXe5-tw
+optisorl==0.1.3
 # sha256: P3_IGWFR8-lX93QnSM4qVkdJLYoLtxuk-a8a6_-mbUE
 pyelasticsearch==1.3
 # sha256: hmHkF0e4hcES2UK1KP7D6W4QNrXGcTqmBfL-JLYYRsI
