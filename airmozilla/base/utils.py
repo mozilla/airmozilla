@@ -166,7 +166,7 @@ def akamai_tokenize(
     start_time='now',
     ip=None,
     url=None,
-    access_list='/Akamai_Restricted/*',
+    access_list='/*/*_Restricted/*',
     key=None,
     escape_early=False,
     verbose=False,
