@@ -1163,6 +1163,26 @@ class EventsFeed(Feed):
 def related_content(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
+    events = find_related_events(event, request.user)
+
+    curated_groups_map = collections.defaultdict(list)
+
+    def get_curated_groups(event):
+        return curated_groups_map.get('event_id')
+
+    context = {
+        'events': events,
+        'get_curated_groups': get_curated_groups,
+    }
+
+    return render(request, 'main/es.html', context)
+
+
+def find_related_events(event, user, boost_title=None, boost_tags=None):
+    if boost_title is None:
+        boost_title = settings.RELATED_CONTENT_BOOST_TITLE
+    if boost_tags is None:
+        boost_tags = settings.RELATED_CONTENT_BOOST_TAGS
     index = related.get_index()
     doc_type = 'event'
 
@@ -1185,7 +1205,7 @@ def related_content(request, slug):
             'min_term_freq': 1,
             'max_query_terms': 20,
             'min_doc_freq': 1,
-            'boost': 1.0,
+            'boost': boost_title,
         }
     }
     mlt_query2 = {
@@ -1200,7 +1220,7 @@ def related_content(request, slug):
             'min_term_freq': 1,
             'max_query_terms': 20,
             'min_doc_freq': 1,
-            'boost': -0.5,
+            'boost': boost_tags,
         }
     }
 
@@ -1210,8 +1230,8 @@ def related_content(request, slug):
         }
     }
 
-    if request.user.is_active:
-        if is_contributor(request.user):
+    if user.is_active:
+        if is_contributor(user):
             query = {
                 'fields': fields,
                 'query': query_,
@@ -1250,27 +1270,17 @@ def related_content(request, slug):
     for doc in hits['hits']:
         ids.append(int(doc['_id']))
 
-    events = Event.objects.scheduled_or_processing() \
-        .filter(id__in=ids)
+    events = Event.objects.scheduled_or_processing().filter(id__in=ids)
 
-    if request.user.is_active:
-        if is_contributor(request.user):
+    if user.is_active:
+        if is_contributor(user):
             events = events.exclude(privacy=Event.PRIVACY_COMPANY)
     else:
         events = events.filter(privacy=Event.PRIVACY_PUBLIC)
 
-    curated_groups_map = collections.defaultdict(list)
     events = sorted(events, key=lambda e: ids.index(e.id))
 
-    def get_curated_groups(event):
-        return curated_groups_map.get('event_id')
-
-    context = {
-        'events': events,
-        'get_curated_groups': get_curated_groups,
-    }
-
-    return render(request, 'main/es.html', context)
+    return events
 
 
 def channels(request):

@@ -12,6 +12,7 @@ from airmozilla.manage.helpers import (
     event_status_to_css_label,
     format_message,
     formatduration,
+    highlight_stopwords,
 )
 
 
@@ -88,3 +89,11 @@ class MiscTests(TestCase):
         eq_(output, u'1h\xa00m\xa00s')
         output = formatduration(60 * 60 + 61)
         eq_(output, u'1h\xa01m\xa01s')
+
+    def test_highlight_stopwords(self):
+        result = highlight_stopwords(
+            'This is the - break point'
+        )
+        ok_(isinstance(result, jinja2.Markup))
+        ok_('<span class="stopword">This</span>' in result)
+        ok_('<span class="not-stopword">break</span>' in result)

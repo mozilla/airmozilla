@@ -317,5 +317,8 @@ urlpatterns = patterns(
     url(r'^related/$',
         related.related_content,
         name='related_content'),
+    url(r'^related/testing/$',
+        related.related_content_testing,
+        name='related_content_testing'),
 
 )

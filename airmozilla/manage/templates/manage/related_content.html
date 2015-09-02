@@ -9,6 +9,10 @@
 
 {% block manage_content %}
 
+<h4 style="position: absolute; right: 20px; top: 20px">
+  <a href="{{ url('manage:related_content_testing') }}">Related Content Testing</a>
+</h4>
+
 <p>
   There are <b>{{ count_indexed }} documents</b> indexed and
   <b>{{ count_events }} events</b> (scheduled or processing).
