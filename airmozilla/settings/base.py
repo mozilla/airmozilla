@@ -237,6 +237,10 @@ USE_RELATED_CONTENT = False
 # Number of related events to display (max)
 RELATED_CONTENT_SIZE = 4
 
+# Boosting of title and tags, makes them matter more.
+RELATED_CONTENT_BOOST_TITLE = 1.0
+RELATED_CONTENT_BOOST_TAGS = -0.5
+
 # Defaults for Mozillians
 MOZILLIANS_API_BASE = 'https://mozillians.org'
 

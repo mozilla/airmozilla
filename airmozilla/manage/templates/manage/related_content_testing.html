@@ -1,0 +1,82 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "related_content" %}
+
+{% block manage_title %}
+  Related Content
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style type="text/css">
+  span.stopword { color: #ccc; }
+  #id_event {
+      width: 500px;
+  }
+  input[type="number"] {
+      width: 100px;
+  }
+  </style>
+{% endblock %}
+
+
+{% block manage_content %}
+
+<h4 style="position: absolute; right: 20px; top: 20px">
+  <a href="{{ url('manage:related_content') }}">Related Content Indexing</a>
+</h4>
+
+<form method="get" class="form-horizontal" role="form">
+  {{ bootstrapform_horizontal(form) }}
+  <div>
+    <button type="submit" class="btn btn-primary submit">List Matches</button>
+  </div>
+</form>
+
+{% if event %}
+<hr>
+<h4>Matches</h4>
+<table class="table">
+  <thead>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Title (without <abbr title="'Stop words' are words like 'the', 'is', 'this', 'a', ...">stop words</abbr>):</th>
+      <th>Tags:</th>
+      <th>Channels:</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>This Event</th>
+      <td><a href="{{ url('manage:event_edit', event.id) }}">{{ highlight_stopwords(event.title) }}</a></td>
+      <td>
+        {% for tag in event.tags.all() %}
+          <span class="label label-default">{{ tag.name }}</span>
+        {% endfor %}
+      </td>
+      <td>
+        {% for channel in event.channels.all() %}
+          <a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a>
+        {% endfor %}
+      </td>
+    </tr>
+    {% for event in matches %}
+    <tr>
+      <th>Match {{ loop.index }}</th>
+      <td><a href="{{ url('manage:event_edit', event.id) }}">{{ highlight_stopwords(event.title) }}</a></td>
+      <td>
+        {% for tag in event.tags.all() %}
+          <span class="label label-default">{{ tag.name }}</span>
+        {% endfor %}
+      </td>
+      <td>
+        {% for channel in event.channels.all() %}
+          <a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a>
+        {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% endblock %}

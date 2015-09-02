@@ -1033,3 +1033,32 @@ class ReindexRelatedContentForm(BaseForm):
         })
     )
     delete_and_recreate = forms.BooleanField(required=False)
+
+
+class RelatedContentTestingForm(BaseForm):
+
+    event = forms.CharField(
+        help_text="Title, slug or ID"
+    )
+    boost_title = forms.FloatField()
+    boost_tags = forms.FloatField()
+
+    def clean_event(self):
+        event = self.cleaned_data['event'].strip()
+        try:
+            if not event.isdigit():
+                raise Event.DoesNotExist
+            return Event.objects.get(id=event)
+
+        except Event.DoesNotExist:
+            try:
+                return Event.objects.get(slug__iexact=event)
+            except Event.DoesNotExist:
+                try:
+                    return Event.objects.get(title__iexact=event)
+                except Event.DoesNotExist:
+                    raise forms.ValidationError("Event can't be found")
+                except Event.MultipleObjectsReturned:
+                    raise forms.ValidationError(
+                        'Event title ambiguous. Use slug or ID.'
+                    )

@@ -14,6 +14,7 @@ from django.utils.html import avoid_wrapping
 
 from bootstrapform.templatetags.bootstrap import bootstrap_horizontal
 
+from airmozilla.manage.views.utils import STOPWORDS
 from airmozilla.main.models import Event, EventOldSlug
 from airmozilla.comments.models import Comment
 
@@ -162,3 +163,19 @@ def formatduration(seconds):
         parts.append('%dm' % minutes)
     parts.append('%ds' % seconds)
     return avoid_wrapping(' '.join(parts))
+
+
+@register.function
+def highlight_stopwords(text, class_='stopword', not_class='not-stopword'):
+    words = []
+    for word in text.split():
+        if word.lower() in STOPWORDS or word in '-?':
+            css_class = class_
+        else:
+            css_class = not_class
+
+        words.append('<span class="%s">%s</span>' % (
+            css_class,
+            jinja2.escape(word)
+        ))
+    return jinja2.Markup(' '.join(words))
