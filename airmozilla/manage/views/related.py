@@ -52,5 +52,6 @@ def related_content(request):
         'form': form,
         'count_indexed': es.count(query, index=index)['count'],
         'count_events': Event.objects.scheduled_or_processing().count(),
+        'index_name': index,
     }
     return render(request, 'manage/related_content.html', context)
