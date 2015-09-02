@@ -3,6 +3,8 @@ import datetime
 
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.sites.models import Site
+from django.core.cache import cache
 
 from airmozilla.main.models import Event
 from pyelasticsearch import bulk_chunks
@@ -15,7 +17,13 @@ def get_connection():
 
 
 def get_index():
-    return settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
+    cache_key = 'related_index'
+    value = cache.get(cache_key)
+    if value is None:
+        value = Site.objects.get_current().domain
+        value += settings.ELASTICSEARCH_PREFIX + settings.ELASTICSEARCH_INDEX
+        cache.set(cache_key, value, 60 * 60)  # this could probably be longer
+    return value
 
 
 def documents(events, es):
