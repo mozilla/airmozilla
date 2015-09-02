@@ -103,6 +103,7 @@ class TestRelatedContent(ManageTestCase):
             'event': event.title.upper(),
             'boost_title': settings.RELATED_CONTENT_BOOST_TITLE,
             'boost_tags': settings.RELATED_CONTENT_BOOST_TAGS,
+            'size': settings.RELATED_CONTENT_SIZE,
         })
         eq_(response.status_code, 200)
         ok_('<h4>Matches</h4>' in response.content)

@@ -40,6 +40,7 @@
     <tr>
       <th>&nbsp;</th>
       <th>Title (without <abbr title="'Stop words' are words like 'the', 'is', 'this', 'a', ...">stop words</abbr>):</th>
+      <th><abbr title="According to ElasticSearch">Score</abbr></th>
       <th>Tags:</th>
       <th>Channels:</th>
     </tr>
@@ -48,6 +49,7 @@
     <tr>
       <th>This Event</th>
       <td><a href="{{ url('manage:event_edit', event.id) }}">{{ highlight_stopwords(event.title) }}</a></td>
+      <td>-</td>
       <td>
         {% for tag in event.tags.all() %}
           <span class="label label-default">{{ tag.name }}</span>
@@ -63,6 +65,7 @@
     <tr>
       <th>Match {{ loop.index }}</th>
       <td><a href="{{ url('manage:event_edit', event.id) }}">{{ highlight_stopwords(event.title) }}</a></td>
+      <td>{{ scores.get(event.id) }}</td>
       <td>
         {% for tag in event.tags.all() %}
           <span class="label label-default">{{ tag.name }}</span>

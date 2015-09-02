@@ -1042,6 +1042,7 @@ class RelatedContentTestingForm(BaseForm):
     )
     boost_title = forms.FloatField()
     boost_tags = forms.FloatField()
+    size = forms.IntegerField()
 
     def clean_event(self):
         event = self.cleaned_data['event'].strip()

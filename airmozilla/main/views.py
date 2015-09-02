@@ -1176,7 +1176,7 @@ class EventsFeed(Feed):
 def related_content(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
-    events = find_related_events(event, request.user)
+    events, __ = find_related_events(event, request.user)
 
     curated_groups_map = collections.defaultdict(list)
 
@@ -1191,22 +1191,26 @@ def related_content(request, slug):
     return render(request, 'main/es.html', context)
 
 
-def find_related_events(event, user, boost_title=None, boost_tags=None):
+def find_related_events(
+    event, user, boost_title=None, boost_tags=None, size=None
+):
     if boost_title is None:
         boost_title = settings.RELATED_CONTENT_BOOST_TITLE
     if boost_tags is None:
         boost_tags = settings.RELATED_CONTENT_BOOST_TAGS
+    if size is None:
+        size = settings.RELATED_CONTENT_SIZE
     index = related.get_index()
     doc_type = 'event'
 
     es = related.get_connection()
 
-    fields = ['title', 'tags']
+    fields = ['title']
     if list(event.channels.all()) != [
             Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)]:
         fields.append('channel')
 
-    mlt_query1 = {
+    mlt_queries = [{
         'more_like_this': {
             'fields': ['title'],
             'docs': [
@@ -1220,26 +1224,28 @@ def find_related_events(event, user, boost_title=None, boost_tags=None):
             'min_doc_freq': 1,
             'boost': boost_title,
         }
-    }
-    mlt_query2 = {
-        'more_like_this': {
-            'fields': ['tags'],
-            'docs': [
-                {
-                    '_index': index,
-                    '_type': doc_type,
-                    '_id': event.id
-                }],
-            'min_term_freq': 1,
-            'max_query_terms': 20,
-            'min_doc_freq': 1,
-            'boost': boost_tags,
-        }
-    }
+    }]
+    if event.tags.all().exists():
+        fields.append('tags')
+        mlt_queries.append({
+            'more_like_this': {
+                'fields': ['tags'],
+                'docs': [
+                    {
+                        '_index': index,
+                        '_type': doc_type,
+                        '_id': event.id
+                    }],
+                'min_term_freq': 1,
+                'max_query_terms': 20,
+                'min_doc_freq': 1,
+                'boost': boost_tags,
+            }
+        })
 
     query_ = {
         'bool': {
-            'should': [mlt_query1, mlt_query2],
+            'should': mlt_queries,
         }
     }
 
@@ -1278,10 +1284,13 @@ def find_related_events(event, user, boost_title=None, boost_tags=None):
 
     ids = []
     query['from'] = 0
-    query['size'] = settings.RELATED_CONTENT_SIZE
+    query['size'] = size
     hits = es.search(query, index=index)['hits']
+    scores = {}
     for doc in hits['hits']:
-        ids.append(int(doc['_id']))
+        _id = int(doc['_id'])
+        scores[_id] = doc['_score']
+        ids.append(_id)
 
     events = Event.objects.scheduled_or_processing().filter(id__in=ids)
 
@@ -1293,7 +1302,7 @@ def find_related_events(event, user, boost_title=None, boost_tags=None):
 
     events = sorted(events, key=lambda e: ids.index(e.id))
 
-    return events
+    return (events, scores)
 
 
 def channels(request):
