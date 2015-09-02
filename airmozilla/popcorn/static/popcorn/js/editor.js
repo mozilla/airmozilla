@@ -5,7 +5,7 @@ $(document).ready(function () {
         })
         .done(function (response) {
             if(response.data) {
-                PopcornEditor.loadInfo(response);
+                PopcornEditor.loadInfo(response.data);
             }
             else {
                 PopcornEditor.loadInfo(
@@ -27,11 +27,7 @@ $(document).ready(function () {
             csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
         })
         .done(function (response) {
-            var message = "Your edit has been saved and sent it for "
-            + "transcoding. Once it completes, which can take several minutes, "
-            + "we'll automatically update the event to use your latest "
-            + "video edits.";
-            alert(message);
+            document.location = '/popcorn/status/' + $('#editor').data('slug');
         })
         .fail(function () {
             console.warn('Unable to save edit :(');
