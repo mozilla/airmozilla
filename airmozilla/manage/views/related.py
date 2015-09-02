@@ -78,18 +78,22 @@ def related_content_testing(request):
         if form.is_valid():
             event = form.cleaned_data['event']
             from airmozilla.main.views import find_related_events
-            context['matches'] = find_related_events(
+            matches, scores = find_related_events(
                 event,
                 request.user,
                 boost_title=form.cleaned_data['boost_title'],
                 boost_tags=form.cleaned_data['boost_tags'],
+                size=form.cleaned_data['size'],
             )
+            context['matches'] = matches
+            context['scores'] = scores
             context['event'] = event
 
     else:
         form = forms.RelatedContentTestingForm(initial={
             'boost_title': settings.RELATED_CONTENT_BOOST_TITLE,
             'boost_tags': settings.RELATED_CONTENT_BOOST_TAGS,
+            'size': settings.RELATED_CONTENT_SIZE,
         })
 
     context['form'] = form
