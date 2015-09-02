@@ -70,8 +70,8 @@ awesome-slugify==1.6
 sorl-thumbnail==12.3
 # sha256: 22FYVWYhAfnq6NFed7wjtxD-iJHcn-gujcV3EOYa7Dc
 south==0.7.5
-# sha256: qw3sUihmd-lE3cAOr2oOuJr0ixpmljJOopNRNC0cSD8
-twython==3.2.0
+# sha256: r-I-inGFAOtJ0uQjdbLCUbWL8TpvVy2eWG--rtoYzzc
+twython==3.3.0
 # sha256: 8PjVPTmHfaSEkpPVSO7LXnk2S1c2QyloadvH9bhnCe8
 Unidecode==0.04.17
 # sha256: mwNS2w8Rgb53KvceMgkHfy4GFeNLDJ3nB3tTm9a5Jng
