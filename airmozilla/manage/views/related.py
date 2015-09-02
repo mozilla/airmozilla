@@ -1,5 +1,7 @@
 import datetime
 
+import pyelasticsearch
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
@@ -19,7 +21,10 @@ def related_content(request):
         form = forms.ReindexRelatedContentForm(request.POST)
         if form.is_valid():
             if form.cleaned_data['delete_and_recreate']:
-                related.delete(es)
+                try:
+                    related.delete(es)
+                except pyelasticsearch.ElasticHttpNotFoundError:
+                    pass
                 related.create(es)
                 form.cleaned_data['all'] = True
 
@@ -49,9 +54,13 @@ def related_content(request):
             'match_all': {}
         }
     }
+    try:
+        count = es.count(query, index=index)['count']
+    except pyelasticsearch.ElasticHttpNotFoundError:
+        count = 'no'
     context = {
         'form': form,
-        'count_indexed': es.count(query, index=index)['count'],
+        'count_indexed': count,
         'count_events': Event.objects.scheduled_or_processing().count(),
         'index_name': index,
     }
