@@ -101,7 +101,7 @@ def tag_edit(request, id):
 
 
 @staff_required
-@permission_required('main.remove_tag')
+@permission_required('main.delete_tag')
 @transaction.commit_on_success
 def tag_remove(request, id):
     if request.method == 'POST':
