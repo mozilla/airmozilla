@@ -54,6 +54,7 @@ def update_db(ctx):
     """Update the database schema, if necessary."""
 
     with ctx.lcd(settings.SRC_DIR):
+        # temporarily commented out because I don't think we need it
         #ctx.local(
         #    '%s/bin/python manage.py syncdb' % venv_path
         #)
