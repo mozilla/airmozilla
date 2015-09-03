@@ -54,9 +54,9 @@ def update_db(ctx):
     """Update the database schema, if necessary."""
 
     with ctx.lcd(settings.SRC_DIR):
-        ctx.local(
-            '%s/bin/python manage.py syncdb' % venv_path
-        )
+        #ctx.local(
+        #    '%s/bin/python manage.py syncdb' % venv_path
+        #)
         # Due to the Django 1.7 upgrade we once needs to execute
         # these two fake migrations.
         # These two following commands must be deleted once they've
