@@ -25,9 +25,9 @@ nose==1.3.4
 # sha256: uDndLZwRfHAUMMFJlWkYpCOphjtIsJyQ4wpgE-fS9E8
 # sha256: j4MIDaoknQNsvM-4rlzG_wB7iNbZN1ITca-r57Gbrbw
 mock==1.0.1
-# sha256: byzISLK3Kt9TpvPyG-BJxHfoLECLznzttX7-sJhL3iQ
-# sha256: flDlc-SEQ1hzs1FdeYLYAJOyaVq6F_0P8CQwdFTcOlY
-Django==1.6.11
+# sha256: HbXa_k_oMC80RJKDhkuqdNDWQBNhOqIAkYGHv3aQLV8
+# sha256: uTV9LOvmGZcFXUF9YH-cZQ6BfNGjg7mhuIvx7a15fHU
+Django==1.7.10
 # sha256: UvCV-GFHuwtfYjva-VJVLReOu8XqyI2RsvWR09IsO4A
 funfactory==2.3.0
 # sha256: w5d9_m_Rug1AkfhZYzBkiLPp4jbP5g2IIRWM5af8thk
@@ -49,8 +49,9 @@ cssselect==0.9.1
 # sha256: PpVEXB21AKNEB5pHsXHEXvGPV9GI3_2w5BZccb6o6z0
 # sha256: KuY89HXwvQSbci-sIIE9Yq7cFJV91aO_ANEg0rVARGA
 python-dateutil==2.4.2
-# sha256: MVg9nhJ2eR2EqgFv3IeR_RhSisV5fbrhGLMOMuApDE8
-django-jsonview==0.4.3
+# sha256: 0VROl91eYlp3-VOQArzew-EsZzva3UkScXgu8pAWRwo
+# sha256: WMxdXZkq4_42CEwusQPgLsX7tUcHNt8X-WtcO9x8gTg
+django-jsonview==0.5.0
 # sha256: zuWf2ql6QKxQW7Bim9yLqbp5AS0JnvEdbTooS342nJw
 # sha256: 1CcdVvqPDDnYRxFgIhdXTwUMAoHvv68c-ogh8NfypxQ
 httplib2==0.8
@@ -68,8 +69,6 @@ awesome-slugify==1.6
 # sha256: zpHFsRKi75MKCWJa29mWgr1i80vhljwo8__A0BOKB_0
 # sha256: uyd9yY2qB-iS1Cm3Pu10lBH37_Hub-7xQqGeApWC6M0
 sorl-thumbnail==12.3
-# sha256: 22FYVWYhAfnq6NFed7wjtxD-iJHcn-gujcV3EOYa7Dc
-south==0.7.5
 # sha256: r-I-inGFAOtJ0uQjdbLCUbWL8TpvVy2eWG--rtoYzzc
 twython==3.3.0
 # sha256: 8PjVPTmHfaSEkpPVSO7LXnk2S1c2QyloadvH9bhnCe8
@@ -93,12 +92,13 @@ regex==2014.12.24
 requests-oauthlib==0.5.0
 # sha256: PCzNDHsT4v3NdXGY84XWS-cINBs5fEFPDAU4tW5rskw
 bleach==1.2.1
-# sha256: o71QUd0X6dUOip8tNiUI6C1wYwEP3AbV4HzjYI54D-Y
-jingo==0.7
+# sha256: xJWo39CpwdPY7QISG7sotsnTTU2jCqk6fmOcDz17Bjk
+jingo==0.7.1
 # sha256: BrZLrybHpDbLuBRk56UAR66jDbEFnb5uCdxEPvojuiA
 django-appconf==0.6
-# sha256: NmfSakH-wwNkoO9yWAgyylMogC1VP21ucq9awhyzY2U
-django-nose==1.3
+# sha256: Ik3Rv9j8259nJWxUMBR7TAEF1y9qyM47ymtIZEnsYGI
+# sha256: 6gWLBd1MYed3X8xk-j2j7kMPcT3gMsO7WvOpC_UbLro
+django-nose==1.4.1
 # sha256: RORjnsBXprap3duGnU46SBj8knjsSQzOOa7whEBZKpM
 django-session-csrf==0.5
 # sha256: ih29HHrehSBq53DJzl9DCBoJjJX5lK8RP2Q06QBVmmc
@@ -161,11 +161,6 @@ django-celery==3.1.16
 # sha256: UqY3xPXOMTKcNc1m4OqO6BuGQTSLzO24cJ01lCQs3ro
 popcoder==0.1.2
 
-# We can get rid of this when we finally upgrade to Python 2.7
-# sha256: fLtRSjUvghxpuOi9qmsuWXKFR6iWVQPHWGUsKCbRV7U
-# sha256: AfwKKh4BmQqXsJZhXBEyj6QwbO0XM8mNiEFgOHdg1Hk
-# sha256: ZfNCpgSi4QKHB8XgVSZqskMcJuIP4QeAtCMyCHCITaw
-importlib==1.0.3
 # sha256: mYHQvei5cART1vadTQBef9fwC8yE3kJJ3Fx3JK2lPcs
 # sha256: 5PXx9lpdenkrHtmzfxh1lNDYIVSoWU0jTcBVHXe5-tw
 optisorl==0.1.3

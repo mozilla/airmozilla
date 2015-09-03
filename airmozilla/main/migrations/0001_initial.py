@@ -1,564 +1,424 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import sorl.thumbnail.fields
+import airmozilla.main.fields
+import airmozilla.main.models
+import django.db.models.deletion
+from django.conf import settings
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'UserProfile'
-        db.create_table('main_userprofile', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('contributor', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('main', ['UserProfile'])
+    dependencies = [
+        ('auth', '0001_initial'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
 
-        # Adding model 'Participant'
-        db.create_table('main_participant', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=65, blank=True)),
-            ('photo', self.gf('sorl.thumbnail.fields.ImageField')(max_length=100, blank=True)),
-            ('email', self.gf('django.db.models.fields.EmailField')(max_length=75, blank=True)),
-            ('department', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('team', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('irc', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('topic_url', self.gf('django.db.models.fields.URLField')(max_length=200, blank=True)),
-            ('blog_url', self.gf('django.db.models.fields.URLField')(max_length=200, blank=True)),
-            ('twitter', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('role', self.gf('django.db.models.fields.CharField')(max_length=25)),
-            ('cleared', self.gf('django.db.models.fields.CharField')(default='no', max_length=15, db_index=True)),
-            ('clear_token', self.gf('django.db.models.fields.CharField')(max_length=36, blank=True)),
-            ('creator', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='participant_creator', null=True, on_delete=models.SET_NULL, to=orm['auth.User'])),
-        ))
-        db.send_create_signal('main', ['Participant'])
-
-        # Adding model 'Category'
-        db.create_table('main_category', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-        ))
-        db.send_create_signal('main', ['Category'])
-
-        # Adding model 'Channel'
-        db.create_table('main_channel', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=100)),
-            ('image', self.gf('sorl.thumbnail.fields.ImageField')(max_length=100, blank=True)),
-            ('image_is_banner', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('description', self.gf('django.db.models.fields.TextField')()),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 7, 25, 0, 0))),
-        ))
-        db.send_create_signal('main', ['Channel'])
-
-        # Adding model 'Tag'
-        db.create_table('main_tag', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-        ))
-        db.send_create_signal('main', ['Tag'])
-
-        # Adding model 'Template'
-        db.create_table('main_template', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('content', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal('main', ['Template'])
-
-        # Adding model 'Location'
-        db.create_table('main_location', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=300)),
-            ('timezone', self.gf('django.db.models.fields.CharField')(max_length=250)),
-        ))
-        db.send_create_signal('main', ['Location'])
-
-        # Adding model 'Event'
-        db.create_table('main_event', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=215, blank=True)),
-            ('template', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Template'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('template_environment', self.gf('airmozilla.main.fields.EnvironmentField')(blank=True)),
-            ('status', self.gf('django.db.models.fields.CharField')(default='initiated', max_length=20, db_index=True)),
-            ('placeholder_img', self.gf('sorl.thumbnail.fields.ImageField')(max_length=100)),
-            ('description', self.gf('django.db.models.fields.TextField')()),
-            ('short_description', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('start_time', self.gf('django.db.models.fields.DateTimeField')(db_index=True)),
-            ('archive_time', self.gf('django.db.models.fields.DateTimeField')(db_index=True, null=True, blank=True)),
-            ('location', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Location'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Category'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('call_info', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('additional_links', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('remote_presenters', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('privacy', self.gf('django.db.models.fields.CharField')(default='public', max_length=40, db_index=True)),
-            ('featured', self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True)),
-            ('creator', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='creator', null=True, on_delete=models.SET_NULL, to=orm['auth.User'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified_user', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='modified_user', null=True, on_delete=models.SET_NULL, to=orm['auth.User'])),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal('main', ['Event'])
-
-        # Adding M2M table for field participants on 'Event'
-        db.create_table('main_event_participants', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('event', models.ForeignKey(orm['main.event'], null=False)),
-            ('participant', models.ForeignKey(orm['main.participant'], null=False))
-        ))
-        db.create_unique('main_event_participants', ['event_id', 'participant_id'])
-
-        # Adding M2M table for field tags on 'Event'
-        db.create_table('main_event_tags', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('event', models.ForeignKey(orm['main.event'], null=False)),
-            ('tag', models.ForeignKey(orm['main.tag'], null=False))
-        ))
-        db.create_unique('main_event_tags', ['event_id', 'tag_id'])
-
-        # Adding M2M table for field channels on 'Event'
-        db.create_table('main_event_channels', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('event', models.ForeignKey(orm['main.event'], null=False)),
-            ('channel', models.ForeignKey(orm['main.channel'], null=False))
-        ))
-        db.create_unique('main_event_channels', ['event_id', 'channel_id'])
-
-        # Adding model 'SuggestedEvent'
-        db.create_table('main_suggestedevent', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=215, blank=True)),
-            ('placeholder_img', self.gf('sorl.thumbnail.fields.ImageField')(max_length=100)),
-            ('description', self.gf('django.db.models.fields.TextField')()),
-            ('short_description', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('start_time', self.gf('django.db.models.fields.DateTimeField')(db_index=True, null=True, blank=True)),
-            ('location', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Location'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Category'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('call_info', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('additional_links', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('remote_presenters', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('privacy', self.gf('django.db.models.fields.CharField')(default='public', max_length=40)),
-            ('featured', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 7, 25, 0, 0))),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('submitted', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('accepted', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Event'], null=True, blank=True)),
-            ('review_comments', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('main', ['SuggestedEvent'])
-
-        # Adding M2M table for field tags on 'SuggestedEvent'
-        db.create_table('main_suggestedevent_tags', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('suggestedevent', models.ForeignKey(orm['main.suggestedevent'], null=False)),
-            ('tag', models.ForeignKey(orm['main.tag'], null=False))
-        ))
-        db.create_unique('main_suggestedevent_tags', ['suggestedevent_id', 'tag_id'])
-
-        # Adding M2M table for field channels on 'SuggestedEvent'
-        db.create_table('main_suggestedevent_channels', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('suggestedevent', models.ForeignKey(orm['main.suggestedevent'], null=False)),
-            ('channel', models.ForeignKey(orm['main.channel'], null=False))
-        ))
-        db.create_unique('main_suggestedevent_channels', ['suggestedevent_id', 'channel_id'])
-
-        # Adding M2M table for field participants on 'SuggestedEvent'
-        db.create_table('main_suggestedevent_participants', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('suggestedevent', models.ForeignKey(orm['main.suggestedevent'], null=False)),
-            ('participant', models.ForeignKey(orm['main.participant'], null=False))
-        ))
-        db.create_unique('main_suggestedevent_participants', ['suggestedevent_id', 'participant_id'])
-
-        # Adding model 'SuggestedEventComment'
-        db.create_table('main_suggestedeventcomment', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('suggested_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.SuggestedEvent'])),
-            ('comment', self.gf('django.db.models.fields.TextField')()),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 7, 25, 0, 0))),
-        ))
-        db.send_create_signal('main', ['SuggestedEventComment'])
-
-        # Adding model 'EventOldSlug'
-        db.create_table('main_eventoldslug', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Event'])),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=215)),
-        ))
-        db.send_create_signal('main', ['EventOldSlug'])
-
-        # Adding model 'EventTweet'
-        db.create_table('main_eventtweet', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Event'])),
-            ('text', self.gf('django.db.models.fields.CharField')(max_length=140)),
-            ('include_placeholder', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('creator', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('send_date', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 7, 25, 0, 0))),
-            ('sent_date', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('error', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('tweet_id', self.gf('django.db.models.fields.CharField')(max_length=20, null=True, blank=True)),
-        ))
-        db.send_create_signal('main', ['EventTweet'])
-
-        # Adding model 'Approval'
-        db.create_table('main_approval', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Event'])),
-            ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Group'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, on_delete=models.SET_NULL, blank=True)),
-            ('approved', self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True)),
-            ('processed', self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True)),
-            ('processed_time', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('comment', self.gf('django.db.models.fields.TextField')(blank=True)),
-        ))
-        db.send_create_signal('main', ['Approval'])
-
-        # Adding model 'VidlySubmission'
-        db.create_table('main_vidlysubmission', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Event'])),
-            ('url', self.gf('django.db.models.fields.URLField')(max_length=200)),
-            ('submission_time', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 7, 25, 0, 0))),
-            ('tag', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
-            ('email', self.gf('django.db.models.fields.EmailField')(max_length=75, null=True, blank=True)),
-            ('token_protection', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('hd', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('submission_error', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('main', ['VidlySubmission'])
-
-        # Adding model 'URLMatch'
-        db.create_table('main_urlmatch', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('string', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('use_count', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal('main', ['URLMatch'])
-
-        # Adding model 'URLTransform'
-        db.create_table('main_urltransform', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('match', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.URLMatch'])),
-            ('find', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('replace_with', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('order', self.gf('django.db.models.fields.IntegerField')(default=1)),
-        ))
-        db.send_create_signal('main', ['URLTransform'])
-
-        # Adding model 'EventHitStats'
-        db.create_table('main_eventhitstats', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.Event'], unique=True)),
-            ('total_hits', self.gf('django.db.models.fields.IntegerField')()),
-            ('shortcode', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 7, 25, 0, 0))),
-        ))
-        db.send_create_signal('main', ['EventHitStats'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'UserProfile'
-        db.delete_table('main_userprofile')
-
-        # Deleting model 'Participant'
-        db.delete_table('main_participant')
-
-        # Deleting model 'Category'
-        db.delete_table('main_category')
-
-        # Deleting model 'Channel'
-        db.delete_table('main_channel')
-
-        # Deleting model 'Tag'
-        db.delete_table('main_tag')
-
-        # Deleting model 'Template'
-        db.delete_table('main_template')
-
-        # Deleting model 'Location'
-        db.delete_table('main_location')
-
-        # Deleting model 'Event'
-        db.delete_table('main_event')
-
-        # Removing M2M table for field participants on 'Event'
-        db.delete_table('main_event_participants')
-
-        # Removing M2M table for field tags on 'Event'
-        db.delete_table('main_event_tags')
-
-        # Removing M2M table for field channels on 'Event'
-        db.delete_table('main_event_channels')
-
-        # Deleting model 'SuggestedEvent'
-        db.delete_table('main_suggestedevent')
-
-        # Removing M2M table for field tags on 'SuggestedEvent'
-        db.delete_table('main_suggestedevent_tags')
-
-        # Removing M2M table for field channels on 'SuggestedEvent'
-        db.delete_table('main_suggestedevent_channels')
-
-        # Removing M2M table for field participants on 'SuggestedEvent'
-        db.delete_table('main_suggestedevent_participants')
-
-        # Deleting model 'SuggestedEventComment'
-        db.delete_table('main_suggestedeventcomment')
-
-        # Deleting model 'EventOldSlug'
-        db.delete_table('main_eventoldslug')
-
-        # Deleting model 'EventTweet'
-        db.delete_table('main_eventtweet')
-
-        # Deleting model 'Approval'
-        db.delete_table('main_approval')
-
-        # Deleting model 'VidlySubmission'
-        db.delete_table('main_vidlysubmission')
-
-        # Deleting model 'URLMatch'
-        db.delete_table('main_urlmatch')
-
-        # Deleting model 'URLTransform'
-        db.delete_table('main_urltransform')
-
-        # Deleting model 'EventHitStats'
-        db.delete_table('main_eventhitstats')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'main.approval': {
-            'Meta': {'object_name': 'Approval'},
-            'approved': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
-            'comment': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']"}),
-            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.Group']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'processed': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
-            'processed_time': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'})
-        },
-        'main.category': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Category'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'main.channel': {
-            'Meta': {'ordering': "['name']", 'object_name': 'Channel'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 7, 25, 0, 0)'}),
-            'description': ('django.db.models.fields.TextField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('sorl.thumbnail.fields.ImageField', [], {'max_length': '100', 'blank': 'True'}),
-            'image_is_banner': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '100'})
-        },
-        'main.event': {
-            'Meta': {'object_name': 'Event'},
-            'additional_links': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'archive_time': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'}),
-            'call_info': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Category']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'channels': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['main.Channel']", 'symmetrical': 'False'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'creator'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['auth.User']"}),
-            'description': ('django.db.models.fields.TextField', [], {}),
-            'featured': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'location': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Location']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'modified_user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'modified_user'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['auth.User']"}),
-            'participants': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['main.Participant']", 'symmetrical': 'False'}),
-            'placeholder_img': ('sorl.thumbnail.fields.ImageField', [], {'max_length': '100'}),
-            'privacy': ('django.db.models.fields.CharField', [], {'default': "'public'", 'max_length': '40', 'db_index': 'True'}),
-            'remote_presenters': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'short_description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '215', 'blank': 'True'}),
-            'start_time': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
-            'status': ('django.db.models.fields.CharField', [], {'default': "'initiated'", 'max_length': '20', 'db_index': 'True'}),
-            'tags': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['main.Tag']", 'symmetrical': 'False', 'blank': 'True'}),
-            'template': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Template']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'template_environment': ('airmozilla.main.fields.EnvironmentField', [], {'blank': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
-        },
-        'main.eventhitstats': {
-            'Meta': {'object_name': 'EventHitStats'},
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']", 'unique': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 7, 25, 0, 0)'}),
-            'shortcode': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'total_hits': ('django.db.models.fields.IntegerField', [], {})
-        },
-        'main.eventoldslug': {
-            'Meta': {'object_name': 'EventOldSlug'},
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '215'})
-        },
-        'main.eventtweet': {
-            'Meta': {'object_name': 'EventTweet'},
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'error': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'include_placeholder': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'send_date': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 7, 25, 0, 0)'}),
-            'sent_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'text': ('django.db.models.fields.CharField', [], {'max_length': '140'}),
-            'tweet_id': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'})
-        },
-        'main.location': {
-            'Meta': {'object_name': 'Location'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '300'}),
-            'timezone': ('django.db.models.fields.CharField', [], {'max_length': '250'})
-        },
-        'main.participant': {
-            'Meta': {'object_name': 'Participant'},
-            'blog_url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'}),
-            'clear_token': ('django.db.models.fields.CharField', [], {'max_length': '36', 'blank': 'True'}),
-            'cleared': ('django.db.models.fields.CharField', [], {'default': "'no'", 'max_length': '15', 'db_index': 'True'}),
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'participant_creator'", 'null': 'True', 'on_delete': 'models.SET_NULL', 'to': "orm['auth.User']"}),
-            'department': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'irc': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'photo': ('sorl.thumbnail.fields.ImageField', [], {'max_length': '100', 'blank': 'True'}),
-            'role': ('django.db.models.fields.CharField', [], {'max_length': '25'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '65', 'blank': 'True'}),
-            'team': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            'topic_url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'}),
-            'twitter': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'})
-        },
-        'main.suggestedevent': {
-            'Meta': {'object_name': 'SuggestedEvent'},
-            'accepted': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']", 'null': 'True', 'blank': 'True'}),
-            'additional_links': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'call_info': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Category']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'channels': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['main.Channel']", 'symmetrical': 'False'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 7, 25, 0, 0)'}),
-            'description': ('django.db.models.fields.TextField', [], {}),
-            'featured': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'location': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Location']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'participants': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['main.Participant']", 'symmetrical': 'False'}),
-            'placeholder_img': ('sorl.thumbnail.fields.ImageField', [], {'max_length': '100'}),
-            'privacy': ('django.db.models.fields.CharField', [], {'default': "'public'", 'max_length': '40'}),
-            'remote_presenters': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'review_comments': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'short_description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '215', 'blank': 'True'}),
-            'start_time': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'}),
-            'submitted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'tags': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['main.Tag']", 'symmetrical': 'False', 'blank': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
-        },
-        'main.suggestedeventcomment': {
-            'Meta': {'object_name': 'SuggestedEventComment'},
-            'comment': ('django.db.models.fields.TextField', [], {}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 7, 25, 0, 0)'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'suggested_event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.SuggestedEvent']"}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'})
-        },
-        'main.tag': {
-            'Meta': {'object_name': 'Tag'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'main.template': {
-            'Meta': {'object_name': 'Template'},
-            'content': ('django.db.models.fields.TextField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'main.urlmatch': {
-            'Meta': {'object_name': 'URLMatch'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'string': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'use_count': ('django.db.models.fields.IntegerField', [], {'default': '0'})
-        },
-        'main.urltransform': {
-            'Meta': {'object_name': 'URLTransform'},
-            'find': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'match': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.URLMatch']"}),
-            'order': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
-            'replace_with': ('django.db.models.fields.CharField', [], {'max_length': '200'})
-        },
-        'main.userprofile': {
-            'Meta': {'object_name': 'UserProfile'},
-            'contributor': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
-        },
-        'main.vidlysubmission': {
-            'Meta': {'object_name': 'VidlySubmission'},
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'null': 'True', 'blank': 'True'}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['main.Event']"}),
-            'hd': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'submission_error': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'submission_time': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 7, 25, 0, 0)'}),
-            'tag': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'token_protection': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'url': ('django.db.models.fields.URLField', [], {'max_length': '200'})
-        }
-    }
-
-    complete_apps = ['main']
+    operations = [
+        migrations.CreateModel(
+            name='Approval',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('approved', models.BooleanField(default=False, db_index=True)),
+                ('processed', models.BooleanField(default=False, db_index=True)),
+                ('processed_time', models.DateTimeField(auto_now=True)),
+                ('comment', models.TextField(blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Channel',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=200)),
+                ('slug', models.SlugField(unique=True, max_length=100)),
+                ('image', sorl.thumbnail.fields.ImageField(upload_to=airmozilla.main.models._upload_path_tagged, blank=True)),
+                ('image_is_banner', models.BooleanField(default=False)),
+                ('description', models.TextField()),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+                ('reverse_order', models.BooleanField(default=False)),
+                ('exclude_from_trending', models.BooleanField(default=False)),
+                ('always_show', models.BooleanField(default=False, help_text=b'If always shown, it will appear as a default option visible by\n        default when uploading and entering details.')),
+                ('never_show', models.BooleanField(default=False, help_text=b"If never show, it's not an option for new events. Not even\n        available but hidden first.")),
+                ('default', models.BooleanField(default=False, help_text=b'\n        If no channel is chosen by the user, this one definitely gets\n        associated with the event. You can have multiple of these.\n        It doesn\'t matter if the channel is "never_show".\n    ')),
+                ('no_automated_tweets', models.BooleanField(default=False, help_text=b'\n        If an event belongs to a channel with this on, that event\n        will not cause automatic EventTweets to be generated.\n    ')),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Chapter',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('timestamp', models.PositiveIntegerField()),
+                ('text', models.TextField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+                'ordering': ('timestamp',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CuratedGroup',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=200)),
+                ('url', models.URLField(null=True)),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Event',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(max_length=200)),
+                ('slug', models.SlugField(unique=True, max_length=215, blank=True)),
+                ('template_environment', airmozilla.main.fields.EnvironmentField(help_text=b'Specify the template variables in the format<code>variable1=value</code>, one per line.', blank=True)),
+                ('status', models.CharField(default=b'initiated', max_length=20, db_index=True, choices=[(b'submitted', b'Submitted'), (b'scheduled', b'Scheduled'), (b'pending', b'Pending'), (b'processing', b'Processing'), (b'removed', b'Removed')])),
+                ('placeholder_img', sorl.thumbnail.fields.ImageField(null=True, upload_to=airmozilla.main.models._upload_path_tagged, blank=True)),
+                ('description', models.TextField()),
+                ('short_description', models.TextField(help_text=b'If not provided, this will be filled in by the first words of the full description.', blank=True)),
+                ('start_time', models.DateTimeField(db_index=True)),
+                ('archive_time', models.DateTimeField(db_index=True, null=True, blank=True)),
+                ('call_info', models.TextField(blank=True)),
+                ('additional_links', models.TextField(blank=True)),
+                ('remote_presenters', models.TextField(null=True, blank=True)),
+                ('popcorn_url', models.URLField(null=True, blank=True)),
+                ('privacy', models.CharField(default=b'public', max_length=40, db_index=True, choices=[(b'public', b'Public'), (b'contributors', b'Contributors'), (b'company', b'Staff')])),
+                ('featured', models.BooleanField(default=False, db_index=True)),
+                ('pin', models.CharField(max_length=20, null=True, blank=True)),
+                ('transcript', models.TextField(null=True)),
+                ('duration', models.PositiveIntegerField(null=True)),
+                ('estimated_duration', models.PositiveIntegerField(default=3600, null=True)),
+                ('mozillian', models.CharField(max_length=200, null=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+                'permissions': (('change_event_others', 'Can edit events created by other users'), ('add_event_scheduled', 'Can create events with scheduled status')),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventAssignment',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+                ('modified', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventEmail',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('to', models.EmailField(max_length=75)),
+                ('send_failure', models.TextField(null=True, blank=True)),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventHitStats',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('total_hits', models.IntegerField()),
+                ('shortcode', models.CharField(max_length=100)),
+                ('modified', models.DateTimeField(default=airmozilla.main.models._get_now)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventLiveHits',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('total_hits', models.IntegerField(default=0)),
+                ('modified', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventOldSlug',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('slug', models.SlugField(unique=True, max_length=215)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventRevision',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(max_length=200)),
+                ('placeholder_img', sorl.thumbnail.fields.ImageField(null=True, upload_to=airmozilla.main.models._upload_path_tagged, blank=True)),
+                ('description', models.TextField()),
+                ('short_description', models.TextField(help_text=b'If not provided, this will be filled in by the first words of the full description.', blank=True)),
+                ('call_info', models.TextField(blank=True)),
+                ('additional_links', models.TextField(blank=True)),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EventTweet',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('text', models.CharField(max_length=140)),
+                ('include_placeholder', models.BooleanField(default=False)),
+                ('send_date', models.DateTimeField(default=airmozilla.main.models._get_now)),
+                ('sent_date', models.DateTimeField(null=True, blank=True)),
+                ('error', models.TextField(null=True, blank=True)),
+                ('tweet_id', models.CharField(max_length=20, null=True, blank=True)),
+                ('failed_attempts', models.IntegerField(default=0)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Location',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=300)),
+                ('timezone', models.CharField(max_length=250)),
+                ('is_active', models.BooleanField(default=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='LocationDefaultEnvironment',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('privacy', models.CharField(default=b'public', max_length=40, choices=[(b'public', b'Public'), (b'contributors', b'Contributors'), (b'company', b'Staff')])),
+                ('template_environment', airmozilla.main.fields.EnvironmentField(help_text=b'Specify the template variables in the format<code>variable1=value</code>, one per line.')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Picture',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('size', models.PositiveIntegerField()),
+                ('width', models.PositiveIntegerField()),
+                ('height', models.PositiveIntegerField()),
+                ('file', models.ImageField(height_field=b'height', width_field=b'width', upload_to=airmozilla.main.models._upload_path_tagged)),
+                ('default_placeholder', models.BooleanField(default=False)),
+                ('notes', models.CharField(max_length=100, blank=True)),
+                ('is_active', models.BooleanField(default=True)),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+                ('modified', models.DateTimeField(default=airmozilla.main.models._get_now, auto_now=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='RecruitmentMessage',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('text', models.CharField(max_length=250)),
+                ('url', models.URLField()),
+                ('active', models.BooleanField(default=True)),
+                ('notes', models.TextField(blank=True)),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+                ('modified', models.DateTimeField(default=airmozilla.main.models._get_now, auto_now=True)),
+            ],
+            options={
+                'ordering': ['text'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Region',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=300)),
+                ('is_active', models.BooleanField(default=True)),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SuggestedEvent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(max_length=200)),
+                ('upcoming', models.BooleanField(default=True)),
+                ('slug', models.SlugField(unique=True, max_length=215, blank=True)),
+                ('placeholder_img', sorl.thumbnail.fields.ImageField(null=True, upload_to=airmozilla.main.models._upload_path_tagged, blank=True)),
+                ('description', models.TextField()),
+                ('short_description', models.TextField(help_text=b'If not provided, this will be filled in by the first words of the full description.', blank=True)),
+                ('start_time', models.DateTimeField(db_index=True, null=True, blank=True)),
+                ('call_info', models.TextField(blank=True)),
+                ('additional_links', models.TextField(blank=True)),
+                ('remote_presenters', models.TextField(null=True, blank=True)),
+                ('popcorn_url', models.URLField(null=True, blank=True)),
+                ('privacy', models.CharField(default=b'public', max_length=40, choices=[(b'public', b'Public'), (b'contributors', b'Contributors'), (b'company', b'Staff')])),
+                ('featured', models.BooleanField(default=False)),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+                ('modified', models.DateTimeField(auto_now=True)),
+                ('first_submitted', models.DateTimeField(null=True, blank=True)),
+                ('submitted', models.DateTimeField(null=True, blank=True)),
+                ('review_comments', models.TextField(null=True, blank=True)),
+                ('status', models.CharField(default=b'created', max_length=40, choices=[(b'created', b'Created'), (b'submitted', b'Submitted'), (b'resubmitted', b'Resubmitted'), (b'rejected', b'Bounced back'), (b'retracted', b'Retracted'), (b'accepted', b'Accepted')])),
+                ('estimated_duration', models.PositiveIntegerField(default=3600, null=True)),
+                ('accepted', models.ForeignKey(blank=True, to='main.Event', null=True)),
+                ('channels', models.ManyToManyField(to='main.Channel')),
+                ('location', models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, blank=True, to='main.Location', null=True)),
+                ('picture', models.ForeignKey(blank=True, to='main.Picture', null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SuggestedEventComment',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('comment', models.TextField()),
+                ('created', models.DateTimeField(default=airmozilla.main.models._get_now)),
+                ('suggested_event', models.ForeignKey(to='main.SuggestedEvent')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Tag',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=50)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Template',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=100)),
+                ('content', models.TextField(help_text=b"The HTML framework for this template.  Use <code>{{ any_variable_name }}</code> for per-event tags. Other Jinja2 constructs are available, along with the related <code>request</code>, <code>datetime</code>, <code>event</code>  objects, <code>popcorn_url</code> and the <code>md5</code> function. You can also reference <code>autoplay</code> and it's always safe. Additionally we have <code>vidly_tokenize(tag, seconds)</code>, <code>edgecast_tokenize([seconds], **kwargs)</code> and  <code>akamai_tokenize([seconds], **kwargs)</code><br> Warning! Changes affect all events associated with this template.")),
+                ('default_popcorn_template', models.BooleanField(default=False, help_text=b'If you have more than one templates for Popcorn videos this dictates which one is the default one.')),
+                ('default_archive_template', models.BooleanField(default=False, help_text=b'When you archive an event, it needs to preselect which template it should use. This selects the best default.')),
+            ],
+            options={
+                'ordering': ['name'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Topic',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('topic', models.TextField()),
+                ('sort_order', models.PositiveIntegerField(default=0, help_text=b'The lower the higher in the list')),
+                ('is_active', models.BooleanField(default=True)),
+                ('groups', models.ManyToManyField(to='auth.Group')),
+            ],
+            options={
+                'ordering': ('sort_order',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='URLMatch',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=200)),
+                ('string', models.CharField(help_text=b'This matcher can contain basic regular expression characters like <code>*</code>, <code>^</code> (only as first character) and <code>$</code> (only as last character).', max_length=200)),
+                ('use_count', models.IntegerField(default=0)),
+                ('modified', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='URLTransform',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('find', models.CharField(max_length=200)),
+                ('replace_with', models.CharField(max_length=200)),
+                ('order', models.IntegerField(default=1)),
+                ('match', models.ForeignKey(to='main.URLMatch')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='UserProfile',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('contributor', models.BooleanField(default=False)),
+                ('optout_event_emails', models.BooleanField(default=False)),
+                ('user', models.OneToOneField(related_name='profile', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='VidlySubmission',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('url', models.URLField()),
+                ('submission_time', models.DateTimeField(default=airmozilla.main.models._get_now)),
+                ('tag', models.CharField(max_length=100, null=True, blank=True)),
+                ('email', models.EmailField(max_length=75, null=True, blank=True)),
+                ('token_protection', models.BooleanField(default=False)),
+                ('hd', models.BooleanField(default=False)),
+                ('submission_error', models.TextField(null=True, blank=True)),
+                ('finished', models.DateTimeField(null=True, db_index=True)),
+                ('errored', models.DateTimeField(null=True)),
+                ('event', models.ForeignKey(to='main.Event')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='suggestedevent',
+            name='tags',
+            field=models.ManyToManyField(to='main.Tag', blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='suggestedevent',
+            name='topics',
+            field=models.ManyToManyField(to='main.Topic'),
+            preserve_default=True,
+        ),
+    ]

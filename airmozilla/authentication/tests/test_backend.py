@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 from nose.tools import eq_
 
-from airmozilla.auth.backend import AirmozillaBrowserIDBackend
+from airmozilla.authentication.backend import AirmozillaBrowserIDBackend
 
 
 class TestBackend(TestCase):

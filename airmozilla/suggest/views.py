@@ -49,7 +49,7 @@ def _increment_slug_if_exists(slug):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def start(request):
     data = {}
     if request.method == 'POST':
@@ -109,7 +109,7 @@ def start(request):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def title(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     if event.user != request.user:
@@ -130,7 +130,7 @@ def title(request, id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def popcorn(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     if event.user != request.user:
@@ -180,7 +180,7 @@ def popcorn(request, id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def description(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     if event.user != request.user:
@@ -201,7 +201,7 @@ def description(request, id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def details(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     if event.user != request.user:
@@ -278,7 +278,7 @@ def details(request, id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def discussion(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     if event.user != request.user:
@@ -345,7 +345,7 @@ def autocomplete_emails(request):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def placeholder(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     if event.user != request.user:
@@ -377,7 +377,7 @@ def placeholder(request, id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def summary(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     if event.user != request.user:

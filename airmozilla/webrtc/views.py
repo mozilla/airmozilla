@@ -41,7 +41,7 @@ def must_be_your_event(f):
     return inner
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @login_required
 def start(request):
     context = {}
@@ -136,7 +136,7 @@ def start(request):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 @must_be_your_event
 def details(request, event):
     if request.method == 'POST':
@@ -154,7 +154,7 @@ def details(request, event):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 @must_be_your_event
 def placeholder(request, event):
     if request.method == 'POST':
@@ -174,7 +174,7 @@ def placeholder(request, event):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 @must_be_your_event
 @json_view
 def photobooth(request, event):
@@ -195,7 +195,7 @@ def photobooth(request, event):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 @must_be_your_event
 def video(request, event):
     context = {'event': event}
@@ -204,7 +204,7 @@ def video(request, event):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 @must_be_your_event
 def summary(request, event):
     if request.method == 'POST':

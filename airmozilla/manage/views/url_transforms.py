@@ -38,7 +38,7 @@ def url_transforms(request):
 
 @staff_required
 @permission_required('main.change_urlmatch')
-@transaction.commit_on_success
+@transaction.atomic
 def url_match_new(request):
     if request.method == 'POST':
         form = forms.URLMatchForm(data=request.POST)
@@ -53,7 +53,7 @@ def url_match_new(request):
 
 @staff_required
 @permission_required('main.change_urlmatch')
-@transaction.commit_on_success
+@transaction.atomic
 @require_POST
 def url_match_remove(request, id):
     url_match = get_object_or_404(URLMatch, id=id)
@@ -76,7 +76,7 @@ def url_match_run(request):
 
 @staff_required
 @permission_required('main.change_urlmatch')
-@transaction.commit_on_success
+@transaction.atomic
 @require_POST
 @json_view
 def url_transform_add(request, id):
@@ -109,7 +109,7 @@ def url_transform_add(request, id):
 
 @staff_required
 @permission_required('main.change_urlmatch')
-@transaction.commit_on_success
+@transaction.atomic
 @require_POST
 @json_view
 def url_transform_remove(request, id, transform_id):
@@ -121,7 +121,7 @@ def url_transform_remove(request, id, transform_id):
 
 @staff_required
 @permission_required('main.change_urlmatch')
-@transaction.commit_on_success
+@transaction.atomic
 @require_POST
 @json_view
 def url_transform_edit(request, id, transform_id):

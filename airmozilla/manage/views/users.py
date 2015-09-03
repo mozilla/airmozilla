@@ -119,7 +119,7 @@ def _get_all_users():
 @staff_required
 @permission_required('auth.change_user')
 @cancel_redirect('manage:users')
-@transaction.commit_on_success
+@transaction.atomic
 def user_edit(request, id):
     """Editing an individual user."""
     user = User.objects.get(id=id)

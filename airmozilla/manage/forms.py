@@ -83,6 +83,7 @@ class GroupEditForm(BaseModelForm):
 
     class Meta:
         model = Group
+        fields = ('name', 'permissions')
 
 
 class EventRequestForm(BaseModelForm):
@@ -210,7 +211,8 @@ class EventEditForm(EventRequestForm):
         exclude = ('archive_time',)
         # Fields specified to enforce order
         fields = (
-            'title', 'slug', 'status', 'privacy', 'featured', 'template',
+            'title', 'slug', 'status', 'privacy', 'curated_groups',
+            'featured', 'template',
             'template_environment', 'placeholder_img', 'picture',
             'location',
             'description', 'short_description', 'start_time',
@@ -236,13 +238,6 @@ class EventEditForm(EventRequestForm):
             self.fields['recruitmentmessage'].required = False
             self.fields['recruitmentmessage'].label = 'Recruitment message'
 
-        self.fields.keyOrder.pop(
-            self.fields.keyOrder.index('curated_groups')
-        )
-        self.fields.keyOrder.insert(
-            self.fields.keyOrder.index('privacy') + 1,
-            'curated_groups'
-        )
         self.fields['location'].queryset = (
             Location.objects.filter(is_active=True).order_by('name')
         )
@@ -437,6 +432,12 @@ class TemplateEditForm(BaseModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'rows': 20})
         }
+        fields = (
+            'name',
+            'content',
+            'default_popcorn_template',
+            'default_archive_template',
+        )
 
 
 class TemplateMigrateForm(BaseForm):
@@ -573,6 +574,7 @@ class LocationEditForm(BaseModelForm):
 
     class Meta:
         model = Location
+        fields = ('name', 'timezone', 'is_active', 'regions')
 
 
 class LocationDefaultEnvironmentForm(BaseModelForm):
@@ -586,12 +588,14 @@ class RegionEditForm(BaseModelForm):
 
     class Meta:
         model = Region
+        fields = ('name', 'is_active')
 
 
 class TopicEditForm(BaseModelForm):
 
     class Meta:
         model = Topic
+        fields = ('topic', 'sort_order', 'groups', 'is_active')
 
     def __init__(self, *args, **kwargs):
         super(TopicEditForm, self).__init__(*args, **kwargs)
@@ -767,6 +771,7 @@ class TagEditForm(BaseModelForm):
 
     class Meta:
         model = Tag
+        fields = ('name',)
 
     def clean_name(self):
         value = self.cleaned_data['name']

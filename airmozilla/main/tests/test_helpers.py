@@ -239,6 +239,6 @@ class TestMakeAbsolute(DjangoTestCase):
         result = make_absolute(context, '//some.cdn.com/foo.js')
         eq_(result, 'http://some.cdn.com/foo.js')
 
-        context['request']._is_secure = lambda: True
+        context['request'].is_secure = lambda: True
         result = make_absolute(context, '//some.cdn.com/foo.js')
         eq_(result, 'https://some.cdn.com/foo.js')

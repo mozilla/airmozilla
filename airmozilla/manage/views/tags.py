@@ -62,7 +62,7 @@ def tags_data(request):
 @staff_required
 @permission_required('main.change_event')
 @cancel_redirect('manage:tags')
-@transaction.commit_on_success
+@transaction.atomic
 def tag_edit(request, id):
     tag = get_object_or_404(Tag, id=id)
     if request.method == 'POST':
@@ -102,7 +102,7 @@ def tag_edit(request, id):
 
 @staff_required
 @permission_required('main.delete_tag')
-@transaction.commit_on_success
+@transaction.atomic
 def tag_remove(request, id):
     if request.method == 'POST':
         tag = get_object_or_404(Tag, id=id)
@@ -116,7 +116,7 @@ def tag_remove(request, id):
 @staff_required
 @permission_required('main.change_tag')
 @cancel_redirect('manage:tags')
-@transaction.commit_on_success
+@transaction.atomic
 def tag_merge(request, id):
     tag = get_object_or_404(Tag, id=id)
     form = forms.TagMergeForm(tag, request.POST)
@@ -148,7 +148,7 @@ def tag_merge(request, id):
 @staff_required
 @permission_required('main.change_tag')
 @cancel_redirect('manage:tags')
-@transaction.commit_on_success
+@transaction.atomic
 def tag_merge_repeated(request, id):
     tag = get_object_or_404(Tag, id=id)
     tag_to_keep = get_object_or_404(Tag, id=request.POST['keep'])

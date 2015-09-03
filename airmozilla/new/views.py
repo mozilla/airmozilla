@@ -41,6 +41,7 @@ from airmozilla.comments.models import Discussion
 from airmozilla.uploads.models import Upload
 from airmozilla.manage import videoinfo
 from airmozilla.base.helpers import show_duration
+from airmozilla.base.utils import simplify_form_errors
 from airmozilla.manage import sending
 from . import forms
 
@@ -138,7 +139,7 @@ def save_upload(request):
 
 @never_cache
 @xhr_login_required
-@transaction.commit_on_success
+@transaction.atomic
 @must_be_your_event
 @json_view
 def event_edit(request, event):
@@ -158,7 +159,7 @@ def event_edit(request, event):
                 event.slug = None
                 event.save()
         else:
-            return {'errors': form.errors}
+            return {'errors': simplify_form_errors(form.errors)}
 
     context = {
         'event': serialize_event(event),

@@ -65,7 +65,7 @@ class TestAbsStaticHelpers(DjangoTestCase):
     def test_abs_static_with_STATIC_URL_with_https(self):
         context = {}
         context['request'] = RequestFactory().get('/')
-        context['request']._is_secure = lambda: True
+        context['request'].is_secure = lambda: True
         assert context['request'].is_secure()
 
         with self.settings(STATIC_URL='//my.cdn.com/static/'):

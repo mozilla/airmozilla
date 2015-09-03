@@ -76,7 +76,7 @@ from .utils import can_edit_event, get_var_templates, STOPWORDS
 @staff_required
 @permission_required('main.add_event')
 @cancel_redirect('manage:events')
-@transaction.commit_on_success
+@transaction.atomic
 def event_request(request, duplicate_id=None):
     """Event request page:  create new events to be published."""
     if (request.user.has_perm('main.add_event_scheduled')
@@ -435,7 +435,7 @@ def _event_process(request, form, event):
 @staff_required
 @permission_required('main.change_event')
 @cancel_redirect('manage:events')
-@transaction.commit_on_success
+@transaction.atomic
 def event_edit(request, id):
     """Edit form for a particular event."""
     event = get_object_or_404(Event, id=id)
@@ -644,7 +644,7 @@ def redirect_event_thumbnail(request, id):
 @require_POST
 @staff_required
 @permission_required('main.change_event')
-@transaction.commit_on_success
+@transaction.atomic
 def event_stop_live(request, id):
     """Convenient thing that changes the status and redirects you to
     go and upload a file."""
@@ -657,7 +657,7 @@ def event_stop_live(request, id):
 
 @require_POST
 @superuser_required
-@transaction.commit_on_success
+@transaction.atomic
 def event_delete(request, id):
     """Don't just delete the event record, but delete everything associated
     with it:
@@ -918,7 +918,7 @@ def event_vidly_submission(request, id, submission_id):
 
 @superuser_required
 @require_POST
-@transaction.commit_on_success
+@transaction.atomic
 def event_archive_auto(request, id):
     event = get_object_or_404(Event, id=id)
     assert 'Vid.ly' in event.template.name
@@ -933,7 +933,7 @@ def event_archive_auto(request, id):
 
 @staff_required
 @permission_required('main.change_event')
-@transaction.commit_on_success
+@transaction.atomic
 def event_tweets(request, id):
     """Summary of tweets and submission of tweets"""
     data = {}
@@ -981,7 +981,7 @@ def event_tweets(request, id):
 @staff_required
 @permission_required('main.change_event')
 @cancel_redirect('manage:events')
-@transaction.commit_on_success
+@transaction.atomic
 def new_event_tweet(request, id):
     data = {}
     event = get_object_or_404(Event, id=id)
@@ -1030,7 +1030,7 @@ def new_event_tweet(request, id):
 
 @staff_required
 @permission_required('main.change_event')
-@transaction.commit_on_success
+@transaction.atomic
 def all_event_tweets(request):
     """Summary of tweets and submission of tweets"""
     tweets = (
@@ -1050,7 +1050,7 @@ def all_event_tweets(request):
 @staff_required
 @permission_required('main.change_event_others')
 @cancel_redirect('manage:events')
-@transaction.commit_on_success
+@transaction.atomic
 def event_archive(request, id):
     """Dedicated page for setting page template (archive) and archive time."""
     event = get_object_or_404(Event, id=id)
@@ -1127,7 +1127,7 @@ def event_archive(request, id):
 
 @superuser_required
 @cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
-@transaction.commit_on_success
+@transaction.atomic
 def event_archive_time(request, id):
     event = get_object_or_404(Event, id=id)
     if request.method == 'POST':
@@ -1146,7 +1146,7 @@ def event_archive_time(request, id):
 
 
 @require_POST
-@transaction.commit_on_success
+@transaction.atomic
 @json_view
 def event_fetch_duration(request, id):
     event = get_object_or_404(Event, id=id)
@@ -1163,7 +1163,7 @@ def event_fetch_duration(request, id):
 
 
 @require_POST
-@transaction.commit_on_success
+@transaction.atomic
 @json_view
 def event_fetch_screencaptures(request, id):
     event = get_object_or_404(Event, id=id)
@@ -1240,7 +1240,7 @@ def event_hit_stats(request):
 
 @staff_required
 @permission_required('comments.change_discussion')
-@transaction.commit_on_success
+@transaction.atomic
 def event_discussion(request, id):
     context = {}
     event = get_object_or_404(Event, id=id)
@@ -1510,7 +1510,7 @@ def event_assignments_ical(request):
 @staff_required
 @permission_required('main.change_event')
 @cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
-@transaction.commit_on_success
+@transaction.atomic
 def event_survey(request, id):
     event = get_object_or_404(Event, id=id)
     survey = None

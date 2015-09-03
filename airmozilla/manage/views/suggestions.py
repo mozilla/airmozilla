@@ -45,7 +45,7 @@ def suggestions(request):
 
 @staff_required
 @permission_required('main.add_event')
-@transaction.commit_on_success
+@transaction.atomic
 def suggestion_review(request, id):
     event = get_object_or_404(SuggestedEvent, pk=id)
     real_event_form = None

@@ -140,7 +140,7 @@ def _get_all_pictures(event=None):
 
 @staff_required
 @permission_required('main.change_picture')
-@transaction.commit_on_success
+@transaction.atomic
 def picture_edit(request, id):
     picture = get_object_or_404(Picture, id=id)
     context = {'picture': picture}
@@ -168,7 +168,7 @@ def picture_edit(request, id):
 
 @staff_required
 @permission_required('main.delete_picture')
-@transaction.commit_on_success
+@transaction.atomic
 @json_view
 def picture_delete(request, id):
     picture = get_object_or_404(Picture, id=id)
@@ -182,7 +182,7 @@ def picture_delete(request, id):
 @require_POST
 @staff_required
 @permission_required('main.delete_picture')
-@transaction.commit_on_success
+@transaction.atomic
 @json_view
 def picture_delete_all(request, id):
     event = get_object_or_404(Event, id=id)
@@ -197,7 +197,7 @@ def picture_delete_all(request, id):
 
 @staff_required
 @permission_required('main.add_picture')
-@transaction.commit_on_success
+@transaction.atomic
 @json_view
 def picture_add(request):
     context = {}
@@ -252,7 +252,7 @@ def redirect_picture_thumbnail(request, id):
 
 @staff_required
 @require_POST
-@transaction.commit_on_success
+@transaction.atomic
 @permission_required('main.change_event')
 @json_view
 def picture_event_associate(request, id):

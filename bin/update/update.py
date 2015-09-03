@@ -57,6 +57,18 @@ def update_db(ctx):
         ctx.local(
             '%s/bin/python manage.py syncdb' % venv_path
         )
+        # Due to the Django 1.7 upgrade we once needs to execute
+        # these two fake migrations.
+        # These two following commands must be deleted once they've
+        # been run at least once.
+        ctx.local(
+            '%s/bin/python manage.py migrate --fake comments' % venv_path
+        )
+        ctx.local(
+            '%s/bin/python manage.py migrate --fake main' % venv_path
+        )
+
+        # Keep this
         ctx.local(
             '%s/bin/python manage.py migrate' % venv_path
         )

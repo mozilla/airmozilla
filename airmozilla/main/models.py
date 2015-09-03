@@ -57,29 +57,41 @@ def get_profile_safely(user, create_if_necessary=False):
             return UserProfile.objects.create(user=user)
 
 
-def _upload_path(tag):
-    def _upload_path_tagged(instance, filename):
-        if isinstance(filename, unicode):
-            filename = (
-                unicodedata
-                .normalize('NFD', filename)
-                .encode('ascii', 'ignore')
-            )
-        now = datetime.datetime.now()
-        path = os.path.join(now.strftime('%Y'), now.strftime('%m'),
-                            now.strftime('%d'))
-        hashed_filename = (hashlib.md5(filename +
-                           str(now.microsecond)).hexdigest())
-        __, extension = os.path.splitext(filename)
-        return os.path.join(tag, path, hashed_filename + extension)
-    return _upload_path_tagged
+# The reason this function is not *inside* _upload_path() is
+# because of migrations.
+def _upload_path_tagged(tag, instance, filename):
+    if isinstance(filename, unicode):
+        filename = (
+            unicodedata
+            .normalize('NFD', filename)
+            .encode('ascii', 'ignore')
+        )
+    now = datetime.datetime.now()
+    path = os.path.join(now.strftime('%Y'), now.strftime('%m'),
+                        now.strftime('%d'))
+    hashed_filename = (hashlib.md5(filename +
+                       str(now.microsecond)).hexdigest())
+    __, extension = os.path.splitext(filename)
+    return os.path.join(tag, path, hashed_filename + extension)
+
+
+def _upload_path_pictures(instance, filename):
+    return _upload_path_tagged('pictures', instance, filename)
+
+
+def _upload_path_channels(instance, filename):
+    return _upload_path_tagged('channels', instance, filename)
+
+
+def _upload_path_event_placeholder(instance, filename):
+    return _upload_path_tagged('event-placeholder', instance, filename)
 
 
 class Channel(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=100, unique=True,
                             db_index=True)
-    image = ImageField(upload_to=_upload_path('channels'), blank=True)
+    image = ImageField(upload_to=_upload_path_channels, blank=True)
     image_is_banner = models.BooleanField(default=False)
     parent = models.ForeignKey('self', name='parent', null=True)
     description = models.TextField()
@@ -297,7 +309,7 @@ class Event(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
                               default=STATUS_INITIATED, db_index=True)
     placeholder_img = ImageField(
-        upload_to=_upload_path('event-placeholder'),
+        upload_to=_upload_path_event_placeholder,
         blank=True,
         null=True,
     )
@@ -492,7 +504,7 @@ class EventRevision(models.Model):
     user = models.ForeignKey(User, null=True)
     title = models.CharField(max_length=200)
     placeholder_img = ImageField(
-        upload_to=_upload_path('event-placeholder'), blank=True, null=True)
+        upload_to=_upload_path_event_placeholder, blank=True, null=True)
     picture = models.ForeignKey('Picture', blank=True, null=True)
     description = models.TextField()
     short_description = models.TextField(
@@ -560,7 +572,7 @@ class SuggestedEvent(models.Model):
     slug = models.SlugField(blank=True, max_length=215, unique=True,
                             db_index=True)
     placeholder_img = ImageField(
-        upload_to=_upload_path('event-placeholder'), blank=True, null=True)
+        upload_to=_upload_path_event_placeholder, blank=True, null=True)
     picture = models.ForeignKey('Picture', blank=True, null=True)
     upload = models.ForeignKey(
         'uploads.Upload',
@@ -858,7 +870,7 @@ class Picture(models.Model):
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
     file = models.ImageField(
-        upload_to=_upload_path('pictures'),
+        upload_to=_upload_path_pictures,
         width_field='width',
         height_field='height'
     )

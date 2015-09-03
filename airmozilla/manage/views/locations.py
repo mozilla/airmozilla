@@ -49,7 +49,7 @@ def locations(request):
 @staff_required
 @permission_required('main.change_location')
 @cancel_redirect('manage:locations')
-@transaction.commit_on_success
+@transaction.atomic
 def location_edit(request, id):
     location = get_object_or_404(Location, id=id)
 
@@ -118,7 +118,7 @@ def location_edit(request, id):
 @staff_required
 @permission_required('main.add_location')
 @cancel_redirect('manage:events')
-@transaction.commit_on_success
+@transaction.atomic
 def location_new(request):
     if request.method == 'POST':
         form = forms.LocationEditForm(request.POST, instance=Location())
@@ -133,7 +133,7 @@ def location_new(request):
 
 @staff_required
 @permission_required('main.delete_location')
-@transaction.commit_on_success
+@transaction.atomic
 def location_remove(request, id):
     location = get_object_or_404(Location, id=id)
     if request.method == 'POST':

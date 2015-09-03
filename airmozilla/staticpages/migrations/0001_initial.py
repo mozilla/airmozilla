@@ -1,52 +1,34 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import jsonfield.fields
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'StaticPage'
-        db.create_table(u'staticpages_staticpage', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('url', self.gf('django.db.models.fields.CharField')(max_length=100, db_index=True)),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('content', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('template_name', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('privacy', self.gf('django.db.models.fields.CharField')(default='public', max_length=40, db_index=True)),
-            ('cors_header', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('content_type', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('page_name', self.gf('django.db.models.fields.CharField')(max_length=100, blank=True)),
-            ('allow_querystring_variables', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal(u'staticpages', ['StaticPage'])
+    dependencies = [
+    ]
 
-
-    def backwards(self, orm):
-        # Deleting model 'StaticPage'
-        db.delete_table(u'staticpages_staticpage')
-
-
-    models = {
-        u'staticpages.staticpage': {
-            'Meta': {'object_name': 'StaticPage'},
-            'allow_querystring_variables': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'content_type': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'cors_header': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'page_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'privacy': ('django.db.models.fields.CharField', [], {'default': "'public'", 'max_length': '40', 'db_index': 'True'}),
-            'template_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'url': ('django.db.models.fields.CharField', [], {'max_length': '100', 'db_index': 'True'})
-        }
-    }
-
-    complete_apps = ['staticpages']
+    operations = [
+        migrations.CreateModel(
+            name='StaticPage',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('url', models.CharField(max_length=100, db_index=True)),
+                ('title', models.CharField(max_length=200)),
+                ('content', models.TextField(blank=True)),
+                ('template_name', models.CharField(max_length=100, blank=True)),
+                ('privacy', models.CharField(default=b'public', max_length=40, db_index=True, choices=[(b'public', b'Public'), (b'contributors', b'Contributors'), (b'company', b'Staff')])),
+                ('page_name', models.CharField(max_length=100, blank=True)),
+                ('headers', jsonfield.fields.JSONField(default=dict)),
+                ('allow_querystring_variables', models.BooleanField(default=False)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+                'ordering': ('url',),
+            },
+            bases=(models.Model,),
+        ),
+    ]

@@ -26,7 +26,7 @@ def groups(request):
 @staff_required
 @permission_required('auth.change_group')
 @cancel_redirect('manage:groups')
-@transaction.commit_on_success
+@transaction.atomic
 def group_edit(request, id):
     """Edit an individual group."""
     group = Group.objects.get(id=id)
@@ -44,7 +44,7 @@ def group_edit(request, id):
 
 @staff_required
 @permission_required('auth.add_group')
-@transaction.commit_on_success
+@transaction.atomic
 def group_new(request):
     """Add a new group."""
     group = Group()
@@ -61,7 +61,7 @@ def group_new(request):
 
 @staff_required
 @permission_required('auth.delete_group')
-@transaction.commit_on_success
+@transaction.atomic
 def group_remove(request, id):
     if request.method == 'POST':
         group = Group.objects.get(id=id)

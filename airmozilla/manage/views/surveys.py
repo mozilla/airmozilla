@@ -9,7 +9,7 @@ from jsonview.decorators import json_view
 
 from airmozilla.main.models import Event
 from airmozilla.manage import forms
-from airmozilla.surveys.models import Survey, Question
+from airmozilla.surveys.models import Survey, Question, next_question_order
 
 from .decorators import (
     staff_required,
@@ -20,7 +20,7 @@ from .decorators import (
 
 @staff_required
 @permission_required('surveys.change_survey')
-@transaction.commit_on_success
+@transaction.atomic
 def surveys_(request):  # funny name to avoid clash with surveys module
     context = {
         'surveys': Survey.objects.all().order_by('-created'),
@@ -39,7 +39,7 @@ def surveys_(request):  # funny name to avoid clash with surveys module
 
 @staff_required
 @permission_required('surveys.change_survey')
-@transaction.commit_on_success
+@transaction.atomic
 def survey_new(request):
     if request.method == 'POST':
         form = forms.SurveyNewForm(
@@ -59,7 +59,7 @@ def survey_new(request):
 @staff_required
 @permission_required('surveys.change_survey')
 @cancel_redirect('manage:surveys')
-@transaction.commit_on_success
+@transaction.atomic
 def survey_edit(request, id):
     survey = get_object_or_404(Survey, id=id)
     if request.method == 'POST':
@@ -83,7 +83,7 @@ def survey_edit(request, id):
 @staff_required
 @permission_required('surveys.delete_survey')
 @cancel_redirect('manage:surveys')
-@transaction.commit_on_success
+@transaction.atomic
 def survey_delete(request, id):
     survey = get_object_or_404(Survey, id=id)
     survey.delete()
@@ -93,10 +93,13 @@ def survey_delete(request, id):
 @require_POST
 @staff_required
 @permission_required('surveys.add_question')
-@transaction.commit_on_success
+@transaction.atomic
 def survey_question_new(request, id):
     survey = get_object_or_404(Survey, id=id)
-    Question.objects.create(survey=survey)
+    Question.objects.create(
+        survey=survey,
+        order=next_question_order(),
+    )
     return redirect('manage:survey_questions', survey.id)
 
 
@@ -104,7 +107,7 @@ def survey_question_new(request, id):
 @require_POST
 @staff_required
 @permission_required('surveys.change_question')
-@transaction.commit_on_success
+@transaction.atomic
 def survey_question_edit(request, id, question_id):
     survey = get_object_or_404(Survey, id=id)
     question = get_object_or_404(Question, survey=survey, id=question_id)
@@ -144,7 +147,7 @@ def survey_question_edit(request, id, question_id):
 @staff_required
 @permission_required('surveys.change_survey')
 @cancel_redirect('manage:surveys')
-@transaction.commit_on_success
+@transaction.atomic
 def survey_questions(request, id):
     survey = get_object_or_404(Survey, id=id)
     context = {
@@ -157,7 +160,7 @@ def survey_questions(request, id):
 @require_POST
 @staff_required
 @permission_required('surveys.delete_question')
-@transaction.commit_on_success
+@transaction.atomic
 def survey_question_delete(request, id, question_id):
     survey = get_object_or_404(Survey, id=id)
     get_object_or_404(Question, survey=survey, id=question_id).delete()

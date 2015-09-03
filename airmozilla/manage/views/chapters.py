@@ -29,7 +29,7 @@ def event_chapters(request, event_id):
 @cancel_redirect(
     lambda r, event_id: reverse('manage:event_chapters', args=(event_id,))
 )
-@transaction.commit_on_success
+@transaction.atomic
 def event_chapter_new(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     if request.method == 'POST':
@@ -52,7 +52,7 @@ def event_chapter_new(request, event_id):
 @cancel_redirect(
     lambda r, event_id, id: reverse('manage:event_chapters', args=(event_id,))
 )
-@transaction.commit_on_success
+@transaction.atomic
 def event_chapter_edit(request, event_id, id):
     chapter = Chapter.objects.get(id=id, event__id=event_id)
     if request.method == 'POST':
@@ -72,7 +72,7 @@ def event_chapter_edit(request, event_id, id):
 
 @staff_required
 @permission_required('main.delete_chapter')
-@transaction.commit_on_success
+@transaction.atomic
 def event_chapter_delete(request, event_id, id):
     if request.method == 'POST':
         chapter = Chapter.objects.get(id=id, event__id=event_id)

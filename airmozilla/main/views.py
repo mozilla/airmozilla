@@ -768,7 +768,7 @@ class EventEditView(EventView):
 
         return render(request, self.template_name, context)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     @json_view
     def post(self, request, slug):
         event = self.get_event(slug, request)
@@ -980,7 +980,7 @@ class EventDiscussionView(EventView):
         }
         return render(request, self.template_name, context)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     @json_view
     def post(self, request, slug):
         event = self.get_event_safely(slug, request)
