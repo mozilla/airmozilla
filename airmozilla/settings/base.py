@@ -27,7 +27,7 @@ INSTALLED_APPS = (
     # Application base, containing global templates.
     '%s.base' % PROJECT_MODULE,
     '%s.main' % PROJECT_MODULE,
-    '%s.auth' % PROJECT_MODULE,
+    '%s.authentication' % PROJECT_MODULE,
     '%s.manage' % PROJECT_MODULE,
     '%s.suggest' % PROJECT_MODULE,
     '%s.search' % PROJECT_MODULE,
@@ -47,7 +47,6 @@ INSTALLED_APPS = (
     'kombu.transport.django',
     'bootstrapform',
     'sorl.thumbnail',
-    'south',
     'django.contrib.messages',
     'django.contrib.sites',
     'django.contrib.flatpages',  # this can be deleted later
@@ -83,7 +82,7 @@ JINGO_EXCLUDE_APPS = [
 # Note that this is different when running tests.
 # You know in case you're debugging tests.
 AUTHENTICATION_BACKENDS = (
-    '%s.auth.backend.AirmozillaBrowserIDBackend' % PROJECT_MODULE,
+    '%s.authentication.backend.AirmozillaBrowserIDBackend' % PROJECT_MODULE,
     # but we're keeping this in case people still have sessions
     # whose backend cookie points to this class path
     'django_browserid.auth.BrowserIDBackend',
@@ -268,7 +267,9 @@ BITLY_ACCESS_TOKEN = None
 BITLY_URL = 'https://api-ssl.bitly.com/v3/shorten'
 
 # Overridden so we can depend on more complex checking
-BROWSERID_VERIFY_CLASS = '%s.auth.views.CustomBrowserIDVerify' % PROJECT_MODULE
+BROWSERID_VERIFY_CLASS = (
+    '%s.authentication.views.CustomBrowserIDVerify' % PROJECT_MODULE
+)
 BROWSERID_REQUEST_ARGS = {'siteName': 'Air Mozilla'}
 
 # Name of the bucket where you upload all large videos

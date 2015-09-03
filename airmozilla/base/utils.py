@@ -16,8 +16,18 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.sites.models import RequestSite, Site
 from django.core.mail.backends.filebased import EmailBackend
+from django.forms.utils import ErrorList
 
 from airmozilla.base.akamai_token_v2 import AkamaiToken
+
+
+def simplify_form_errors(errors):
+    copy = {}
+    for key, value in errors.items():
+        if isinstance(value, ErrorList):
+            value = list(value)
+        copy[key] = value
+    return copy
 
 
 class EmlEmailBackend(EmailBackend):

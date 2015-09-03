@@ -25,23 +25,18 @@ def invalidate_event_survey_cache_key(sender, instance, **kwargs):
         cache.delete(cache_key)
 
 
-def next_order(*args, **kwargs):
-    try:
-        current_max = (
-            Question.objects.all()
-            .aggregate(Max('order'))['order__max']
-        ) or 0
-    except:  # pragma: no cover
-        # an ugly hack for the sake of South
-        # necessary for the first migration creation
-        current_max = 0
+def next_question_order(*args, **kwargs):
+    current_max = (
+        Question.objects.all()
+        .aggregate(Max('order'))['order__max']
+    ) or 0
     return current_max + 1
 
 
 class Question(models.Model):
     survey = models.ForeignKey(Survey)
     question = JSONField()
-    order = models.IntegerField(default=next_order)
+    order = models.IntegerField(default=1)
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:

@@ -27,7 +27,7 @@ def regions(request):
 
 @permission_required('main.change_region')
 @cancel_redirect('manage:regions')
-@transaction.commit_on_success
+@transaction.atomic
 def region_edit(request, id):
     region = get_object_or_404(Region, id=id)
 
@@ -51,7 +51,7 @@ def region_edit(request, id):
 @staff_required
 @permission_required('main.add_region')
 @cancel_redirect('manage:events')
-@transaction.commit_on_success
+@transaction.atomic
 def region_new(request):
     if request.method == 'POST':
         form = forms.RegionEditForm(request.POST, instance=Region())
@@ -67,7 +67,7 @@ def region_new(request):
 @require_POST
 @staff_required
 @permission_required('main.delete_region')
-@transaction.commit_on_success
+@transaction.atomic
 def region_remove(request, id):
     region = get_object_or_404(Region, id=id)
     region.delete()

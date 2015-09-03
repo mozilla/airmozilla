@@ -5,7 +5,7 @@ from nose.tools import eq_, ok_
 from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import Event
-from airmozilla.surveys.models import Survey, Question
+from airmozilla.surveys.models import Survey, Question, next_question_order
 from .base import ManageTestCase
 
 
@@ -18,7 +18,9 @@ class TestCase(ManageTestCase):
         )
         Question.objects.create(
             survey=survey,
-            question={}
+            question={},
+            order=next_question_order(),
+
         )
         other_survey = Survey.objects.create(
             name='Other Survey',
@@ -26,11 +28,13 @@ class TestCase(ManageTestCase):
         )
         Question.objects.create(
             survey=other_survey,
-            question={"question": "Something?"}
+            question={"question": "Something?"},
+            order=next_question_order(),
         )
         Question.objects.create(
             survey=other_survey,
-            question={"question": "Something else?"}
+            question={"question": "Something else?"},
+            order=next_question_order(),
         )
 
         event = Event.objects.get(title='Test event')
@@ -73,6 +77,7 @@ class TestCase(ManageTestCase):
             Question.objects.create(
                 survey=survey,
                 question={},
+                order=next_question_order(),
             )
         event = Event.objects.get(title='Test event')
         survey.events.add(event)
@@ -132,7 +137,8 @@ class TestCase(ManageTestCase):
         Question.objects.create(
             survey=survey,
             question={},
-            )
+            order=next_question_order(),
+        )
         response = self.client.post(url, {
             'name': 'New Name',
             'active': True
@@ -175,7 +181,10 @@ class TestCase(ManageTestCase):
 
     def test_edit_question(self):
         survey = Survey.objects.create(name='Name')
-        question = Question.objects.create(survey=survey)
+        question = Question.objects.create(
+            survey=survey,
+            order=next_question_order(),
+        )
         url = reverse(
             'manage:survey_question_edit',
             args=(survey.id, question.id)
@@ -195,26 +204,22 @@ class TestCase(ManageTestCase):
         question = Question.objects.get(id=question.id)
         eq_(question.question, q)
 
-        # bad edit
-        payload = payload.replace('{', 'x')
-        response = self.client.post(url, {'question': payload})
-        eq_(response.status_code, 200)
-        error = json.loads(response.content)['error']
-        ok_('No JSON object could be decoded' in error[0])
-
     def test_ordering_questions(self):
         survey = Survey.objects.create(name='Name')
         question_1 = Question.objects.create(
             survey=survey,
-            question={'one': 1}
+            question={'one': 1},
+            order=next_question_order(),
         )
         question_2 = Question.objects.create(
             survey=survey,
-            question={'two': 2}
+            question={'two': 2},
+            order=next_question_order(),
         )
         question_3 = Question.objects.create(
             survey=survey,
-            question={'three': 3}
+            question={'three': 3},
+            order=next_question_order(),
         )
         questions = list(Question.objects.filter(survey=survey))
         eq_(questions, [question_1, question_2, question_3])

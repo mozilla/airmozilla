@@ -4,7 +4,12 @@ from nose.tools import eq_, ok_
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.main.models import Event
-from airmozilla.surveys.models import Survey, Question, Answer
+from airmozilla.surveys.models import (
+    Survey,
+    Question,
+    Answer,
+    next_question_order,
+)
 
 
 class SurveyTestCase(DjangoTestCase):
@@ -18,7 +23,8 @@ class SurveyTestCase(DjangoTestCase):
             survey=survey,
             question={
                 'some': 'json object'
-            }
+            },
+            order=next_question_order(),
         )
         eq_(question.order, 1)
         ok_(question.modified)
@@ -29,7 +35,8 @@ class SurveyTestCase(DjangoTestCase):
             survey=survey,
             question={
                 'some': 'json object'
-            }
+            },
+            order=next_question_order(),
         )
         eq_(second_question.order, 2)
 

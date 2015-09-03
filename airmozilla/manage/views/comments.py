@@ -12,7 +12,7 @@ from .decorators import staff_required, permission_required
 
 @staff_required
 @permission_required('comments.change_discussion')
-@transaction.commit_on_success
+@transaction.atomic
 def all_comments(request):
     context = {}
 
@@ -57,7 +57,7 @@ def all_comments(request):
 
 @staff_required
 @permission_required('comments.change_comment')
-@transaction.commit_on_success
+@transaction.atomic
 def comment_edit(request, id):
     context = {}
     comment = get_object_or_404(Comment, id=id)

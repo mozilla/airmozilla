@@ -5,7 +5,8 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.surveys.models import (
     Survey,
     Question,
-    Answer
+    Answer,
+    next_question_order,
 )
 
 
@@ -24,12 +25,14 @@ class TestSurvey(DjangoTestCase):
             question={
                 'question': 'Fav color?',
                 'choices': ['Red', 'Green', 'Blue']
-            }
+            },
+            order=next_question_order(),
         )
         # empty questions are ignored
         Question.objects.create(
             survey=survey,
-            question={}
+            question={},
+            order=next_question_order(),
         )
 
         # render the questions
@@ -61,14 +64,16 @@ class TestSurvey(DjangoTestCase):
             question={
                 'question': 'Fav color?',
                 'choices': ['Red', 'Green', 'Blue']
-            }
+            },
+            order=next_question_order(),
         )
         Question.objects.create(
             survey=survey,
             question={
                 'question': 'Gender?',
                 'choices': ['Male', 'Female', 'Mixed']
-            }
+            },
+            order=next_question_order(),
         )
         response = self.client.post(url, {
             str(question.id): "Green",
@@ -93,7 +98,8 @@ class TestSurvey(DjangoTestCase):
             question={
                 'question': 'Fav color?',
                 'choices': ['Red', 'Green', 'Blue']
-            }
+            },
+            order=next_question_order(),
         )
         response = self.client.post(url, {
             str(question.id): "Green",
@@ -135,7 +141,8 @@ class TestSurvey(DjangoTestCase):
             question={
                 'question': 'Fav color?',
                 'choices': ['Red', 'Green', 'Blue']
-            }
+            },
+            order=next_question_order(),
         )
         response = self.client.post(url, {
             str(question.id): "Green",

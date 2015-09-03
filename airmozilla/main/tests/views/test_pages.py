@@ -31,7 +31,7 @@ from airmozilla.main.models import (
     VidlySubmission,
     EventLiveHits,
 )
-from airmozilla.surveys.models import Survey, Question
+from airmozilla.surveys.models import Survey, Question, next_question_order
 from airmozilla.staticpages.models import StaticPage
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -3211,7 +3211,8 @@ class TestPages(DjangoTestCase):
             question={
                 'question': 'Fav color?',
                 'choices': ['Red', 'Green', 'Blue']
-            }
+            },
+            order=next_question_order()
         )
         survey.events.add(event)
 

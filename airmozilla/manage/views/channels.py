@@ -23,7 +23,7 @@ def channels(request):
 @staff_required
 @permission_required('main.add_channel')
 @cancel_redirect('manage:channels')
-@transaction.commit_on_success
+@transaction.atomic
 def channel_new(request):
     use_ace = bool(int(request.GET.get('use_ace', 1)))
     if request.method == 'POST':
@@ -43,7 +43,7 @@ def channel_new(request):
 @staff_required
 @permission_required('main.change_channel')
 @cancel_redirect('manage:channels')
-@transaction.commit_on_success
+@transaction.atomic
 def channel_edit(request, id):
     channel = Channel.objects.get(id=id)
     use_ace = bool(int(request.GET.get('use_ace', 1)))
@@ -62,7 +62,7 @@ def channel_edit(request, id):
 
 @staff_required
 @permission_required('main.delete_channel')
-@transaction.commit_on_success
+@transaction.atomic
 def channel_remove(request, id):
     if request.method == 'POST':
         channel = Channel.objects.get(id=id)

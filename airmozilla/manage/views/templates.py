@@ -55,7 +55,7 @@ def templates(request):
 @staff_required
 @permission_required('main.change_template')
 @cancel_redirect('manage:templates')
-@transaction.commit_on_success
+@transaction.atomic
 def template_edit(request, id):
     template = get_object_or_404(Template.objects, id=id)
     if request.method == 'POST':
@@ -104,7 +104,7 @@ def template_edit(request, id):
 @staff_required
 @permission_required('main.add_template')
 @cancel_redirect('manage:templates')
-@transaction.commit_on_success
+@transaction.atomic
 def template_new(request):
     if request.method == 'POST':
         form = forms.TemplateEditForm(request.POST, instance=Template())
@@ -119,7 +119,7 @@ def template_new(request):
 
 @staff_required
 @permission_required('main.delete_template')
-@transaction.commit_on_success
+@transaction.atomic
 def template_remove(request, id):
     if request.method == 'POST':
         template = Template.objects.get(id=id)
@@ -131,7 +131,7 @@ def template_remove(request, id):
 @staff_required
 @permission_required('main.change_template')
 @cancel_redirect(lambda r, id: reverse('manage:template_edit', args=(id,)))
-@transaction.commit_on_success
+@transaction.atomic
 def template_migrate(request, id):
 
     template = get_object_or_404(Template.objects, id=id)

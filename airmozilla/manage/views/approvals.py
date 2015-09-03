@@ -69,7 +69,7 @@ def approvals(request):
 
 @staff_required
 @permission_required('main.change_approval')
-@transaction.commit_on_success
+@transaction.atomic
 def approval_review(request, id):
     """Approve/deny an event on behalf of a group."""
     approval = get_object_or_404(Approval, id=id)
@@ -99,7 +99,7 @@ def approval_review(request, id):
 @require_POST
 @staff_required
 @permission_required('main.change_approval')
-@transaction.commit_on_success
+@transaction.atomic
 def approval_reconsider(request):
     id = request.POST.get('id')
     if not id:

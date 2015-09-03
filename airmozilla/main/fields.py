@@ -4,7 +4,7 @@ from django.db import models
 from django.forms.fields import Field
 from django.forms.util import ValidationError
 
-from south.modelsinspector import add_introspection_rules
+# from south.modelsinspector import add_introspection_rules
 
 # modified version of JSONField and JSONFormField: bradjasper/django-jsonfield
 
@@ -30,6 +30,8 @@ class EnvironmentField(models.TextField):
     # Used so to_python() is called
     __metaclass__ = models.SubfieldBase
 
+    form_class = EnvironmentFormField
+
     def to_python(self, value):
         """Convert string value to JSON"""
         if isinstance(value, basestring):
@@ -52,15 +54,21 @@ class EnvironmentField(models.TextField):
     def value_from_object(self, obj):
         """Convert object to k=v\nk=v\n... input pairs."""
         obj_value = super(EnvironmentField, self).value_from_object(obj)
-        if isinstance(obj_value, basestring) or obj_value is None:
-            return obj_value
+        if obj_value is None:
+            return None
+        if isinstance(obj_value, basestring):
+            if not obj_value:
+                return ''
+            obj_value = json.loads(obj_value)
         input_pairs = []
         for k, v in obj_value.iteritems():
             input_pairs.append('%s=%s' % (k, v))
         return '\n'.join(input_pairs)
 
     def formfield(self, **kwargs):
-        return super(EnvironmentField, self).formfield(
+        # Bypass the super of this class and skip directly to the
+        # models.TextField's super.
+        return super(models.TextField, self).formfield(
             form_class=EnvironmentFormField, **kwargs)
 
-add_introspection_rules([], ["^airmozilla\.main\.fields\.EnvironmentField"])
+# add_introspection_rules([], ["^airmozilla\.main\.fields\.EnvironmentField"])

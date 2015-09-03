@@ -9,7 +9,7 @@ from funfactory.urlresolvers import reverse
 import mock
 from nose.tools import ok_, eq_
 
-from airmozilla.auth.browserid_mock import mock_browserid
+from airmozilla.authentication.browserid_mock import mock_browserid
 from airmozilla.base import mozillians
 from airmozilla.base.tests.testbase import Response
 from airmozilla.main.models import UserProfile
@@ -288,7 +288,7 @@ class TestViews(TestCase):
         profile = UserProfile.objects.get(user__email='peterbe@gmail.com')
         ok_(not profile.contributor)  # fixed!
 
-    @mock.patch('airmozilla.auth.views.logger')
+    @mock.patch('airmozilla.authentication.views.logger')
     @mock.patch('requests.get')
     def test_nonmozilla_mozillians_unhappy(self, rget, rlogger):
         assert not UserProfile.objects.all()

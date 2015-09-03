@@ -28,7 +28,7 @@ def recruitmentmessages(request):
 @staff_required
 @permission_required('main.add_recruitmentmessage')
 @cancel_redirect('manage:recruitmentmessages')
-@transaction.commit_on_success
+@transaction.atomic
 def recruitmentmessage_new(request):
     if request.method == 'POST':
         form = forms.RecruitmentMessageEditForm(
@@ -48,7 +48,7 @@ def recruitmentmessage_new(request):
 @staff_required
 @permission_required('main.change_recruitmentmessage')
 @cancel_redirect('manage:recruitmentmessages')
-@transaction.commit_on_success
+@transaction.atomic
 def recruitmentmessage_edit(request, id):
     msg = RecruitmentMessage.objects.get(id=id)
     if request.method == 'POST':
@@ -71,7 +71,7 @@ def recruitmentmessage_edit(request, id):
 
 @staff_required
 @permission_required('main.delete_recruitmentmessage')
-@transaction.commit_on_success
+@transaction.atomic
 def recruitmentmessage_delete(request, id):
     if request.method == 'POST':
         msg = RecruitmentMessage.objects.get(id=id)

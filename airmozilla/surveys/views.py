@@ -7,7 +7,7 @@ from django import forms
 from .models import Survey, Question, Answer
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def load(request, id):
     survey = get_object_or_404(Survey, id=id, active=True)
     context = {'survey': survey}

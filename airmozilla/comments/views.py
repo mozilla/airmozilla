@@ -52,7 +52,7 @@ def can_manage_comments(user, discussion):
 
 
 @json_view
-@transaction.commit_on_success
+@transaction.atomic
 def event_data(request, id):
     event = get_object_or_404(Event, pk=id)
     context = {}
@@ -258,7 +258,7 @@ def user_name(request):
     return {'name': name}
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def unsubscribe(request, identifier, id=None):
     context = {}
     event = discussion = None

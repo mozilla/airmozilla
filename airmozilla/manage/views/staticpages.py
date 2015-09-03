@@ -31,7 +31,7 @@ def staticpages(request):
 @staff_required
 @permission_required('staticpages.change_staticpage')
 @cancel_redirect('manage:staticpages')
-@transaction.commit_on_success
+@transaction.atomic
 def staticpage_new(request):
     if request.method == 'POST':
         form = forms.StaticPageEditForm(request.POST, instance=StaticPage())
@@ -63,7 +63,7 @@ def staticpage_new(request):
 @staff_required
 @permission_required('staticpages.change_staticpage')
 @cancel_redirect('manage:staticpages')
-@transaction.commit_on_success
+@transaction.atomic
 def staticpage_edit(request, id):
     staticpage = StaticPage.objects.get(id=id)
     if request.method == 'POST':
@@ -87,7 +87,7 @@ def staticpage_edit(request, id):
 
 @staff_required
 @permission_required('staticpages.delete_staticpage')
-@transaction.commit_on_success
+@transaction.atomic
 def staticpage_remove(request, id):
     if request.method == 'POST':
         staticpage = StaticPage.objects.get(id=id)

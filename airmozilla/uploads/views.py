@@ -125,7 +125,7 @@ def sign(request):
 @json_view
 @login_required
 @require_POST
-@transaction.commit_on_success
+@transaction.atomic
 def save(request):
     form = forms.SaveForm(request.POST)
     if not form.is_valid():

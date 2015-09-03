@@ -545,33 +545,24 @@ database is out-of-sync so then next time simply run: `FORCE_DB=1 ./manage.py te
 
 Migrations
 ----------
-We're using [South][south] to handle database migrations.
-To generate a schema migration, make changes to models.py, then run:
 
-``./manage.py schemamigration airmozilla.main --auto``
+To generate a schema migration, make changes to `models.py`, then run:
 
-or
+``./manage.py makemigrations main``
 
-``./manage.py schemamigration airmozilla.comments --auto``
+If you, for example, made a migration to the `main` app.
 
 To generate a blank data migration, use:
 
-``./manage.py datamigration airmozilla.main data_migration_name``
+``./manage.py makemigrations main --empty``
 
 Then fill in the generated file with logic, fixtures, etc.
 
 To apply migrations:
 
 ```
-./manage.py migrate airmozilla.main
-./manage.py migrate airmozilla.comments
-./manage.py migrate airmozilla.uploads
-./manage.py migrate airmozilla.subtitles
-./manage.py migrate airmozilla.surveys
-./manage.py migrate airmozilla.cronlogger
+./manage.py migrate
 ```
-
-In each command, replace airmozilla.main with the appropriate app.
 
 
 Requirements
