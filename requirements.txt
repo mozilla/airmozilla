@@ -90,8 +90,8 @@ regex==2014.12.24
 # sha256: ZY2auoUzi-jB0VMsn7WAezgdxxZuRp_w9i_KpCQNnrg
 # sha256: x9LubC6MWKD9YMLX0hzpPI0rIuep8jLUv5FTJq-0ea8
 requests-oauthlib==0.5.0
-# sha256: PCzNDHsT4v3NdXGY84XWS-cINBs5fEFPDAU4tW5rskw
-bleach==1.2.1
+# sha256: FSrynUWAsRL8UpZoZEknkclR5jgrVgcOleEoxrYUgzs
+bleach==1.4.1
 # sha256: xJWo39CpwdPY7QISG7sotsnTTU2jCqk6fmOcDz17Bjk
 jingo==0.7.1
 # sha256: BrZLrybHpDbLuBRk56UAR66jDbEFnb5uCdxEPvojuiA
@@ -121,8 +121,8 @@ commonware==0.4.2
 cef==0.5
 # sha256: aLzPfWX4LppstFym1qD3o35lVH9HUNrrmjq9wcvd9hI
 https://github.com/mozilla/nuggets/archive/ce50688.zip#egg=nuggets
-# sha256: pucH2csXyL8eVTcTrRSzEnSoHVwM4PziGwKTbQ79fbs
-html5lib==0.95
+# sha256: 43K2b0mX-OHelw6nVdClKNciLSqpvVWqwHjH7zm49sM
+html5lib==0.999999
 # sha256: HDW0rCBs7y0kgWyJ-Jzyid09OM98RJuz-re_bUPwGx8
 ordereddict==1.1
 # sha256: 2KRxgJ87Wj2-eXpwyM93XAN_Yl8jb3BPRPIkTuyDjCM
