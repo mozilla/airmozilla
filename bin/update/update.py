@@ -66,10 +66,10 @@ def update_db(ctx):
         # These two following commands must be deleted once they've
         # been run at least once.
         ctx.local(
-            '%s/bin/python manage.py migrate --fake comments' % venv_path
+            '%s/bin/python manage.py migrate --fake comments --noinput' % venv_path
         )
         ctx.local(
-            '%s/bin/python manage.py migrate --fake main' % venv_path
+            '%s/bin/python manage.py migrate --fake main --noinput' % venv_path
         )
 
         # Keep this
