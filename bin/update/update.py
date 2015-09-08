@@ -27,7 +27,10 @@ def update_code(ctx, tag):
         # Creating a virtualenv tries to open virtualenv/bin/python for
         # writing, but because virtualenv is using it, it fails.
         # So we delete it and let virtualenv create a new one.
-        ctx.local('rm -f %s/bin/python' % venv_path)
+        ctx.local('rm -f %s/bin/python %s/bin/python2.7' % (
+            venv_path,
+            venv_path,
+        ))
         ctx.local('virtualenv-2.7 %s' % venv_path)
 
         # Activate virtualenv to append to path.
