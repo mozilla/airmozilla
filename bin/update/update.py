@@ -74,7 +74,7 @@ def update_db(ctx):
 
         # Keep this
         ctx.local(
-            '%s/bin/python manage.py migrate' % venv_path
+            '%s/bin/python manage.py migrate --noinput' % venv_path
         )
 
 
