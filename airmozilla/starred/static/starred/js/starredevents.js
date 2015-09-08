@@ -36,7 +36,7 @@ var EventLoader = (function() {
                     // doing something like `$('.loading-stars:visible').hide()`
                     $('.loading-stars').hide();
                     $('a.star').each(function(i, element){
-                        Stars.setToolTip(element);
+                        Stars.setToolTip($(element));
                     });
                 }).show();
             }

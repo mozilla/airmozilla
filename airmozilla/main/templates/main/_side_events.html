@@ -19,7 +19,7 @@
             </span>
             {{ event.title }}
           </a>
-          {{ star_tag(event.id, "sidebar")|safe }}
+          {{ star_tag(event.id, 'sidebar') }}
         </h4>
         <p class="event-date">{{ event.start_time|js_date }}</p>
         <p class="entry-summary">{{ short_desc(event) | safe_html }}</p>

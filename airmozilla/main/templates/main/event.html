@@ -110,7 +110,7 @@
      <header class="entry-header">
       <h1 class="entry-title">
         {{ event.title }}
-        {{ star_tag(event.id)|safe }}
+        {{ star_tag(event.id) }}
       </h1>
 
       {% if event.is_upcoming() %}

@@ -31,11 +31,11 @@ var Stars = (function() {
         function triggerClickedStars() {
             $('a.star').each(function(i, element) {
                 var $element = $(element);
-                var index = stars.indexOf($(element).data('id'));
+                var index = stars.indexOf($element.data('id'));
                 if (index > -1) {
                     $element.addClass('star-on');
                 }
-                Stars.setToolTip(element);
+                Stars.setToolTip($element);
             });
         }
 
@@ -94,9 +94,8 @@ var Stars = (function() {
             sync();
         },
 
-        setToolTip: function (element) {
+        setToolTip: function ($element) {
             var title;
-            var $element = $(element);
             if ($element.hasClass('star-on')) {
                 title = $element.data('star-on');
             } else {
@@ -113,8 +112,8 @@ $(function() {
         var id = $(this).data('id');
         var modified = $('a.star[data-id=' + id + ']');
         modified.toggleClass('star-on');
-        modified.each(function(i,e) {
-            Stars.setToolTip(e);
+        modified.each(function(_, e) {
+            Stars.setToolTip($(e));
         });
         Stars.toggleArrayPresence(id);
     });
