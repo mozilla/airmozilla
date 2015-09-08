@@ -19,7 +19,7 @@
       {% endif %}
     </a>
 
-    <a class="star{% if star_on %} star-on{% endif %}" data-id="{{ event.id }}" title="Save as a starred event"></a>
+    {{ star_tag(event.id, star_on and 'star-on' or None) }}
     <p>
       {{ short_desc(event) | safe_html }}
       <a class="go" href="{{ href }}">{{ _('See more') }}</a>
