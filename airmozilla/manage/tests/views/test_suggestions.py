@@ -625,7 +625,7 @@ class TestSuggestions(ManageTestCase):
         ok_(email_sent.recipients(), [bob.email])
         ok_('New comment' in email_sent.subject)
         ok_(event.title in email_sent.subject)
-        ok_('<script>alert("xss")</script>' in email_sent.body)
+        ok_('&lt;script&gt;alert("xss")&lt;/script&gt;' in email_sent.body)
         ok_(reverse('suggest:summary', args=(event.pk,)) in email_sent.body)
 
     def test_retracted_comments_still_visible_in_management(self):
