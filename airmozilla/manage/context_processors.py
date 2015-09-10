@@ -1,4 +1,8 @@
+import datetime
+
 from django.db.models import Q
+from django.utils import timezone
+
 from airmozilla.main.models import (
     Approval,
     Event,
@@ -45,12 +49,16 @@ def badges(request):
             context['badges']['tweets'] = tweets
 
     if request.user.has_perm('main.add_event'):
+        now = timezone.now()
+        then = now - datetime.timedelta(days=30)
         suggestions = (
             SuggestedEvent.objects
             .filter(accepted=None)
-            .exclude(submitted=None)
+            .filter(first_submitted__gte=then)
+            .exclude(first_submitted=None)
             .count()
         )
+
         if suggestions > 0:
             context['badges']['suggestions'] = suggestions
     context['is_superuser'] = request.user.is_superuser
