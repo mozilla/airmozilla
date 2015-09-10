@@ -83,8 +83,8 @@ BeautifulSoup==3.2.1
 django_compressor==1.4
 # sha256: F3KVsUQkAMks22fo4Y-f9ZRvtEL4WBO50IN4I3IuoI0
 django-cronjobs==0.2.3
-# sha256: 2G3HpwzvCTy3dc1YE7H4XQH6ZN8M3gWpkVFR28OOsNE
-django-bootstrap-form==3.1
+# sha256: AV1uiepPkO_mjIg3AvAKUDzsw82lsCCLCp6J6q_4naM
+django-bootstrap-form==3.2
 # sha256: jiOPwzhIDdvXgwiOhFgqN6dfB8mSdTNzMsmjmbIBkfI
 regex==2014.12.24
 # sha256: ZY2auoUzi-jB0VMsn7WAezgdxxZuRp_w9i_KpCQNnrg
