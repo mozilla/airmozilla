@@ -23,15 +23,6 @@ $(function() {
     }
   }).trigger('keyup');
 
-  $('button[name="cancel"]').click(function() {
-    if ($('input[name="event_edit_url"]').length) {
-      location.href = $('input[name="event_edit_url"]').val();
-      return false;
-    } else {
-      return true;
-    }
-  });
-
   $('a.include-event-tags').click(function() {
     var tags = $(this).data('tags');
     // first we need to deduce if they're already there

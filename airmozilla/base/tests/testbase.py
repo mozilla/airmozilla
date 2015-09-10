@@ -1,6 +1,7 @@
 import os
 import shutil
 import json
+import logging
 
 from nose.plugins.skip import SkipTest
 from selenium import webdriver
@@ -9,6 +10,9 @@ from django.test import TestCase, LiveServerTestCase
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files import File
+
+# Calm down the overly verbose sorl.thumbnail logging
+logging.getLogger('sorl.thumbnail.base').setLevel(logging.INFO)
 
 
 class DjangoTestCase(TestCase):

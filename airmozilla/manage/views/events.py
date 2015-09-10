@@ -978,10 +978,10 @@ def event_tweets(request, id):
 
 @staff_required
 @permission_required('main.change_event')
-@cancel_redirect('manage:events')
+@cancel_redirect(lambda r, id: reverse('manage:event_tweets', args=(id,)))
 @transaction.atomic
 def new_event_tweet(request, id):
-    data = {}
+    context = {}
     event = get_object_or_404(Event, id=id)
 
     if request.method == 'POST':
@@ -993,8 +993,7 @@ def new_event_tweet(request, id):
                 tz = pytz.timezone(event.location.timezone)
                 event_tweet.send_date = tz_apply(event_tweet.send_date, tz)
             else:
-                now = timezone.now()
-                event_tweet.send_date = now
+                event_tweet.send_date = timezone.now()
             event_tweet.event = event
             event_tweet.creator = request.user
             event_tweet.save()
@@ -1008,22 +1007,76 @@ def new_event_tweet(request, id):
         abs_url = urlparse.urljoin(base_url, event_url)
         try:
             abs_url = shorten_url(abs_url)
-            data['shortener_error'] = None
+            context['shortener_error'] = None
         except (ImproperlyConfigured, ValueError) as err:  # pragma: no cover
-            data['shortener_error'] = str(err)
-        # except OtherHttpRelatedErrors?
-        #    data['shortener_error'] = "Network error trying to shorten URL"
+            context['shortener_error'] = str(err)
 
         initial['text'] = unhtml('%s\n%s' % (short_desc(event), abs_url))
         initial['include_placeholder'] = bool(event.placeholder_img)
-        initial['send_date'] = ''
+        if event.start_time > timezone.now():
+            if event.location:
+                start_time = event.location_time
+            else:
+                start_time = event.start_time
+            initial['send_date'] = (start_time - datetime.timedelta(
+                minutes=30
+            )).strftime('%Y-%m-%d %H:%M')
+
         form = forms.EventTweetForm(initial=initial, event=event)
 
-    data['event'] = event
-    data['form'] = form
-    data['tweets'] = EventTweet.objects.filter(event=event)
+        if event.start_time > timezone.now():
+            if event.location:
+                event.location.timezone
+                start_time = event.location_time
+                start_time = start_time.strftime('%Y-%m-%d %H:%M')
+            else:
+                # this'll display it with full timezone information
+                start_time = str(event.start_time)
+            form.fields['send_date'].help_text += (
+                " Note! This event starts %s" % (
+                    start_time,
+                )
+            )
 
-    return render(request, 'manage/new_event_tweet.html', data)
+    context['event'] = event
+    context['form'] = form
+    context['tweets'] = EventTweet.objects.filter(event=event)
+
+    return render(request, 'manage/new_event_tweet.html', context)
+
+
+@staff_required
+@permission_required('main.change_event')
+@cancel_redirect(
+    lambda r, id, tweet_id: reverse('manage:event_tweets', args=(id,))
+)
+@transaction.atomic
+def edit_event_tweet(request, id, tweet_id):
+    tweet = get_object_or_404(EventTweet, event__id=id, id=tweet_id)
+
+    if request.method == 'POST':
+        form = forms.EventTweetForm(
+            data=request.POST,
+            instance=tweet,
+            event=tweet.event
+        )
+        if form.is_valid():
+            tweet = form.save()
+            if tweet.send_date:
+                assert tweet.event.location, "event must have a location"
+                tz = pytz.timezone(tweet.event.location.timezone)
+                tweet.send_date = tz_apply(tweet.send_date, tz)
+                tweet.save()
+            messages.success(request, 'Tweet saved')
+            return redirect('manage:event_tweets', tweet.event.id)
+    else:
+        form = forms.EventTweetForm(instance=tweet, event=tweet.event)
+
+    context = {
+        'form': form,
+        'event': tweet.event,
+    }
+    return render(request, 'manage/edit_event_tweet.html', context)
 
 
 @staff_required
