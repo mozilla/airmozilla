@@ -499,9 +499,7 @@ def event_edit(request, id):
             )
             return redirect('manage:events')
     else:
-        timezone.activate(pytz.timezone('UTC'))
         initial = {}
-        initial['timezone'] = timezone.get_current_timezone()  # UTC
         initial['curated_groups'] = ','.join(
             x[0] for x in curated_groups.values_list('name')
         )
