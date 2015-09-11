@@ -2,8 +2,7 @@ Air Mozilla
 ===========
 
 [![Build Status](https://travis-ci.org/mozilla/airmozilla.svg?branch=master)](https://travis-ci.org/mozilla/airmozilla)
-[![Coverage Status](https://coveralls.io/repos/mozilla/airmozilla/badge.png?branch=master)](https://coveralls.io/r/mozilla/airmozilla?branch=master)
-
+[![Coverage Status](https://coveralls.io/repos/mozilla/airmozilla/badge.svg?branch=master&service=github)](https://coveralls.io/github/mozilla/airmozilla?branch=master)
 
 Live: [https://air.mozilla.org](https://air.mozilla.org)
 Stage: [https://air.allizom.org](https://air.allizom.org)
