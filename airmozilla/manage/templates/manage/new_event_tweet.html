@@ -71,4 +71,10 @@
   {% else %}
     <p>This event is not public.</p>
   {% endif %}
+
+
+  <p style="margin-top:25px">
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
 {% endblock %}
