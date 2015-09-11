@@ -28,8 +28,7 @@ def can_edit_event(event, user, default='manage:events'):
     if event.privacy == Event.PRIVACY_COMPANY and is_contributor(user):
         return redirect(default)
     elif (
-        CuratedGroup.objects.filter(event=event)
-        and is_contributor(user)
+        CuratedGroup.objects.filter(event=event) and is_contributor(user)
     ):
         # Editing this event requires that you're also part of that curated
         # group.

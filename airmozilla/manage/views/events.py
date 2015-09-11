@@ -79,8 +79,10 @@ from .utils import can_edit_event, get_var_templates, STOPWORDS
 @transaction.atomic
 def event_request(request, duplicate_id=None):
     """Event request page:  create new events to be published."""
-    if (request.user.has_perm('main.add_event_scheduled')
-            or request.user.has_perm('main.change_event_others')):
+    if (
+        request.user.has_perm('main.add_event_scheduled') or
+        request.user.has_perm('main.change_event_others')
+    ):
         form_class = forms.EventExperiencedRequestForm
     else:
         form_class = forms.EventRequestForm
@@ -538,12 +540,12 @@ def event_edit(request, id):
     now = timezone.now()
     time_ago = now - datetime.timedelta(minutes=15)
     if (
-        event.status == Event.STATUS_PENDING
-        and event.template
-        and 'Vid.ly' in event.template.name
-        and event.template_environment  # can be None
-        and event.template_environment.get('tag')
-        and not VidlySubmission.objects.filter(
+        event.status == Event.STATUS_PENDING and
+        event.template and
+        'Vid.ly' in event.template.name and
+        event.template_environment and  # can be None
+        event.template_environment.get('tag') and
+        not VidlySubmission.objects.filter(
             event=event,
             submission_time__gte=time_ago
         )
@@ -1401,10 +1403,8 @@ def event_comments(request, id):
             filtered = True
         if form.cleaned_data['user']:
             user_filter = (
-                Q(user__email__icontains=form.cleaned_data['user'])
-                |
-                Q(user__first_name__icontains=form.cleaned_data['user'])
-                |
+                Q(user__email__icontains=form.cleaned_data['user']) |
+                Q(user__first_name__icontains=form.cleaned_data['user']) |
                 Q(user__last_name__icontains=form.cleaned_data['user'])
             )
             comments = comments.filter(user_filter)

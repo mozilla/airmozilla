@@ -19,8 +19,7 @@ from .vidly import query
 def auto_archive(verbose=False):
     events = (
         Event.objects
-        .filter(Q(status=Event.STATUS_PENDING)
-                |
+        .filter(Q(status=Event.STATUS_PENDING) |
                 Q(status=Event.STATUS_PROCESSING),
                 archive_time__isnull=True,
                 template__name__contains='Vid.ly')

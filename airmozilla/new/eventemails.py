@@ -27,8 +27,7 @@ def send_new_event_emails(verbose=False):
             # if they don't have a profile, assume not
             optout_users[event.creator.email] = (
                 user_profile and
-                user_profile.optout_event_emails
-                or
+                user_profile.optout_event_emails or
                 False
             )
         if optout_users[event.creator.email]:

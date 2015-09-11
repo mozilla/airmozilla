@@ -403,12 +403,18 @@ class TestPages(DjangoTestCase):
             'main:home_channels',
             args=(channel2.slug,))
 
-        ok_(self.main_channel.name in response.content
-            and main_channel_url in response.content)
-        ok_('Test Channel1' in response.content
-            and test_channel1_url in response.content)
-        ok_('Test Channel2' in response.content
-            and test_channel2_url in response.content)
+        ok_(
+            self.main_channel.name in response.content and
+            main_channel_url in response.content
+        )
+        ok_(
+            'Test Channel1' in response.content and
+            test_channel1_url in response.content
+        )
+        ok_(
+            'Test Channel2' in response.content and
+            test_channel2_url in response.content
+        )
 
     def test_view_event_with_autoplay(self):
         event = Event.objects.get(title='Test event')
@@ -1573,8 +1579,7 @@ class TestPages(DjangoTestCase):
         ok_(one.title in response.content)
         ok_(two.title in response.content)
         ok_(
-            response.content.find(two.title)
-            <
+            response.content.find(two.title) <
             response.content.find(one.title)
         )
 
@@ -1585,8 +1590,7 @@ class TestPages(DjangoTestCase):
         ok_(one.title in response.content)
         ok_(two.title in response.content)
         ok_(
-            response.content.find(one.title)
-            <
+            response.content.find(one.title) <
             response.content.find(two.title)
         )
 

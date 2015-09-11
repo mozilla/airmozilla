@@ -236,8 +236,8 @@ class TestEventTweets(ManageTestCase):
 
         tweet.tweet_id = '1234567890'
         tweet.sent_date = (
-            timezone.now()
-            - datetime.timedelta(days=1)
+            timezone.now() -
+            datetime.timedelta(days=1)
         )
         tweet.save()
 

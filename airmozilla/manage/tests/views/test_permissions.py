@@ -16,16 +16,16 @@ class TestPermissions(ManageTestCase):
         """ Client with no log in - should be rejected. """
         self.client.logout()
         response = self.client.get(reverse('manage:dashboard'))
-        self.assertRedirects(response, settings.LOGIN_URL
-                             + '?next=' + reverse('manage:dashboard'))
+        self.assertRedirects(response, settings.LOGIN_URL +
+                             '?next=' + reverse('manage:dashboard'))
 
     def test_not_staff(self):
         """ User is not staff - should be rejected. """
         self.user.is_staff = False
         self.user.save()
         response = self.client.get(reverse('manage:dashboard'))
-        self.assertRedirects(response, settings.LOGIN_URL
-                             + '?next=' + reverse('manage:dashboard'))
+        self.assertRedirects(response, settings.LOGIN_URL +
+                             '?next=' + reverse('manage:dashboard'))
 
     def test_staff_home(self):
         """ User is staff - should get an OK homepage. """
@@ -37,7 +37,6 @@ class TestPermissions(ManageTestCase):
 
         def mocked_get(url, **options):
             if 'peterbe' in url:
-                print
                 return Response(IN_GROUPS)
             raise NotImplementedError(url)
 

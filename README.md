@@ -59,7 +59,8 @@ has a lot of useful information.
 Once you have a virtualenv you want to use, you need to install all the
 dependencies. You do this with:
 
-    pip install -r requirements.txt
+    pip install bin/peep-2.4.1.tar.gz
+    peep install -r requirements.txt
     pip install -r dev-requirements.txt
 
 The second file is necessary so you can
