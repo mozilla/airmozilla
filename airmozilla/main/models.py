@@ -249,8 +249,7 @@ class EventManager(models.Manager):
 
     def scheduled_or_processing(self):
         return self.get_query_set().filter(
-            Q(status=Event.STATUS_SCHEDULED)
-            |
+            Q(status=Event.STATUS_SCHEDULED) |
             Q(status=Event.STATUS_PROCESSING)
         )
 
@@ -763,9 +762,9 @@ class VidlySubmission(models.Model):
                 min_y = min(point['y'] for point in points)
                 time_gone = (timezone.now() - self.submission_time).seconds
                 return int(
-                    self.event.duration * least_square_slope
-                    - time_gone
-                    + min_y
+                    self.event.duration * least_square_slope -
+                    time_gone +
+                    min_y
                 )
 
 

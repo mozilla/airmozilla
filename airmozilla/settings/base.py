@@ -86,7 +86,8 @@ AUTHENTICATION_BACKENDS = (
     # but we're keeping this in case people still have sessions
     # whose backend cookie points to this class path
     'django_browserid.auth.BrowserIDBackend',
-    # Needed because the tests use self.client.login(username=..., password=...)
+    # Needed because the tests
+    # use self.client.login(username=..., password=...)
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -347,7 +348,6 @@ GOD_MODE = False
 # If you want to disable all of the browser ID stuff, set this to True.
 # That means you won't be able to sign in at all. Or sign out.
 BROWSERID_DISABLED = False
-
 
 
 # How many times to try sending out an event tweet.

@@ -484,8 +484,7 @@ def _fetch(
 
         if (
             not (
-                event.template_environment.get('tag')
-                or
+                event.template_environment.get('tag') or
                 event.template_environment.get('url')
             )
         ):

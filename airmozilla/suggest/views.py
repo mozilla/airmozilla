@@ -37,8 +37,7 @@ def _increment_slug_if_exists(slug):
 
     def exists(slug):
         return (
-            Event.objects.filter(slug__iexact=slug)
-            or
+            Event.objects.filter(slug__iexact=slug) or
             SuggestedEvent.objects.filter(slug__iexact=slug)
         )
 

@@ -672,12 +672,9 @@ class TestEvents(ManageTestCase):
         self.assertRedirects(response_ok, reverse('manage:events'))
         event_modified = Event.objects.get(id=event.id)
         eq_(event_modified.status, Event.STATUS_SCHEDULED)
-        now = (
-            timezone.now()
-        )
+        now = timezone.now()
         ok_(
-            abs(event_modified.archive_time - now)
-            <=
+            abs(event_modified.archive_time - now) <=
             datetime.timedelta(1)
         )
 

@@ -1404,8 +1404,7 @@ def tag_cloud(request, THRESHOLD=1):
         if is_contributor(request.user):
             # because of a bug in Django we can't use qs.exclude()
             qs = qs.filter(
-                Q(event__privacy=Event.PRIVACY_CONTRIBUTORS)
-                |
+                Q(event__privacy=Event.PRIVACY_CONTRIBUTORS) |
                 Q(event__privacy=Event.PRIVACY_PUBLIC)
             )
     else:

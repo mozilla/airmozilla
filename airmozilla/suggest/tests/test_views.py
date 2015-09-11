@@ -114,8 +114,10 @@ class TestPages(DjangoTestCase):
         """ Client with no log in - should be rejected. """
         self.client.logout()
         response = self.client.get(reverse('suggest:start'))
-        self.assertRedirects(response, settings.LOGIN_URL
-                             + '?next=' + reverse('suggest:start'))
+        self.assertRedirects(
+            response, settings.LOGIN_URL +
+            '?next=' + reverse('suggest:start')
+        )
 
     def test_start(self):
         url = reverse('suggest:start')

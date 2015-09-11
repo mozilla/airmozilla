@@ -1,2 +1,2 @@
 [pep8]
-exclude=airmozilla/*/migrations/*
+exclude=airmozilla/*/migrations/*,airmozilla/base/akamai_token_v2.py,airmozilla/settings/local.py

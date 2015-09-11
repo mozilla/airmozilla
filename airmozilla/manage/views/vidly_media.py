@@ -31,8 +31,7 @@ from .decorators import superuser_required
 @superuser_required
 def vidly_media(request):
     events = Event.objects.filter(
-        Q(template__name__contains='Vid.ly')
-        |
+        Q(template__name__contains='Vid.ly') |
         Q(pk__in=VidlySubmission.objects.all()
             .values_list('event_id', flat=True))
     )
