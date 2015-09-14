@@ -582,6 +582,9 @@ class LocationDefaultEnvironmentForm(BaseModelForm):
     class Meta:
         model = LocationDefaultEnvironment
         fields = ('privacy', 'template', 'template_environment')
+        widgets = {
+            'template_environment': forms.widgets.Textarea()
+        }
 
 
 class RegionEditForm(BaseModelForm):
