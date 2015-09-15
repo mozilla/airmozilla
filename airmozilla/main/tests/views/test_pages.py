@@ -441,6 +441,7 @@ class TestPages(DjangoTestCase):
         ok_('autoplay=false' in response.content)
 
     def test_event_with_vidly_download_links(self):
+        cache.clear()  # we don't want past vidly info cache to affect
         event = Event.objects.get(title='Test event')
         vidly = Template.objects.create(
             name="Vid.ly HD",
