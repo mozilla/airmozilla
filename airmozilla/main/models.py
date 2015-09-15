@@ -773,6 +773,8 @@ def invalidate_vidly_tokenization(sender, instance, **kwargs):
     if instance.tag:
         cache_key = 'vidly_tokenize:%s' % instance.tag
         cache.delete(cache_key)
+        cache_key = 'event_vidly_information-{}'.format(instance.event_id)
+        cache.delete(cache_key)
 
 
 @receiver(models.signals.post_save, sender=Event)

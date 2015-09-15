@@ -340,6 +340,34 @@ class EventView(View):
                     # does it exist as a static page
                     return self.cant_find_event(request, slug)
 
+    @staticmethod
+    def get_vidly_information(event, tag):
+        cache_key = 'event_vidly_information-{}'.format(event.id)
+        from_cache = cache.get(cache_key)
+        if from_cache is not None:
+            return from_cache
+
+        # It was not cached, we have to figure it out
+        vidly_tag = hd = None
+        if (
+            not (event.is_pending() or event.is_processing()) and
+            event.is_public() and
+            event.has_vidly_template() and event.template_environment
+        ):
+            if event.template_environment.get('tag'):
+                vidly_tag = tag or event.template_environment['tag']
+                hd = False  # default
+                vidly_submissions = (
+                    VidlySubmission.objects
+                    .filter(event=event, tag=vidly_tag)
+                    .order_by('-submission_time')
+                )
+                for vidly_submission in vidly_submissions.values('hd'):
+                    hd = vidly_submission['hd']
+                    break
+        cache.set(cache_key, (vidly_tag, hd), 60 * 60)
+        return vidly_tag, hd
+
     def get(self, request, slug):
         event = self.get_event(slug, request)
         if isinstance(event, http.HttpResponse):
@@ -458,25 +486,10 @@ class EventView(View):
                 'text': chapter.text,
             })
 
-        if (
-            not (event.is_pending() or event.is_processing()) and
-            event.is_public() and
-            event.has_vidly_template() and event.template_environment
-        ):
-            if event.template_environment.get('tag'):
-                context['vidly_tag'] = tag or event.template_environment['tag']
-                hd = False  # default
-                vidly_submissions = (
-                    VidlySubmission.objects
-                    .filter(event=event, tag=context['vidly_tag'])
-                    .order_by('-submission_time')
-                )
-
-                for vidly_submission in vidly_submissions.values('hd'):
-                    hd = vidly_submission['hd']
-                    break
-
-                context['vidly_hd'] = hd
+        vidly_tag, vidly_hd = self.get_vidly_information(event, tag)
+        if vidly_tag:
+            context['vidly_tag'] = vidly_tag
+            context['vidly_hd'] = vidly_hd
 
         # If the event is in the processing state (or pending), we welcome
         # people to view it but it'll say that the video isn't ready yet.
