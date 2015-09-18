@@ -144,7 +144,8 @@ class TestPages(DjangoTestCase):
             contributor=True
         )
 
-        from airmozilla.main.views import can_view_event, is_contributor
+        from airmozilla.main.views.pages import can_view_event
+        from airmozilla.main.views import is_contributor
         ok_(can_view_event(event, anonymous))
         assert not is_contributor(anonymous)
 

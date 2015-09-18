@@ -77,7 +77,7 @@ def related_content_testing(request):
         form = forms.RelatedContentTestingForm(request.GET)
         if form.is_valid():
             event = form.cleaned_data['event']
-            from airmozilla.main.views import find_related_events
+            from airmozilla.main.views.pages import find_related_events
             matches, scores = find_related_events(
                 event,
                 request.user,
