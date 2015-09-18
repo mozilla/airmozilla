@@ -17,7 +17,7 @@ from django.db.models import Q
 
 from airmozilla.main.helpers import thumbnail
 from airmozilla.main.models import Event, VidlySubmission
-from airmozilla.main.views import EventView
+from airmozilla.main.views.pages import EventView
 from airmozilla.manage.archiver import email_about_archiver_error
 from airmozilla.manage import vidly
 from airmozilla.popcorn.models import PopcornEdit

@@ -1,6 +1,5 @@
 import datetime
 import hashlib
-import json
 import urllib
 import time
 import collections
@@ -10,33 +9,22 @@ from django.conf import settings
 from django.contrib.sites.models import RequestSite
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.cache import cache
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from django.utils import timezone
-from django.utils.timezone import utc
-from django.contrib.syndication.views import Feed
 from django.views.generic.base import View
 from django.db.models import Count, Q, F
 from django.db import transaction
-from django.contrib import messages
 
-from slugify import slugify
 from funfactory.urlresolvers import reverse
 from jingo import Template
-import vobject
-from sorl.thumbnail import get_thumbnail
 from jsonview.decorators import json_view
 
 from airmozilla.main.models import (
     Event,
     EventOldSlug,
     Tag,
-    get_profile_safely,
     Channel,
-    Location,
     EventHitStats,
     CuratedGroup,
-    EventRevision,
     Picture,
     VidlySubmission,
     EventLiveHits,
@@ -53,21 +41,11 @@ from airmozilla.comments.models import Discussion
 from airmozilla.surveys.models import Survey
 from airmozilla.manage import vidly
 from airmozilla.manage import related
-from airmozilla.main.helpers import short_desc
 from airmozilla.base import mozillians
-from airmozilla.base.utils import get_base_url
 from airmozilla.staticpages.views import staticpage
-from . import cloud
-from . import forms
-
-
-def debugger__(request):  # pragma: no cover
-    r = http.HttpResponse()
-    r.write('BROWSERID_AUDIENCES=%r\n' % settings.BROWSERID_AUDIENCES)
-    r.write('Todays date: 2014-05-21 14:02 PST\n')
-    r.write('Request secure? %s\n' % request.is_secure())
-    r['Content-Type'] = 'text/plain'
-    return r
+from airmozilla.main import cloud
+from airmozilla.main.views import is_contributor, is_employee
+from airmozilla.main import forms
 
 
 def page(request, template):
@@ -223,35 +201,6 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
     }
 
     return render(request, 'main/home.html', context)
-
-
-def is_contributor(user):
-    if not hasattr(user, 'pk'):
-        return False
-    cache_key = 'is-contributor-%s' % user.pk
-    is_ = cache.get(cache_key)
-    if is_ is None:
-        profile = get_profile_safely(user)
-        is_ = False
-        if profile and profile.contributor:
-            is_ = True
-        cache.set(cache_key, is_, 60 * 60 * 10)
-    return is_
-
-
-def is_employee(user):
-    if not hasattr(user, 'pk'):
-        return False
-    cache_key = 'is-employee-%s' % user.pk
-    is_ = cache.get(cache_key)
-    if is_ is None:
-        is_ = False
-        for bid in settings.ALLOWED_BID:
-            if user.email.endswith('@%s' % bid):
-                is_ = True
-                break
-        cache.set(cache_key, is_, 60 * 60 * 10)
-    return is_
 
 
 def can_view_event(event, user):
@@ -574,82 +523,6 @@ class EventView(View):
         return render(request, 'main/event_requires_pin.html', context)
 
 
-class EventRevisionView(EventView):
-
-    template_name = 'main/revision_change.html'
-    difference = False
-
-    def can_view_event(self, event, request):
-        return (
-            request.user.is_active and
-            super(EventRevisionView, self).can_view_event(event, request)
-        )
-
-    def get(self, request, slug, id):
-        event = self.get_event(slug, request)
-        if isinstance(event, http.HttpResponse):
-            return event
-
-        if not self.can_view_event(event, request):
-            return self.cant_view_event(event, request)
-
-        revision = get_object_or_404(
-            EventRevision,
-            event=event,
-            pk=id
-        )
-
-        if self.difference:
-            # compare this revision against the current event
-            previous = event
-        else:
-            previous = revision.get_previous_by_created(event=event)
-
-        fields = (
-            ('title', 'Title'),
-            ('placeholder_img', 'Placeholder image'),
-            ('picture', 'Picture'),
-            ('description', 'Description'),
-            ('short_description', 'Short description'),
-            ('channels', 'Channels'),
-            ('tags', 'Tags'),
-            ('call_info', 'Call info'),
-            ('additional_links', 'Additional links'),
-            ('recruitmentmessage', 'Recruitment message'),
-        )
-        differences = []
-
-        def getter(key, obj):
-            if key == 'tags' or key == 'channels':
-                return ', '.join(sorted(
-                    x.name for x in getattr(obj, key).all()
-                ))
-            return getattr(obj, key)
-
-        class _Difference(object):
-            """use a simple class so we can use dot notation in templates"""
-            def __init__(self, **kwargs):
-                self.__dict__.update(kwargs)
-
-        for key, label in fields:
-            before = getter(key, previous)
-            after = getter(key, revision)
-            if before != after:
-                differences.append(_Difference(
-                    key=key,
-                    label=label,
-                    before=before,
-                    after=after
-                ))
-
-        context = {}
-        context['difference'] = self.difference
-        context['event'] = event
-        context['revision'] = revision
-        context['differences'] = differences
-        return render(request, self.template_name, context)
-
-
 class EventVideoView(EventView):
     template_name = 'main/event_video.html'
 
@@ -702,243 +575,6 @@ class EventVideoView(EventView):
         if self.embedded:
             response['X-Frame-Options'] = 'ALLOWALL'
         return response
-
-
-class EventEditView(EventView):
-    template_name = 'main/event_edit.html'
-
-    def can_edit_event(self, event, request):
-        # this might change in the future to only be
-        # employees and vouched mozillians
-        return request.user.is_active
-
-    def cant_edit_event(self, event, user):
-        return redirect('main:event', event.slug)
-
-    @staticmethod
-    def event_to_dict(event):
-        picture_id = event.picture.id if event.picture else None
-        data = {
-            'event_id': event.id,
-            'title': event.title,
-            'description': event.description,
-            'short_description': event.short_description,
-            'channels': [x.pk for x in event.channels.all()],
-            'tags': ', '.join([x.name for x in event.tags.all()]),
-            'call_info': event.call_info,
-            'additional_links': event.additional_links,
-            'recruitmentmessage': None,
-            'picture': picture_id
-        }
-        if event.recruitmentmessage_id:
-            data['recruitmentmessage'] = event.recruitmentmessage_id
-        if event.placeholder_img:
-            data['placeholder_img'] = event.placeholder_img.url
-            if event.picture:
-                file = event.picture.file
-            else:
-                file = event.placeholder_img
-            data['thumbnail_url'] = (
-                get_thumbnail(
-                    file,
-                    '121x68',
-                    crop='center'
-                ).url
-            )
-        return data
-
-    def get(self, request, slug, form=None, conflict_errors=None):
-        event = self.get_event(slug, request)
-        if isinstance(event, http.HttpResponse):
-            return event
-
-        if not self.can_view_event(event, request):
-            return self.cant_view_event(event, request)
-        if not self.can_edit_event(event, request):
-            return self.cant_edit_event(event, request)
-
-        initial = self.event_to_dict(event)
-        if form is None:
-            form = forms.EventEditForm(initial=initial, event=event)
-            if not request.user.has_perm('main.change_recruitmentmessage'):
-                del form.fields['recruitmentmessage']
-
-        context = {
-            'event': event,
-            'form': form,
-            'previous': json.dumps(initial),
-            'conflict_errors': conflict_errors,
-        }
-        if 'thumbnail_url' in initial:
-            context['thumbnail_url'] = initial['thumbnail_url']
-
-        context['revisions'] = (
-            EventRevision.objects
-            .filter(event=event)
-            .order_by('-created')
-            .select_related('user')
-        )
-
-        return render(request, self.template_name, context)
-
-    @transaction.atomic
-    @json_view
-    def post(self, request, slug):
-        event = self.get_event(slug, request)
-        if isinstance(event, http.HttpResponse):
-            return event
-
-        if not self.can_view_event(event, request):
-            return self.cant_view_event(event, request)
-        if not self.can_edit_event(event, request):
-            return self.cant_edit_event(event, request)
-
-        previous = request.POST['previous']
-        previous = json.loads(previous)
-        form = forms.EventEditForm(request.POST, request.FILES, event=event)
-        base_revision = None
-
-        if form.is_valid():
-            if not EventRevision.objects.filter(event=event).count():
-                base_revision = EventRevision.objects.create_from_event(event)
-
-            cleaned_data = form.cleaned_data
-            if 'placeholder_img' in request.FILES:
-                cleaned_data['picture'] = None
-
-            changes = {}
-            conflict_errors = []
-            for key, value in cleaned_data.items():
-
-                # figure out what the active current value is in the database
-                if key == 'placeholder_img':
-                    if (
-                        event.picture and
-                        'placeholder_img' not in request.FILES
-                    ):
-                        current_value = event.picture.file.url
-                    else:
-                        if event.placeholder_img:
-                            current_value = event.placeholder_img.url
-                        else:
-                            current_value = None
-
-                elif key == 'tags':
-                    current_value = ', '.join(x.name for x in event.tags.all())
-                elif key == 'channels':
-                    current_value = [x.pk for x in event.channels.all()]
-                elif key == 'picture':
-                    current_value = event.picture.id if event.picture else None
-                elif key == 'event_id':
-                    pass
-                else:
-                    current_value = getattr(event, key)
-                    if key == 'recruitmentmessage':
-                        if current_value:
-                            current_value = current_value.pk
-
-                if key == 'channels':
-                    prev = set([
-                        Channel.objects.get(pk=x)
-                        for x in previous[key]
-                    ])
-                    value = set(value)
-                    for channel in prev - value:
-                        event.channels.remove(channel)
-                    for channel in value - prev:
-                        event.channels.add(channel)
-                    if prev != value:
-                        changes['channels'] = {
-                            'from': ', '.join(
-                                sorted(x.name for x in prev)
-                            ),
-                            'to': ', '.join(
-                                sorted(x.name for x in value)
-                            )
-                        }
-                elif key == 'tags':
-                    value = set([
-                        x.strip()
-                        for x in value.split(',')
-                        if x.strip()
-                    ])
-                    prev = set([
-                        x.strip()
-                        for x in previous['tags'].split(',')
-                        if x.strip()
-                    ])
-                    for tag in prev - value:
-                        tag_obj = Tag.objects.get(name=tag)
-                        event.tags.remove(tag_obj)
-                    for tag in value - prev:
-                        try:
-                            tag_obj = Tag.objects.get(name__iexact=tag)
-                        except Tag.DoesNotExist:
-                            tag_obj = Tag.objects.create(name=tag)
-                        except Tag.MultipleObjectsReturned:
-                            tag_obj, = Tag.objects.filter(name__iexact=tag)[:1]
-                        event.tags.add(tag_obj)
-                    if prev != value:
-                        changes['tags'] = {
-                            'from': ', '.join(sorted(prev)),
-                            'to': ', '.join(sorted(value))
-                        }
-                elif key == 'placeholder_img':
-                    if value:
-                        changes[key] = {
-                            'from': (
-                                event.placeholder_img and
-                                event.placeholder_img.url or
-                                ''
-                            ),
-                            'to': '__saved__event_placeholder_img'
-                        }
-                        event.placeholder_img = value
-                elif key == 'recruitmentmessage':
-                    prev = event.recruitmentmessage
-                    event.recruitmentmessage = value
-                    if value != prev:
-                        changes[key] = {
-                            'from': prev,
-                            'to': event.recruitmentmessage
-                        }
-                elif key == 'event_id':
-                    pass
-                else:
-                    if value != previous[key]:
-                        changes[key] = {
-                            'from': previous[key],
-                            'to': value
-                        }
-                        setattr(event, key, value)
-                if key in changes:
-                    # you wanted to change it, but has your reference changed
-                    # since you loaded it?
-                    previous_value = previous.get(key)
-                    if previous_value != current_value:
-                        conflict_errors.append(key)
-                        continue
-
-            if conflict_errors:
-                return self.get(
-                    request,
-                    slug,
-                    form=form,
-                    conflict_errors=conflict_errors
-                )
-            elif changes:
-                event.save()
-                EventRevision.objects.create_from_event(
-                    event,
-                    user=request.user,
-                )
-            else:
-                if base_revision:
-                    base_revision.delete()
-
-            return redirect('main:event', event.slug)
-
-        return self.get(request, slug, form=form)
 
 
 class EventDiscussionView(EventView):
@@ -1022,168 +658,6 @@ class EventDiscussionView(EventView):
 def all_tags(request):
     tags = list(Tag.objects.all().values_list('name', flat=True))
     return {'tags': tags}
-
-
-def events_calendar_ical(request, privacy=None):
-    cache_key = 'calendar'
-    if privacy:
-        cache_key += '_%s' % privacy
-    if request.GET.get('location'):
-        if request.GET.get('location').isdigit():
-            location = get_object_or_404(
-                Location,
-                pk=request.GET.get('location')
-            )
-        else:
-            location = get_object_or_404(
-                Location,
-                name=request.GET.get('location')
-            )
-        cache_key += str(location.pk)
-        cached = None
-    else:
-        location = None
-        cached = cache.get(cache_key)
-
-    if cached:
-        # additional response headers aren't remembered so add them again
-        cached['Access-Control-Allow-Origin'] = '*'
-        return cached
-    cal = vobject.iCalendar()
-
-    now = timezone.now()
-    base_qs = Event.objects.scheduled_or_processing()
-    if privacy == 'public':
-        base_qs = base_qs.approved().filter(
-            privacy=Event.PRIVACY_PUBLIC
-        )
-        title = 'Air Mozilla Public Events'
-    elif privacy == 'private':
-        base_qs = base_qs.exclude(
-            privacy=Event.PRIVACY_PUBLIC
-        )
-        title = 'Air Mozilla Private Events'
-    else:
-        title = 'Air Mozilla Events'
-    if location:
-        base_qs = base_qs.filter(location=location)
-
-    cal.add('X-WR-CALNAME').value = title
-    events = list(base_qs
-                  .filter(start_time__lt=now)
-                  .order_by('-start_time')[:settings.CALENDAR_SIZE])
-    events += list(base_qs
-                   .filter(start_time__gte=now)
-                   .order_by('start_time'))
-    base_url = get_base_url(request)
-    for event in events:
-        vevent = cal.add('vevent')
-        vevent.add('summary').value = event.title
-        vevent.add('dtstart').value = event.start_time
-        vevent.add('dtend').value = (
-            event.start_time +
-            datetime.timedelta(
-                seconds=event.duration or event.estimated_duration
-            )
-        )
-        vevent.add('description').value = short_desc(event, strip_html=True)
-        if event.location:
-            vevent.add('location').value = event.location.name
-        vevent.add('url').value = (
-            base_url + reverse('main:event', args=(event.slug,))
-        )
-    icalstream = cal.serialize()
-    # response = http.HttpResponse(
-    #     icalstream,
-    #     content_type='text/plain; charset=utf-8'
-    # )
-    response = http.HttpResponse(
-        icalstream,
-        content_type='text/calendar; charset=utf-8'
-    )
-    filename = 'AirMozillaEvents%s' % (privacy and privacy or '')
-    if location:
-        filename += '_%s' % slugify(location.name)
-    filename += '.ics'
-    response['Content-Disposition'] = (
-        'inline; filename=%s' % filename)
-    if not location:
-        cache.set(cache_key, response, 60 * 10)  # 10 minutes
-
-    # https://bugzilla.mozilla.org/show_bug.cgi?id=909516
-    response['Access-Control-Allow-Origin'] = '*'
-
-    return response
-
-
-class EventsFeed(Feed):
-    title = "Air Mozilla"
-    description = (
-        "Air Mozilla is the Internet multimedia presence of Mozilla, "
-        "with live and pre-recorded shows, interviews, news snippets, "
-        "tutorial videos, and features about the Mozilla community. "
-    )
-
-    description_template = 'main/feeds/event_description.html'
-
-    def get_object(self, request, private_or_public='',
-                   channel_slug=settings.DEFAULT_CHANNEL_SLUG,
-                   format_type=None):
-        if private_or_public == 'private':
-            # old URL
-            private_or_public = 'company'
-        self.private_or_public = private_or_public
-        self.format_type = format_type
-        prefix = request.is_secure() and 'https' or 'http'
-        self._root_url = '%s://%s' % (prefix, RequestSite(request).domain)
-        self._channel = get_object_or_404(Channel, slug=channel_slug)
-
-    def link(self):
-        return self._root_url + '/'
-
-    def feed_url(self):
-        return self.link()
-
-    def feed_copyright(self):
-        return (
-            "Except where otherwise noted, content on this site is "
-            "licensed under the Creative Commons Attribution Share-Alike "
-            "License v3.0 or any later version."
-        )
-
-    def items(self):
-        now = timezone.now()
-        qs = (
-            Event.objects.scheduled_or_processing()
-            .filter(start_time__lt=now,
-                    channels=self._channel)
-            .order_by('-start_time')
-        )
-        if not self.private_or_public or self.private_or_public == 'public':
-            qs = qs.approved()
-            qs = qs.filter(privacy=Event.PRIVACY_PUBLIC)
-        elif self.private_or_public == 'contributors':
-            qs = qs.exclude(privacy=Event.PRIVACY_COMPANY)
-        return qs[:settings.FEED_SIZE]
-
-    def item_title(self, event):
-        return event.title
-
-    def item_link(self, event):
-        if self.format_type == 'webm':
-            if event.template and 'vid.ly' in event.template.name.lower():
-                return self._get_webm_link(event)
-        return self._root_url + reverse('main:event', args=(event.slug,))
-
-    def item_author_name(self, event):
-        return self.title
-
-    def _get_webm_link(self, event):
-        tag = event.template_environment['tag']
-        return 'https://vid.ly/%s?content=video&format=webm' % tag
-
-    def item_pubdate(self, event):
-        return event.start_time
 
 
 def related_content(request, slug):
@@ -1378,28 +852,6 @@ def channels(request):
     return render(request, 'main/channels.html', data)
 
 
-def calendars(request):
-    data = {}
-    locations = []
-    now = timezone.now()
-    time_ago = now - datetime.timedelta(days=30)
-    base_qs = Event.objects.filter(start_time__gte=time_ago)
-    for location in Location.objects.all().order_by('name'):
-        count = base_qs.filter(location=location).count()
-        if count:
-            locations.append(location)
-    data['locations'] = locations
-    if request.user.is_active:
-        profile = get_profile_safely(request.user)
-        if profile and profile.contributor:
-            data['calendar_privacy'] = 'contributors'
-        else:
-            data['calendar_privacy'] = 'company'
-    else:
-        data['calendar_privacy'] = 'public'
-    return render(request, 'main/calendars.html', data)
-
-
 class _Tag(object):
     def __init__(self, name, count):
         self.name = name
@@ -1441,62 +893,6 @@ def tag_cloud(request, THRESHOLD=1):
     return render(request, 'main/tag_cloud.html', context)
 
 
-def calendar(request):
-    context = {}
-    return render(request, 'main/calendar.html', context)
-
-
-@json_view
-def calendar_data(request):
-    form = forms.CalendarDataForm(request.GET)
-    if not form.is_valid():
-        return http.HttpResponseBadRequest(str(form.errors))
-
-    start = form.cleaned_data['start']
-    end = form.cleaned_data['end']
-
-    start = start.replace(tzinfo=utc)
-    end = end.replace(tzinfo=utc)
-
-    privacy_filter = {}
-    privacy_exclude = {}
-    events = Event.objects.scheduled_or_processing()
-    if request.user.is_active:
-        if is_contributor(request.user):
-            privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
-    else:
-        privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
-        events = events.approved()
-
-    if privacy_filter:
-        events = events.filter(**privacy_filter)
-    elif privacy_exclude:
-        events = events.exclude(**privacy_exclude)
-
-    events = events.filter(
-        start_time__gte=start,
-        start_time__lt=end
-    )
-    event_objects = []
-    for event in events.select_related('location'):
-        start_time = event.start_time
-        end_time = start_time + datetime.timedelta(
-            seconds=max(event.duration or event.estimated_duration, 60 * 20)
-        )
-        # We don't need 'end' because we don't yet know how long the event
-        # was or will be.
-        event_objects.append({
-            'title': event.title,
-            'start': start_time.isoformat(),
-            'end': end_time.isoformat(),
-            'url': reverse('main:event', args=(event.slug,)),
-            'description': short_desc(event),
-            'allDay': False,
-        })
-
-    return event_objects
-
-
 def permission_denied(request, slug):
     context = {}
     event = get_object_or_404(Event, slug=slug)
@@ -1513,30 +909,6 @@ def permission_denied(request, slug):
         })
 
     return render(request, 'main/permission_denied.html', context)
-
-
-def edgecast_smil(request):
-    context = {}
-    for key, value in request.GET.items():
-        context[key] = value
-    response = render(request, 'main/edgecast_smil.xml', context)
-    response['Content-Type'] = 'application/smil'
-    response['Access-Control-Allow-Origin'] = '*'
-    return response
-
-
-def crossdomain_xml(request):
-    response = http.HttpResponse(content_type='text/xml')
-    response.write(
-        '<?xml version="1.0"?>\n'
-        '<!DOCTYPE cross-domain-policy SYSTEM '
-        '"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">\n'
-        '<cross-domain-policy>'
-        '<allow-access-from domain="*" />'
-        '</cross-domain-policy>'
-    )
-    response['Access-Control-Allow-Origin'] = '*'
-    return response
 
 
 @json_view
@@ -1564,128 +936,6 @@ def videoredirector(request):  # pragma: no cover
     return {'urls': urls, 'user_agent': user_agent}
 
 
-@login_required
-def unpicked_pictures(request):
-    """returns a report of all events that have pictures in the picture
-    gallery but none has been picked yet. """
-    pictures = Picture.objects.filter(event__isnull=False)
-    events = Event.objects.archived()
-    assert request.user.is_active
-    if is_contributor(request.user):
-        events = events.exclude(privacy=Event.PRIVACY_COMPANY)
-
-    events = events.filter(id__in=pictures.values('event'))
-    events = events.exclude(picture__in=pictures)
-    count = events.count()
-    events = events.order_by('?')[:20]
-    pictures_counts = {}
-    grouped_pictures = (
-        Picture.objects
-        .filter(event__in=events)
-        .values('event')
-        .annotate(Count('event'))
-    )
-    for each in grouped_pictures:
-        pictures_counts[each['event']] = each['event__count']
-
-    context = {
-        'count': count,
-        'events': events,
-        'pictures_counts': pictures_counts,
-    }
-    return render(request, 'main/unpicked_pictures.html', context)
-
-
-@login_required
-@transaction.atomic
-def too_few_tags(request):
-    """returns a report of all events that very few tags"""
-    if request.method == 'POST':
-        form = forms.EventEditTagsForm(request.POST)
-        if form.is_valid():
-            event = get_object_or_404(Event, id=form.cleaned_data['event_id'])
-            assert request.user.is_active
-            if is_contributor(request.user):
-                assert event.privacy != Event.PRIVACY_COMPANY
-
-            if not EventRevision.objects.filter(event=event).count():
-                EventRevision.objects.create_from_event(event)
-
-            value = set([
-                x.strip()
-                for x in form.cleaned_data['tags'].split(',')
-                if x.strip()
-            ])
-            prev = set([x.name for x in event.tags.all()])
-            for tag in prev - value:
-                tag_obj = Tag.objects.get(name=tag)
-                event.tags.remove(tag_obj)
-            added = []
-            for tag in value - prev:
-                try:
-                    tag_obj = Tag.objects.get(name__iexact=tag)
-                except Tag.DoesNotExist:
-                    tag_obj = Tag.objects.create(name=tag)
-                except Tag.MultipleObjectsReturned:
-                    tag_obj, = Tag.objects.filter(name__iexact=tag)[:1]
-                event.tags.add(tag_obj)
-                added.append(tag_obj)
-            EventRevision.objects.create_from_event(
-                event,
-                user=request.user
-            )
-            messages.success(
-                request,
-                'Thank you for adding: %s' % ', '.join(x.name for x in added)
-            )
-            return redirect('main:too_few_tags')
-
-    zero_tags = (
-        Event.objects.scheduled_or_processing()
-        .exclude(id__in=Event.tags.through.objects.values('event_id'))
-    )
-    few_tags = (
-        Event.tags.through.objects
-        .filter(event__status=Event.STATUS_SCHEDULED)
-        .values('event_id')
-        .annotate(count=Count('event'))
-        .filter(count__lt=2)
-    )
-    assert request.user.is_active
-    if is_contributor(request.user):
-        few_tags = few_tags.exclude(event__privacy=Event.PRIVACY_COMPANY)
-        zero_tags = zero_tags.exclude(privacy=Event.PRIVACY_COMPANY)
-
-    count = zero_tags.count()
-    count += few_tags.count()
-    try:
-        event, = zero_tags.order_by('?')[:1]
-    except ValueError:
-        try:
-            first, = few_tags.order_by('?')[:1]
-            event = Event.objects.get(id=first['event_id'])
-        except ValueError:
-            # there's nothing!
-            event = None
-            assert count == 0
-
-    context = {
-        'count': count,
-        'event': event,
-    }
-    if event:
-        initial = {
-            'tags': ', '.join(x.name for x in event.tags.all()),
-            'event_id': event.id,
-        }
-        context['form'] = forms.EventEditTagsForm(
-            initial=initial,
-            instance=event
-        )
-
-    return render(request, 'main/too_few_tags.html', context)
-
-
 def contributors(request):
     context = {}
     cache_key = 'mozillians_contributors'
@@ -1696,105 +946,6 @@ def contributors(request):
         cache.set(cache_key, users, 60 * 60 * 24)
     context['users'] = reversed(users)
     return render(request, 'main/contributors.html', context)
-
-
-def executive_summary(request):
-    form = forms.ExecutiveSummaryForm(request.GET)
-    if not form.is_valid():
-        return http.HttpResponseBadRequest(str(form.errors))
-    if form.cleaned_data.get('start'):
-        start_date = form.cleaned_data['start']
-    else:
-        start_date = timezone.now()
-        start_date -= datetime.timedelta(days=start_date.weekday())
-    # start date is now a Monday
-    assert start_date.strftime('%A') == 'Monday'
-
-    def make_date_range_title(start):
-        title = "Week of "
-        last = start + datetime.timedelta(days=6)
-        if start.month == last.month:
-            title += start.strftime('%d ')
-        else:
-            title += start.strftime('%d %B ')
-        title += '- ' + last.strftime('%d %B %Y')
-        return title
-
-    def get_ranges(start):
-        this_week = start.replace(hour=0, minute=0, second=0)
-        next_week = this_week + datetime.timedelta(days=7)
-        yield ("This Week", this_week, next_week)
-        last_week = this_week - datetime.timedelta(days=7)
-        yield ("Last Week", last_week, this_week)
-        # Subtracting 365 days doesn't mean land on a Monday of last
-        # year so we need to trace back to the nearest Monday
-        this_week_ly = this_week - datetime.timedelta(days=365)
-        this_week_ly = (
-            this_week_ly - datetime.timedelta(days=this_week_ly.weekday())
-        )
-        next_week_ly = this_week_ly + datetime.timedelta(days=7)
-        yield ("This Week Last Year", this_week_ly, next_week_ly)
-        first_day = this_week.replace(month=1, day=1)
-        if first_day.year == next_week.year:
-            yield ("Year to Date", first_day, next_week)
-        else:
-            yield ("Year to Date", first_day, this_week)
-        first_day_ny = first_day.replace(year=first_day.year + 1)
-        yield ("%s Total" % first_day.year, first_day, first_day_ny)
-        last_year = first_day.replace(year=first_day.year - 1)
-        yield ("%s Total" % last_year.year, last_year, first_day)
-        last_year2 = last_year.replace(year=last_year.year - 1)
-        yield ("%s Total" % last_year2.year, last_year2, last_year)
-        last_year3 = last_year2.replace(year=last_year2.year - 1)
-        yield ("%s Total" % last_year3.year, last_year3, last_year2)
-
-    ranges = get_ranges(start_date)
-
-    rows = []
-    for label, start, end in ranges:
-        events = Event.objects.all().approved().filter(
-            start_time__gte=start, start_time__lt=end
-        )
-        rows.append((
-            label,
-            (start, end, end - datetime.timedelta(days=1)),
-            events.count(),
-            events.filter(location__name__istartswith='Cyberspace').count(),
-            events.filter(location__isnull=True).count(),
-        ))
-
-    # Now for stats on views, which is done by their archive date
-    week_from_today = timezone.now() - datetime.timedelta(days=7)
-    stats = (
-        EventHitStats.objects
-        .exclude(event__archive_time__isnull=True)
-        .filter(
-            event__archive_time__lt=week_from_today,
-        )
-        .exclude(event__channels__exclude_from_trending=True)
-        .order_by('-score')
-        .extra(select={
-            'score': '(featured::int + 1) * total_hits'
-                     '/ extract(days from (now() - archive_time)) ^ 1.8',
-        })
-        .select_related('event')
-    )
-
-    prev_start = start_date - datetime.timedelta(days=7)
-    now = timezone.now()
-    if (start_date + datetime.timedelta(days=7)) <= now:
-        next_start = start_date + datetime.timedelta(days=7)
-    else:
-        next_start = None
-
-    context = {
-        'date_range_title': make_date_range_title(start_date),
-        'rows': rows,
-        'stats': stats[:10],
-        'prev_start': prev_start,
-        'next_start': next_start,
-    }
-    return render(request, 'main/executive_summary.html', context)
 
 
 @never_cache
@@ -1847,22 +998,6 @@ def event_status(request, slug):
         status = get_object_or_404(Event, slug=slug).status
         cache.set(cache_key, status, 60 * 60)
     return {'status': status}
-
-
-def god_mode(request):
-    if not (settings.DEBUG and settings.GOD_MODE):
-        raise http.Http404()
-
-    if request.method == 'POST':
-        from django.contrib.auth.models import User
-        user = User.objects.get(email__iexact=request.POST['email'])
-        from django.contrib import auth
-        user.backend = 'django.contrib.auth.backends.ModelBackend'
-        auth.login(request, user)
-        return redirect('/')
-
-    context = {}
-    return render(request, 'main/god_mode.html', context)
 
 
 @json_view

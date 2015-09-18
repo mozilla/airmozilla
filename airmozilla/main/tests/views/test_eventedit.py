@@ -22,7 +22,7 @@ class TestEventEdit(DjangoTestCase):
     third_image = 'airmozilla/manage/tests/other_logo_reversed.png'
 
     def _event_to_dict(self, event):
-        from airmozilla.main.views import EventEditView
+        from airmozilla.main.views.edit import EventEditView
         return EventEditView.event_to_dict(event)
 
     def test_link_to_edit(self):
