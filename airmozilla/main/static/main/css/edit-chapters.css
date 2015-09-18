@@ -1,0 +1,44 @@
+.saving,
+.failed,
+.errored,
+table.chapters,
+button.cancel,
+button.delete {
+    display: none;
+}
+
+table.chapters {
+    width: 100%;
+}
+table.chapters th {
+    text-align: left;
+}
+table.chapters .text {
+    max-width: 455px;
+}
+table.chapters td {
+    vertical-align: top;
+    padding: 10px 2px;
+}
+table.chapters tbody tr {
+    border-bottom: 1px solid #333;
+}
+
+button.edit, button.cancel, button.delete {
+    font-size: 80%;
+    padding: 4px 12px;
+}
+
+form input[name="text"] {
+    font-size: 130%;
+    width: 400px;
+}
+form .timestamp {
+    font-size: 150%;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+form .adding {
+    display: none;
+}

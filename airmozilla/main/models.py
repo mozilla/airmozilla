@@ -903,6 +903,7 @@ class Chapter(models.Model):
     text = models.TextField()
 
     user = models.ForeignKey(User)
+    is_active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -910,8 +911,12 @@ class Chapter(models.Model):
         ordering = ('timestamp',)
 
     def __repr__(self):
-        return '<%s: %d %r>' % (
-            self.__class__,
+        return '<%s: %d %r (%s)>' % (
+            self.__class__.__name__,
             self.timestamp,
-            self.text
+            self.text,
+            self.is_active and 'active' or 'inactive!'
         )
+
+    def __unicode__(self):
+        return self.text

@@ -30,6 +30,7 @@ from airmozilla.main.models import (
     CuratedGroup, Picture,
     VidlySubmission,
     EventLiveHits,
+    Chapter,
 )
 from airmozilla.surveys.models import Survey, Question, next_question_order
 from airmozilla.staticpages.models import StaticPage
@@ -1226,6 +1227,49 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('More info' not in response.content)
+
+    def test_chapters_tab(self):
+        event = Event.objects.get(title='Test event')
+        assert not Chapter.objects.filter(event=event)
+        url = reverse('main:event', args=(event.slug,))
+        edit_url = reverse('main:event_edit_chapters', args=(event.slug,))
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Chapters' not in response.content)
+
+        # if the event has chapters, it should show the tab
+        user, = User.objects.all()
+        chapter = Chapter.objects.create(
+            event=event,
+            timestamp=10,
+            text='Hi!',
+            user=user,
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Chapters' in response.content)
+        ok_(edit_url not in response.content)
+        chapter.is_active = False
+        chapter.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Chapters' not in response.content)
+
+        # but if you're signed in, it should show
+        self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # Still not, because the event is live!
+        ok_('Chapters' not in response.content)
+
+        event.archive_time = timezone.now()
+        event.save()
+        assert not event.is_live()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Chapters' in response.content)
+        ok_(edit_url in response.content)
 
     @mock.patch('airmozilla.manage.vidly.urllib2.urlopen')
     def test_event_with_vidly_token_urlerror(self, p_urlopen):

@@ -10,6 +10,7 @@ from airmozilla.main.models import (
     RecruitmentMessage,
     Event,
     Channel,
+    Chapter,
 )
 from airmozilla.comments.models import Discussion
 
@@ -155,3 +156,22 @@ class EventEditTagsForm(BaseModelForm):
     class Meta:
         model = Event
         fields = ['tags', 'event_id']
+
+
+class EventChapterEditForm(BaseModelForm):
+
+    class Meta:
+        model = Chapter
+        fields = ('timestamp', 'text')
+
+    def __init__(self, event, *args, **kwargs):
+        self.event = event
+        super(EventChapterEditForm, self).__init__(*args, **kwargs)
+
+    def clean_timestamp(self):
+        timestamp = self.cleaned_data['timestamp']
+        if timestamp > self.event.duration:
+            raise forms.ValidationError(
+                'Timestamp longer than the video itself'
+            )
+        return timestamp

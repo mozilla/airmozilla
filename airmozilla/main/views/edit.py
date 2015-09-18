@@ -12,8 +12,10 @@ from airmozilla.main.models import (
     EventRevision,
     Tag,
     Channel,
+    Chapter,
 )
-from airmozilla.main.views.pages import EventView
+from airmozilla.main.views.pages import EventView, get_video_tagged
+from airmozilla.main.helpers import js_date
 
 
 class EventEditView(EventView):
@@ -327,3 +329,77 @@ class EventRevisionView(EventView):
         context['revision'] = revision
         context['differences'] = differences
         return render(request, self.template_name, context)
+
+
+class EventEditChaptersView(EventEditView):
+    template_name = 'main/event_edit_chapters.html'
+
+    def get(self, request, slug):
+        event = self.get_event(slug, request)
+        if not self.can_view_event(event, request):
+            return self.cant_view_event(event, request)
+        if not self.can_edit_event(event, request):
+            return self.cant_edit_event(event, request)
+
+        if request.GET.get('all'):
+            qs = Chapter.objects.filter(
+                event=event,
+                is_active=True
+            )
+            chapters = []
+            for chapter in qs.select_related('user'):
+                chapters.append({
+                    'timestamp': chapter.timestamp,
+                    'text': chapter.text,
+                    'user': {
+                        'email': chapter.user.email,
+                        'first_name': chapter.user.first_name,
+                        'last_name': chapter.user.last_name,
+                    },
+                    'js_date_tag': js_date(chapter.modified),
+                })
+            return http.JsonResponse({'chapters': chapters})
+
+        video = get_video_tagged(event, request)
+        context = {
+            'event': event,
+            'video': video,
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, slug):
+        event = self.get_event(slug, request)
+        if not self.can_view_event(event, request):
+            return self.cant_view_event(event, request)
+        if not self.can_edit_event(event, request):
+            return self.cant_edit_event(event, request)
+
+        if request.POST.get('delete'):
+            chapter = get_object_or_404(
+                Chapter,
+                event=event,
+                timestamp=request.POST['timestamp']
+            )
+            chapter.is_active = False
+            chapter.save()
+            return http.JsonResponse({'ok': True})
+
+        form = forms.EventChapterEditForm(event, request.POST)
+        if form.is_valid():
+            try:
+                chapter = Chapter.objects.get(
+                    event=event,
+                    timestamp=form.cleaned_data['timestamp']
+                )
+                chapter.user = request.user
+                chapter.text = form.cleaned_data['text']
+                chapter.save()
+            except Chapter.DoesNotExist:
+                chapter = Chapter.objects.create(
+                    event=event,
+                    timestamp=form.cleaned_data['timestamp'],
+                    text=form.cleaned_data['text'],
+                    user=request.user,
+                )
+            return http.JsonResponse({'ok': True})
+        return http.JsonResponse({'errors': form.errors})

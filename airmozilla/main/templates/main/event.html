@@ -168,11 +168,12 @@
           </div>
         </div>
 
-      {% if chapters %}
+      {% if chapters or can_edit_chapters %}
         <div class="tab">
           <input type="radio" id="tab-chapters" name="tab-group-1">
           <label for="tab-chapters">Chapters</label>
           <div class="content chapters extra-long">
+            {% if chapters %}
             <ul>
               {% for chapter in chapters %}
               <li>
@@ -183,6 +184,12 @@
               </li>
               {% endfor %}
             </ul>
+            {% endif %}
+            {% if can_edit_chapters %}
+            <p>
+              <a href="{{ url('main:event_edit_chapters', event.slug) }}">Edit chapters &raquo;</a>
+            </p>
+            {% endif %}
           </div>
         </div>
       {% endif %}
@@ -312,6 +319,12 @@
                 <a href="{{ url('main:event_edit', event.slug) }}"
                    title="Click to edit any of the meta data about this event">Edit event data &raquo;</a>
               </p>
+              {% if can_edit_chapters %}
+              <p>
+                <a href="{{ url('main:event_edit_chapters', event.slug) }}">Edit chapters &raquo;</a>
+              </p>
+              {% endif %}
+
               {% if can_edit_discussion %}
               <p>
                 <a href="{{ url('main:event_discussion', event.slug) }}"
