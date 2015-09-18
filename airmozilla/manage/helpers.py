@@ -62,6 +62,9 @@ def clashes_with_event(url):
 
 @register.function
 def full_tweet_url(tweet_id):
+    if not getattr(settings, 'TWITTER_USERNAME', None):  # pragma: no cover
+        # if it's not configured, there can't be a full URL
+        return
     return (
         'https://twitter.com/%s/status/%s'
         % (
