@@ -235,7 +235,7 @@ def is_contributor(user):
         is_ = False
         if profile and profile.contributor:
             is_ = True
-        cache.set(cache_key, is_, 60 * 60)
+        cache.set(cache_key, is_, 60 * 60 * 10)
     return is_
 
 
@@ -250,7 +250,7 @@ def is_employee(user):
             if user.email.endswith('@%s' % bid):
                 is_ = True
                 break
-        cache.set(cache_key, is_, 60 * 60)
+        cache.set(cache_key, is_, 60 * 60 * 10)
     return is_
 
 
