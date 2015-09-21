@@ -347,48 +347,38 @@ class EventView(View):
 
         hits = None
 
+        # assume this to false to start with
+        can_edit_chapters = False
+
         template_tagged = ''
         if event.template and not event.is_upcoming():
             # The only acceptable way to make autoplay be on
             # is to send ?autoplay=true
             # All other attempts will switch it off.
             autoplay = request.GET.get('autoplay', 'false') == 'true'
-            context = {
-                'md5': lambda s: hashlib.md5(s).hexdigest(),
-                'event': event,
-                'request': request,
-                'datetime': datetime.datetime.utcnow(),
-                'vidly_tokenize': vidly.tokenize,
-                'edgecast_tokenize': edgecast_tokenize,
-                'akamai_tokenize': akamai_tokenize,
-                'popcorn_url': event.popcorn_url,
-                'autoplay': autoplay and 'true' or 'false',  # javascript
-            }
-            if isinstance(event.template_environment, dict):
-                context.update(event.template_environment)
-            if tag:
-
-                submissions = VidlySubmission.objects.filter(
-                    tag=tag,
-                    event=event
-                )
-                if not submissions.exists():
-                    return http.HttpResponseBadRequest(
-                        'Tag %s does not exist for this event' % (tag,)
-                    )
-                context['tag'] = tag
-            template = Template(event.template.content)
             try:
-                template_tagged = template.render(context)
-            except vidly.VidlyTokenizeError, msg:
-                template_tagged = '<code style="color:red">%s</code>' % msg
-
+                template_tagged = get_video_tagged(
+                    event,
+                    request,
+                    autoplay=autoplay,
+                    tag=tag,
+                )
+            except VidlySubmission.DoesNotExist:
+                return http.HttpResponseBadRequest(
+                    'Tag %s does not exist for this event' % (tag,)
+                )
             stats_query = (
                 EventHitStats.objects.filter(event=event)
                 .values_list('total_hits', flat=True)
             )
             for total_hits in stats_query:
                 hits = total_hits
+
+            # if the event has a template is not upcoming
+            if not event.is_live():
+                # ...and is not live, then
+                if request.user.is_active:
+                    can_edit_chapters = True
 
         can_manage_edit_event = (
             request.user.is_active and
@@ -420,6 +410,7 @@ class EventView(View):
             'can_manage_edit_event': can_manage_edit_event,
             'can_edit_event': can_edit_event,
             'can_edit_discussion': can_edit_discussion,
+            'can_edit_chapters': can_edit_chapters,
             'Event': Event,
             'hits': hits,
             'tags': [t.name for t in event.tags.all()],
@@ -429,7 +420,7 @@ class EventView(View):
         })
 
         context['chapters'] = []
-        for chapter in Chapter.objects.filter(event=event):
+        for chapter in Chapter.objects.filter(event=event, is_active=True):
             context['chapters'].append({
                 'timestamp': chapter.timestamp,
                 'text': chapter.text,
@@ -521,6 +512,37 @@ class EventView(View):
             'pin_form': pin_form,
         }
         return render(request, 'main/event_requires_pin.html', context)
+
+
+def get_video_tagged(event, request, autoplay=False, tag=None):
+    context = {
+        'md5': lambda s: hashlib.md5(s).hexdigest(),
+        'event': event,
+        'request': request,
+        'datetime': datetime.datetime.utcnow(),
+        'vidly_tokenize': vidly.tokenize,
+        'edgecast_tokenize': edgecast_tokenize,
+        'akamai_tokenize': akamai_tokenize,
+        'popcorn_url': event.popcorn_url,
+        'autoplay': autoplay and 'true' or 'false',  # javascript
+    }
+    if isinstance(event.template_environment, dict):
+        context.update(event.template_environment)
+    if tag:
+        submissions = VidlySubmission.objects.filter(
+            tag=tag,
+            event=event
+        )
+        if not submissions.exists():
+            raise VidlySubmission.DoesNotExist(tag)
+        context['tag'] = tag
+    template = Template(event.template.content)
+    try:
+        template_tagged = template.render(context)
+    except vidly.VidlyTokenizeError, msg:
+        template_tagged = '<code style="color:red">%s</code>' % msg
+
+    return template_tagged
 
 
 class EventVideoView(EventView):

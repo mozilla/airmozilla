@@ -17,7 +17,12 @@
     <tbody>
     {% for chapter in chapters %}
     <tr>
-        <td>{{ show_duration_compact(chapter.timestamp) }}</td>
+        <td>
+          {{ show_duration_compact(chapter.timestamp) }}
+          {% if not chapter.is_active %}
+            <span class="label label-default" title="Inactive location">Inactive</span>
+          {% endif %}
+        </td>
         <td>{{ chapter.text }}</td>
         <td>
           <a class="btn btn-default btn-sm" href="{{ url('manage:event_chapter_edit', event.id, chapter.id) }}">
