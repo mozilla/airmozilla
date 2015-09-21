@@ -3,6 +3,7 @@ import json
 from django import http
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
+from django.utils.cache import add_never_cache_headers
 
 from jsonview.decorators import json_view
 from sorl.thumbnail import get_thumbnail
@@ -358,7 +359,9 @@ class EventEditChaptersView(EventEditView):
                     },
                     'js_date_tag': js_date(chapter.modified),
                 })
-            return http.JsonResponse({'chapters': chapters})
+            response = http.JsonResponse({'chapters': chapters})
+            add_never_cache_headers(response)
+            return response
 
         video = get_video_tagged(event, request)
         context = {
