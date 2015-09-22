@@ -64,6 +64,8 @@ class TestRelatedContent(ManageTestCase):
             'event': 'notfound',
             'boost_title': settings.RELATED_CONTENT_BOOST_TITLE,
             'boost_tags': settings.RELATED_CONTENT_BOOST_TAGS,
+            'use_title': True,
+            'use_tags': True,
         })
         eq_(response.status_code, 200)
         ok_('<h4>Matches</h4>' not in response.content)
@@ -72,6 +74,8 @@ class TestRelatedContent(ManageTestCase):
             'event': 'notfound',
             'boost_title': settings.RELATED_CONTENT_BOOST_TITLE,
             'boost_tags': settings.RELATED_CONTENT_BOOST_TAGS,
+            'use_title': True,
+            'use_tags': True,
         })
         eq_(response.status_code, 200)
         ok_('<h4>Matches</h4>' not in response.content)
@@ -104,7 +108,20 @@ class TestRelatedContent(ManageTestCase):
             'boost_title': settings.RELATED_CONTENT_BOOST_TITLE,
             'boost_tags': settings.RELATED_CONTENT_BOOST_TAGS,
             'size': settings.RELATED_CONTENT_SIZE,
+            'use_title': True,
+            'use_tags': True,
         })
         eq_(response.status_code, 200)
         ok_('<h4>Matches</h4>' in response.content)
         ok_('Peterbe' in response.content)
+
+        response = self.client.get(url, {
+            'event': event.title.upper(),
+            'boost_title': settings.RELATED_CONTENT_BOOST_TITLE,
+            'boost_tags': settings.RELATED_CONTENT_BOOST_TAGS,
+            'size': settings.RELATED_CONTENT_SIZE,
+            'use_title': False,
+            'use_tags': False,
+        })
+        eq_(response.status_code, 200)
+        ok_('<h4>Matches</h4>' not in response.content)

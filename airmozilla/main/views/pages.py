@@ -685,7 +685,7 @@ def all_tags(request):
 def related_content(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
-    events, __ = find_related_events(event, request.user)
+    events, __, __ = find_related_events(event, request.user)
 
     curated_groups_map = collections.defaultdict(list)
 
@@ -701,8 +701,10 @@ def related_content(request, slug):
 
 
 def find_related_events(
-    event, user, boost_title=None, boost_tags=None, size=None
+    event, user, boost_title=None, boost_tags=None, size=None,
+    use_title=True, use_tags=True, explain=False
 ):
+    assert use_title or use_tags
     if boost_title is None:
         boost_title = settings.RELATED_CONTENT_BOOST_TITLE
     if boost_tags is None:
@@ -719,22 +721,24 @@ def find_related_events(
             Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)]:
         fields.append('channel')
 
-    mlt_queries = [{
-        'more_like_this': {
-            'fields': ['title'],
-            'docs': [
-                {
-                    '_index': index,
-                    '_type': doc_type,
-                    '_id': event.id
-                }],
-            'min_term_freq': 1,
-            'max_query_terms': 20,
-            'min_doc_freq': 1,
-            'boost': boost_title,
-        }
-    }]
-    if event.tags.all().exists():
+    mlt_queries = []
+    if use_title:
+        mlt_queries.append({
+            'more_like_this': {
+                'fields': ['title'],
+                'docs': [
+                    {
+                        '_index': index,
+                        '_type': doc_type,
+                        '_id': event.id
+                    }],
+                'min_term_freq': 1,
+                'max_query_terms': 20,
+                'min_doc_freq': 1,
+                'boost': boost_title,
+            }
+        })
+    if use_tags and event.tags.all().exists():
         fields.append('tags')
         mlt_queries.append({
             'more_like_this': {
@@ -794,12 +798,17 @@ def find_related_events(
     ids = []
     query['from'] = 0
     query['size'] = size
+    query['explain'] = explain
     hits = es.search(query, index=index)['hits']
+
     scores = {}
+    explanations = []
     for doc in hits['hits']:
         _id = int(doc['_id'])
         scores[_id] = doc['_score']
         ids.append(_id)
+        if explain:
+            explanations.append(doc['_explanation'])
 
     events = Event.objects.scheduled_or_processing().filter(id__in=ids)
 
@@ -811,7 +820,7 @@ def find_related_events(
 
     events = sorted(events, key=lambda e: ids.index(e.id))
 
-    return (events, scores)
+    return (events, scores, explanations)
 
 
 def channels(request):
