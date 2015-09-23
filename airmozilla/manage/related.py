@@ -88,6 +88,7 @@ def create(es=None):
                         },
                         'title': {
                             'type': 'string',
+                            'analyzer': 'snowball',
                             # supposedly faster for querying
                             # but uses more disk space
                             'term_vector': 'yes',
