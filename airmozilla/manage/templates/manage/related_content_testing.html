@@ -15,7 +15,16 @@
   input[type="number"] {
       width: 100px;
   }
+  pre.explanation { display: none; }
   </style>
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+  {% compress js %}
+  <script src="{{ static('manage/js/related-content-testing.js') }}"></script>
+  {% endcompress %}
 {% endblock %}
 
 
@@ -63,7 +72,13 @@
     </tr>
     {% for event in matches %}
     <tr>
-      <th>Match {{ loop.index }}</th>
+      <th>
+        Match {{ loop.index }}
+        <a href="#" class="expander" data-index="{{ loop.index }}">
+          <i class="glyphicon glyphicon-expand"></i>
+          <i class="glyphicon glyphicon-unchecked" style="display:none"></i>
+        </a>
+      </th>
       <td><a href="{{ url('manage:event_edit', event.id) }}">{{ highlight_stopwords(event.title) }}</a></td>
       <td>{{ scores.get(event.id) }}</td>
       <td>
@@ -80,6 +95,11 @@
     {% endfor %}
   </tbody>
 </table>
+
+{% for explanation in explanations %}
+<pre class="explanation explanation-{{ loop.index }}">{{ json_print(explanation, 2) }}</pre>
+{% endfor %}
+
 {% endif %}
 
 {% endblock %}

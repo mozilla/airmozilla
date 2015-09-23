@@ -1048,7 +1048,9 @@ class RelatedContentTestingForm(BaseForm):
     event = forms.CharField(
         help_text="Title, slug or ID"
     )
+    use_title = forms.BooleanField(required=False)
     boost_title = forms.FloatField()
+    use_tags = forms.BooleanField(required=False)
     boost_tags = forms.FloatField()
     size = forms.IntegerField()
 
@@ -1071,3 +1073,12 @@ class RelatedContentTestingForm(BaseForm):
                     raise forms.ValidationError(
                         'Event title ambiguous. Use slug or ID.'
                     )
+
+    def clean(self):
+        cleaned_data = super(RelatedContentTestingForm, self).clean()
+        if 'use_title' in cleaned_data and 'use_tags' in cleaned_data:
+            if not (cleaned_data['use_title'] or cleaned_data['use_tags']):
+                raise forms.ValidationError(
+                    'One of Use title OR Use tags must be chosen'
+                )
+        return cleaned_data
