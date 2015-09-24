@@ -182,3 +182,31 @@ def highlight_stopwords(text, class_='stopword', not_class='not-stopword'):
             jinja2.escape(word)
         ))
     return jinja2.Markup(' '.join(words))
+
+
+@register.function
+def highlight_matches(text, base, class_='match', stopword_class='stopword'):
+
+    def clean_word(s):
+        for char in '"\'():|[]{}':
+            s = s.replace(char, '')
+        return s
+
+    base_tokens = [clean_word(x) for x in base.lower().split()]
+    words = []
+    tokens = text.split()
+    for word in tokens:
+        if clean_word(word.lower()) in base_tokens:
+            css_class = class_
+        elif clean_word(word.lower()) in STOPWORDS or word in '-?':
+            css_class = stopword_class
+        else:
+            css_class = ''
+        if css_class:
+            words.append('<span class="%s">%s</span>' % (
+                css_class,
+                jinja2.escape(word)
+            ))
+        else:
+            words.append(jinja2.escape(word))
+    return jinja2.Markup(' '.join(words))

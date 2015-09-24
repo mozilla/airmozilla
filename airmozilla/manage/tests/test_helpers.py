@@ -13,6 +13,7 @@ from airmozilla.manage.helpers import (
     format_message,
     formatduration,
     highlight_stopwords,
+    highlight_matches,
 )
 
 
@@ -97,3 +98,16 @@ class MiscTests(TestCase):
         ok_(isinstance(result, jinja2.Markup))
         ok_('<span class="stopword">This</span>' in result)
         ok_('<span class="not-stopword">break</span>' in result)
+
+    def test_highlight_matches(self):
+        result = highlight_matches(
+            'This: is the - "break" po&int',
+            'this not break or pointing'
+        )
+        ok_(isinstance(result, jinja2.Markup))
+        ok_('<span class="match">This:</span>' in result)
+        ok_('<span class="stopword">is</span>' in result)
+        ok_('<span class="stopword">the</span>' in result)
+        ok_('<span class="match">&#34;break&#34;</span>' in result)
+        ok_('po&int' not in result)
+        ok_('po&amp;int' in result)

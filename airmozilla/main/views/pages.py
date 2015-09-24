@@ -726,6 +726,7 @@ def find_related_events(
         mlt_queries.append({
             'more_like_this': {
                 'fields': ['title'],
+                # 'analyzer': 'snowball',
                 'docs': [
                     {
                         '_index': index,
@@ -735,6 +736,8 @@ def find_related_events(
                 'min_term_freq': 1,
                 'max_query_terms': 20,
                 'min_doc_freq': 1,
+                # 'max_doc_freq': 2,
+                # 'stop_words': ['your', 'about'],
                 'boost': boost_title,
             }
         })

@@ -9,6 +9,7 @@
   {{ super() }}
   <style type="text/css">
   span.stopword { color: #ccc; }
+  span.match { color: #feabab; }
   #id_event {
       width: 500px;
   }
@@ -70,6 +71,7 @@
         {% endfor %}
       </td>
     </tr>
+    {% set base_event = event %}
     {% for event in matches %}
     <tr>
       <th>
@@ -79,7 +81,7 @@
           <i class="glyphicon glyphicon-unchecked" style="display:none"></i>
         </a>
       </th>
-      <td><a href="{{ url('manage:event_edit', event.id) }}">{{ highlight_stopwords(event.title) }}</a></td>
+      <td><a href="{{ url('manage:event_edit', event.id) }}">{{ highlight_matches(event.title, base_event.title) }}</a></td>
       <td>{{ scores.get(event.id) }}</td>
       <td>
         {% for tag in event.tags.all() %}
