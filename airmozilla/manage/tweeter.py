@@ -181,9 +181,8 @@ def tweet_new_published_events(verbose=False):
     """Create EventTweet instances for events that have recently been
     published and are ready for public consumption."""
     now = timezone.now()
-    yesterday = now - datetime.timedelta(hours=24)
     events = Event.objects.scheduled().filter(
-        created__gt=yesterday,
+        created__gt=now - datetime.timedelta(days=7),
         created__lt=now,
         privacy=Event.PRIVACY_PUBLIC,
     ).approved().exclude(
@@ -237,10 +236,15 @@ def tweet_new_published_events(verbose=False):
                 break
         text = text.strip()
 
+        if event.start_time > timezone.now():
+            send_date = event.start_time - datetime.timedelta(minutes=30)
+        else:
+            send_date = timezone.now()  # send as soon as possible
         event_tweet = EventTweet.objects.create(
             event=event,
             text=text,
             include_placeholder=True,
+            send_date=send_date,
         )
         if verbose:  # pragma: no cover
             print "Created", repr(event_tweet)

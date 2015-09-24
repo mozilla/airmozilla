@@ -411,3 +411,34 @@ class TweeterTestCase(DjangoTestCase):
 
         tweet_new_published_events()
         ok_(not EventTweet.objects.all())
+
+    @mock.patch('requests.get')
+    def test_tweet_new_published_future_event(self, rget):
+
+        def mocked_read(url, params):
+            return Response({
+                u'status_code': 200,
+                u'data': {
+                    u'url': u'http://mzl.la/1adh2wT',
+                    u'hash': u'1adh2wT',
+                    u'global_hash': u'1adh2wU',
+                    u'long_url': u'https://air.mozilla.org/it-buildout/',
+                    u'new_hash': 0
+                },
+                u'status_txt': u'OK'
+            })
+
+        rget.side_effect = mocked_read
+
+        future = timezone.now() + datetime.timedelta(days=1)
+        event = Event.objects.get(title='Test event')
+        event.title = 'A Much Longer Test Title'
+        event.created = timezone.now() - datetime.timedelta(days=1)
+        event.start_time = future
+        event.save()
+
+        tweet_new_published_events()
+        tweet, = EventTweet.objects.all()
+        ok_(event.title in tweet.text)
+        ok_('http://mzl.la/1adh2wT' in tweet.text)
+        eq_(tweet.send_date + datetime.timedelta(minutes=30), future)
