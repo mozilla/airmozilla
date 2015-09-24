@@ -1,5 +1,6 @@
-import pyelasticsearch
 import datetime
+
+import pyelasticsearch
 
 from django.conf import settings
 from django.utils import timezone
@@ -7,7 +8,8 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 
 from airmozilla.main.models import Event
-from pyelasticsearch import bulk_chunks
+from airmozilla.manage.views.utils import STOPWORDS
+
 
 doc_type = 'event'
 
@@ -53,13 +55,14 @@ def index(all=False, flush_first=False, since=datetime.timedelta(minutes=10)):
             .filter(modified__gte=now-since)
         )
 
-    # bulk_chunks() breaks our documents into smaller requests for speed:
+    # bulk_chunks() breaks our documents into smaller requests for speed
     index = get_index()
-    for chunk in bulk_chunks(documents(events, es),
-                             docs_per_chunk=500,
-                             bytes_per_chunk=10000):
-
-        es.bulk(chunk, doc_type='event', index=index)
+    for chunk in pyelasticsearch.bulk_chunks(
+        documents(events, es),
+        docs_per_chunk=500,
+        bytes_per_chunk=10000
+    ):
+        es.bulk(chunk, doc_type=doc_type, index=index)
 
     es.refresh(index)
 
@@ -79,6 +82,16 @@ def create(es=None):
     index = get_index()
     try:
         es.create_index(index, settings={
+            'settings': {
+                'analysis': {
+                    'analyzer': {
+                        'extended_snowball_analyzer': {
+                            'type': 'snowball',
+                            'stopwords': STOPWORDS,
+                        },
+                    },
+                },
+            },
             'mappings': {
                 doc_type: {
                     'properties': {
@@ -88,7 +101,7 @@ def create(es=None):
                         },
                         'title': {
                             'type': 'string',
-                            'analyzer': 'snowball',
+                            'analyzer': 'extended_snowball_analyzer',
                             # supposedly faster for querying
                             # but uses more disk space
                             'term_vector': 'yes',
