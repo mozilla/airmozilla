@@ -945,31 +945,6 @@ def permission_denied(request, slug):
     return render(request, 'main/permission_denied.html', context)
 
 
-@json_view
-def videoredirector(request):  # pragma: no cover
-    """this is part of an experiment to try out JW Player on something
-    beyong peterbe's laptop."""
-
-    tag = request.GET['tag']
-    user_agent = request.META.get('HTTP_USER_AGENT')
-
-    import requests
-    response = requests.head(
-        'https://vid.ly/%s?content=video' % tag,
-        headers={'User-Agent': user_agent}
-    )
-    assert response.status_code == 302
-    url = response.headers['location']
-
-    response = requests.head(
-        'https://vid.ly/%s?content=video&format=mp4' % tag
-    )
-    assert response.status_code == 302
-    fallback = response.headers['location']
-    urls = [url, fallback]
-    return {'urls': urls, 'user_agent': user_agent}
-
-
 def contributors(request):
     context = {}
     cache_key = 'mozillians_contributors'

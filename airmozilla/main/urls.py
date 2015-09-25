@@ -55,7 +55,6 @@ urlpatterns = patterns(
         cache_page(60 * 60)(feeds.EventsFeed()),
         name='channel_feed_format_type'),
     url(r'^tagcloud/$', pages.tag_cloud, name='tag_cloud'),
-    url(r'^videoredirector/$', pages.videoredirector, name='videoredirector'),
     url(r'^livehits/(?P<id>\d+)/$',
         pages.event_livehits, name='event_livehits'),
     url(r'^unpicked-pictures/$', reports.unpicked_pictures,
