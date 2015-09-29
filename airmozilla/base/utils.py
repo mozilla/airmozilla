@@ -18,6 +18,8 @@ from django.contrib.sites.models import RequestSite, Site
 from django.core.mail.backends.filebased import EmailBackend
 from django.forms.utils import ErrorList
 
+from funfactory.helpers import static
+
 from airmozilla.base.akamai_token_v2 import AkamaiToken
 
 
@@ -227,6 +229,22 @@ class _DotDict(dict):
 
 def dot_dict(d):
     return _DotDict(d)
+
+
+def get_abs_static(path, request):
+    path = static(path)
+    prefix = request.is_secure() and 'https' or 'http'
+
+    if path.startswith('/') and not path.startswith('//'):
+        # e.g. '/media/foo.png'
+        root_url = get_base_url(request)
+        path = root_url + path
+
+    if path.startswith('//'):
+        path = '%s:%s' % (prefix, path)
+
+    assert path.startswith('http://') or path.startswith('https://')
+    return path
 
 
 def get_base_url(request):

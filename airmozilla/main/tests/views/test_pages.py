@@ -4,19 +4,22 @@ import json
 import urllib2
 import urllib
 import copy
-
 import os
 import re
+
+from nose.tools import eq_, ok_
+import mock
+import pyquery
+
 from django.contrib.auth.models import Group, User, AnonymousUser
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files import File
+
 from funfactory.urlresolvers import reverse
-from nose.tools import eq_, ok_
-import mock
-import pyquery
+
 from airmozilla.main.models import (
     Approval,
     Event,
@@ -27,7 +30,8 @@ from airmozilla.main.models import (
     Location,
     Template,
     EventHitStats,
-    CuratedGroup, Picture,
+    CuratedGroup,
+    Picture,
     VidlySubmission,
     EventLiveHits,
     Chapter,
@@ -922,251 +926,6 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url, {'tag': 'TaG1'})
         ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
-
-    def test_feed(self):
-        delay = datetime.timedelta(days=1)
-
-        event1 = Event.objects.get(title='Test event')
-        event1.status = Event.STATUS_SCHEDULED
-        event1.start_time -= delay
-        event1.archive_time = event1.start_time
-        event1.save()
-        eq_(Event.objects.archived().approved().count(), 1)
-        eq_(Event.objects.archived().count(), 1)
-
-        event = Event.objects.create(
-            title='Second test event',
-            description='Anything',
-            start_time=event1.start_time,
-            archive_time=event1.archive_time,
-            privacy=Event.PRIVACY_COMPANY,  # Note!
-            status=event1.status,
-            placeholder_img=event1.placeholder_img,
-        )
-        event.channels.add(self.main_channel)
-
-        eq_(Event.objects.archived().approved().count(), 2)
-        eq_(Event.objects.archived().count(), 2)
-
-        url = reverse('main:feed', args=('public',))
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-        ok_('Second test event' not in response.content)
-
-        url = reverse('main:feed')  # public feed
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-        ok_('Second test event' not in response.content)
-
-        url = reverse('main:feed', args=('company',))
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-        ok_('Second test event' in response.content)
-
-    def test_feed_unapproved_events(self):
-        event = Event.objects.get(title='Test event')
-        assert event.is_public()
-        assert event in Event.objects.live()
-        assert event in Event.objects.live().approved()
-
-        public_url = reverse('main:feed', args=('public',))
-        private_url = reverse('main:feed', args=('private',))
-
-        response = self.client.get(public_url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-        response = self.client.get(public_url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-
-        cache.clear()
-
-        app = Approval.objects.create(event=event)
-        response = self.client.get(public_url)
-        eq_(response.status_code, 200)
-        ok_('Test event' not in response.content)
-        response = self.client.get(private_url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-
-        app.processed = True
-        app.save()
-        response = self.client.get(public_url)
-        eq_(response.status_code, 200)
-        ok_('Test event' not in response.content)
-        response = self.client.get(private_url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-
-        cache.clear()
-
-        app.approved = True
-        app.save()
-        response = self.client.get(public_url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-        response = self.client.get(private_url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-
-    def test_feed_with_webm_format(self):
-        delay = datetime.timedelta(days=1)
-
-        event1 = Event.objects.get(title='Test event')
-        event1.status = Event.STATUS_SCHEDULED
-        event1.start_time -= delay
-        event1.archive_time = event1.start_time
-        vidly_template = Template.objects.create(
-            name='Vid.ly Something',
-            content='<script>'
-        )
-        event1.template = vidly_template
-        event1.template_environment = {'tag': 'abc123'}
-        event1.save()
-        eq_(Event.objects.approved().count(), 1)
-        eq_(Event.objects.archived().count(), 1)
-
-        url = reverse('main:feed_format_type', args=('public', 'webm'))
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        ok_(
-            '<link>https://vid.ly/abc123?content=video&amp;format=webm</link>'
-            in response.content
-        )
-
-    def test_feed_cache(self):
-        delay = datetime.timedelta(days=1)
-
-        event = Event.objects.get(title='Test event')
-        event.start_time -= delay
-        event.archive_time = event.start_time
-        event.save()
-
-        url = reverse('main:feed')
-        eq_(Event.objects.archived().approved().count(), 1)
-        eq_(Event.objects.archived().count(), 1)
-        response = self.client.get(url)
-        ok_('Test event' in response.content)
-
-        event.title = 'Totally different'
-        event.save()
-
-        response = self.client.get(url)
-        ok_('Test event' in response.content)
-        ok_('Totally different' not in response.content)
-
-    def test_private_feeds_by_channel(self):
-        channel = Channel.objects.create(
-            name='Culture and Context',
-            slug='culture-and-context',
-        )
-        delay = datetime.timedelta(days=1)
-
-        event1 = Event.objects.get(title='Test event')
-        event1.status = Event.STATUS_SCHEDULED
-        event1.start_time -= delay
-        event1.archive_time = event1.start_time
-        event1.save()
-        event1.channels.clear()
-        event1.channels.add(channel)
-
-        eq_(Event.objects.archived().approved().count(), 1)
-        eq_(Event.objects.archived().count(), 1)
-
-        event = Event.objects.create(
-            title='Second test event',
-            description='Anything',
-            start_time=event1.start_time,
-            archive_time=event1.archive_time,
-            privacy=Event.PRIVACY_COMPANY,  # Note!
-            status=event1.status,
-            placeholder_img=event1.placeholder_img,
-        )
-        event.channels.add(channel)
-
-        eq_(Event.objects.archived().approved().count(), 2)
-        eq_(Event.objects.archived().count(), 2)
-        eq_(Event.objects.filter(channels=channel).count(), 2)
-
-        url = reverse(
-            'main:channel_feed',
-            args=('culture-and-context', 'public')
-        )
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-        ok_('Second test event' not in response.content)
-
-        # public feed
-        url = reverse(
-            'main:channel_feed_default',
-            args=('culture-and-context',)
-        )
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-        ok_('Second test event' not in response.content)
-
-        url = reverse(
-            'main:channel_feed',
-            args=('culture-and-context', 'company')
-        )
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        ok_('Test event' in response.content)
-        ok_('Second test event' in response.content)
-
-    def test_feeds_by_channel_with_webm_format(self):
-        channel = Channel.objects.create(
-            name='Culture and Context',
-            slug='culture-and-context',
-        )
-        delay = datetime.timedelta(days=1)
-
-        event1 = Event.objects.get(title='Test event')
-        event1.status = Event.STATUS_SCHEDULED
-        event1.start_time -= delay
-        event1.archive_time = event1.start_time
-        vidly_template = Template.objects.create(
-            name='Vid.ly Something',
-            content='<script>'
-        )
-        event1.template = vidly_template
-        event1.template_environment = {'tag': 'abc123'}
-        event1.save()
-        event1.channels.clear()
-        event1.channels.add(channel)
-
-        event = Event.objects.create(
-            title='Second test event',
-            description='Anything',
-            start_time=event1.start_time,
-            archive_time=event1.archive_time,
-            privacy=Event.PRIVACY_PUBLIC,
-            status=event1.status,
-            placeholder_img=event1.placeholder_img,
-        )
-
-        event.channels.add(channel)
-
-        eq_(Event.objects.approved().count(), 2)
-        eq_(Event.objects.archived().count(), 2)
-        eq_(Event.objects.filter(channels=channel).count(), 2)
-
-        url = reverse(
-            'main:channel_feed_format_type',
-            args=('culture-and-context', 'public', 'webm')
-        )
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-        assert 'Second test event' in response.content
-        ok_(
-            '<link>https://vid.ly/abc123?content=video&amp;format=webm</link>'
-            in response.content
-        )
 
     def test_rendering_additional_links(self):
         event = Event.objects.get(title='Test event')

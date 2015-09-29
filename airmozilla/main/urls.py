@@ -34,6 +34,10 @@ urlpatterns = patterns(
     url(r'^calendars/$', calendar.calendars, name='calendars'),
     url(r'^calendar/(company|contributors|public).ics$',
         calendar.events_calendar_ical, name='calendar_ical'),
+    url(r'^feed/itunes/$',
+        # cache_page(60 * 60)(feeds.ITunesFeed()),
+        feeds.ITunesFeed(),
+        name='itunes_feed'),
     url(r'^feed/(?P<private_or_public>'
         'company|public|private|contributors)?/?$',
         cache_page(60 * 60)(feeds.EventsFeed()),
