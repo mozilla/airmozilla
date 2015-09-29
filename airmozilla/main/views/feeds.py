@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.conf import settings
 from django.contrib.syndication.views import Feed
 from django.utils.feedgenerator import Rss201rev2Feed
@@ -6,7 +8,7 @@ from django.utils import timezone
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Event, Channel
+from airmozilla.main.models import Event, Channel, Tag
 from airmozilla.base.utils import get_base_url, get_abs_static
 from airmozilla.main.helpers import short_desc
 
@@ -203,6 +205,26 @@ class ITunesFeed(EventsFeed):
             .order_by('-start_time')
         )[:settings.FEED_SIZE]
 
+        all_tag_ids = set()
+        self.all_tags = defaultdict(list)
+        for x in Event.tags.through.objects.filter(event__in=qs):
+            self.all_tags[x.event_id].append(x.tag_id)
+            all_tag_ids.add(x.tag_id)
+        # now `all_tags` is a dict like this:
+        #  123: [45, 67]
+        # where '123' is an event ID, and 45 and 67 are tag IDs
+        # Convert it to something like this:
+        #  123: ['tag1', 'tagX']
+        tags_qs = (
+            Tag.objects
+            .filter(id__in=all_tag_ids)
+            .values_list('id', 'name')
+        )
+        all_tag_names = dict(x for x in tags_qs)
+        for event_id, tag_ids in self.all_tags.items():
+            self.all_tags[event_id] = [
+                all_tag_names[x] for x in tag_ids
+            ]
         return qs
 
     def feed_extra_kwargs(self, obj):
@@ -239,7 +261,5 @@ class ITunesFeed(EventsFeed):
             'subtitle': short_desc(event),
             'summary': event.description,
             'duration': event.duration,
-            # This might be inefficient since we need to do a "python join"
-            # for every event.
-            'tags': event.tags.all().values_list('name', flat=True)
+            'tags': self.all_tags.get(event.id, []),
         }

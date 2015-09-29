@@ -13,6 +13,7 @@ from airmozilla.main.models import (
     Event,
     Channel,
     Template,
+    Tag,
 )
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -305,6 +306,8 @@ class TestFeeds(DjangoTestCase):
         event.save()
         event.template.name = 'Vid.ly something'
         event.template.save()
+        event.tags.add(Tag.objects.create(name='Tag1'))
+        event.tags.add(Tag.objects.create(name='Tag2'))
         assert event in Event.objects.archived().approved().filter(
             privacy=Event.PRIVACY_PUBLIC,
             template__name__icontains='Vid.ly',
@@ -321,3 +324,4 @@ class TestFeeds(DjangoTestCase):
             event.description.replace('<', '&lt;').replace('>', '&gt;') in xml_
         )
         ok_('<itunes:duration>01:01:01</itunes:duration>' in xml_)
+        ok_('<itunes:keywords>Tag1, Tag2</itunes:keywords>' in xml_)
