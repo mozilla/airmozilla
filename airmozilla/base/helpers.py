@@ -1,10 +1,9 @@
 import jinja2
 from jingo import register
 
-from django.contrib.sites.models import RequestSite
 from django.utils.http import urlquote
 
-from funfactory.helpers import static
+from airmozilla.base.utils import get_abs_static
 
 
 @register.function
@@ -13,19 +12,7 @@ def abs_static(context, path):
     """Make sure we always return a FULL absolute URL that starts
     with 'http'.
     """
-    path = static(path)
-    prefix = context['request'].is_secure() and 'https' or 'http'
-
-    if path.startswith('/') and not path.startswith('//'):
-        # e.g. '/media/foo.png'
-        root_url = '%s://%s' % (prefix, RequestSite(context['request']).domain)
-        path = root_url + path
-
-    if path.startswith('//'):
-        path = '%s:%s' % (prefix, path)
-
-    assert path.startswith('http://') or path.startswith('https://')
-    return path
+    return get_abs_static(path, context['request'])
 
 
 @register.function

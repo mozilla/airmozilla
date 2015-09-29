@@ -6,6 +6,8 @@ from unittest import TestCase
 from nose.tools import eq_, ok_, assert_raises
 from mock import patch
 
+from django.test.client import RequestFactory
+
 from airmozilla.base import utils
 from airmozilla.base.tests.testbase import Response
 
@@ -25,6 +27,22 @@ class TestMisc(TestCase):
 
         url = 'https://mybucket.s3.amazonaws.com/file.mp4?cachebust=1'
         eq_(utils.prepare_vidly_video_url(url), url + '&nocopy')
+
+    def test_get_base_url(self):
+        request = RequestFactory().get('/')
+        root_url = utils.get_base_url(request)
+        eq_(root_url, 'http://testserver')
+
+        request = RequestFactory().get('/', SERVER_PORT=443)
+        request.is_secure = lambda: True
+        assert request.is_secure()
+        root_url = utils.get_base_url(request)
+        eq_(root_url, 'https://testserver')
+
+    def test_get_abs_static(test):
+        rq = RequestFactory().get('/')
+        url = utils.get_abs_static('/img/firefox.png', rq)
+        eq_(url, 'http://testserver/img/firefox.png')
 
 
 class _Communicator(object):
