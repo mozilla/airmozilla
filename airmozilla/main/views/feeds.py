@@ -180,6 +180,14 @@ class ITunesFeed(EventsFeed):
     private_or_public = 'public'
     format_type = 'mp4'
 
+    def title(self):
+        title = 'Air Mozilla'
+        if self._root_url != 'https://air.mozilla.org':
+            # This extra title makes it easier for us to test the
+            # feed on stage and dev etc.
+            title += ' (testing on: {})'.format(self._root_url)
+        return title
+
     def get_object(self, request):
         self.itunes_sm_url = get_abs_static(
             'main/img/podcast-cover-144x144.png',
