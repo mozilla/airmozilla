@@ -1,5 +1,6 @@
 import datetime
 
+import mock
 from nose.tools import eq_, ok_
 
 from django.conf import settings
@@ -15,6 +16,7 @@ from airmozilla.main.models import (
     Template,
     Tag,
 )
+from airmozilla.base.tests.testbase import Response
 from airmozilla.base.tests.testbase import DjangoTestCase
 
 
@@ -296,7 +298,22 @@ class TestFeeds(DjangoTestCase):
         ok_('<itunes:name>' in response.content)
         ok_('<itunes:image href="http' in response.content)
 
-    def test_itunes_feed_item(self):
+    @mock.patch('requests.head')
+    def test_itunes_feed_item(self, rhead):
+
+        def mocked_head(url):
+            if url == 'http://cdn.vidly/file.mp4':
+                return Response('', 302, headers={
+                    'Content-Type': 'video/mp5',
+                    'Content-Length': '1234567',
+                })
+            else:
+                return Response('', 302, headers={
+                    'Location': 'http://cdn.vidly/file.mp4',
+                })
+
+        rhead.side_effect = mocked_head
+
         event = Event.objects.get(title='Test event')
         event.archive_time = timezone.now()
         event.template_environment = {'tag': 'abc123'}
@@ -324,4 +341,4 @@ class TestFeeds(DjangoTestCase):
             event.description.replace('<', '&lt;').replace('>', '&gt;') in xml_
         )
         ok_('<itunes:duration>01:01:01</itunes:duration>' in xml_)
-        ok_('<itunes:keywords>Tag1, Tag2</itunes:keywords>' in xml_)
+        ok_('<itunes:keywords>Tag1,Tag2</itunes:keywords>' in xml_)
