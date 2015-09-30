@@ -334,7 +334,6 @@ class TestFeeds(DjangoTestCase):
         eq_(response.status_code, 200)
         assert '<item>' in response.content
         xml_ = response.content.split('<item>')[1].split('</item>')[0]
-        ok_(str(event.id) in xml_)
         ok_(event.title in xml_)
         ok_(event.short_description in xml_)
         ok_(
