@@ -96,7 +96,7 @@ class EventsFeed(Feed):
 
     def _get_mp4_link(self, event):
         tag = event.template_environment['tag']
-        return 'https://vid.ly/%s?content=video&format=mp4_hd' % tag
+        return 'https://vid.ly/%s?content=video&format=hd_mp4' % tag
 
     def item_pubdate(self, event):
         return event.start_time
@@ -252,7 +252,7 @@ class ITunesFeed(EventsFeed):
 
     def item_enclosure_url(self, event):
         tag = event.template_environment['tag']
-        return 'https://vid.ly/%s?content=video&format=mp4_hd' % tag
+        return 'https://vid.ly/%s?content=video&format=hd_mp4' % tag
 
     def item_enclosure_mime_type(self, event):
         return 'video/mp4'
