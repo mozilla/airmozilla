@@ -248,7 +248,7 @@ class ITunesFeed(EventsFeed):
         return self._root_url + reverse('main:event', args=(event.slug,))
 
     def item_description(self, event):
-        return event.description.upper()
+        return event.description
 
     def item_enclosure_url(self, event):
         tag = event.template_environment['tag']
