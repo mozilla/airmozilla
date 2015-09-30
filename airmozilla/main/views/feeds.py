@@ -194,7 +194,7 @@ class ITunesFeed(EventsFeed):
             request
         )
         self.itunes_lg_url = get_abs_static(
-            'main/img/podcast-cover.png',
+            'main/img/podcast-cover-1400x1400.png',
             request
         )
         self._root_url = get_base_url(request)
