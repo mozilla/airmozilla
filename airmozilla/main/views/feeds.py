@@ -1,10 +1,13 @@
 from collections import defaultdict
 
+import requests
+
 from django.conf import settings
 from django.contrib.syndication.views import Feed
 from django.utils.feedgenerator import Rss201rev2Feed
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.core.cache import cache
 
 from funfactory.urlresolvers import reverse
 
@@ -130,7 +133,6 @@ class ITunesElements(object):
             'text': 'Technology'
         })
 
-        handler.addQuickElement('description', self.feed['description'])
         handler.addQuickElement('itunes:summary', self.feed['description'])
         handler.addQuickElement('itunes:explicit', 'clean')
 
@@ -138,15 +140,22 @@ class ITunesElements(object):
         """extra elements to the <item> tag"""
         super(ITunesElements, self).add_item_elements(handler, item)
 
-        # A slug can change, an ID can't
-        handler.addQuickElement('guid', str(item['id']), attrs={
-            'isPermaLink': 'false'}
-        )
-
         handler.addQuickElement('itunes:author', 'Air Mozilla')
         handler.addQuickElement('itunes:subtitle', item['subtitle'])
-
         handler.addQuickElement('itunes:summary', item['summary'])
+
+        vidly_url = (
+            'https://vid.ly/%s?content=video&format=hd_mp4' % item['vidly_tag']
+        )
+        data = self.get_video_redirect_info(vidly_url)
+        handler.addQuickElement('enclosure', attrs={
+            'url': data['url'],
+            'length': data['length'],
+            'type': data['type'],
+        })
+        handler.addQuickElement('guid', vidly_url, attrs={
+            'isPermaLink': 'false'}
+        )
 
         handler.addQuickElement(
             'itunes:duration',
@@ -155,9 +164,27 @@ class ITunesElements(object):
         if item['tags']:
             handler.addQuickElement(
                 'itunes:keywords',
-                ', '.join(item['tags'])
+                ','.join(item['tags'])
             )
         handler.addQuickElement('itunes:explicit', 'clean')
+
+    def get_video_redirect_info(self, vidly_url):
+        cache_key = 'vidly-redirect-info%s' % vidly_url
+        data = cache.get(cache_key)
+        if data is None:
+            data = self._get_video_redirect_info(vidly_url)
+            cache.set(cache_key, data, 60 * 60)
+        return data
+
+    def _get_video_redirect_info(self, vidly_url):
+        r = requests.head(vidly_url)
+        assert r.status_code == 302, (r.status_code, vidly_url)
+        r2 = requests.head(r.headers['Location'])
+        return {
+            'url': r.headers['Location'].split('?t=')[0],
+            'length': r2.headers['Content-Length'],
+            'type': r2.headers['Content-Type'],
+        }
 
     def namespace_attributes(self):
         return {'xmlns:itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd'}
@@ -185,7 +212,7 @@ class ITunesFeed(EventsFeed):
         if self._root_url != 'https://air.mozilla.org':
             # This extra title makes it easier for us to test the
             # feed on stage and dev etc.
-            title += ' (testing on: {})'.format(self._root_url)
+            title += ' ({})'.format(self._root_url)
         return title
 
     def get_object(self, request):
@@ -250,15 +277,18 @@ class ITunesFeed(EventsFeed):
     def item_description(self, event):
         return event.description
 
-    def item_enclosure_url(self, event):
-        tag = event.template_environment['tag']
-        return 'https://vid.ly/%s?content=video&format=hd_mp4' % tag
-
-    def item_enclosure_mime_type(self, event):
-        return 'video/mp4'
-
-    def item_enclosure_length(self, event):
-        return event.duration
+    # def item_enclosure_url(self, event):
+    #     print 'item_enclosure_url()'
+    #     tag = event.template_environment['tag']
+    #     return 'https://vid.ly/%s?content=video&format=hd_mp4' % tag
+    #
+    # def item_enclosure_mime_type(self, event):
+    #     return 'video/mp4'
+    #
+    # def item_enclosure_length(self, event):
+    #     print 'item_enclosure_length()'
+    #     # XXX this needs to be the FILE SIZE
+    #     return event.duration
 
     def item_author_name(self, event):  # override the super
         return None
@@ -269,5 +299,6 @@ class ITunesFeed(EventsFeed):
             'subtitle': short_desc(event),
             'summary': event.description,
             'duration': event.duration,
+            'vidly_tag': event.template_environment['tag'],
             'tags': self.all_tags.get(event.id, []),
         }
