@@ -1,19 +1,18 @@
+import random
 from collections import defaultdict
-
-import requests
 
 from django.conf import settings
 from django.contrib.syndication.views import Feed
 from django.utils.feedgenerator import Rss201rev2Feed
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.core.cache import cache
 
 from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Channel, Tag
 from airmozilla.base.utils import get_base_url, get_abs_static
 from airmozilla.main.helpers import short_desc
+from airmozilla.manage import vidly
 
 
 def format_duration(duration):
@@ -144,16 +143,17 @@ class ITunesElements(object):
         handler.addQuickElement('itunes:subtitle', item['subtitle'])
         handler.addQuickElement('itunes:summary', item['summary'])
 
-        vidly_url = (
-            'https://vid.ly/%s?content=video&format=hd_mp4' % item['vidly_tag']
+        data = vidly.get_video_redirect_info(
+            item['vidly_tag'],
+            'mp4',
+            hd=True,  # Maybe this should depend on VidlySubmission
         )
-        data = self.get_video_redirect_info(vidly_url)
         handler.addQuickElement('enclosure', attrs={
             'url': data['url'],
             'length': data['length'],
             'type': data['type'],
         })
-        handler.addQuickElement('guid', vidly_url, attrs={
+        handler.addQuickElement('guid', data['url'], attrs={
             'isPermaLink': 'false'}
         )
 
@@ -167,24 +167,6 @@ class ITunesElements(object):
                 ','.join(item['tags'])
             )
         handler.addQuickElement('itunes:explicit', 'clean')
-
-    def get_video_redirect_info(self, vidly_url):
-        cache_key = 'vidly-redirect-info%s' % vidly_url
-        data = cache.get(cache_key)
-        if data is None:
-            data = self._get_video_redirect_info(vidly_url)
-            cache.set(cache_key, data, 60 * 60)
-        return data
-
-    def _get_video_redirect_info(self, vidly_url):
-        r = requests.head(vidly_url)
-        assert r.status_code == 302, (r.status_code, vidly_url)
-        r2 = requests.head(r.headers['Location'])
-        return {
-            'url': r.headers['Location'].split('?t=')[0],
-            'length': r2.headers['Content-Length'],
-            'type': r2.headers['Content-Type'],
-        }
 
     def namespace_attributes(self):
         return {'xmlns:itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd'}
@@ -260,7 +242,23 @@ class ITunesFeed(EventsFeed):
             self.all_tags[event_id] = [
                 all_tag_names[x] for x in tag_ids
             ]
-        return qs
+        items = []
+        for event in qs:
+            try:
+                vidly_redirect_info = vidly.get_video_redirect_info(
+                    event.template_environment['tag'],
+                    'mp4',
+                    hd=True,
+                    # We deliberately make the expiry date a bit random.
+                    # This is to prevent the cache to expiry on all of them
+                    # at the same time, but instead only some being expired.
+                    expires=60 * 60 + 60 * random.randint(1, 10)
+                )
+            except vidly.VidlyNotFoundError:
+                continue
+            event._vidly_redirect_info = vidly_redirect_info
+            items.append(event)
+        return items
 
     def feed_extra_kwargs(self, obj):
         return {
@@ -277,19 +275,6 @@ class ITunesFeed(EventsFeed):
     def item_description(self, event):
         return event.description
 
-    # def item_enclosure_url(self, event):
-    #     print 'item_enclosure_url()'
-    #     tag = event.template_environment['tag']
-    #     return 'https://vid.ly/%s?content=video&format=hd_mp4' % tag
-    #
-    # def item_enclosure_mime_type(self, event):
-    #     return 'video/mp4'
-    #
-    # def item_enclosure_length(self, event):
-    #     print 'item_enclosure_length()'
-    #     # XXX this needs to be the FILE SIZE
-    #     return event.duration
-
     def item_author_name(self, event):  # override the super
         return None
 
@@ -299,6 +284,7 @@ class ITunesFeed(EventsFeed):
             'subtitle': short_desc(event),
             'summary': event.description,
             'duration': event.duration,
+            'vidly_data': event._vidly_redirect_info,
             'vidly_tag': event.template_environment['tag'],
             'tags': self.all_tags.get(event.id, []),
         }

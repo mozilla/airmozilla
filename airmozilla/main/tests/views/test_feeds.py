@@ -16,7 +16,6 @@ from airmozilla.main.models import (
     Template,
     Tag,
 )
-from airmozilla.base.tests.testbase import Response
 from airmozilla.base.tests.testbase import DjangoTestCase
 
 
@@ -298,21 +297,17 @@ class TestFeeds(DjangoTestCase):
         ok_('<itunes:name>' in response.content)
         ok_('<itunes:image href="http' in response.content)
 
-    @mock.patch('requests.head')
-    def test_itunes_feed_item(self, rhead):
+    @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
+    def test_itunes_feed_item(self, r_get_redirect_info):
 
-        def mocked_head(url):
-            if url == 'http://cdn.vidly/file.mp4':
-                return Response('', 302, headers={
-                    'Content-Type': 'video/mp5',
-                    'Content-Length': '1234567',
-                })
-            else:
-                return Response('', 302, headers={
-                    'Location': 'http://cdn.vidly/file.mp4',
-                })
+        def mocked_get_redirect_info(tag, format_, hd=False, expires=60):
+            return {
+                'url': 'http://cdn.vidly/file.mp4',
+                'type': 'video/mp4',
+                'length': '1234567',
+            }
 
-        rhead.side_effect = mocked_head
+        r_get_redirect_info.side_effect = mocked_get_redirect_info
 
         event = Event.objects.get(title='Test event')
         event.archive_time = timezone.now()

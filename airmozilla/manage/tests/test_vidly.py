@@ -4,7 +4,7 @@ from cStringIO import StringIO
 from nose.tools import eq_, ok_, assert_raises
 import mock
 
-from airmozilla.base.tests.testbase import DjangoTestCase
+from airmozilla.base.tests.testbase import DjangoTestCase, Response
 from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.manage import vidly
 
@@ -501,4 +501,49 @@ class VidlyTestCase(DjangoTestCase):
             vidly.VidlyUpdateError,
             vidly.update_media_protection,
             'abc123', True
+        )
+
+    @mock.patch('requests.head')
+    def test_get_video_redirect_info(self, rhead):
+
+        head_requests = []
+
+        def mocked_head(url):
+            head_requests.append(url)
+            if url == 'http://cdn.vidly/file.mp4':
+                return Response('', 302, headers={
+                    'Content-Type': 'video/mp5',
+                    'Content-Length': '1234567',
+                })
+            else:
+                return Response('', 302, headers={
+                    'Location': 'http://cdn.vidly/file.mp4',
+                })
+
+        rhead.side_effect = mocked_head
+
+        data = vidly.get_video_redirect_info('abc123', 'mp4', hd=True)
+        eq_(data, {
+            'url': 'http://cdn.vidly/file.mp4',
+            'length': '1234567',
+            'type': 'video/mp5',
+        })
+
+    @mock.patch('requests.head')
+    def test_get_video_redirect_info_not_found(self, rhead):
+
+        head_requests = []
+
+        def mocked_head(url):
+            head_requests.append(url)
+            return Response('Not found', 404)
+
+        rhead.side_effect = mocked_head
+
+        assert_raises(
+            vidly.VidlyNotFoundError,
+            vidly.get_video_redirect_info,
+            'xyz123',
+            'mp4',
+            hd=True
         )

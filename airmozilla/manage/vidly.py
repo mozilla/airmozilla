@@ -5,6 +5,8 @@ import logging
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
 
+import requests
+
 from django.core.cache import cache
 from django.conf import settings
 
@@ -18,6 +20,10 @@ class VidlyStatisticsError(Exception):
 
 
 class VidlyUpdateError(Exception):
+    pass
+
+
+class VidlyNotFoundError(Exception):
     pass
 
 
@@ -329,3 +335,29 @@ def _unpack_dom(dom, main_tag_name):
             item[element.tagName] = _get_text(element.childNodes)
         results[item['MediaShortLink']] = item
     return results
+
+
+def get_video_redirect_info(tag, format_, hd=False, expires=60 * 60):
+    assert format_ in ('webm', 'mp4'), format_
+    if hd:
+        format_ = 'hd_{}'.format(format_)
+    cache_key = 'video_redirect_info' + tag + format_
+    data = cache.get(cache_key)
+    if data is None:
+        vidly_url = 'https://vid.ly/{}?content=video&format={}'.format(
+            tag,
+            format_
+        )
+        req = requests.head(vidly_url)
+        if req.status_code == 404:
+            raise VidlyNotFoundError(tag)
+        assert req.status_code == 302, (req.status_code, vidly_url)
+        req2 = requests.head(req.headers['Location'])
+        data = {
+            'url': req.headers['Location'].split('?t=')[0],
+            'length': req2.headers['Content-Length'],
+            'type': req2.headers['Content-Type'],
+        }
+        cache.set(cache_key, data, expires)
+
+    return data
