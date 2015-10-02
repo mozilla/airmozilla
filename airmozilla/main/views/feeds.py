@@ -11,7 +11,7 @@ from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Channel, Tag
 from airmozilla.base.utils import get_base_url, get_abs_static
-from airmozilla.main.helpers import short_desc
+from airmozilla.main.helpers import short_desc, thumbnail
 from airmozilla.manage import vidly
 
 
@@ -198,23 +198,36 @@ class ITunesFeed(EventsFeed):
         return title
 
     def get_object(self, request):
-        self.itunes_sm_url = get_abs_static(
-            'main/img/podcast-cover-144x144.png',
-            request
-        )
-        self.itunes_lg_url = get_abs_static(
-            'main/img/podcast-cover-1400x1400.png',
-            request
-        )
         self._root_url = get_base_url(request)
+        self.channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+        if self.channel.cover_art:
+            self.itunes_lg_url = thumbnail(
+                self.channel.cover_art, '1400x1400'
+            ).url
+            self.itunes_sm_url = thumbnail(
+                self.channel.cover_art, '144x144'
+            ).url
+            if '://' not in self.itunes_lg_url:
+                self.itunes_lg_url = self._root_url + self.itunes_lg_url
+                self.itunes_sm_url = self._root_url + self.itunes_sm_url
+        else:
+            # Use the default ones
+            self.itunes_sm_url = get_abs_static(
+                'main/img/podcast-cover-144x144.png',
+                request
+            )
+            self.itunes_lg_url = get_abs_static(
+                'main/img/podcast-cover-1400x1400.png',
+                request
+            )
+
         super(ITunesFeed, self).get_object(request)
 
     def items(self):
-        channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
         qs = (
             Event.objects.archived()
             .approved()
-            .filter(channels=channel)
+            .filter(channels=self.channel)
             .filter(privacy=Event.PRIVACY_PUBLIC)
             .filter(template__name__icontains='vid.ly')
             .filter(template_environment__contains='tag')

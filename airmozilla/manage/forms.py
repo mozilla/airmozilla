@@ -414,6 +414,11 @@ class ChannelForm(BaseModelForm):
                 in self.fields['parent'].choices
                 if x != kwargs['instance'].pk
             ]
+        self.fields['cover_art'].help_text = (
+            "The cover art for podcasts needs to be at least 1400x1400 "
+            "pixels. Smaller versions that are needed will be derived "
+            "from this same image."
+        )
 
     def clean(self):
         cleaned_data = super(ChannelForm, self).clean()
