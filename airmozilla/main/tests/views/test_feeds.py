@@ -43,6 +43,24 @@ class TestFeeds(DjangoTestCase):
             slug=settings.DEFAULT_CHANNEL_SLUG
         )
 
+        self.patch_get_thumbnail = mock.patch(
+            'airmozilla.main.helpers.get_thumbnail'
+        )
+        mocked_get_thumbnail = self.patch_get_thumbnail.start()
+
+        def get_thumbnail(image, geometry, **options):
+            width, height = [int(x) for x in geometry.split('x')]
+            return ThumbnailResult(
+                '/media/fake.png',
+                width, height
+            )
+
+        mocked_get_thumbnail.side_effect = get_thumbnail
+
+    def tearDown(self):
+        super(TestFeeds, self).tearDown()
+        self.patch_get_thumbnail.stop()
+
     def test_feed(self):
         delay = datetime.timedelta(days=1)
 
@@ -307,22 +325,7 @@ class TestFeeds(DjangoTestCase):
         ok_('<itunes:name>' in response.content)
         ok_('<itunes:image href="http' in response.content)
 
-    @mock.patch('sorl.thumbnail.get_thumbnail')
-    def test_itunes_with_custom_channel_cover_art(self, r_get_thumbnail):
-
-        # The reason we're mocking the thumbnail creation is because
-        # generating 1400x1400 is actually very slow. About 4 seconds
-        # on my system.
-        def mocked_get_thumbnail(image, geometry, **__):
-            width, height = [int(x) for x in geometry.split('x')]
-            return ThumbnailResult(
-                '/media/fake.png',
-                width,
-                height
-            )
-
-        r_get_thumbnail.side_effect = mocked_get_thumbnail
-
+    def test_itunes_with_custom_channel_cover_art(self):
         channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
         with open(self.main_image, 'rb') as f:
             img = File(f)
