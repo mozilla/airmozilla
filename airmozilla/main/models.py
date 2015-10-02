@@ -115,6 +115,11 @@ class Channel(models.Model):
         If an event belongs to a channel with this on, that event
         will not cause automatic EventTweets to be generated.
     """)
+    cover_art = models.ImageField(
+        upload_to=_upload_path_channels,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ['name']

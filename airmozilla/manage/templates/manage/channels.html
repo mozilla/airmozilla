@@ -19,16 +19,23 @@
     <tbody>
       {% for channel in channels %}
         <tr>
-          <td><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a>
-          {% if channel.reverse_order %}
-          <span class="label label-info">Reversed order</span>
-          {% endif %}
-          {% if channel.exclude_from_trending %}
-          <span class="label label-warning">Excluded from Trending</span>
-          {% endif %}
-          {% if channel.default %}
-          <span class="label label-primary">Default Channel</span>
-          {% endif %}
+          <td>
+            <a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a>
+            {% if channel.reverse_order %}
+            <span class="label label-info">Reversed order</span>
+            {% endif %}
+            {% if channel.exclude_from_trending %}
+            <span class="label label-warning">Excluded from Trending</span>
+            {% endif %}
+            {% if channel.default %}
+            <span class="label label-primary">Default Channel</span>
+            {% endif %}
+            {% if channel.cover_art %}
+            {% set thumb = thumbnail(channel.cover_art, '30x30') %}
+            <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+                 title="Cover art ({{ channel.cover_art.width }}x{{ channel.cover_art.height }}px)"
+                 alt="Cover art">
+            {% endif %}
           </td>
           <td>
             {% if channel.parent %}

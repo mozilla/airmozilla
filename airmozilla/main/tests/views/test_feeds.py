@@ -1,3 +1,4 @@
+import os
 import datetime
 
 import mock
@@ -6,6 +7,7 @@ from nose.tools import eq_, ok_
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
+from django.core.files import File
 
 from funfactory.urlresolvers import reverse
 
@@ -17,6 +19,14 @@ from airmozilla.main.models import (
     Tag,
 )
 from airmozilla.base.tests.testbase import DjangoTestCase
+
+
+class ThumbnailResult(object):
+
+    def __init__(self, url, width, height):
+        self.url = url
+        self.width = width
+        self.height = height
 
 
 class TestFeeds(DjangoTestCase):
@@ -296,6 +306,32 @@ class TestFeeds(DjangoTestCase):
         ok_('<itunes:email>' in response.content)
         ok_('<itunes:name>' in response.content)
         ok_('<itunes:image href="http' in response.content)
+
+    @mock.patch('sorl.thumbnail.get_thumbnail')
+    def test_itunes_with_custom_channel_cover_art(self, r_get_thumbnail):
+
+        # The reason we're mocking the thumbnail creation is because
+        # generating 1400x1400 is actually very slow. About 4 seconds
+        # on my system.
+        def mocked_get_thumbnail(image, geometry, **__):
+            width, height = [int(x) for x in geometry.split('x')]
+            return ThumbnailResult(
+                '/media/fake.png',
+                width,
+                height
+            )
+
+        r_get_thumbnail.side_effect = mocked_get_thumbnail
+
+        channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+        with open(self.main_image, 'rb') as f:
+            img = File(f)
+            channel.cover_art.save(os.path.basename(self.main_image), img)
+
+        url = reverse('main:itunes_feed')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('podcast-cover-1400x1400.png' not in response.content)
 
     @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
     def test_itunes_feed_item(self, r_get_redirect_info):
