@@ -63,7 +63,7 @@ from airmozilla.manage import videoinfo
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Survey
 from airmozilla.uploads.models import Upload
-
+from airmozilla.base.helpers import show_duration
 from .decorators import (
     staff_required,
     permission_required,
@@ -622,6 +622,49 @@ def event_privacy_vidly_mismatch(request, id):
     event = get_object_or_404(Event, id=id)
     # first of all, the video template must be a vid.ly one
     return is_privacy_vidly_mismatch(event)
+
+
+@staff_required
+@permission_required('main.change_event')
+@cancel_redirect('manage:events')
+@transaction.atomic
+def event_edit_duration(request, id):
+    event = get_object_or_404(Event, id=id)
+    result = can_edit_event(event, request.user)
+    if isinstance(result, http.HttpResponse):
+        return result
+
+    if request.method == 'POST':
+        form = forms.EventDurationForm(request.POST, instance=event)
+        if form.is_valid():
+            event = form.save()
+            if event.duration:
+                messages.success(
+                    request,
+                    'Duration set to %s' % show_duration(event.duration)
+                )
+            else:
+                videoinfo.fetch_duration(
+                    event,
+                    save=True,
+                    verbose=settings.DEBUG
+                )
+                new_duration = Event.objects.get(id=event.id).duration
+                if new_duration is not None:
+                    new_duration = show_duration(new_duration)
+                messages.success(
+                    request,
+                    'Duration re-set to %s' % new_duration
+                )
+            return redirect('manage:event_edit', event.id)
+    else:
+        form = forms.EventDurationForm(instance=event)
+
+    context = {
+        'event': event,
+        'form': form,
+    }
+    return render(request, 'manage/event_edit_duration.html', context)
 
 
 @cache_page(60)

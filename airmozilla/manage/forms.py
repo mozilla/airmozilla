@@ -1082,3 +1082,18 @@ class RelatedContentTestingForm(BaseForm):
                     'One of Use title OR Use tags must be chosen'
                 )
         return cleaned_data
+
+
+class EventDurationForm(BaseModelForm):
+
+    class Meta:
+        model = Event
+        fields = ('duration',)
+
+    def __init__(self, *args, **kwargs):
+        super(EventDurationForm, self).__init__(*args, **kwargs)
+        self.fields['duration'].required = False
+        self.fields['duration'].help_text = (
+            "Note! If you remove this value (make it blank), it will be "
+            "unset and automatically be re-evaluated."
+        )

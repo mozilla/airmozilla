@@ -1,0 +1,29 @@
+{% extends 'manage/event_request.html' %}
+{% set page = "events" %}
+
+{% block manage_title %}
+  Event duration "{{ event.title }}"
+{% endblock %}
+
+
+{% block manage_content %}
+
+  {% if event.duration %}
+  <p>
+    The current known duration is:
+    <b>{{ show_duration(event.duration) }}</b>
+    ({{ event.duration }} seconds).
+  </p>
+  {% else %}
+  <p>
+    NB! Event duration is <b>not known</b>.
+  </p>
+  {% endif %}
+
+  {% include "manage/_default_form.html" %}
+
+  <p>
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}
