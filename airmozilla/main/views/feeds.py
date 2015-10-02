@@ -197,9 +197,17 @@ class ITunesFeed(EventsFeed):
             title += ' ({})'.format(self._root_url)
         return title
 
-    def get_object(self, request):
+    def get_object(self, request, channel_slug=None):
         self._root_url = get_base_url(request)
-        self.channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+        if channel_slug:
+            self.channel = get_object_or_404(
+                Channel,
+                slug__iexact=channel_slug
+            )
+        else:
+            self.channel = Channel.objects.get(
+                slug=settings.DEFAULT_CHANNEL_SLUG
+            )
         if self.channel.cover_art:
             self.itunes_lg_url = thumbnail(
                 self.channel.cover_art, '1400x1400'
