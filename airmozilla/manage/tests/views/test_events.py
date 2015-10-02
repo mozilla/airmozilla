@@ -2579,3 +2579,53 @@ class TestEvents(ManageTestCase):
             'pictures': settings.SCREENCAPTURES_NO_PICTURES
         })
         eq_(len(ffmpeged_urls), settings.SCREENCAPTURES_NO_PICTURES)
+
+    @mock.patch('subprocess.Popen')
+    @mock.patch('requests.head')
+    def test_event_edit_duration(self, rhead, rpopen):
+
+        def mocked_head(url, **options):
+            return Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        def mocked_popen(command, **kwargs):
+            url = command[2]
+
+            class Inner:
+                def communicate(self):
+                    out = ''
+                    if 'xyz123' in url:
+                        err = """
+            Duration: 00:05:20.47, start: 0.000000, bitrate: 1076 kb/s
+                        """
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        rpopen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        event.duration = 120
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+        event.template.name = 'Vid.ly Whatever'
+        event.template.save()
+        url = reverse('manage:event_edit_duration', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('2 minutes' in response.content)
+        # let's change it to something else
+        response = self.client.post(url, {'duration': 120 + 60})
+        eq_(response.status_code, 302)
+        eq_(Event.objects.get(id=event.id).duration, 120 + 60)
+
+        # let's unset it
+        response = self.client.post(url, {'duration': ''})
+        eq_(response.status_code, 302)
+        eq_(Event.objects.get(id=event.id).duration, 60 * 5 + 20)

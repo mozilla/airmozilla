@@ -74,9 +74,10 @@
 
     {% if event.duration %}
     <p>
-      <strong>
-        Video duration: {{ show_duration(event.duration) }}
-      </strong>
+      <b>Duration:</b>
+      <a href="{{ url('manage:event_edit_duration', event.id) }}"
+         title="Change or introspect the duration value"
+         >{{ show_duration(event.duration) }}</a>
     </p>
     {% endif %}
 
