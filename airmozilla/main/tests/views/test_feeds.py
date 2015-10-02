@@ -333,6 +333,15 @@ class TestFeeds(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('podcast-cover-1400x1400.png' not in response.content)
 
+    def test_itunes_feed_custom_channel(self):
+        url = reverse('main:itunes_feed', args=('rUsT',))
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        Channel.objects.create(name='Rust', slug='rust')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
     @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
     def test_itunes_feed_item(self, r_get_redirect_info):
 

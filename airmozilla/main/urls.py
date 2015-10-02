@@ -38,6 +38,10 @@ urlpatterns = patterns(
         # cache_page(60 * 60)(feeds.ITunesFeed()),
         feeds.ITunesFeed(),
         name='itunes_feed'),
+    url(r'^feed/itunes/(?P<channel_slug>[-\w]+)$',
+        # cache_page(60 * 60)(feeds.ITunesFeed()),
+        feeds.ITunesFeed(),
+        name='itunes_feed'),
     url(r'^feed/(?P<private_or_public>'
         'company|public|private|contributors)?/?$',
         cache_page(60 * 60)(feeds.EventsFeed()),
