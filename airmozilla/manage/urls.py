@@ -29,6 +29,7 @@ from .views import (
     errors,
     chapters,
     related,
+    durations,
 )
 
 
@@ -326,5 +327,8 @@ urlpatterns = patterns(
     url(r'^related/testing/$',
         related.related_content_testing,
         name='related_content_testing'),
+    url(r'^durations/$',
+        durations.report_all,
+        name='durations_report_all'),
 
 )

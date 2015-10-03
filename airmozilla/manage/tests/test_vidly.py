@@ -62,6 +62,7 @@ SAMPLE_MEDIALIST_XML = (
     '<Response><Message>OK</Message><MessageCode>7.4</MessageCode><Success>'
     '<Media><MediaShortLink>abc123</MediaShortLink><VanityLink/>'
     '<Notify>vvm@spb-team.com</Notify><Created>2011-12-25 18:45:56</Created>'
+    '<Duration>350.75</Duration>'
     '<Updated>2012-11-28 14:05:07</Updated><Status>Error</Status>'
     '<IsDeleted>false</IsDeleted><IsPrivate>false</IsPrivate>'
     '<IsPrivateCDN>false</IsPrivateCDN><CDN>AWS</CDN></Media>'
