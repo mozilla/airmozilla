@@ -17,6 +17,10 @@ def abs_static(context, path):
 
 @register.function
 def show_duration(duration, include_seconds=False):
+    if isinstance(duration, float):
+        # e.g. 16.61 means 16 seconds and 61 milliseconds
+        duration, milliseconds = str(duration).split('.')
+        duration = int(duration)
     hours = duration / 3600
     seconds = duration % 3600
     minutes = seconds / 60
