@@ -327,6 +327,7 @@ class TestFeeds(DjangoTestCase):
             '<itunes:category text="Technology"></itunes:category>'
             in response.content
         )
+        ok_('<title>Air Mozilla' in response.content)
         ok_('<language>en-US</language>' in response.content)
         ok_('<itunes:subtitle>' in response.content)
         ok_('<itunes:summary>' in response.content)
@@ -359,6 +360,8 @@ class TestFeeds(DjangoTestCase):
         Channel.objects.create(name='Rust', slug='rust')
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('<title>Air Mozilla' not in response.content)
+        ok_('<title>Rust on Air Mozilla' in response.content)
 
     @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
     def test_itunes_feed_item(self, r_get_redirect_info):
