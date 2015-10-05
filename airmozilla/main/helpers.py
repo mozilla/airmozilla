@@ -64,36 +64,9 @@ def truncate_words(text, words):
 
 
 @register.function
-# def truncate_chars(text, chars, middle=False, left=False, ellipsis=u'…'):
 def truncate_chars(text, chars, ellipsis=u'…'):
     assert chars > 4, chars
     if len(text) > chars:
-        # if middle:
-        #     m = len(text) / 2
-        #     left = text[:m]
-        #     right = text[m:]
-        #     alternate = True
-        #     while len(left) + len(right) > chars:
-        #         if alternate:
-        #             left = left[:-1]
-        #         else:
-        #             right = right[1:]
-        #         alternate = not alternate
-        #     text = u'%s%s%s' % (
-        #         left,
-        #         ellipsis,
-        #         right
-        #     )
-        # elif left:
-        #     text = '%s%s' % (
-        #         ellipsis,
-        #         text[-chars:].strip()
-        #     )
-        # else:
-        #     text = '%s%s' % (
-        #         text[:chars - 1].strip(),
-        #         ellipsis
-        #     )
         text = '%s%s' % (
             text[:chars - 1].strip(),
             ellipsis

@@ -16,7 +16,8 @@
   <tbody>
     {% for event in events %}
     <tr>
-      <td><a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a></td>
+      <td><a href="{{ url('manage:event_edit', event.id) }}"
+         title="{{ event.title }}">{{ truncate_chars(event.title, 100) }}</a></td>
       {% if event.duration %}
       <td>
         <a href="https://manage.encoding.com/user/vidly.php?url={{ event.template_environment['tag'] }}">
