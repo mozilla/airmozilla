@@ -215,7 +215,12 @@ class ITunesFeed(EventsFeed):
             self.itunes_sm_url = thumbnail(
                 self.channel.cover_art, '144x144'
             ).url
-            if '://' not in self.itunes_lg_url:
+            if self.itunes_lg_url.startswith('//'):
+                # e.g. //cdn.example.com/media/cache/file.png
+                protocol = self._root_url.split('//')[0]
+                self.itunes_lg_url = protocol + self.itunes_lg_url
+                self.itunes_sm_url = protocol + self.itunes_sm_url
+            elif '://' not in self.itunes_lg_url:
                 self.itunes_lg_url = self._root_url + self.itunes_lg_url
                 self.itunes_sm_url = self._root_url + self.itunes_sm_url
         else:

@@ -1,3 +1,4 @@
+import re
 import os
 import datetime
 
@@ -19,6 +20,11 @@ from airmozilla.main.models import (
     Tag,
 )
 from airmozilla.base.tests.testbase import DjangoTestCase
+
+
+itunes_image_regex = re.compile(
+    'itunes:image href="([^\"]+)"'
+)
 
 
 class ThumbnailResult(object):
@@ -50,8 +56,11 @@ class TestFeeds(DjangoTestCase):
 
         def get_thumbnail(image, geometry, **options):
             width, height = [int(x) for x in geometry.split('x')]
+            url = '/media/fake.png'
+            if settings.MEDIA_URL:
+                url = settings.MEDIA_URL + url[1:]
             return ThumbnailResult(
-                '/media/fake.png',
+                url,
                 width, height
             )
 
@@ -335,6 +344,12 @@ class TestFeeds(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('podcast-cover-1400x1400.png' not in response.content)
+
+        with self.settings(MEDIA_URL='//somecdn.example/'):
+            response = self.client.get(url)
+            eq_(response.status_code, 200)
+            href = itunes_image_regex.findall(response.content)[0]
+            eq_(href, 'http://somecdn.example/media/fake.png')
 
     def test_itunes_feed_custom_channel(self):
         url = reverse('main:itunes_feed', args=('rUsT',))
