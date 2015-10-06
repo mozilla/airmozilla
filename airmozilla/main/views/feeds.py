@@ -191,6 +191,11 @@ class ITunesFeed(EventsFeed):
 
     def title(self):
         title = 'Air Mozilla'
+        if self.channel.slug != settings.DEFAULT_CHANNEL_SLUG:
+            title = '{} on {}'.format(
+                self.channel.name,
+                title,
+            )
         if self._root_url != 'https://air.mozilla.org':
             # This extra title makes it easier for us to test the
             # feed on stage and dev etc.
