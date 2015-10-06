@@ -1,4 +1,4 @@
-var app = angular.module('eventmanagerApp', ['angularMoment', 'LocalForageModule']);
+var app = angular.module('eventmanagerApp', ['angularMoment']);
 
 // http://stackoverflow.com/a/1714899/205832
 var serializeObject = function(obj) {
@@ -26,8 +26,8 @@ app.filter('startFrom', function() {
 
 
 app.controller('EventManagerController',
-['$scope', '$http', '$interval', '$localForage',
-function EventManagerController($scope, $http, $interval, $localForage) {
+['$scope', '$http', '$interval',
+function EventManagerController($scope, $http, $interval) {
     'use strict';
 
     $scope.first_loading = true;
@@ -321,7 +321,7 @@ function EventManagerController($scope, $http, $interval, $localForage) {
         fetchEvents({})
           .success(function(data) {
               $scope.load_error = null;
-              $localForage.setItem('eventmanager', data);
+              localStorage.setItem('eventmanager', JSON.stringify(data));
               $scope.events = data.events;
               $scope.reading_from_cache = false;
               $scope.max_modified = data.max_modified;
@@ -349,17 +349,15 @@ function EventManagerController($scope, $http, $interval, $localForage) {
               $scope.first_loading = false;
           });
     }
-    $localForage.getItem('eventmanager')
-    .then(function(data) {
-        if (data && data.urls && data.events) {
-            $scope.reading_from_cache = true;
-            $scope.first_loading = false;
-            $scope.urls = data.urls;
-            $scope.events = data.events;
-            loadAll();
-        } else {
-            loadSome();
-        }
-    });
+    var data = JSON.parse(localStorage.getItem('eventmanager') || '{}');
+    if (data && data.urls && data.events) {
+        $scope.reading_from_cache = true;
+        $scope.first_loading = false;
+        $scope.urls = data.urls;
+        $scope.events = data.events;
+        loadAll();
+    } else {
+        loadSome();
+    }
 
 }]);
