@@ -402,3 +402,41 @@ class TestFeeds(DjangoTestCase):
         )
         ok_('<itunes:duration>01:01:01</itunes:duration>' in xml_)
         ok_('<itunes:keywords>Tag1,Tag2</itunes:keywords>' in xml_)
+
+    @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
+    def test_itunes_feed_from_sub_channel(self, r_get_redirect_info):
+
+        def mocked_get_redirect_info(tag, format_, hd=False, expires=60):
+            return {
+                'url': 'http://cdn.vidly/file.mp4',
+                'type': 'video/mp4',
+                'length': '1234567',
+            }
+
+        r_get_redirect_info.side_effect = mocked_get_redirect_info
+
+        event = Event.objects.get(title='Test event')
+        event.archive_time = timezone.now()
+        event.template_environment = {'tag': 'abc123'}
+        event.duration = 60
+        event.save()
+        event.template.name = 'Vid.ly something'
+        event.template.save()
+        assert event in Event.objects.archived()
+        main_channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+        event.channels.remove(main_channel)
+        parent_channel = Channel.objects.create(name='Events', slug='events')
+        sub_channel = Channel.objects.create(
+            name='Rust',
+            slug='rust',
+            parent=parent_channel,
+        )
+        event.channels.add(sub_channel)
+
+        url = reverse('main:itunes_feed', args=('events',))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # print response.content
+        assert '<item>' in response.content
+        xml_ = response.content.split('<item>')[1].split('</item>')[0]
+        ok_(event.title in xml_)

@@ -6,6 +6,7 @@ from django.contrib.syndication.views import Feed
 from django.utils.feedgenerator import Rss201rev2Feed
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db.models import Q
 
 from funfactory.urlresolvers import reverse
 
@@ -242,10 +243,14 @@ class ITunesFeed(EventsFeed):
         super(ITunesFeed, self).get_object(request)
 
     def items(self):
+        channels = Channel.objects.filter(
+            Q(id=self.channel.id) |
+            Q(parent=self.channel.id)
+        )
         qs = (
             Event.objects.archived()
             .approved()
-            .filter(channels=self.channel)
+            .filter(channels__in=channels)
             .filter(privacy=Event.PRIVACY_PUBLIC)
             .filter(template__name__icontains='vid.ly')
             .filter(template_environment__contains='tag')
