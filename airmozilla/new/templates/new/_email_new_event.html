@@ -19,6 +19,15 @@
   >{{ build_absolute_url(url('main:event', event.slug)) }}</a>
 </p>
 
+{% if event.channels.all().exists() %}
+<p>
+  Channels:
+  {% for channel in event.channels.all() %}
+    <a href="{{ build_absolute_url(url('main:home_channels', channel.slug)) }}">{{ channel }}</a>{% if not loop.last %}, {% endif %}
+  {% endfor %}
+</p>
+{% endif %}
+
 <p>
   Video privacy: <b>{{ event.get_privacy_display() }}</b>
 </p>

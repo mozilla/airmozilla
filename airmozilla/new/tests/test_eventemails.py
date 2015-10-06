@@ -58,6 +58,9 @@ class TestEventEmails(DjangoTestCase):
         ok_(view_url in html_body)
         edit_url = reverse('main:event_edit', args=(event.slug,))
         ok_(edit_url in html_body)
+        for channel in event.channels.all():
+            channel_url = reverse('main:home_channels', args=(channel.slug,))
+            ok_(channel_url in html_body)
 
         # except there to be a full URL to the image
         thumb = get_thumbnail(
