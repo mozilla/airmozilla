@@ -176,8 +176,7 @@
             <ul>
               {% for chapter in chapters %}
               <li>
-                <a href="#@{{ show_duration_compact(chapter.timestamp) }}" data-ts="{{ chapter.timestamp }}">
-                  <b>{{ show_duration(chapter.timestamp) }}</b>
+                <a href="#@{{ show_duration_compact(chapter.timestamp) }}" data-ts="{{ chapter.timestamp }}" title="{{ show_duration(chapter.timestamp, include_seconds=True) }}">
                   {{ chapter.text }}
                 </a>
               </li>
