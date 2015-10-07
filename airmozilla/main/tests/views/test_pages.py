@@ -177,6 +177,36 @@ class TestPages(DjangoTestCase):
         ok_(can_view_event(event, employee_wo_profile))
         ok_(can_view_event(event, employee_w_profile))
 
+    def test_view_event_with_unique_title(self):
+        event = Event.objects.get(title='Test event')
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        title_regex = re.compile('<title>([^<]+)')
+        og_title_regex = re.compile(
+            'property="og:title" content="([^"]+)"'
+        )
+        title = title_regex.findall(response.content)[0].strip()
+        og_title = og_title_regex.findall(response.content)[0].strip()
+        eq_(title, event.title + ' | Air Mozilla | Mozilla, in Video')
+        eq_(og_title, event.title)
+
+        # create a dupe
+        Event.objects.create(
+            title=event.title,
+            slug='other',
+            start_time=timezone.now(),
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        title_2 = title_regex.findall(response.content)[0].strip()
+        og_title_2 = og_title_regex.findall(response.content)[0].strip()
+        ok_(title != title_2)
+        ok_(og_title != og_title_2)
+        timestamp = event.location_time.strftime('%d %b %Y')
+        ok_(timestamp in title_2)
+        ok_(timestamp in og_title_2)
+
     def test_view_event_with_pin(self):
         cache.clear()
         event = Event.objects.get(title='Test event')
