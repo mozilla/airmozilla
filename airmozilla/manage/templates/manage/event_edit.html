@@ -77,7 +77,7 @@
       <b>Duration:</b>
       <a href="{{ url('manage:event_edit_duration', event.id) }}"
          title="Change or introspect the duration value"
-         >{{ show_duration(event.duration) }}</a>
+         >{{ show_duration(event.duration, include_seconds=True) }}</a>
     </p>
     {% endif %}
 
