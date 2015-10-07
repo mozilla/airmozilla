@@ -67,6 +67,9 @@ def render_staticpage(request, staticpage):
 
     c = RequestContext(request, {
         'staticpage': staticpage,
+        # This is specifically to help the main_base.html template
+        # that tries to decide which nav bar item to put a dot under.
+        'page': staticpage.url,
     })
     response = HttpResponse(t.render(c))
     for key, value in staticpage.headers.items():

@@ -23,7 +23,7 @@ def nav_bar(request):
     def get_nav_bar():
         items = [
             ('Home', reverse('main:home'), 'home', ''),
-            ('About', '/about/', 'about', ''),
+            ('About', '/about/', '/about', ''),
             ('Channels', reverse('main:channels'), 'channels', ''),
             ('Calendar', reverse('main:calendar'), 'calendar', ''),
         ]
