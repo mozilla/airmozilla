@@ -76,7 +76,7 @@ class EventsFeed(Feed):
             qs = qs.filter(privacy=Event.PRIVACY_PUBLIC)
         elif self.private_or_public == 'contributors':
             qs = qs.exclude(privacy=Event.PRIVACY_COMPANY)
-        return qs[:settings.FEED_SIZE]
+        return qs[:self._channel.feed_size]
 
     def item_title(self, event):
         return event.title
@@ -256,7 +256,7 @@ class ITunesFeed(EventsFeed):
             .filter(template_environment__contains='tag')
             .exclude(duration__isnull=True)
             .order_by('-start_time')
-        )[:settings.FEED_SIZE]
+        )[:self.channel.feed_size]
 
         all_tag_ids = set()
         self.all_tags = defaultdict(list)

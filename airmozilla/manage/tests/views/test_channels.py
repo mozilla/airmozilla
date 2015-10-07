@@ -33,7 +33,8 @@ class TestChannels(ManageTestCase):
                 'name': ' Web Dev ',
                 'slug': 'web-dev',
                 'description': '<h1>Stuff</h1>',
-                'image_is_banner': True
+                'image_is_banner': True,
+                'feed_size': 10,
             }
         )
         self.assertRedirects(response_ok, reverse('manage:channels'))
@@ -54,7 +55,8 @@ class TestChannels(ManageTestCase):
             {
                 'name': 'Different',
                 'slug': 'different',
-                'description': '<p>Other things</p>'
+                'description': '<p>Other things</p>',
+                'feed_size': 10,
             }
         )
         eq_(response.status_code, 302)
@@ -73,6 +75,7 @@ class TestChannels(ManageTestCase):
                 'description': '<p>Other things</p>',
                 'never_show': True,
                 'always_show': True,
+                'feed_size': 10,
             }
         )
         eq_(response.status_code, 200)
@@ -100,6 +103,7 @@ class TestChannels(ManageTestCase):
                 'slug': 'different',
                 'description': '<p>Other things</p>',
                 'parent': main.pk,
+                'feed_size': 10,
             }
         )
         eq_(response.status_code, 302)
