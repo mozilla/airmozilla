@@ -12,20 +12,6 @@
     <button type="button" ng-click="startCamera()">Start Camera</button>
   </div>
 
-  <div class="alert alert-danger" ng-show="showFirefoxE10SWarning" ng-cloak>
-    <a title="Yeah yeah, I get it" class="close" ng-click="hideFirefoxE10SWarning()">&times;</a>
-    <h4>Careful!</h4>
-    <p>
-      If you use <b>Firefox version 40 or 41</b> and you have
-      <a href="https://wiki.mozilla.org/Electrolysis">Electrolysis</a>
-      (aka. e10s, aka. multi-process), it's known to crash the
-      browser when you've made a recording and attempt to upload it. <br>
-      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1167730"
-      >bug 1167730</a> for an update.<br>
-      To be able to proceed, disable "Multi-process" in your Firefox Preferences.
-    </p>
-  </div>
-
   <div ng-if="enableScreenCapture">
     <h4>Experimental features</h4>
     <button type="button" ng-click="startScreenCapture()">Start Screen capture</button>
