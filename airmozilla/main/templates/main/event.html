@@ -2,7 +2,7 @@
 {% set page='explore' %}
 
 {% block page_title %}
-{{ event.title }} | {{ super() }}
+{{ event.get_unique_title() }} | {{ super() }}
 {% endblock %}
 
 {% block site_css %}
@@ -16,7 +16,7 @@
 
 {% block extra_head %}
 <meta name="keywords" content="{{ ','.join(tags) }}">
-<meta property="og:title" content="{{ event.title }}">
+<meta property="og:title" content="{{ event.get_unique_title() }}">
 <meta property="og:url" content="{{ make_absolute(url('main:event', event.slug)) }}">
 <meta property="og:description" content="{{ short_desc(event, strip_html=True) }}">
 {# these are the same dimensions as used in Roku thumbnails #}

@@ -11,7 +11,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.db.models import Q
 
-from airmozilla.base.utils import unique_slugify
+from airmozilla.base.utils import unique_slugify, roughly
 from airmozilla.main.fields import EnvironmentField
 from airmozilla.manage.utils import filename_to_notes
 
@@ -450,6 +450,34 @@ class Event(models.Model):
         tz = pytz.timezone(self.location.timezone)
         return tz.normalize(self.start_time)
 
+    def has_unique_title(self):
+        return not (
+            Event.objects
+            .filter(title=self.title)
+            .exclude(id=self.id)
+            .exists()
+        )
+
+    def get_unique_title(self):
+        cache_key = 'unique_title_{}'.format(self.id)
+        value = cache.get(cache_key)
+        if value is None:
+            value = self._get_unique_title()
+            cache.set(cache_key, value, roughly(60 * 60 * 5))
+        return value
+
+    def _get_unique_title(self):
+        if self.has_unique_title():
+            return self.title
+        else:
+            start_time = self.start_time
+            if self.location:
+                start_time = self.location_time
+            return '{}, {}'.format(
+                self.title,
+                start_time.strftime('%d %b %Y')
+            )
+
 
 def most_recent_event():
     cache_key = 'most_recent_event'
@@ -472,6 +500,13 @@ def reset_event_status_cache(sender, instance, **kwargs):
         hashlib.md5(instance.slug).hexdigest()
     )
     cache.delete(cache_key)
+
+
+@receiver(models.signals.post_save, sender=Event)
+def reset_event_unique_title(sender, instance, **kwargs):
+    for event in Event.objects.filter(title=instance.title):
+        cache_key = 'unique_title_{}'.format(event.id)
+        cache.delete(cache_key)
 
 
 class EventEmail(models.Model):

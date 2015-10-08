@@ -44,6 +44,17 @@ class TestMisc(TestCase):
         url = utils.get_abs_static('/img/firefox.png', rq)
         eq_(url, 'http://testserver/img/firefox.png')
 
+    def test_roughly(self):
+        numbers = []
+        for i in range(100):
+            numbers.append(utils.roughly(100, 10))
+        # expect at least one of them to be less than 100
+        ok_([x for x in numbers if x < 100])
+        # same the other way
+        ok_([x for x in numbers if x > 100])
+        ok_(min(numbers) >= 90)
+        ok_(max(numbers) <= 110)
+
 
 class _Communicator(object):
     def __init__(self, response):

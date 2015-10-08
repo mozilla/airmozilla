@@ -79,6 +79,37 @@ class EventTests(DjangoTestCase):
         event1.save()
         eq_(most_recent_event(), event1)
 
+    def test_has_unique_title(self):
+        event, = Event.objects.all()
+        ok_(event.has_unique_title())
+        # create another event
+        Event.objects.create(
+            title=event.title,
+            slug='other',
+            start_time=timezone.now(),
+        )
+        ok_(not event.has_unique_title())
+        event.title += ' difference'
+        event.save()
+        ok_(event.has_unique_title())
+
+    def test_get_unique_title(self):
+        event, = Event.objects.all()
+        assert event.has_unique_title()
+        eq_(event.get_unique_title(), event.title)
+        Event.objects.create(
+            title=event.title,
+            slug='other',
+            start_time=timezone.now(),
+        )
+        assert not event.has_unique_title()
+        unique_title = event.get_unique_title()
+        ok_(unique_title != event.title)
+
+        event.title += ' difference'
+        event.save()
+        eq_(event.get_unique_title(), event.title)
+
 
 class EventStateTests(DjangoTestCase):
 

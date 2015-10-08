@@ -5,6 +5,7 @@ import urllib
 import subprocess
 import os
 import urlparse
+import random
 
 import pytz
 import requests
@@ -21,6 +22,21 @@ from django.forms.utils import ErrorList
 from funfactory.helpers import static
 
 from airmozilla.base.akamai_token_v2 import AkamaiToken
+
+
+def roughly(number, variance_percentage=20):
+    """return a number that is roughly what you inputted but
+    slightly smaller or slightly bigger.
+
+    For example, if you feed it 100, return 96 or 117 or 91 or 102.
+    Basically, take or add a certain percentage to the number.
+
+    This is useful if you stuff a lot of stuff in the cache and don't
+    want them all to expire at the same time but instead stagger
+    the expiration times a bit.
+    """
+    percentage = random.randint(-variance_percentage, variance_percentage)
+    return int(number * (1 + percentage / 100.0))
 
 
 def simplify_form_errors(errors):
