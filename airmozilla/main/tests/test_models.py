@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 
 from django.contrib.auth.models import Group, User
@@ -95,6 +97,8 @@ class EventTests(DjangoTestCase):
 
     def test_get_unique_title(self):
         event, = Event.objects.all()
+        event.title += u' Swëdish'
+        event.save()
         assert event.has_unique_title()
         eq_(event.get_unique_title(), event.title)
         Event.objects.create(

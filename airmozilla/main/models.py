@@ -473,7 +473,7 @@ class Event(models.Model):
             start_time = self.start_time
             if self.location:
                 start_time = self.location_time
-            return '{}, {}'.format(
+            return u'{}, {}'.format(
                 self.title,
                 start_time.strftime('%d %b %Y')
             )
