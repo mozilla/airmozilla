@@ -79,7 +79,7 @@ class EventsFeed(Feed):
         return qs[:self._channel.feed_size]
 
     def item_title(self, event):
-        return event.title
+        return event.get_unique_title()
 
     def item_link(self, event):
         if self.format_type in ('webm', 'mp4'):
@@ -310,6 +310,9 @@ class ITunesFeed(EventsFeed):
 
     def item_description(self, event):
         return event.description
+
+    def item_title(self, event):
+        return event.get_unique_title()
 
     def item_author_name(self, event):  # override the super
         return None

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re
 import os
 import datetime
@@ -112,6 +114,43 @@ class TestFeeds(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
+
+    def test_feed_non_unique_titles(self):
+        event = Event.objects.get(title='Test event')
+        assert event.status == Event.STATUS_SCHEDULED
+        assert event.privacy == Event.PRIVACY_PUBLIC
+        assert event.start_time
+        event.title = u'Färjreföx'
+        event.archive_time = timezone.now()
+        event.save()
+
+        # use a different channel to avoid getting caught in page ccaching
+        channel = Channel.objects.create(
+            name='Stuff', slug='stuff'
+        )
+        event.channels.add(channel)
+        # create a clone
+        other_event = Event.objects.create(
+            title=event.title,
+            slug='different',
+            privacy=event.privacy,
+            start_time=event.start_time - datetime.timedelta(days=1),
+            archive_time=timezone.now(),
+            template_environment=event.template_environment,
+            template=event.template,
+            status=event.status,
+        )
+        other_event.channels.add(channel)
+
+        url = reverse('main:channel_feed_default', args=('stuff',))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        assert response.content.count('<item>') == 2
+        title_regex = re.compile('<title>(.*?)</title>')
+        _, item_title1, item_title2 = title_regex.findall(response.content)
+        # Because they're non-unique they should have been separated
+        # with the events' `get_unique_title()` method.
+        ok_(item_title1 != item_title2)
 
     def test_feed_unapproved_events(self):
         event = Event.objects.get(title='Test event')
@@ -440,3 +479,53 @@ class TestFeeds(DjangoTestCase):
         assert '<item>' in response.content
         xml_ = response.content.split('<item>')[1].split('</item>')[0]
         ok_(event.title in xml_)
+
+    @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
+    def test_itunes_feed_with_repeated_titles(self, r_get_redirect_info):
+
+        def mocked_get_redirect_info(tag, format_, hd=False, expires=60):
+            return {
+                'url': 'http://cdn.vidly/file.mp4',
+                'type': 'video/mp4',
+                'length': '1234567',
+            }
+
+        r_get_redirect_info.side_effect = mocked_get_redirect_info
+
+        event = Event.objects.get(title='Test event')
+        event.title = u'Nånting på svenska'
+        event.save()
+        event.archive_time = timezone.now()
+        event.template_environment = {'tag': 'abc123'}
+        event.duration = 60
+        event.save()
+        event.template.name = 'Vid.ly something'
+        event.template.save()
+        assert event in Event.objects.archived()
+        assert event.channels.filter(slug=settings.DEFAULT_CHANNEL_SLUG)
+
+        # now create a clone with the same title
+        other_event = Event.objects.create(
+            title=event.title,
+            slug='other',
+            start_time=event.start_time - datetime.timedelta(days=1),
+            archive_time=timezone.now(),
+            template_environment=event.template_environment,
+            template=event.template,
+            privacy=event.privacy,
+            status=event.status,
+            duration=event.duration,
+        )
+        for channel in event.channels.all():
+            other_event.channels.add(channel)
+        assert other_event in Event.objects.archived()
+
+        url = reverse('main:itunes_feed')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        assert response.content.count('<item>') == 2
+        title_regex = re.compile('<title>(.*?)</title>')
+        _, item_title1, item_title2 = title_regex.findall(response.content)
+        # Because they're non-unique they should have been separated
+        # with the events' `get_unique_title()` method.
+        ok_(item_title1 != item_title2)
