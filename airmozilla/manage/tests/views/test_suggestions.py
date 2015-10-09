@@ -204,6 +204,12 @@ class TestSuggestions(ManageTestCase):
         ok_(location.name in response.content)
         ok_(event.get_privacy_display() in response.content)
         ok_('vidyo room' in response.content)
+        # Expect there to be a "Approve" and "Bounce back" button
+        # on the page.
+        ok_(
+            'Approve' in response.content and
+            'Bounce back' in response.content
+        )
 
         response = self.client.post(url)
         eq_(response.status_code, 302)
@@ -239,6 +245,15 @@ class TestSuggestions(ManageTestCase):
         # expect the link to the summary is in there
         summary_url = reverse('suggest:summary', args=(event.pk,))
         ok_(summary_url in email_sent.body)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # The "Approve" and "Bounce back" buttons should now be gone
+        ok_(not (
+            'Approve' in response.content and
+            'Bounce back' in response.content
+        ))
+        ok_(reverse('manage:event_edit', args=(real.id,)) in response.content)
 
     def test_approve_suggested_event_pre_recorded(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')

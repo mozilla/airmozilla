@@ -189,6 +189,12 @@
   {{ real_event_form.errors }}
   {% endif %}
 
+  {% if event.accepted %}
+    <p>
+      Already turned into
+      <a href="{{ url('manage:event_edit', event.accepted.id) }}">an accepted event</a>.
+    </p>
+  {% else %}
   {% if event.submitted %}
   <form method="post" class="form-horizontal">
     {{ csrf() }}
@@ -214,7 +220,7 @@
       the original submitter.</p>
     </div>
   {% endif %}
-
+  {% endif %}
 
 <div class="comments">
   <h3>Additional comments</h3>
