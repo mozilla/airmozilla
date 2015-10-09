@@ -464,6 +464,8 @@ class Event(models.Model):
         if value is None:
             value = self._get_unique_title()
             cache.set(cache_key, value, roughly(60 * 60 * 5))
+        else:
+            assert isinstance(value, unicode)
         return value
 
     def _get_unique_title(self):
