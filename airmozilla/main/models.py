@@ -10,6 +10,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.utils import timezone
 from django.db.models import Q
+from django.utils.encoding import smart_text
 
 from airmozilla.base.utils import unique_slugify, roughly
 from airmozilla.main.fields import EnvironmentField
@@ -465,7 +466,10 @@ class Event(models.Model):
             value = self._get_unique_title()
             cache.set(cache_key, value, roughly(60 * 60 * 5))
         else:
-            assert isinstance(value, unicode)
+            # When it comes out of memcache (not LocMemCache) it comes
+            # out as a byte string. smart_text() always returns a
+            # unicode string even if you pass in a unicode string.
+            value = smart_text(value)
         return value
 
     def _get_unique_title(self):
