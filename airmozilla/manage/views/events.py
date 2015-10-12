@@ -651,7 +651,10 @@ def event_edit_duration(request, id):
                 )
                 new_duration = Event.objects.get(id=event.id).duration
                 if new_duration is not None:
-                    new_duration = show_duration(new_duration)
+                    new_duration = show_duration(
+                        new_duration,
+                        include_seconds=True
+                    )
                 messages.success(
                     request,
                     'Duration re-set to %s' % new_duration
