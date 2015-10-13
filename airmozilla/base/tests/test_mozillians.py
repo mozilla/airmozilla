@@ -1,5 +1,4 @@
 import json
-import random
 
 from django.conf import settings
 from django.test import TestCase
@@ -12,40 +11,134 @@ from airmozilla.base import mozillians
 from airmozilla.base.tests.testbase import Response
 
 
+VOUCHED_FOR_USERS = """
+{
+  "count": 1,
+  "next": null,
+  "results": [
+    {
+      "username": "peterbe",
+      "_url": "https://muzillians.fake/api/v2/users/99999/",
+      "is_vouched": true
+    }
+  ],
+  "previous": null
+}
+"""
+
+NO_USERS = """
+{
+  "count": 0,
+  "next": null,
+  "results": [],
+  "previous": null
+}
+"""
+
 VOUCHED_FOR = """
 {
-  "meta": {
-    "previous": null,
-    "total_count": 1,
-    "offset": 0,
-    "limit": 20,
-    "next": null
+  "photo": {
+    "300x300": "https://muzillians.fake/media/uplo...1caee0.jpg",
+    "150x150": "https://muzillians.fake/media/uplo...5636261.jpg",
+    "500x500": "https://muzillians.fake/media/uplo...6465a73.jpg",
+    "value": "https://muzillians.fake/media/uploa...71caee0.jpg",
+    "privacy": "Public"
   },
-  "objects": [
+  "date_mozillian": {
+    "value": null,
+    "privacy": "Mozillians"
+  },
+  "full_name": {
+    "value": "Peter Bengtsson",
+    "privacy": "Public"
+  },
+  "title": {
+    "value": "",
+    "privacy": "Mozillians"
+  },
+  "external_accounts": [],
+  "alternate_emails": [],
+  "email": {
+    "value": "peterbe@mozilla.com",
+    "privacy": "Mozillians"
+  },
+  "username": "peterbe",
+  "is_public": true,
+  "url": "https://muzillians.fake/en-US/u/peterbe/",
+  "country": {
+    "code": "us",
+    "value": "United States",
+    "privacy": "Public"
+  },
+  "websites": [
     {
-      "website": "",
-      "bio": "",
-      "resource_uri": "/api/v1/users/2429/",
-      "last_updated": "2012-11-06T14:41:47",
-      "groups": [
-        "ugly tuna"
-      ],
-      "city": "Casino",
-      "skills": [],
-      "country": "Albania",
-      "region": "Bush",
-      "id": "2429",
-      "languages": [],
-      "allows_mozilla_sites": true,
-      "photo": "http://www.gravatar.com/avatar/0409b497734934400822bb33...",
-      "is_vouched": true,
-      "url": "https://mozillians.org/u/peterbe",
-      "email": "peterbe@gmail.com",
-      "ircname": "",
-      "allows_community_sites": true,
-      "full_name": "Peter Bengtsson"
+      "website": "http://www.peterbe.com/",
+      "privacy": "Public"
     }
-  ]
+  ],
+  "_url": "https://muzillians.fake/api/v2/users/441/",
+  "story_link": {
+    "value": "",
+    "privacy": "Mozillians"
+  },
+  "ircname": {
+    "value": "peterbe",
+    "privacy": "Public"
+  },
+  "is_vouched": true
+}
+"""
+
+NOT_VOUCHED_FOR = """
+{
+  "photo": {
+    "300x300": "https://muzillians.fake/media/uplo...1caee0.jpg",
+    "150x150": "https://muzillians.fake/media/uplo...5636261.jpg",
+    "500x500": "https://muzillians.fake/media/uplo...6465a73.jpg",
+    "value": "https://muzillians.fake/media/uploa...71caee0.jpg",
+    "privacy": "Public"
+  },
+  "date_mozillian": {
+    "value": null,
+    "privacy": "Mozillians"
+  },
+  "full_name": {
+    "value": "Peter Bengtsson",
+    "privacy": "Private"
+  },
+  "title": {
+    "value": "",
+    "privacy": "Mozillians"
+  },
+  "alternate_emails": [],
+  "email": {
+    "value": "peterbe@mozilla.com",
+    "privacy": "Mozillians"
+  },
+  "username": "tmickel",
+  "bio": {
+    "html": "<p>Web developer at Mozilla</p>",
+    "value": "Web developer at Mozilla",
+    "privacy": "Public"
+  },
+  "is_public": true,
+  "url": "https://muzillians.fake/en-US/u/peterbe/",
+  "websites": [
+    {
+      "website": "http://www.peterbe.com/",
+      "privacy": "Public"
+    }
+  ],
+  "_url": "https://muzillians.fake/api/v2/users/441/",
+  "story_link": {
+    "value": "",
+    "privacy": "Mozillians"
+  },
+  "ircname": {
+    "value": "peterbe",
+    "privacy": "Public"
+  },
+  "is_vouched": false
 }
 """
 
@@ -84,39 +177,18 @@ VOUCHED_FOR_NO_USERNAME = """
 }
 """
 
-NOT_VOUCHED_FOR = """
+NOT_VOUCHED_FOR_USERS = """
 {
-  "meta": {
-    "previous": null,
-    "total_count": 1,
-    "offset": 0,
-    "limit": 20,
-    "next": null
-  },
-  "objects": [
+  "count": 1,
+  "next": null,
+  "results": [
     {
-      "website": "http://www.peterbe.com/",
-      "bio": "",
-      "resource_uri": "/api/v1/users/2430/",
-      "last_updated": "2012-11-06T15:37:35",
-      "groups": [
-        "no beard"
-      ],
-      "city": "<style>p{font-style:italic}</style>",
-      "skills": [],
-      "country": "Heard Island and McDonald Islands",
-      "region": "Drunk",
-      "id": "2430",
-      "languages": [],
-      "allows_mozilla_sites": true,
-      "photo": "http://www.gravatar.com/avatar/23c6d359b6f7af3d3f91ca9e17...",
-      "is_vouched": false,
-      "email": "tmickel@mit.edu",
-      "ircname": "",
-      "allows_community_sites": true,
-      "full_name": null
+      "username": "tmickel@mit.edu",
+      "_url": "https://muzillians.fake/api/v2/users/00000/",
+      "is_vouched": false
     }
-  ]
+  ],
+  "previous": null
 }
 """
 
@@ -134,129 +206,64 @@ NO_VOUCHED_FOR = """
 """
 
 
-IN_GROUPS = """
+GROUPS1 = """
 {
-  "meta": {
-    "previous": null,
-    "total_count": 1,
-    "offset": 0,
-    "limit": 20,
-    "next": null
-  },
-  "objects": [
+  "count": 3,
+  "previous": null,
+  "results": [
     {
-      "photo": "",
-      "date_mozillian": null,
-      "accounts": [],
-      "full_name": "Peter Bengtsson",
-      "timezone": "",
-      "id": "14321",
-      "city": "",
-      "vouched_by": 8045,
-      "date_vouched": "2014-02-07T15:07:31",
-      "languages": [],
-      "allows_mozilla_sites": true,
-      "email": "peterbe@gmail.com",
-      "username": "mail_peterbe",
-      "bio": "",
-      "groups": [
-        "winners",
-        "swedes"
-      ],
-      "allows_community_sites": true,
-      "skills": [],
-      "country": "af",
-      "region": "",
-      "url": "https://mozillians.allizom.org/u/mail_peterbe/",
-      "is_vouched": true,
-      "ircname": "",
-      "resource_uri": "/api/v1/users/14321/"
+      "url": "https://muzillians.fake/en-US/group/9090909/",
+      "_url": "https://muzillians.fake/api/v2/groups/909090/",
+      "id": 12426,
+      "member_count": 3,
+      "name": "GROUP NUMBER 1"
+    },
+    {
+      "url": "https://muzillians.fake/en-US/group/2009-intern/",
+      "_url": "https://muzillians.fake/api/v2/groups/08080808/",
+      "id": 196,
+      "member_count": 7,
+      "name": "GROUP NUMBER 2"
     }
-  ]
+  ],
+  "next": "https://muzillians.fake/api/v2/groups/?api-key=xxxkey&page=2"
 }
 """
 
-
-def _random_groups(n):
-    all = []
-    while len(all) < n:
-        templ = """
-        {
-          "url": "https://mozillians.allizom.org/group/group-%(id)s/",
-          "resource_uri": "/api/v1/groups/%(id)s/",
-          "number_of_members": %(members)s,
-          "id": "%(id)s",
-          "name": "group %(id)s"
-        }
-        """
-        context = {
-            'id': random.randint(0, 10000),
-            'members': random.randint(1, 25)
-        }
-        all.append((templ % context).strip())
-    return all
-
-
-GROUPS1 = """
-{
-  "meta": {
-    "previous": null,
-    "total_count": 750,
-    "offset": 0,
-    "limit": 500,
-    "next": "/api/v1/groups/?limit=500&offset=5&order_by=name"
-  },
-  "objects": [
-    {
-      "url": "https://mozillians.allizom.org/group/group-number-1/",
-      "resource_uri": "/api/v1/groups/number-1/",
-      "number_of_members": 3,
-      "id": "12189",
-      "name": "GROUP NUMBER 1"
-    },
-    %s
-  ]
-}
-""" % ',\n'.join(_random_groups(499))
-
 GROUPS2 = """
 {
-  "meta": {
-    "previous": null,
-    "total_count": 750,
-    "offset": 500,
-    "limit": 500,
-    "next": "/api/v1/groups/?limit=500&app_name=xxx&offset=5&order_by=name"
-  },
-  "objects": [
+  "count": 3,
+  "previous": "https://muzillians.fake/api/v2/groups/?api-key=xxxkey",
+  "results": [
     {
-      "url": "https://mozillians.allizom.org/group/group-number-2/",
-      "resource_uri": "/api/v1/groups/number-2/",
-      "number_of_members": 3,
-      "id": "12189",
-      "name": "GROUP NUMBER 2"
-    },
-    %s
-  ]
+      "url": "https://muzillians.fake/en-US/group/2013summitassembly/",
+      "_url": "https://muzillians.fake/api/v2/groups/02020202/",
+      "id": 2002020,
+      "member_count": 53,
+      "name": "GROUP NUMBER 3"
+    }
+  ],
+  "next": null
 }
-""" % ',\n'.join(_random_groups(249))
+"""
 
+assert json.loads(VOUCHED_FOR_USERS)
 assert json.loads(VOUCHED_FOR)
-assert json.loads(NOT_VOUCHED_FOR)
+assert json.loads(NOT_VOUCHED_FOR_USERS)
 assert json.loads(NO_VOUCHED_FOR)
-assert json.loads(IN_GROUPS)
+assert json.loads(GROUPS1)
+assert json.loads(GROUPS2)
 
 
 class TestMozillians(TestCase):
 
-    @mock.patch('logging.error')
     @mock.patch('requests.get')
-    def test_is_vouched(self, rget, rlogging):
+    def test_is_vouched(self, rget):
         def mocked_get(url, **options):
             if 'tmickel' in url:
-                return Response(NOT_VOUCHED_FOR)
+                return Response(NOT_VOUCHED_FOR_USERS)
             if 'peterbe' in url:
-                return Response(VOUCHED_FOR)
+                return Response(VOUCHED_FOR_USERS)
             if 'trouble' in url:
                 return Response('Failed', status_code=500)
             raise NotImplementedError(url)
@@ -274,28 +281,30 @@ class TestMozillians(TestCase):
         try:
             mozillians.is_vouched('trouble@live.com')
             raise
-        except mozillians.BadStatusCodeError, msg:
+        except mozillians.BadStatusCodeError as msg:
             ok_(settings.MOZILLIANS_API_KEY not in str(msg))
 
-    @mock.patch('logging.error')
     @mock.patch('requests.get')
-    def test_is_not_vouched(self, rget, rlogging):
+    def test_is_not_vouched(self, rget):
         def mocked_get(url, **options):
             if 'tmickel' in url:
-                return Response(NO_VOUCHED_FOR)
+                return Response(NOT_VOUCHED_FOR_USERS)
             raise NotImplementedError(url)
         rget.side_effect = mocked_get
 
         ok_(not mozillians.is_vouched('tmickel@mit.edu'))
 
-    @mock.patch('logging.error')
     @mock.patch('requests.get')
-    def test_fetch_user_name(self, rget, rlogging):
+    def test_fetch_user_name(self, rget):
         def mocked_get(url, **options):
-            if 'peterbe' in url:
+            if '/v2/users/99999' in url:
                 return Response(VOUCHED_FOR)
-            if 'tmickel' in url:
+            if '/v2/users/00000' in url:
                 return Response(NOT_VOUCHED_FOR)
+            if 'peterbe' in url:
+                return Response(VOUCHED_FOR_USERS)
+            if 'tmickel' in url:
+                return Response(NOT_VOUCHED_FOR_USERS)
             raise NotImplementedError(url)
         rget.side_effect = mocked_get
 
@@ -304,72 +313,107 @@ class TestMozillians(TestCase):
         result = mozillians.fetch_user_name('tmickel@mit.edu')
         eq_(result, None)
 
-    @mock.patch('logging.error')
     @mock.patch('requests.get')
-    def test_fetch_user_name_no_user_name(self, rget, rlogging):
+    def test_fetch_user_name_failure(self, rget):
+        """if the fetching of a single user barfs it shouldn't reveal
+        the API key"""
+
         def mocked_get(url, **options):
             if 'peterbe' in url:
+                return Response(VOUCHED_FOR_USERS)
+            return Response('Failed', status_code=500)
+
+        rget.side_effect = mocked_get
+
+        try:
+            mozillians.fetch_user('peterbe@gmail.com')
+            raise AssertionError("shouldn't happen")
+        except mozillians.BadStatusCodeError as msg:
+            ok_(settings.MOZILLIANS_API_KEY not in str(msg))
+            ok_('xxxscrubbedxxx' in str(msg))
+
+    @mock.patch('requests.get')
+    def test_fetch_user_name_no_user_name(self, rget):
+        def mocked_get(url, **options):
+            if '/v2/users/99999' in url:
                 return Response(VOUCHED_FOR_NO_USERNAME)
+            if 'peterbe' in url and '/v2/users/' in url:
+                return Response(VOUCHED_FOR_USERS)
             raise NotImplementedError(url)
         rget.side_effect = mocked_get
 
         result = mozillians.fetch_user_name('peterbe@gmail.com')
-        eq_(result, '')
+        eq_(result, None)
 
-    @mock.patch('logging.error')
     @mock.patch('requests.get')
-    def test_in_groups(self, rget, rlogging):
+    def test_in_group(self, rget):
 
         def mocked_get(url, **options):
             if 'peterbe' in url:
-                return Response(IN_GROUPS)
+                if 'group=losers' in url:
+                    return Response(NO_USERS)
+                if 'group=winners' in url:
+                    return Response(VOUCHED_FOR_USERS)
             raise NotImplementedError(url)
         rget.side_effect = mocked_get
 
-        ok_(not mozillians.in_groups('peterbe@gmail.com', 'losers'))
-        ok_(mozillians.in_groups('peterbe@gmail.com', 'winners'))
-        ok_(mozillians.in_groups('peterbe@gmail.com', ['winners', 'losers']))
+        ok_(not mozillians.in_group('peterbe@gmail.com', 'losers'))
+        ok_(mozillians.in_group('peterbe@gmail.com', 'winners'))
 
-    @mock.patch('logging.error')
     @mock.patch('requests.get')
-    def test_get_all_groups(self, rget, rlogging):
+    def test_get_all_groups(self, rget):
         calls = []
 
         def mocked_get(url, **options):
             calls.append(url)
-            if 'offset=0' in url:
-                return Response(GROUPS1)
-            if 'offset=500' in url:
+            if '/v2/groups/' in url and 'page=2' in url:
                 return Response(GROUPS2)
+            if '/v2/groups/' in url:
+                return Response(GROUPS1)
             raise NotImplementedError(url)
         rget.side_effect = mocked_get
 
         all = mozillians.get_all_groups()
-        eq_(len(all), 750)
+        eq_(len(all), 3)
         eq_(all[0]['name'], 'GROUP NUMBER 1')
-        eq_(all[500]['name'], 'GROUP NUMBER 2')
+        eq_(all[1]['name'], 'GROUP NUMBER 2')
+        eq_(all[2]['name'], 'GROUP NUMBER 3')
         eq_(len(calls), 2)
 
-    @mock.patch('logging.error')
     @mock.patch('requests.get')
-    def test_get_all_groups_cached(self, rget, rlogging):
+    def test_get_all_groups_failure(self, rget):
+
+        def mocked_get(url, **options):
+            return Response('Failed', status_code=500)
+
+        rget.side_effect = mocked_get
+
+        try:
+            mozillians.get_all_groups()
+            raise AssertionError("shouldn't happen")
+        except mozillians.BadStatusCodeError as msg:
+            ok_(settings.MOZILLIANS_API_KEY not in str(msg))
+            ok_('xxxscrubbedxxx' in str(msg))
+
+    @mock.patch('requests.get')
+    def test_get_all_groups_cached(self, rget):
         cache.clear()
         calls = []
 
         def mocked_get(url, **options):
             calls.append(url)
-            if 'offset=0' in url:
-                return Response(GROUPS1)
-            if 'offset=500' in url:
+            if '/v2/groups/' in url and 'page=2' in url:
                 return Response(GROUPS2)
+            if '/v2/groups/' in url:
+                return Response(GROUPS1)
             raise NotImplementedError(url)
         rget.side_effect = mocked_get
 
         all = mozillians.get_all_groups_cached()
-        eq_(len(all), 750)
+        eq_(len(all), 3)
         eq_(len(calls), 2)
 
         # a second time
         all = mozillians.get_all_groups_cached()
-        eq_(len(all), 750)
+        eq_(len(all), 3)
         eq_(len(calls), 2)

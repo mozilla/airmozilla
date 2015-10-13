@@ -225,9 +225,8 @@ def can_view_event(event, user):
             CuratedGroup.objects.filter(event=event).values_list('name')
         ]
         if curated_groups:
-            return mozillians.in_groups(
-                user.email,
-                curated_groups
+            return any(
+                [mozillians.in_group(user.email, x) for x in curated_groups]
             )
 
     return True
@@ -960,6 +959,7 @@ def contributors(request):
     if users is None:
         users = mozillians.get_contributors()
         cache.set(cache_key, users, 60 * 60 * 24)
+
     context['users'] = reversed(users)
     return render(request, 'main/contributors.html', context)
 

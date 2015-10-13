@@ -41,7 +41,9 @@ from airmozilla.base.tests.test_mozillians import (
     Response,
     GROUPS1,
     GROUPS2,
-    VOUCHED_FOR
+    VOUCHED_FOR,
+    VOUCHED_FOR_USERS,
+    NO_USERS,
 )
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -2402,14 +2404,17 @@ class TestPages(DjangoTestCase):
     @mock.patch('requests.get')
     def test_view_curated_group_event(self, rget, rlogging):
 
+        calls = []
+
         def mocked_get(url, **options):
+            calls.append(url)
             if 'peterbe' in url:
-                return Response(VOUCHED_FOR)
-            if 'offset=0' in url:
-                return Response(GROUPS1)
-            if 'offset=500' in url:
-                return Response(GROUPS2)
+                if 'group=vip' in url:
+                    return Response(NO_USERS)
+                else:
+                    return Response(VOUCHED_FOR_USERS)
             raise NotImplementedError(url)
+
         rget.side_effect = mocked_get
 
         # sign in as a contributor
@@ -2883,25 +2888,41 @@ class TestPages(DjangoTestCase):
     @mock.patch('requests.get')
     def test_contributors_page(self, rget):
 
+        calls = []
+
         def mocked_get(url, **options):
-            # we need to deconstruct the NO_VOUCHED_FOR fixture
-            # and put it together with some dummy data
-            result = json.loads(VOUCHED_FOR)
-            objects = result['objects']
-            assert len(objects) == 1
-            objects[0]['username'] = 'peterbe'
-            cp = copy.copy(objects[0])
-            cp['username'] = 'nophoto'
-            cp['photo'] = ''
-            objects.append(cp)
-            cp = copy.copy(cp)
-            cp['username'] = 'notvouched'
-            cp['photo'] = 'http://imgur.com/a.jpg'
-            cp['is_vouched'] = False
-            objects.append(cp)
-            result['objects'] = objects
-            assert len(objects) == 3
-            return Response(json.dumps(result))
+            # This will get used 3 times.
+            # 1st time to query for all users in the group.
+            # 2nd time to get the details for the first user
+            # 3nd time to get the details for the second user
+            calls.append(url)
+
+            if '/users/99999' in url:
+                return Response(VOUCHED_FOR)
+
+            if '/users/88888' in url:
+                result = json.loads(VOUCHED_FOR)
+                result['username'] = 'nophoto'
+                result['photo']['privacy'] = 'Mozillians'
+                result['url'] = result['url'].replace('peterbe', 'nophoto')
+                return Response(json.dumps(result))
+
+            if '?group=air+mozilla+contributors' in url:
+                # we need to deconstruct the VOUCHED_FOR_USERS fixture
+                # and put it together with some dummy data
+                result = json.loads(VOUCHED_FOR_USERS)
+                results = result['results']
+                assert len(results) == 1
+                assert results[0]['username'] == 'peterbe'  # know thy fixtures
+                cp = copy.copy(results[0])  # deep copy
+                cp['username'] = 'nophoto'
+                cp['_url'] = cp['_url'].replace('/99999', '/88888')
+                results.append(cp)
+
+                assert len(results) == 2
+                return Response(json.dumps(result))
+
+            raise NotImplementedError(url)
 
         rget.side_effect = mocked_get
 
@@ -2915,9 +2936,16 @@ class TestPages(DjangoTestCase):
         with self.settings(CONTRIBUTORS=contributors):
             response = self.client.get(url)
             eq_(response.status_code, 200)
-            user = json.loads(VOUCHED_FOR)['objects'][0]
-            ok_(user['full_name'] in response.content)
-            ok_(user['url'] in response.content)
+            ok_(
+                'href="https://muzillians.fake/en-US/u/peterbe/"' in
+                response.content
+            )
+            ok_(
+                'href="https://muzillians.fake/en-US/u/nophoto/"' not in
+                response.content
+            )
+
+            assert len(calls) == 3
 
     def test_event_duration(self):
         event = Event.objects.get(title='Test event')

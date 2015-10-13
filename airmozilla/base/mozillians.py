@@ -12,28 +12,40 @@ class BadStatusCodeError(Exception):
     pass
 
 
-def _fetch_users(email=None, groups=None, is_username=False):
+def _fetch_users(email=None, group=None, is_username=False, **options):
     if not getattr(settings, 'MOZILLIANS_API_KEY', None):  # pragma no cover
         logging.warning("'MOZILLIANS_API_KEY' not set up.")
         return False
 
-    # /api/v1/users/?app_name=foobar&app_key=12345&email=test@example.com
-    url = settings.MOZILLIANS_API_BASE + '/api/v1/users/'
-    data = {
-        'app_name': settings.MOZILLIANS_API_APPNAME,
-        'app_key': settings.MOZILLIANS_API_KEY,
-    }
+    url = settings.MOZILLIANS_API_BASE + '/api/v2/users/'
+    options['api-key'] = settings.MOZILLIANS_API_KEY
     if email:
         if is_username:
-            data['username'] = email
+            options['username'] = email
         else:
-            data['email'] = email
-    if groups:
-        data['groups'] = ','.join(groups)
-    url += '?' + urllib.urlencode(data)
+            options['email'] = email
+    if group:
+        if isinstance(group, (list, tuple)):  # pragma: no cover
+            raise NotImplementedError(
+                'You can not find users by MULTIPLE groups'
+            )
+        options['group'] = group
+    url += '?' + urllib.urlencode(options)
 
     resp = requests.get(url)
-    if not resp.status_code == 200:
+    if resp.status_code != 200:
+        url = url.replace(settings.MOZILLIANS_API_KEY, 'xxxscrubbedxxx')
+        raise BadStatusCodeError('%s: on: %s' % (resp.status_code, url))
+    return json.loads(resp.content)
+
+
+def _fetch_user(url):
+    options = {}
+    assert 'api-key=' not in url, url
+    options['api-key'] = settings.MOZILLIANS_API_KEY
+    url += '?' + urllib.urlencode(options)
+    resp = requests.get(url)
+    if resp.status_code != 200:
         url = url.replace(settings.MOZILLIANS_API_KEY, 'xxxscrubbedxxx')
         raise BadStatusCodeError('%s: on: %s' % (resp.status_code, url))
     return json.loads(resp.content)
@@ -42,91 +54,78 @@ def _fetch_users(email=None, groups=None, is_username=False):
 def is_vouched(email):
     content = _fetch_users(email)
     if content:
-        for obj in content['objects']:
-            if obj['email'].lower() == email.lower():
-                return obj['is_vouched']
+        for obj in content['results']:
+            return obj['is_vouched']
     return False
 
 
 def fetch_user(email, is_username=False):
     content = _fetch_users(email, is_username=is_username)
     if content:
-        for obj in content['objects']:
-            return obj
+        for obj in content['results']:
+            return _fetch_user(obj['_url'])
 
 
 def fetch_user_name(email, is_username=False):
     user = fetch_user(email, is_username=is_username)
     if user:
-        return user.get('full_name', '')
+        full_name = user.get('full_name')
+        if full_name and full_name['privacy'] == 'Public':
+            return full_name['value']
 
 
-def in_groups(email, groups):
-    if isinstance(groups, basestring):
-        groups = [groups]
-    content = _fetch_users(email, groups=groups)
-    if content:
-        for obj in content['objects']:
-            if obj['email'].lower() == email.lower():
-                return bool(set(groups) & set(obj['groups']))
-    return False
+def in_group(email, group):
+    if isinstance(group, list):  # pragma: no cover
+        raise NotImplementedError('supply a single group name')
+    content = _fetch_users(email, group=group)
+    return not not content['results']
 
 
-def _fetch_groups(order_by='name', limit=20, offset=0):
-    # Max limit is 500
-
+def _fetch_groups(order_by='name', url=None, name=None):
     if not getattr(settings, 'MOZILLIANS_API_KEY', None):  # pragma no cover
         logging.warning("'MOZILLIANS_API_KEY' not set up.")
         return False
 
-    url = settings.MOZILLIANS_API_BASE + '/api/v1/groups/'
-    data = {
-        'app_name': settings.MOZILLIANS_API_APPNAME,
-        'app_key': settings.MOZILLIANS_API_KEY,
-        'order_by': order_by,
-        'limit': int(limit),
-        'offset': int(offset)
-    }
-    url += '?' + urllib.urlencode(data)
+    if not url:
+        url = settings.MOZILLIANS_API_BASE + '/api/v2/groups/'
+        data = {
+            'api-key': settings.MOZILLIANS_API_KEY,
+        }
+        if name:
+            data['name'] = name
+        url += '?' + urllib.urlencode(data)
 
     resp = requests.get(url)
-    if not resp.status_code == 200:
+    if resp.status_code != 200:
         url = url.replace(settings.MOZILLIANS_API_KEY, 'xxxscrubbedxxx')
         raise BadStatusCodeError('%s: on: %s' % (resp.status_code, url))
     return json.loads(resp.content)
 
 
 def get_all_groups(name_search=None):
-    if name_search:
-        raise NotImplementedError(
-            "This is currently not yet supported. See "
-            "http://mozillians.readthedocs.org/en/latest/api-groups.html"
-        )
-
-    limit = 500
-    offset = 0
-    all = []
+    all_groups = []
+    next_url = None
     while True:
-        found = _fetch_groups(limit=limit, offset=offset)
-        all.extend(found['objects'])
-        if len(found['objects']) < limit:
+        found = _fetch_groups(name=name_search, url=next_url)
+        next_url = found['next']
+        all_groups.extend(found['results'])
+        if len(all_groups) >= found['count']:
             break
-        offset += limit
-    return all
+    return all_groups
 
 
 def get_all_groups_cached(name_search=None, lasting=60 * 60):
     cache_key = 'all_mozillian_groups'
     cache_key_lock = cache_key + 'lock'
-    all = cache.get(cache_key)
-    if all is None:
+    all_groups = cache.get(cache_key)
+    if all_groups is None:
         if cache.get(cache_key_lock):
             return []
         cache.set(cache_key_lock, True, 60)
-        all = get_all_groups()
-        cache.set(cache_key, all, lasting)
+        all_groups = get_all_groups()
+        cache.set(cache_key, all_groups, lasting)
         cache.delete(cache_key_lock)
-    return all
+    return all_groups
 
 
 def get_contributors():
@@ -136,20 +135,21 @@ def get_contributors():
 
     Return them in the order of settings.CONTRIBUTORS.
     """
-    all_users = dict(
-        (x['username'], x)
-        for x in
-        _fetch_users(groups=['air mozilla contributors'])['objects']
-        if x.get('username')
+    _users = _fetch_users(group='air mozilla contributors', is_vouched=True)
+    # turn that into a dict of username -> url
+    urls = dict(
+        (x['username'], x['_url'])
+        for x in _users['results']
+        if x['username'] in settings.CONTRIBUTORS
     )
     users = []
     for username in settings.CONTRIBUTORS:
-        user = all_users.get(username)
-        if not user:
+        if username not in urls:
             continue
-        if not user.get('photo'):
+        user = _fetch_user(urls[username])
+        if not user.get('photo') or user['photo']['privacy'] != 'Public':
+            # skip users who don't have a public photo
             continue
-        if not user.get('is_vouched'):
-            continue
+        assert user['is_public']
         users.append(user)
     return users

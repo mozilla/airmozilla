@@ -20,11 +20,10 @@ class TestCuratedGroups(ManageTestCase):
     def test_curated_groups_autocomplete(self, rget, rlogging):
 
         def mocked_get(url, **options):
-            if 'offset=0' in url:
-                return Response(GROUPS1)
-            if 'offset=500' in url:
+            if '/v2/groups/' in url and 'page=2' in url:
                 return Response(GROUPS2)
-
+            if '/v2/groups/' in url:
+                return Response(GROUPS1)
             raise NotImplementedError(url)
 
         rget.side_effect = mocked_get

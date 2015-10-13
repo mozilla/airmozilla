@@ -19,7 +19,7 @@ class Command(BaseCommand):  # pragma: no cover
             functions = (
                 mozillians.is_vouched,
                 mozillians.fetch_user_name,
-                mozillians.in_groups,
+                mozillians.in_group,
                 mozillians.get_all_groups
             )
             print "Available commands"
@@ -29,7 +29,5 @@ class Command(BaseCommand):  # pragma: no cover
             raise CommandError("No command")
         rest = args[1:]
 
-        # verbosity = int(options['verbosity'])
-        # verbose = verbosity > 1
         result = command(*rest)
         pprint(result)

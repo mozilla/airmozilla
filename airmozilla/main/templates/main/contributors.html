@@ -40,12 +40,12 @@ Contributors | {{ super() }}
   {% for user in users %}
   <article id="event-{{ user.username }}" class="contributor-profile">
     <a href="{{ user.url }}" class="mugshot">
-      <img src="{{ user.photo_thumbnail }}" alt="{{ user.full_name }}">
+      <img src="{{ user.photo['150x150'] }}" alt="{{ user.full_name.value }}">
     </a>
 
     <h2 class="entry-title">
-      <a href="{{ user.url }}" title="Go to {{ user.full_name }}'s Mozillians.org profile"
-       >{{ user.full_name }}</a>
+      <a href="{{ user.url }}" title="Go to {{ user.full_name.value }}'s Mozillians.org profile"
+       >{{ user.full_name.value }}</a>
     </h2>
   </article>
   {% endfor %}

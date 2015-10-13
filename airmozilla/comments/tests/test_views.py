@@ -23,43 +23,10 @@ from airmozilla.comments.models import (
     Comment,
     Unsubscription
 )
-
-
-MOZILLIAN_USER = """
-{
-  "meta": {
-    "previous": null,
-    "total_count": 1,
-    "offset": 0,
-    "limit": 20,
-    "next": null
-  },
-  "objects": [
-    {
-      "website": "",
-      "bio": "",
-      "resource_uri": "/api/v1/users/2429/",
-      "last_updated": "2012-11-06T14:41:47",
-      "groups": [
-        "ugly tuna"
-      ],
-      "city": "Casino",
-      "skills": [],
-      "country": "Albania",
-      "region": "Bush",
-      "id": "2429",
-      "languages": [],
-      "allows_mozilla_sites": true,
-      "photo": "http://www.gravatar.com/avatar/0409b497734934400822bb33...",
-      "is_vouched": true,
-      "email": "peterbe@mozilla.com",
-      "ircname": "",
-      "allows_community_sites": true,
-      "full_name": "Peter Bengtsson"
-    }
-  ]
-}
-"""
+from airmozilla.base.tests.test_mozillians import (
+    VOUCHED_FOR_USERS,
+    VOUCHED_FOR,
+)
 
 
 class TestComments(DjangoTestCase):
@@ -456,8 +423,10 @@ class TestComments(DjangoTestCase):
         cache.clear()
 
         def mocked_get(url, **options):
+            if '/v2/users/99999' in url:
+                return Response(VOUCHED_FOR)
             if 'peterbe' in url:
-                return Response(MOZILLIAN_USER)
+                return Response(VOUCHED_FOR_USERS)
             raise NotImplementedError(url)
         rget.side_effect = mocked_get
 
