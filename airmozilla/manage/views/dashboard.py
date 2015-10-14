@@ -14,6 +14,7 @@ from airmozilla.main.models import (
     SuggestedEvent,
     Picture,
     EventRevision,
+    Chapter,
 )
 from airmozilla.starred.models import StarredEvent
 from airmozilla.comments.models import Comment
@@ -124,6 +125,13 @@ def dashboard_data(request):
     counts = get_counts(Picture.objects.all(), 'created')
     context['groups'].append({
         'name': 'Pictures',
+        'counts': counts
+    })
+
+    # Chapters
+    counts = get_counts(Chapter.objects.all(), 'created')
+    context['groups'].append({
+        'name': 'Chapters',
         'counts': counts
     })
 
