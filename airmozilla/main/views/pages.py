@@ -287,6 +287,13 @@ class EventView(View):
                     return redirect('main:event', slug=old_slug.event.slug)
                 except EventOldSlug.DoesNotExist:
                     # does it exist as a static page
+                    if slug.isdigit():
+                        # it might be the ID of the event
+                        try:
+                            return Event.objects.get(id=slug)
+                        except Event.DoesNotExist:
+                            # not that either
+                            pass
                     return self.cant_find_event(request, slug)
 
     @staticmethod

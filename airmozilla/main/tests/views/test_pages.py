@@ -418,6 +418,18 @@ class TestPages(DjangoTestCase):
         response_ok = self.client.get(event_page)
         eq_(response_ok.status_code, 200)
 
+    def test_view_event_by_event_id(self):
+        assert not Event.objects.filter(id=9999).exists()
+        url = reverse('main:event', args=('9999',))
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('main:event', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('<title>{}'.format(event.title) in response.content)
+
     def test_view_event_channels(self):
         event = Event.objects.get(title='Test event')
 
