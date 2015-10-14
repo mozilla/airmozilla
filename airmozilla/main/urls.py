@@ -49,6 +49,15 @@ urlpatterns = patterns(
         'company|public|private|contributors)?/?$',
         cache_page(60 * 60)(feeds.EventsFeed()),
         name='feed'),
+    url(r'^feed/(?P<private_or_public>'
+        r'company|public|private|contributors)?/not/'
+        r'(?P<not_channel_slug>[-\w]+)$',
+        cache_page(60 * 60)(feeds.EventsFeed()),
+        name='not_feed'),
+    url(r'^feed/not/'
+        r'(?P<not_channel_slug>[-\w]+)$',
+        cache_page(60 * 60)(feeds.EventsFeed()),
+        name='not_feed'),
     url(r'^feed/(?P<private_or_public>company|public|private|contributors)'
         r'/(?P<format_type>webm)/?$',
         cache_page(60 * 60)(feeds.EventsFeed()),
