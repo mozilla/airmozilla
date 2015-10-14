@@ -53,6 +53,11 @@ def suggestion_review(request, id):
 
     if request.method == 'POST':
 
+        if request.POST.get('unbounce'):
+            event.submitted = timezone.now()
+            event.save()
+            return redirect('manage:suggestion_review', event.pk)
+
         if not event.submitted:
             return http.HttpResponseBadRequest('Not submitted')
 

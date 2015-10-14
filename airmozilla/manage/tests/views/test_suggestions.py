@@ -700,3 +700,57 @@ class TestSuggestions(ManageTestCase):
         response = self.client.get(summary_url)
         eq_(response.status_code, 200)
         ok_('Your event is no longer submitted' in response.content)
+
+    def test_unbounce_suggested_event(self):
+        # create a suggested event that has everything filled in
+        user = User.objects.create_user(
+            'bob',
+            email='bob@mozilla.com',
+            password='secret'
+        )
+        location = Location.objects.get(id=1)
+        now = timezone.now()
+        tomorrow = now + datetime.timedelta(days=1)
+        event = SuggestedEvent.objects.create(
+            user=user,
+            title='TITLE',
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            placeholder_img=self.placeholder,
+            privacy=Event.PRIVACY_CONTRIBUTORS,
+            first_submitted=now,
+            submitted=now,
+        )
+        url = reverse('manage:suggestion_review', args=(event.pk,))
+        # first, let's bounce it
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Un-bounce' not in response.content)
+        response = self.client.post(url, {
+            'reject': 'reject',
+            'review_comments': 'My Reasons!',
+        })
+        eq_(response.status_code, 302)
+        # reload
+        event = SuggestedEvent.objects.get(id=event.id)
+        assert not event.submitted
+        assert event.first_submitted
+
+        # let's view it again
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Un-bounce' in response.content)
+        # also, it should show the last review comments
+        ok_('My Reasons!' in response.content)
+
+        # let's now really bounce it
+        response = self.client.post(url, {
+            'unbounce': 'unbounce',
+        })
+        eq_(response.status_code, 302)
+        # reload
+        event = SuggestedEvent.objects.get(id=event.id)
+        assert event.submitted

@@ -216,8 +216,17 @@
   </form>
   {% else %}
     <div class="form-actions">
+      {% if event.review_comments %}
+      <p>Last review comment: <i>{{ event.review_comments }}</i></p>
+      <form method="post">
+        {{ csrf() }}
+        <button name="unbounce" value="unbounce" class="btn btn-primary"
+          >Un-bounce to review again</button>
+      </form>
+      {% else %}
       <p>Event is currently not submitted. It was either bounced back or retracted by
       the original submitter.</p>
+      {% endif %}
     </div>
   {% endif %}
   {% endif %}
