@@ -8,6 +8,7 @@ from django.utils.timezone import utc
 from django.utils import timezone
 from django.core.cache import cache
 from django.conf import settings
+from django.db.models import Q
 
 from slugify import slugify
 from jsonview.decorators import json_view
@@ -15,7 +16,12 @@ from funfactory.urlresolvers import reverse
 
 from airmozilla.base.utils import get_base_url
 from airmozilla.main.helpers import short_desc
-from airmozilla.main.models import Event, get_profile_safely, Location
+from airmozilla.main.models import (
+    Event,
+    get_profile_safely,
+    Location,
+    Channel,
+)
 from airmozilla.main.views import is_contributor
 from airmozilla.main import forms
 
@@ -98,10 +104,12 @@ def calendars(request):
     return render(request, 'main/calendars.html', data)
 
 
-def events_calendar_ical(request, privacy=None):
+def events_calendar_ical(request, privacy=None, channel_slug=None):
     cache_key = 'calendar'
     if privacy:
         cache_key += '_%s' % privacy
+    if channel_slug:
+        cache_key += '_%s' % channel_slug
     if request.GET.get('location'):
         if request.GET.get('location').isdigit():
             location = get_object_or_404(
@@ -127,6 +135,17 @@ def events_calendar_ical(request, privacy=None):
 
     now = timezone.now()
     base_qs = Event.objects.scheduled_or_processing()
+    if channel_slug:
+        channel = get_object_or_404(
+            Channel,
+            slug__iexact=channel_slug
+        )
+        channels = Channel.objects.filter(
+            Q(id=channel.id) |
+            Q(parent=channel.id)
+        )
+        base_qs = base_qs.filter(channels__in=channels)
+
     if privacy == 'public':
         base_qs = base_qs.approved().filter(
             privacy=Event.PRIVACY_PUBLIC
