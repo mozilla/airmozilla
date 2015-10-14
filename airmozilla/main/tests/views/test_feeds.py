@@ -115,6 +115,54 @@ class TestFeeds(DjangoTestCase):
         ok_('Test event' in response.content)
         ok_('Second test event' in response.content)
 
+    def test_feed_with_NOT_channel(self):
+        cache.clear()
+        delay = datetime.timedelta(days=1)
+
+        event1 = Event.objects.get(title='Test event')
+        event1.status = Event.STATUS_SCHEDULED
+        event1.start_time -= delay
+        event1.archive_time = event1.start_time
+        event1.save()
+        eq_(Event.objects.archived().approved().count(), 1)
+        eq_(Event.objects.archived().count(), 1)
+
+        event = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=event1.privacy,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+        )
+        event.channels.add(self.main_channel)
+
+        eq_(Event.objects.archived().approved().count(), 2)
+        eq_(Event.objects.archived().count(), 2)
+
+        url = reverse('main:feed', args=('public',))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        channel = Channel.objects.create(
+            name='Projects',
+            slug='projects',
+        )
+        event1.channels.add(channel)
+
+        url = reverse('main:not_feed', args=('public', 'xxx'))
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        url = reverse('main:not_feed', args=('public', 'projects'))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+        ok_('Second test event' in response.content)
+
     def test_feed_non_unique_titles(self):
         event = Event.objects.get(title='Test event')
         assert event.status == Event.STATUS_SCHEDULED

@@ -41,7 +41,7 @@ class EventsFeed(Feed):
 
     def get_object(self, request, private_or_public='',
                    channel_slug=settings.DEFAULT_CHANNEL_SLUG,
-                   format_type=None):
+                   format_type=None, not_channel_slug=None):
         if private_or_public == 'private':
             # old URL
             private_or_public = 'company'
@@ -49,6 +49,12 @@ class EventsFeed(Feed):
         self.format_type = format_type
         self._root_url = get_base_url(request)
         self._channel = get_object_or_404(Channel, slug=channel_slug)
+        self._not_channel = None
+        if not_channel_slug:
+            self._not_channel = get_object_or_404(
+                Channel,
+                slug=not_channel_slug,
+            )
 
     def link(self):
         return self._root_url + '/'
@@ -71,6 +77,8 @@ class EventsFeed(Feed):
                     channels=self._channel)
             .order_by('-start_time')
         )
+        if self._not_channel:
+            qs = qs.exclude(channels=self._not_channel)
         if not self.private_or_public or self.private_or_public == 'public':
             qs = qs.approved()
             qs = qs.filter(privacy=Event.PRIVACY_PUBLIC)
