@@ -61,8 +61,14 @@ class TestPages(DjangoTestCase):
             slug=settings.DEFAULT_CHANNEL_SLUG
         )
 
-    def _calendar_url(self, privacy, location=None):
-        url = reverse('main:calendar_ical', args=(privacy,))
+    def _calendar_url(self, privacy, location=None, channel_slug=None):
+        if channel_slug:
+            url = reverse(
+                'main:calendar_channel_ical',
+                args=(privacy, channel_slug)
+            )
+        else:
+            url = reverse('main:calendar_ical', args=(privacy,))
         if location:
             if isinstance(location, int):
                 url += '?location=%s' % location
@@ -697,6 +703,60 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Test event' in response.content)
         ok_('Second test event' not in response.content)
+
+    def test_calendar_by_channel(self):
+
+        event1 = Event.objects.get(title='Test event')
+        # know your fixtures
+        assert event1.location.name == 'Mountain View'
+
+        event2 = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+            location=event1.location
+        )
+        event2.channels.add(self.main_channel)
+        parent_channel = Channel.objects.create(name='Parent', slug='parent')
+        sub_channel = Channel.objects.create(
+            name='Sub',
+            slug='sub',
+            parent=parent_channel,
+        )
+
+        url = self._calendar_url('public', channel_slug='xxx')
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        url = self._calendar_url('public', channel_slug='main')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        url = self._calendar_url('public', channel_slug='parent')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+        ok_('Second test event' not in response.content)
+
+        event2.channels.add(sub_channel)
+        cache.clear()
+        url = self._calendar_url('public', channel_slug='parent')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+        ok_('Second test event' in response.content)
+
+        url = self._calendar_url('public', channel_slug='sub')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+        ok_('Second test event' in response.content)
 
     def test_calendars_page(self):
         london = Location.objects.create(
