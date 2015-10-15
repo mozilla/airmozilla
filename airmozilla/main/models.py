@@ -121,7 +121,7 @@ class Channel(models.Model):
         null=True,
         blank=True
     )
-    feed_size = models.PositiveIntegerField(default=settings.FEED_SIZE)
+    feed_size = models.PositiveIntegerField(default=20)
 
     class Meta:
         ordering = ['name']
