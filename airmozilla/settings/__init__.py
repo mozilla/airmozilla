@@ -24,7 +24,7 @@ except (NameError, KeyError, AssertionError):  # pragma: no cover
     INSTALLED_APPS = tuple(INSTALLED_APPS)
 
 
-if sys.argv[1] == 'test':
+if len(sys.argv) > 1 and sys.argv[1] == 'test':
     from .test import *  # NOQA
 
     # Are you getting full benefit from django-nose?
