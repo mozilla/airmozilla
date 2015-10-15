@@ -1,4 +1,8 @@
-# These settings will always be overriding for all test runs
+"""
+These settings will always be overriding for all test runs.
+"""
+
+import tempfile
 
 EMAIL_FROM_ADDRESS = 'doesnt@matter.com'
 
@@ -13,12 +17,12 @@ MOZILLIANS_API_KEY = 'supersecret'
 VIDLY_API_URL = 'http://vid.ly.shouldneveractuallybeused.com/api/'
 
 # So that we never accidentally send tweets during tests
-TWITTER_CONSUMER_KEY = \
-TWITTER_CONSUMER_SECRET = \
-TWITTER_ACCESS_TOKEN = \
 TWITTER_ACCESS_TOKEN_SECRET = "test"
-TWEETER_BACKEND = None
+TWITTER_CONSUMER_KEY = TWITTER_ACCESS_TOKEN_SECRET
+TWITTER_CONSUMER_SECRET = TWITTER_CONSUMER_KEY
+TWITTER_ACCESS_TOKEN = TWITTER_CONSUMER_KEY
 
+TWEETER_BACKEND = None
 
 URL_TRANSFORM_PASSWORDS = {
     'bla': 'bla',
@@ -34,7 +38,6 @@ SENTRY_DSN = None
 SITE_URL = 'http://localhost:8000'
 
 AWS_ACCESS_KEY_ID = AWS_SECRET_ACCESS_KEY = 'something'
-#S3_UPLOAD_BUCKET = 'air-mozilla-uploads'
 
 EDGECAST_SECURE_KEY = 'soemthing'
 
@@ -42,7 +45,6 @@ AKAMAI_SECURE_KEY = 'something'
 
 BROWSERID_AUDIENCES = ['http://testserver']
 
-import tempfile
 MEDIA_ROOT = tempfile.mkdtemp(prefix='testmedia')
 
 SCRAPE_CREDENTIALS = {}
@@ -78,7 +80,7 @@ BROWSERID_DISABLED = False
 # Don't actually use celery in tests
 CELERY_ALWAYS_EAGER = True
 
-SCREENCAPTURES_NO_PICTURES = 5 # faster
+SCREENCAPTURES_NO_PICTURES = 5  # faster
 
 # Deliberately disabled since reducing the size of PNGs
 # slows down the tests significantly and we have deliberate

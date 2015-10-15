@@ -10,8 +10,6 @@ web:
         - "8000:8000"
     environment:
         - DISPLAY=:99.0
-        # If you want to reset your test db uncomment this
-        # - FORCE_DB=1
     links:
         - db
         - memcached

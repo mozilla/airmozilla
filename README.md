@@ -538,10 +538,21 @@ Another common mistake is to *not* have `SESSION_COOKIE_SECURE = False` in your
 `airmozilla/settings/local.py` but using `http://localhost:8000` to reach
 the site.
 
-### Tests are not working
+### Tests are slow
 
-If tests don't work around code you didn't touch, it might be that your test
-database is out-of-sync so then next time simply run: `FORCE_DB=1 ./manage.py test`.
+By default when you run `./manage.py test ...` it will re-create the
+database for every run. This takes 5-10 seconds extra time every time.
+If you know that the testing process doesn't involve any complexities
+in terms of migrations, you can speed up the tests a lot by setting
+the environment variable `REUSE_DB=1`. For example like this:
+
+    REUSE_DB=1 ./manage.py test
+
+Or to make it stick, use:
+
+    export REUSE_DB=1
+    ./manage.py test
+
 
 Migrations
 ----------
