@@ -96,13 +96,11 @@ bleach==1.4.1
 jingo==0.7.1
 # sha256: BrZLrybHpDbLuBRk56UAR66jDbEFnb5uCdxEPvojuiA
 django-appconf==0.6
-# sha256: Ik3Rv9j8259nJWxUMBR7TAEF1y9qyM47ymtIZEnsYGI
-# sha256: 6gWLBd1MYed3X8xk-j2j7kMPcT3gMsO7WvOpC_UbLro
-django-nose==1.4.1
+# sha256: c2rlPj7EfbuzBJmZwYzlRYWvKZ74gXLZony1_aKdqgA
+# sha256: gPnTaQ4NuDDDdq6XFygUjXYN1k1ETRwJJ0fWY6DXL3M
+django-nose==1.4.2
 # sha256: RORjnsBXprap3duGnU46SBj8knjsSQzOOa7whEBZKpM
 django-session-csrf==0.5
-# sha256: ih29HHrehSBq53DJzl9DCBoJjJX5lK8RP2Q06QBVmmc
-https://github.com/jbalogh/test-utils/archive/e42e031.zip#egg=test-utils
 # sha256: sGqGRRqZ1sJr-mUIKZnb9ljgh-WW6SkszmiLU-q6qto
 django-sha2==0.4
 # sha256: TEiNy4TP_Yi80rFlGWK3Z_m7JFIGQHyOpngEPNOdPKg

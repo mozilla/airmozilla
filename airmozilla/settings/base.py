@@ -55,6 +55,8 @@ INSTALLED_APPS = (
     'django_nose',  # deliberately making this the last one
 )
 
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
 # Necessary so that test-utils doesn't try to execute some deprecated
 # functionality on the database connection.
 SQL_RESET_SEQUENCES = False
@@ -292,7 +294,7 @@ try:
     # ujson is a much faster json serializer
     # We tell the django-jsonview decorator to use it only if the ujson
     # package is installed and can be imported
-    import ujson
+    import ujson  # NOQA
     JSON_MODULE = 'ujson'
     JSON_USE_DJANGO_SERIALIZER = False
 except ImportError:

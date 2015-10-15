@@ -1,6 +1,9 @@
-from .base import *
+import sys
+import os
+
+from .base import *  # NOQA
 try:
-    from .local import *
+    from .local import *  # NOQA
 except ImportError, exc:  # pragma: no cover
     exc.args = tuple([
         '%s (did you rename airmozilla/settings/local.py-dist?)' % (
@@ -10,7 +13,8 @@ except ImportError, exc:  # pragma: no cover
     raise exc
 
 
-# This takes care of removing
+# This takes care of removing that pesky warning, about raven not
+# being configured in local development, that looks like an error.
 try:
     assert RAVEN_CONFIG['dsn']
 except (NameError, KeyError, AssertionError):  # pragma: no cover
@@ -18,3 +22,14 @@ except (NameError, KeyError, AssertionError):  # pragma: no cover
     INSTALLED_APPS = list(INSTALLED_APPS)
     INSTALLED_APPS.remove('raven.contrib.django.raven_compat')
     INSTALLED_APPS = tuple(INSTALLED_APPS)
+
+
+if sys.argv[1] == 'test':
+    from .test import *  # NOQA
+
+    # Are you getting full benefit from django-nose?
+    if not os.getenv('REUSE_DB', 'false').lower() in ('true', '1', ''):
+        print (
+            "Note!\n\tIf you want much faster tests in local development "
+            "consider setting the REUSE_DB=1 environment variable.\n"
+        )
