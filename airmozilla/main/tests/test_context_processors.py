@@ -1,3 +1,5 @@
+import datetime
+
 from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User, AnonymousUser
@@ -5,15 +7,23 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.conf import settings
 from django.utils import timezone
+from django.core.cache import cache
 
 from funfactory.urlresolvers import reverse
 
-from airmozilla.main.models import Event, UserProfile
+from airmozilla.base.tests.testbase import DjangoTestCase
+from airmozilla.main.models import (
+    Event,
+    UserProfile,
+    Channel,
+    EventHitStats,
+)
 from airmozilla.uploads.models import Upload
 from airmozilla.main.context_processors import (
     browserid,
     autocompeter,
     nav_bar,
+    get_featured_events,
 )
 
 
@@ -187,3 +197,53 @@ class TestNavBar(TestCase):
         with self.settings(USE_NEW_UPLOADER=True):
             data = nav_bar(request)['nav_bar']()
         eq_(data['unfinished_events'], 1)
+
+
+class TestFeatured(DjangoTestCase):
+
+    def test_get_featured_events(self):
+        channels = Channel.objects.filter(
+            slug=settings.DEFAULT_CHANNEL_SLUG
+        )
+        user = User.objects.create(
+            username='richard',
+        )
+        events = get_featured_events(channels, user)
+        eq_(events, [])
+
+        event = Event.objects.get(title='Test event')
+        # must be archived some time ago
+        yesterday = timezone.now() - datetime.timedelta(days=1)
+        assert event.archive_time < yesterday
+        # must be scheduled
+        assert event.status == Event.STATUS_SCHEDULED
+        # must be in the main channel
+        assert event.channels.filter(slug=settings.DEFAULT_CHANNEL_SLUG)
+        # must have some hits
+        EventHitStats.objects.create(
+            event=event,
+            total_hits=100,
+            shortcode='abc123'
+        )
+        # finally!
+        events = get_featured_events(channels, user)
+        # because it's cacjed
+        eq_(events, [])
+        # however...
+        cache.clear()
+        events = get_featured_events(channels, user)
+        eq_(events, [event])
+
+        # should work even if the event is processing
+        event.status = Event.STATUS_PROCESSING
+        event.save()
+        cache.clear()
+        events = get_featured_events(channels, user)
+        eq_(events, [event])
+
+        # but not if it's removed
+        event.status = Event.STATUS_REMOVED
+        event.save()
+        cache.clear()
+        events = get_featured_events(channels, user)
+        eq_(events, [])

@@ -258,6 +258,10 @@ def _get_featured_events(channels, anonymous, contributor):
     yesterday -= datetime.timedelta(seconds=1)
     featured = (
         EventHitStats.objects
+        .filter(
+            Q(event__status=Event.STATUS_SCHEDULED) |
+            Q(event__status=Event.STATUS_PROCESSING)
+        )
         .exclude(event__archive_time__isnull=True)
         .filter(event__archive_time__lt=yesterday)
         .exclude(event__channels__exclude_from_trending=True)
