@@ -3,8 +3,7 @@ import json
 from django.conf import settings
 from django.test import TestCase
 from django.utils.importlib import import_module
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 import mock
 from nose.tools import ok_, eq_

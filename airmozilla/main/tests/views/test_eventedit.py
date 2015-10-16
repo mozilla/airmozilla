@@ -4,7 +4,7 @@ import os
 from django.contrib.auth.models import Group, User, Permission
 from django.conf import settings
 from django.core.files import File
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 from nose.tools import eq_, ok_
 from airmozilla.main.models import (
     Event,

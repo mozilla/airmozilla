@@ -13,8 +13,8 @@ from django.views.decorators.cache import never_cache
 from django.views.generic.base import View
 from django.db.models import Count, Q, F
 from django.db import transaction
+from django.core.urlresolvers import reverse
 
-from funfactory.urlresolvers import reverse
 from jingo import Template
 from jsonview.decorators import json_view
 

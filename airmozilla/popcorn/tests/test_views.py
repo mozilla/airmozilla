@@ -3,13 +3,13 @@ import json
 from cStringIO import StringIO
 
 import mock
-from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 import xmltodict
 
 from django.core import mail
 from django.test.utils import override_settings
 from django.utils import timezone
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase, Response
 from airmozilla.main.models import Event, VidlySubmission, Template

@@ -6,12 +6,12 @@ from uuid import uuid4
 
 import boto
 from boto.s3.key import Key
-from funfactory.urlresolvers import reverse
 from popcoder.popcoder import process_json
 
 from django.db import transaction
 from django.conf import settings
 from django.utils import timezone
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.utils import build_absolute_url, prepare_vidly_video_url
 from airmozilla.popcorn.models import PopcornEdit

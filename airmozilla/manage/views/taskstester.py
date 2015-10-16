@@ -1,9 +1,8 @@
 import time
 
-from funfactory.urlresolvers import reverse
-
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event
 from airmozilla.manage.tasks import sample_updater

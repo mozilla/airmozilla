@@ -3,8 +3,7 @@ import json
 from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User, Group
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.views import is_contributor
 from airmozilla.main.models import UserProfile
@@ -40,6 +39,42 @@ class TestUsersAndGroups(ManageTestCase):
         user = User.objects.get(id=user.id)
         ok_(user.is_superuser)
         ok_(user.is_staff)
+
+    def test_user_edit_invalid_combinations(self):
+        user = User.objects.create_user('no', 'no@no.com', 'no')
+        url = reverse('manage:user_edit', kwargs={'id': user.id})
+        response = self.client.post(
+            url,
+            {
+                'is_superuser': 'on',
+                'is_staff': '',
+                'is_active': 'on'
+            }
+        )
+        eq_(response.status_code, 200)
+        ok_('Form errors!' in response.content)
+
+        response = self.client.post(
+            url,
+            {
+                'is_superuser': '',
+                'is_staff': 'on',
+                'is_active': ''
+            }
+        )
+        eq_(response.status_code, 200)
+        ok_('Form errors!' in response.content)
+
+        response = self.client.post(
+            url,
+            {
+                'is_superuser': '',
+                'is_staff': 'on',
+                'is_active': 'on'
+            }
+        )
+        eq_(response.status_code, 200)
+        ok_('Form errors!' in response.content)
 
     def test_group_add(self):
         """Add a group and verify its creation."""

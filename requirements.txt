@@ -28,8 +28,6 @@ mock==1.0.1
 # sha256: HbXa_k_oMC80RJKDhkuqdNDWQBNhOqIAkYGHv3aQLV8
 # sha256: uTV9LOvmGZcFXUF9YH-cZQ6BfNGjg7mhuIvx7a15fHU
 Django==1.7.10
-# sha256: UvCV-GFHuwtfYjva-VJVLReOu8XqyI2RsvWR09IsO4A
-funfactory==2.3.0
 # sha256: UCb-DKlgBwm2iucOCGocoADArwLoisjLEIAwxrW-jG0
 html2text==2015.6.21
 # sha256: HwRtz17HEu076GhLnzPJW3bijNHIJdsPXhVXv9h7N0U

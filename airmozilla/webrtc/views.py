@@ -12,10 +12,10 @@ from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.functional import wraps
+from django.core.urlresolvers import reverse
 
 from jsonview.decorators import json_view
 from slugify import slugify
-from funfactory.urlresolvers import reverse
 
 # from airmozilla.base.mozillians import fetch_user
 from airmozilla.main.models import (

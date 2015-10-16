@@ -1,12 +1,12 @@
 import datetime
 
+from nose.tools import eq_, ok_
+
 from django.contrib.auth.models import User, Group
 from django.core import mail
 from django.test.client import RequestFactory
 from django.utils import timezone
-
-from nose.tools import eq_, ok_
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.manage import sending

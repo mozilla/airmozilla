@@ -1,8 +1,7 @@
 from nose.tools import eq_, ok_
 
 from django.conf import settings
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Tag
 from airmozilla.manage import related

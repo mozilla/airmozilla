@@ -10,8 +10,7 @@ import mock
 
 from django.utils import timezone
 from django.core.cache import cache
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Event,

@@ -1,6 +1,6 @@
 from nose.tools import eq_, ok_
 
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from .base import ManageTestCase
 

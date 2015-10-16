@@ -1,5 +1,6 @@
-from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
+
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.surveys.models import (

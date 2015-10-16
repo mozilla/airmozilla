@@ -11,8 +11,8 @@ from django.core import mail
 from django.core.files import File
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import Group
+from django.core.urlresolvers import reverse
 
-from funfactory.urlresolvers import reverse
 from sorl.thumbnail import get_thumbnail
 
 from airmozilla.main.models import (

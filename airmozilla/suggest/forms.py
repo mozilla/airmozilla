@@ -1,10 +1,11 @@
+import requests
+
 from django import forms
 from django.conf import settings
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 
 from slugify import slugify
-import requests
-from funfactory.urlresolvers import reverse
 
 from airmozilla.base.forms import BaseModelForm, GallerySelect
 from airmozilla.main.models import (

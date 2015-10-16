@@ -2,9 +2,9 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.db.models import Count
+from django.core.urlresolvers import reverse
 
 from jsonview.decorators import json_view
-from funfactory.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Template
 from airmozilla.manage import forms

@@ -1,9 +1,10 @@
+from nose.tools import eq_, ok_
+
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
 from airmozilla.manage import related
 
-from nose.tools import eq_, ok_
-from funfactory.urlresolvers import reverse
 from airmozilla.main.models import (
     Event,
     Tag,

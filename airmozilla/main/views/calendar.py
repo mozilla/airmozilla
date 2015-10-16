@@ -9,10 +9,10 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 
 from slugify import slugify
 from jsonview.decorators import json_view
-from funfactory.urlresolvers import reverse
 
 from airmozilla.base.utils import get_base_url
 from airmozilla.main.helpers import short_desc

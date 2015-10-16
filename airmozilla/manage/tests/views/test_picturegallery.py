@@ -5,8 +5,7 @@ from nose.tools import eq_, ok_
 
 from django.core.files import File
 from django.conf import settings
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Picture
 from .base import ManageTestCase

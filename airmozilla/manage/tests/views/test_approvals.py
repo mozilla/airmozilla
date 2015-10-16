@@ -5,8 +5,7 @@ from nose.tools import eq_, ok_
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
 from django.core.files import File
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Approval, Event, SuggestedEvent, Picture
 from .base import ManageTestCase

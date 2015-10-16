@@ -6,8 +6,7 @@ import mock
 from django.contrib.auth.models import User, Group
 from django.conf import settings
 from django.utils import timezone
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import Response, DjangoTestCase
 from airmozilla.manage.tweeter import (

@@ -2,8 +2,7 @@ from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Chapter
 from .base import ManageTestCase

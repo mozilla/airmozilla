@@ -1,5 +1,6 @@
+from django.core.urlresolvers import reverse
+
 from jingo import register
-from funfactory.urlresolvers import reverse
 
 
 _STATES = [

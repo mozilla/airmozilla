@@ -17,8 +17,7 @@ from django.utils.timezone import utc
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files import File
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Approval,

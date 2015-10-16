@@ -10,8 +10,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.db.models import Count
 from django.core.exceptions import ImproperlyConfigured
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, EventHitStats, Approval
 

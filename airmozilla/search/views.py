@@ -7,8 +7,7 @@ from django import http
 from django.db.utils import DatabaseError
 from django.db import transaction
 from django.conf import settings
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Tag, Channel
 from airmozilla.main.views import is_contributor

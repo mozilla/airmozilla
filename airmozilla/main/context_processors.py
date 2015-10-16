@@ -4,8 +4,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 from django.core.cache import cache
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Event,
@@ -67,7 +66,6 @@ def nav_bar(request):
 
 def dev(request):
     return {
-        'DEV': settings.DEV,
         'DEBUG': settings.DEBUG,
         'BROWSERID_DISABLED': settings.BROWSERID_DISABLED,
     }

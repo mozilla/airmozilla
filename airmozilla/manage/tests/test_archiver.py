@@ -1,15 +1,14 @@
 import datetime
 from cStringIO import StringIO
 
+import mock
+from nose.tools import eq_, ok_
+
 from django.core import mail
 from django.conf import settings
 from django.utils import timezone
 from django.test.utils import override_settings
-
-from funfactory.urlresolvers import reverse
-
-import mock
-from nose.tools import eq_, ok_
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.manage.archiver import archive

@@ -3,10 +3,10 @@ import collections
 from django import http
 from django.shortcuts import render
 from django.views.decorators import cache
-from session_csrf import anonymous_csrf
+from django.core.urlresolvers import reverse
 
+from session_csrf import anonymous_csrf
 from jsonview.decorators import json_view
-from funfactory.urlresolvers import reverse
 
 from airmozilla.base.utils import paginate
 from airmozilla.starred.models import StarredEvent

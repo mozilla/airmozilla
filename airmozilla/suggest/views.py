@@ -1,5 +1,8 @@
 import datetime
 
+import requests
+import pytz
+
 from django import http
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
@@ -10,10 +13,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import utc, make_naive
 from django.db import transaction
 from django.conf import settings
+from django.core.urlresolvers import reverse
 
-import requests
-import pytz
-from funfactory.urlresolvers import reverse
 from slugify import slugify
 from jsonview.decorators import json_view
 

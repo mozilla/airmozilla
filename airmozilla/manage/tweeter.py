@@ -6,7 +6,6 @@ import logging
 import urlparse
 
 import twython
-from funfactory.urlresolvers import reverse
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.importlib import import_module
@@ -15,6 +14,7 @@ from django.contrib.sites.models import Site
 from django.conf import settings
 from django.db.models import Q
 from django.db import transaction
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.helpers import thumbnail
 from airmozilla.main.models import EventTweet, Event, Approval

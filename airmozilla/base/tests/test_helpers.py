@@ -11,15 +11,14 @@ class TestAbsStaticHelpers(DjangoTestCase):
     def tearDown(self):
         super(TestAbsStaticHelpers, self).tearDown()
 
-        # This is necessary because funfactory (where we use the static()
-        # helper function) uses staticfiles_storage which gets lazy loaded
-        # and remembered once in memory.
+        # This is necessary because airmozilla.base.utils (where we use
+        # the static() helper function) uses staticfiles_storage which
+        # gets lazy loaded and remembered once in memory.
         # By overriding it like this it means we can change settings
         # and have it reflected immediately
-        from funfactory import helpers
+        from airmozilla.base import utils
         from django.contrib.staticfiles.storage import ConfiguredStorage
-        helpers.staticfiles_storage = ConfiguredStorage()
-        # cache.clear()
+        utils.staticfiles_storage = ConfiguredStorage()
 
     def test_abs_static(self):
         context = {}
