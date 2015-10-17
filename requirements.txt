@@ -128,9 +128,9 @@ django-jsonfield==0.9.13
 # sha256: O2iaE1r7L9ttoimNUhN4D0Oj8hDPjJYNULJSrLP2KQI
 # sha256: VEQZ_V4zMAg13jsvhGKhRd2kUdXjCIpp4M0NorW8D3o
 python-memcached==1.57
-# sha256: Yi0GwHE6foAiRVt1lXNgJGsUU6vLb6mw_vPbjG6sE_M
-# sha256: 8Eag1Mf-ukOMlOOmnhgzjM3Ms4oBcf20SVvW2lbhNtY
-selenium==2.47.1
+# sha256: MLlzOMDZ8eYOcuzuBXmw8IRdVQJTQsPVzLIk-4oHt4c
+# sha256: 1dynRpVTFdyD7Hiaz_HymLhRdzLPI6JICeTlk565Gdg
+selenium==2.48.0
 # sha256: J10eaMlc1-PucD3cPqcnjoKB92FoDWvdY3vNAKXFmQE
 xmltodict==0.9.2
 # sha256: dYSYx38W4muLYa8m-NDbsRm3E_LY0WZoHsiSMR81IMQ
