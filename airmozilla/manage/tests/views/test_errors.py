@@ -1,7 +1,7 @@
 import mock
 from nose.tools import eq_, ok_, assert_raises
 
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from .base import ManageTestCase
 

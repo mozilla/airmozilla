@@ -1,12 +1,25 @@
 # This is your project's main settings file that can be committed to your
-# repo. If you need to override a setting locally, use settings_local.py
+# repo. If you need to override a setting locally, use settings/local.py
+import os
+import logging
 
-from funfactory.settings_base import *
 
-# Name of the top-level module where you put all your apps.
-# If you did not install Playdoh with the funfactory installer script
-# you may need to edit this value. See the docs about installing from a
-# clone.
+ROOT = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        '..',
+        '..'
+    ))
+
+
+def path(*dirs):
+    return os.path.join(ROOT, *dirs)
+
+
+SITE_ID = 1
+
+LANGUAGE_CODE = 'en-US'
+
 PROJECT_MODULE = 'airmozilla'
 
 
@@ -14,7 +27,6 @@ PROJECT_MODULE = 'airmozilla'
 ROOT_URLCONF = '%s.urls' % PROJECT_MODULE
 
 INSTALLED_APPS = (
-    'funfactory',
     'compressor',
     'django_browserid',
     'django.contrib.auth',
@@ -25,23 +37,23 @@ INSTALLED_APPS = (
     'session_csrf',
 
     # Application base, containing global templates.
-    '%s.base' % PROJECT_MODULE,
-    '%s.main' % PROJECT_MODULE,
-    '%s.authentication' % PROJECT_MODULE,
-    '%s.manage' % PROJECT_MODULE,
-    '%s.suggest' % PROJECT_MODULE,
-    '%s.search' % PROJECT_MODULE,
-    '%s.comments' % PROJECT_MODULE,
-    '%s.uploads' % PROJECT_MODULE,
-    '%s.starred' % PROJECT_MODULE,
-    '%s.subtitles' % PROJECT_MODULE,
-    '%s.surveys' % PROJECT_MODULE,
-    '%s.roku' % PROJECT_MODULE,
-    '%s.cronlogger' % PROJECT_MODULE,
-    '%s.webrtc' % PROJECT_MODULE,
-    '%s.staticpages' % PROJECT_MODULE,
-    '%s.new' % PROJECT_MODULE,
-    '%s.popcorn' % PROJECT_MODULE,
+    'airmozilla.base',
+    'airmozilla.main',
+    'airmozilla.authentication',
+    'airmozilla.manage',
+    'airmozilla.suggest',
+    'airmozilla.search',
+    'airmozilla.comments',
+    'airmozilla.uploads',
+    'airmozilla.starred',
+    'airmozilla.subtitles',
+    'airmozilla.surveys',
+    'airmozilla.roku',
+    'airmozilla.cronlogger',
+    'airmozilla.webrtc',
+    'airmozilla.staticpages',
+    'airmozilla.new',
+    'airmozilla.popcorn',
 
     'djcelery',
     'kombu.transport.django',
@@ -55,6 +67,31 @@ INSTALLED_APPS = (
     'django_nose',  # deliberately making this the last one
 )
 
+# Absolute path to the directory that holds media.
+MEDIA_ROOT = path('media')
+
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash if there is a path component (optional in other cases).
+MEDIA_URL = '/media/'
+
+# Absolute path to the directory static files should be collected to.
+STATIC_ROOT = path('static')
+
+# URL prefix for static files
+STATIC_URL = '/static/'
+
+COMPRESS_ROOT = STATIC_ROOT
+COMPRESS_CSS_FILTERS = (
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.CSSMinFilter'
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # Necessary so that test-utils doesn't try to execute some deprecated
@@ -64,9 +101,6 @@ SQL_RESET_SEQUENCES = False
 # We can use the simplest hasher because we never store usable passwords
 # thanks to Persona.
 PASSWORD_HASHERS = ('django.contrib.auth.hashers.UnsaltedMD5PasswordHasher',)
-
-# And this must be set according to funfactory but its value isn't important
-HMAC_KEYS = {'any': 'thing'}
 
 # our session storage is all memcache so using it instead of FallbackStorage
 # which uses CookieStorage by default so sessions are better
@@ -107,7 +141,20 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL_FAILURE = '/login-failure/'
 
-TEMPLATE_CONTEXT_PROCESSORS += (
+TEMPLATE_LOADERS = (
+    'jingo.Loader',
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.media',
+    'django.core.context_processors.request',
+    'session_csrf.context_processor',
+    'django.contrib.messages.context_processors.messages',
+
     'airmozilla.manage.context_processors.badges',
     'airmozilla.main.context_processors.base',
     'airmozilla.main.context_processors.nav_bar',
@@ -124,29 +171,11 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 # Always generate a CSRF token for anonymous users.
 ANON_ALWAYS = True
 
-# Tells the extract script what files to look for L10n in and what function
-# handles the extraction. The Tower library expects this.
-# DOMAIN_METHODS['messages'] = [
-#     ('%s/**.py' % PROJECT_MODULE,
-#         'tower.management.commands.extract.extract_tower_python'),
-#     ('%s/**/templates/**.html' % PROJECT_MODULE,
-#         'tower.management.commands.extract.extract_tower_template'),
-#     ('templates/**.html',
-#         'tower.management.commands.extract.extract_tower_template'),
-# ],
+LOG_LEVEL = logging.INFO
 
-# # Use this if you have localizable HTML files:
-# DOMAIN_METHODS['lhtml'] = [
-#    ('**/templates/**.lhtml',
-#        'tower.management.commands.extract.extract_tower_template'),
-# ]
+HAS_SYSLOG = True  # XXX needed??
 
-# # Use this if you have localizable JS files:
-# DOMAIN_METHODS['javascript'] = [
-#    # Make sure that this won't pull in strings from external libraries you
-#    # may use.
-#    ('media/js/**.js', 'javascript'),
-# ]
+LOGGING_CONFIG = None
 
 # This disables all mail_admins on all django.request errors.
 # We can do this because we use Sentry now instead
@@ -160,8 +189,6 @@ LOGGING = {
 
 
 def JINJA_CONFIG():
-    # different from that in funfactory in that we don't want to
-    # load the `tower` extension
     config = {
         'extensions': [
             'jinja2.ext.do',
@@ -170,8 +197,6 @@ def JINJA_CONFIG():
         ],
         'finalize': lambda x: x if x is not None else '',
     }
-    # config = funfactory_JINJA_CONFIG()
-    # config['extensions'].remove('tower.template.i18n')
     return config
 
 

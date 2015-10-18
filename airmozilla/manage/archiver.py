@@ -7,8 +7,7 @@ from django.core.cache import cache
 from django.utils import timezone
 from django.contrib.sites.models import Site
 from django.db.models import Q
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.webrtc.sending import email_about_mozillian_video

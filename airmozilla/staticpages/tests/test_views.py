@@ -1,7 +1,7 @@
 from nose.tools import ok_, eq_
-from funfactory.urlresolvers import reverse
 
 from django.contrib.auth.models import AnonymousUser, User
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.main.models import Event, UserProfile

@@ -16,9 +16,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.conf import settings
 from django.db import transaction
+from django.core.urlresolvers import reverse
 
 import requests
-from funfactory.urlresolvers import reverse
 from jsonview.decorators import json_view
 
 from airmozilla.main.models import Event, SuggestedEvent

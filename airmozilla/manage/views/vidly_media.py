@@ -10,8 +10,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Count
 from django.views.decorators.csrf import csrf_exempt
+from django.core.urlresolvers import reverse
 
-from funfactory.urlresolvers import reverse
 from jsonview.decorators import json_view
 import xmltodict
 

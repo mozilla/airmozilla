@@ -2,8 +2,7 @@ from nose.tools import eq_
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.suggest.helpers import (
     next_url,

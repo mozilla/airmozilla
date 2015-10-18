@@ -3,7 +3,8 @@ from django.conf.urls import patterns, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 import djcelery
-from funfactory.monkeypatches import patch
+
+from airmozilla.base.monkeypatches import patch
 
 
 patch()

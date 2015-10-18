@@ -5,8 +5,8 @@ from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Permission
 from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
 
-from funfactory.urlresolvers import reverse
 
 staff_required = user_passes_test(lambda u: u.is_staff)
 superuser_required = user_passes_test(lambda u: u.is_superuser)

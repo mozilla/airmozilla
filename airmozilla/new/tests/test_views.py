@@ -9,7 +9,6 @@ from cStringIO import StringIO
 
 import mock
 from nose.tools import eq_, ok_
-from funfactory.urlresolvers import reverse
 from PIL import Image
 
 from django.contrib.auth.models import Group, Permission, User
@@ -17,6 +16,7 @@ from django.conf import settings
 from django.core.files import File
 from django.utils import timezone
 from django.core import mail
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase, Response
 from airmozilla.main.models import (

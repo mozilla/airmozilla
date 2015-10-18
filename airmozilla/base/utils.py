@@ -18,8 +18,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.contrib.sites.models import RequestSite, Site
 from django.core.mail.backends.filebased import EmailBackend
 from django.forms.utils import ErrorList
-
-from funfactory.helpers import static
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 from airmozilla.base.akamai_token_v2 import AkamaiToken
 
@@ -248,7 +247,7 @@ def dot_dict(d):
 
 
 def get_abs_static(path, request):
-    path = static(path)
+    path = staticfiles_storage.url(path)
     prefix = request.is_secure() and 'https' or 'http'
 
     if path.startswith('/') and not path.startswith('//'):

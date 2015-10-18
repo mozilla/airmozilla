@@ -5,6 +5,10 @@ import re
 import urlparse
 import os
 
+import pytz
+import vobject
+import boto
+
 from django.conf import settings
 from django import http
 from django.contrib.auth.models import User, Group
@@ -17,12 +21,9 @@ from django.db import transaction
 from django.db.models import Q, Sum, Count, Max
 from django.core.exceptions import ImproperlyConfigured
 from django.views.decorators.cache import cache_page
+from django.core.urlresolvers import reverse
 
-import pytz
-from funfactory.urlresolvers import reverse
-import vobject
 from jsonview.decorators import json_view
-import boto
 
 from airmozilla.main.helpers import thumbnail, short_desc
 from airmozilla.manage.helpers import scrub_transform_passwords

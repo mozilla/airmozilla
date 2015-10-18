@@ -6,8 +6,8 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.views.decorators.cache import cache_page
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 
-from funfactory.urlresolvers import reverse
 from jsonview.decorators import json_view
 
 from airmozilla.manage.utils import filename_to_notes

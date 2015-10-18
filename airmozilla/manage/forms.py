@@ -11,8 +11,8 @@ from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.utils.timezone import utc
 from django.utils.safestring import mark_safe
+from django.core.urlresolvers import reverse
 
-from funfactory.urlresolvers import reverse
 from slugify import slugify
 
 from airmozilla.base.forms import BaseModelForm, BaseForm

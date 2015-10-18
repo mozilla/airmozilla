@@ -266,7 +266,7 @@ def update_media_protection(shortcode, protect, notify_url=None):
     response_content = _download(xml_string)
     root = ET.fromstring(response_content)
     errors = root.find('Errors')
-    if errors:
+    if errors is not None:
         # For example...
         """
         <?xml version="1.0"?>

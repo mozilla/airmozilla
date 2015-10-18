@@ -3,6 +3,9 @@ import os
 from cStringIO import StringIO
 from xml.parsers.expat import ExpatError
 
+import xmltodict
+from PIL import Image
+
 from django import http
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import transaction
@@ -18,12 +21,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+from django.core.urlresolvers import reverse
 
 from jsonview.decorators import json_view
-from funfactory.urlresolvers import reverse
-import xmltodict
 from sorl.thumbnail import get_thumbnail
-from PIL import Image
 
 from airmozilla.manage import vidly
 from airmozilla.base.utils import get_base_url, prepare_vidly_video_url

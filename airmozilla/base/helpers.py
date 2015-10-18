@@ -1,9 +1,32 @@
+import urllib
+
 import jinja2
 from jingo import register
 
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.utils.http import urlquote
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.utils import get_abs_static
+
+
+@register.function
+def static(path):
+    return staticfiles_storage.url(path)
+
+
+@register.filter
+def urlencode(txt):
+    """Url encode a path."""
+    if isinstance(txt, unicode):
+        txt = txt.encode('utf-8')
+    return urllib.quote_plus(txt)
+
+
+@register.function
+def url(viewname, *args, **kwargs):
+    """Helper for Django's ``reverse`` in templates."""
+    return reverse(viewname, args=args, kwargs=kwargs)
 
 
 @register.function

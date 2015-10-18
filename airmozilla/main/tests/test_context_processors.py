@@ -8,8 +8,7 @@ from django.test.client import RequestFactory
 from django.conf import settings
 from django.utils import timezone
 from django.core.cache import cache
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.main.models import (

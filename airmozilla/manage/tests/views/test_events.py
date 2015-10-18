@@ -17,8 +17,7 @@ from django.core import mail
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.core.files import File
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Event,

@@ -3,8 +3,8 @@ import datetime
 from django.conf import settings
 from django.utils import timezone
 from django.core.files import File
+from django.core.urlresolvers import reverse
 
-from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
 from airmozilla.main.models import (

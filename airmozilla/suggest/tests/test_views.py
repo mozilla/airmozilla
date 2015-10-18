@@ -4,17 +4,17 @@ import datetime
 import tempfile
 import shutil
 
+import pytz
+from mock import patch
+from nose.tools import eq_, ok_
+
 from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.core import mail
 from django.core.files import File
-
-import pytz
-from mock import patch
-from funfactory.urlresolvers import reverse
-from nose.tools import eq_, ok_
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import (
     SuggestedEvent,

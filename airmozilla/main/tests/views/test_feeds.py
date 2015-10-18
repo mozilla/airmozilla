@@ -11,8 +11,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 from django.core.files import File
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Approval,
@@ -182,7 +181,7 @@ class TestFeeds(DjangoTestCase):
             title=event.title,
             slug='different',
             privacy=event.privacy,
-            start_time=event.start_time - datetime.timedelta(days=1),
+            start_time=event.start_time - datetime.timedelta(days=2),
             archive_time=timezone.now(),
             template_environment=event.template_environment,
             template=event.template,
@@ -556,7 +555,7 @@ class TestFeeds(DjangoTestCase):
         other_event = Event.objects.create(
             title=event.title,
             slug='other',
-            start_time=event.start_time - datetime.timedelta(days=1),
+            start_time=event.start_time - datetime.timedelta(days=2),
             archive_time=timezone.now(),
             template_environment=event.template_environment,
             template=event.template,

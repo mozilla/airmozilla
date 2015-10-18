@@ -7,8 +7,7 @@ import mock
 from django.conf import settings
 from django.utils import timezone
 from django.core.exceptions import ImproperlyConfigured
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import Response
 from airmozilla.main.models import Event, EventHitStats, Approval

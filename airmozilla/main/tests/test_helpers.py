@@ -12,8 +12,7 @@ from django.conf import settings
 from django.db.utils import IntegrityError
 from django.test.client import RequestFactory
 from django.core.files import File
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.main.models import Event, Picture

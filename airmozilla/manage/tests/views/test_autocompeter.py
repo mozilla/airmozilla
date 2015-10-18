@@ -3,7 +3,7 @@ import json
 from nose.tools import eq_
 import mock
 
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from .base import ManageTestCase
 from airmozilla.base.tests.testbase import Response

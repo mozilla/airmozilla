@@ -5,8 +5,8 @@ import os
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
-from funfactory.urlresolvers import reverse
 from nose.tools import eq_, ok_
 
 from airmozilla.search.models import LoggedSearch

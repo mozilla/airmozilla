@@ -3,8 +3,7 @@ import mock
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
-
-from funfactory.urlresolvers import reverse
+from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import UserProfile, Event, CuratedGroup
 from airmozilla.base.tests.test_mozillians import Response, IN_GROUPS
