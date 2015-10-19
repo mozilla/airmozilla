@@ -36,10 +36,10 @@ def can_edit_event(event, user, default='manage:events'):
             x[0] for x in
             CuratedGroup.objects.filter(event=event).values_list('name')
         ]
-        if not mozillians.in_groups(
-            user.email,
-            curated_group_names
-        ):
+        any_ = any([
+            mozillians.in_group(user.email, x) for x in curated_group_names
+        ])
+        if not any_:
             return redirect(default)
 
 

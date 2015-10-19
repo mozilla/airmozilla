@@ -6,7 +6,11 @@ from django.contrib.auth.models import User, Group, Permission
 from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import UserProfile, Event, CuratedGroup
-from airmozilla.base.tests.test_mozillians import Response, IN_GROUPS
+from airmozilla.base.tests.test_mozillians import (
+    Response,
+    VOUCHED_FOR_USERS,
+    NO_USERS,
+)
 from .base import ManageTestCase
 
 
@@ -34,9 +38,15 @@ class TestPermissions(ManageTestCase):
     @mock.patch('requests.get')
     def test_editing_events_with_curated_groups(self, rget):
 
+        calls = []
+
         def mocked_get(url, **options):
+            calls.append(url)
             if 'peterbe' in url:
-                return Response(IN_GROUPS)
+                if 'group=badasses' in url:
+                    return Response(NO_USERS)
+                if 'group=swedes':
+                    return Response(VOUCHED_FOR_USERS)
             raise NotImplementedError(url)
 
         rget.side_effect = mocked_get
@@ -102,3 +112,5 @@ class TestPermissions(ManageTestCase):
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
+
+        assert len(calls) == 2, calls

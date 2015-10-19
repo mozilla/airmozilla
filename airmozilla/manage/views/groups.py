@@ -80,11 +80,11 @@ def curated_groups_autocomplete(request):
     all = mozillians.get_all_groups_cached()
 
     def describe_group(group):
-        if group['number_of_members'] == 1:
+        if group['member_count'] == 1:
             return '%s (1 member)' % (group['name'],)
         else:
             return (
-                '%s (%s members)' % (group['name'], group['number_of_members'])
+                '%s (%s members)' % (group['name'], group['member_count'])
             )
 
     groups = [
