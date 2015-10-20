@@ -407,3 +407,6 @@ NOTIFICATIONS_GROUP_NAME = 'Event Notifications'
 # Adding prefix to airmozilla events index
 ELASTICSEARCH_PREFIX = 'airmozilla'
 ELASTICSEARCH_INDEX = 'events'
+
+# legacy junk in settings/local.py on production deployments
+BASE_PASSWORD_HASHERS = HMAC_KEYS = []
