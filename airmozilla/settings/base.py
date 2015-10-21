@@ -200,6 +200,13 @@ def JINJA_CONFIG():
     return config
 
 
+def COMPRESS_JINJA2_GET_ENVIRONMENT():
+    from jingo import env
+    from compressor.contrib.jinja2ext import CompressorExtension
+    env.add_extension(CompressorExtension)
+
+    return env
+
 # Remove localization middleware
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
