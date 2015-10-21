@@ -201,6 +201,7 @@ def JINJA_CONFIG():
 
 
 def COMPRESS_JINJA2_GET_ENVIRONMENT():
+    """This function is automatically called by django-compressor"""
     from jingo import env
     from compressor.contrib.jinja2ext import CompressorExtension
     env.add_extension(CompressorExtension)
