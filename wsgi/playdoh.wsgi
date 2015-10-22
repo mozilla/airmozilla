@@ -5,8 +5,8 @@ os.environ.setdefault('CELERY_LOADER', 'django')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'airmozilla.settings')
 
 # Add the app dir to the python path so we can import manage.
-#wsgidir = os.path.dirname(__file__)
-#site.addsitedir(os.path.abspath(os.path.join(wsgidir, '../')))
+wsgidir = os.path.dirname(__file__)
+site.addsitedir(os.path.abspath(os.path.join(wsgidir, '../')))
 
 
 from django.core.wsgi import get_wsgi_application
