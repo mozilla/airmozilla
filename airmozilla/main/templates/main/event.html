@@ -48,6 +48,7 @@
 <script src="{{ static('surveys/js/survey.js') }}"></script>
 <script src="{{ static('main/js/livehits.js') }}"></script>
 <script src="{{ static('main/js/related-content.js') }}"></script>
+<script src="{{ static('main/js/share.js') }}"></script>
 {% endcompress %}
 {% endblock %}
 
@@ -330,6 +331,24 @@
               </p>
               {% endif %}
             {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if event.is_public() %}
+        <div class="tab">
+          <input type="radio" id="tab-share" name="tab-group-1">
+          <label for="tab-share">Share</label>
+          <div class="content">
+            <p>
+              <a class="share" href="https://www.facebook.com/sharer/sharer.php?u={{ make_absolute(url('main:event', event.slug)) | urlencode }}" target="_blank">Share on Facebook</a>
+            </p>
+            <p>
+              <a class="share" href="https://twitter.com/share?text={{ event.get_unique_title() | urlencode }}&amp;url={{ make_absolute(url('main:event', event.slug)) | urlencode }}" target="_blank">Share on Twitter</a>
+            </p>
+            <p>
+              <a class="share" href="https://www.linkedin.com/shareArticle?mini=true&amp;url={{ make_absolute(url('main:event', event.slug)) | urlencode }}&amp;title={{ event.get_unique_title() | urlencode }}" target="_blank">Share on LinkedIn</a>
+            </p>
           </div>
         </div>
       {% endif %}
