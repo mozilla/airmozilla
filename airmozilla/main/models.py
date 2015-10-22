@@ -252,10 +252,10 @@ class EventManager(models.Manager):
         return ApprovableQuerySet(self.model, using=self._db)
 
     def scheduled(self):
-        return self.get_query_set().filter(status=Event.STATUS_SCHEDULED)
+        return self.get_queryset().filter(status=Event.STATUS_SCHEDULED)
 
     def scheduled_or_processing(self):
-        return self.get_query_set().filter(
+        return self.get_queryset().filter(
             Q(status=Event.STATUS_SCHEDULED) |
             Q(status=Event.STATUS_PROCESSING)
         )
@@ -273,7 +273,7 @@ class EventManager(models.Manager):
         )
 
     def live(self):
-        return self.get_query_set().filter(
+        return self.get_queryset().filter(
             status=Event.STATUS_SCHEDULED,
             archive_time=None,
             start_time__lt=_get_live_time()

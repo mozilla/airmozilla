@@ -1,7 +1,6 @@
 # This is your project's main settings file that can be committed to your
 # repo. If you need to override a setting locally, use settings/local.py
 import os
-import logging
 
 
 ROOT = os.path.abspath(
@@ -170,22 +169,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 # Always generate a CSRF token for anonymous users.
 ANON_ALWAYS = True
-
-LOG_LEVEL = logging.INFO
-
-HAS_SYSLOG = True  # XXX needed??
-
-LOGGING_CONFIG = None
-
-# This disables all mail_admins on all django.request errors.
-# We can do this because we use Sentry now instead
-LOGGING = {
-    'loggers': {
-        'django.request': {
-            'handlers': []
-        }
-    }
-}
 
 
 def JINJA_CONFIG():
