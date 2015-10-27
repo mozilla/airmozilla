@@ -451,6 +451,10 @@ var ccv = {
 onmessage = function (event) {
 	var data = (typeof event.data == "string") ? JSON.parse(event.data) : event.data;
 	var scope = { "shared" : data.shared };
+	if (!data.name) {
+		// until https://github.com/liuliu/ccv/issues/158 is resolved
+		return;
+	}
 	var result = parallable.core[data.name].apply(scope, [data.input, data.id, data.worker]);
 	try {
 		postMessage(result);

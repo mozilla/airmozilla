@@ -342,23 +342,13 @@ angular.module('new.controllers', ['new.services'])
             $scope.showTips = !$scope.showTips;
         };
 
-        function getUserMedia(config, callback, errorCallback) {
-            navigator.getUserMedia = navigator.mozGetUserMedia || navigator.webkitGetUserMedia;
-            // console.log(getUserMedia); // XXX iOS? Opera? FirefoxOS?
+        function getUserMedia(config) {
+            return navigator.mediaDevices.getUserMedia(config);
+            // .then(callback)
+            // .catch(errorCallback);
 
-            navigator.getUserMedia(config, callback, errorCallback);
-            // navigator.getUserMedia(config, function(stream) {
-            //     video_stream = stream;
-            //     var video = $('video.recorder')[0];
-            //     video.src = URL.createObjectURL(stream);
-            //     video.muted = config.muted || false;
-            //     video.controls = config.controls || false;
-            //     video.play();
-            //
-            //     callback(stream);
-            // }, function(error) {
-            //     errorCallback(error);
-            // });
+            // navigator.getUserMedia = navigator.mozGetUserMedia || navigator.webkitGetUserMedia;
+            // navigator.getUserMedia(config, callback, errorCallback);
         }
 
         var nextFaceMessage = null;
@@ -457,7 +447,8 @@ angular.module('new.controllers', ['new.services'])
             $scope.enableSilhouette = true;
             $scope.mirroredViewFinder = true;
 
-            getUserMedia(conf, function(_stream) {
+            getUserMedia(conf)
+            .then(function(_stream) {
                 stream = _stream;
                 video = document.querySelector('video.recorder');
                 video.src = URL.createObjectURL(_stream);
@@ -490,7 +481,8 @@ angular.module('new.controllers', ['new.services'])
                 if (facejsLoaded && ccvLoaded) {
                     faceDetectionFrame = setInterval(faceDetection, 200);
                 }
-            }, function(error) {
+            })
+            .catch(function(error) {
                 // XXX this needs better error handling that is user-friendly
                 console.warn('Unable to get the getUserMedia stream');
                 console.error(error);
