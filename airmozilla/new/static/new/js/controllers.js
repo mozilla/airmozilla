@@ -344,11 +344,6 @@ angular.module('new.controllers', ['new.services'])
 
         function getUserMedia(config) {
             return navigator.mediaDevices.getUserMedia(config);
-            // .then(callback)
-            // .catch(errorCallback);
-
-            // navigator.getUserMedia = navigator.mozGetUserMedia || navigator.webkitGetUserMedia;
-            // navigator.getUserMedia(config, callback, errorCallback);
         }
 
         var nextFaceMessage = null;
@@ -513,7 +508,8 @@ angular.module('new.controllers', ['new.services'])
             $scope.showFaceDetection = false;
             $scope.enableFaceDetection = false;
 
-            getUserMedia(conf, function(_stream) {
+            getUserMedia(conf)
+            .then(function(_stream) {
                 stream = _stream;
                 video = document.querySelector('video.recorder');
                 video.src = URL.createObjectURL(_stream);
@@ -529,12 +525,12 @@ angular.module('new.controllers', ['new.services'])
                     $scope.showRecorderVideo = true;
                     $scope.showScreenCaptureTip = false;
                 });
-            }, function(error) {
+            })
+            .catch(function(error) {
                 // XXX this needs better error handling that is user-friendly
                 console.warn('Unable to get the getUserMedia stream for screen');
                 console.error('ERROR', error);
                 if (error.name && error.name === 'PermissionDeniedError') {
-                    console.log('HEREHR');
                     $scope.$apply(function() {
                         $scope.showScreenCaptureTip = false;
                         $scope.showFirefoxE10SWarning = false; // just in case
