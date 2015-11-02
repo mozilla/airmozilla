@@ -84,8 +84,6 @@
            ng-class="{active: search_only==='needs_approval'}" ng-click="selectSearchOnly('needs_approval')">A</span>
           <span class="badge" title="Only events that are upcoming"
            ng-class="{active: search_only==='upcoming'}" ng-click="selectSearchOnly('upcoming')">U</span>
-          <span class="badge" title="Only events that are Mozillians profiles"
-           ng-class="{active: search_only==='mozillian'}" ng-click="selectSearchOnly('mozillian')">M</span>
         </th>
         <th style="width: 14%">
           Location
@@ -174,7 +172,6 @@
         <span class="badge" title="Event is currently Live!" ng-if="event.is_live">L</span>
         <span class="badge" title="Needs approval" ng-if="event.needs_approval">A</span>
         <span class="badge" title="Event is upcoming" ng-if="event.is_upcoming">U</span>
-        <span class="badge" title="Event is a Mozillians profile" ng-if="event.mozillian">M</span>
         </td>
         <td>{{ event.location }}</td>
         <td>{{ event.start_time }}</td>

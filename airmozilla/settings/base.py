@@ -49,7 +49,6 @@ INSTALLED_APPS = (
     'airmozilla.surveys',
     'airmozilla.roku',
     'airmozilla.cronlogger',
-    'airmozilla.webrtc',
     'airmozilla.staticpages',
     'airmozilla.new',
     'airmozilla.popcorn',
