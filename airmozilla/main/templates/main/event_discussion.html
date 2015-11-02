@@ -6,17 +6,12 @@ Configuring discussion for {{ event.title }} | Air Mozilla
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('main/css/edit.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ static('main/css/discussion.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'discussion' %}
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-  <script src="{{ static('main/js/discussion.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'discussion' %}
 {% endblock %}
 
 {% block sidebar %}{% endblock %}

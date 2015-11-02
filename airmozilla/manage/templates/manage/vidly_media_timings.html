@@ -9,9 +9,7 @@
   {{ super() }}
   <script src="{{ static('manage/js/d3.min.js') }}"></script>
   <script src="{{ static('manage/metricsgraphics/metricsgraphics.min.js') }}"></script>
-  {% compress js %}
-  <script src="{{ static('manage/js/vidly-media-timings.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'vidly_media_timings' %}
 {% endblock %}
 
 {% block site_css %}

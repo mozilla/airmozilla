@@ -51,9 +51,7 @@
     {% endif %}
   {% endif %}
 
-  {% compress js %}
-  <script src="{{ static('main/js/event_video.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'event_video' %}
 
   </body>
 </html>

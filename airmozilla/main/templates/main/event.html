@@ -7,11 +7,7 @@
 
 {% block site_css %}
 {{ super() }}
-{% compress css %}
-<link href="{{ static('comments/css/comments.css') }}" rel="stylesheet" type="text/css">
-<link href="{{ static('surveys/css/survey.css') }}" rel="stylesheet" type="text/css">
-<link href="{{ static('main/css/event.css') }}" rel="stylesheet" type="text/css">
-{% endcompress %}
+{% stylesheet 'event' %}
 {% endblock %}
 
 {% block extra_head %}
@@ -36,20 +32,7 @@
 
 {% block site_js %}
 {{ super() }}
-{% compress js %}
-<script src="{{ static('main/js/embed.js') }}"></script>
-<script src="{{ static('main/js/download.js') }}"></script>
-<script src="{{ static('main/js/tearout.js') }}"></script>
-<script src="{{ static('main/js/playbackrate.js') }}"></script>
-<script src="{{ static('main/js/startat.js') }}"></script>
-<script src="{{ static('main/js/eventstatus.js') }}"></script>
-<script src="{{ static('main/js/chapters.js') }}"></script>
-<script src="{{ static('comments/js/comments.js') }}"></script>
-<script src="{{ static('surveys/js/survey.js') }}"></script>
-<script src="{{ static('main/js/livehits.js') }}"></script>
-<script src="{{ static('main/js/related-content.js') }}"></script>
-<script src="{{ static('main/js/share.js') }}"></script>
-{% endcompress %}
+{% javascript 'event' %}
 {% endblock %}
 
 {% block content_main %}

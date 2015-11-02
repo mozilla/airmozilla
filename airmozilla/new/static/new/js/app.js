@@ -7,9 +7,9 @@ angular.module('new', [
     'new.services'
 ])
 
-.config(function ($urlMatcherFactoryProvider) {
+.config(['$urlMatcherFactoryProvider', function ($urlMatcherFactoryProvider) {
   $urlMatcherFactoryProvider.strictMode(false);
-})
+}])
 
 // .run(['$rootScope', function($rootScope) {
 //     $rootScope.$on('$stateChangeStart',function(event, toState, toParams, fromState, fromParams){

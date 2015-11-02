@@ -7,10 +7,7 @@
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/jquery-ui-1.10.1.highlight.min.js') }}"></script>
-    <script src="{{ static('manage/js/suggestions.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'suggestions' %}
 {% endblock %}
 
 

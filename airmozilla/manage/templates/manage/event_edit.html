@@ -11,16 +11,12 @@
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('manage/css/event-edit.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'event_edit' %}
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/event-edit.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'event_edit' %}
 {% endblock %}
 
 

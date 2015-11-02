@@ -13,9 +13,7 @@
 {% block site_js %}
   {{ super() }}
   <script src="{{ static('dropzone/dropzone.min.js') }}"></script>
-  {% compress js %}
-  <script src="{{ static('manage/js/picture-add.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'picture_add' %}
 {% endblock %}
 
 {% block manage_content %}

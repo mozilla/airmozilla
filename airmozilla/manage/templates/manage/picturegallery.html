@@ -9,17 +9,12 @@
   {{ super() }}
   <script src="{{ static('angular/angular.min.js') }}"></script>
   <script src="{{ static('angular/angular-moment.min.js') }}"></script>
-  {% compress js %}
-  <script src="{{ static('manage/js/picturegallery.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'picture_gallery' %}
 {% endblock %}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('manage/css/picture-gallery.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
-
+  {% stylesheet 'picture_gallery' %}
 {% endblock %}
 
 {% block manage_content %}

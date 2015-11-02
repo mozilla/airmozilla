@@ -92,3 +92,6 @@ ELASTICSEARCH_INDEX = 'test-events'
 
 # For using the google API
 YOUTUBE_API_KEY = 'doesnthavetobesomethingreal'
+
+# Make sure pipeline is enabled so it does not collectstatic on every test
+PIPELINE_ENABLED = True

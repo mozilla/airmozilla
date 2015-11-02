@@ -7,9 +7,7 @@
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/event-vidly-submissions.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'event_vidly_submissions' %}
 {% endblock %}
 
 {% block site_css %}

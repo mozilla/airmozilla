@@ -19,6 +19,11 @@ function process_vidly_status_response(response, $element) {
     }
 }
 
+// Export this to be a global function.
+// Why? Because this is a cheap way of making this useful function
+// available to other modules. All modules are wrapped in
+// (function(){ ... })(); in post-processing.
+window.process_vidly_status_response = process_vidly_status_response;
 
 $(function() {
 

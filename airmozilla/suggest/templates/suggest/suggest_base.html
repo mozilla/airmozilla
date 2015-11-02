@@ -3,23 +3,13 @@
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('tooltipster/css/tooltipster.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
-  {% compress css %}
-  <link href="{{ static('suggest/css/suggest.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'suggest_base' %}
 {% endblock %}
 
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-    <script src="{{ static('tooltipster/js/jquery.tooltipster.min.js') }}"></script>
-  {% endcompress %}
-  {% compress js %}
-    <script src="{{ static('suggest/js/suggest.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'suggest_base' %}
 {% endblock %}
 
 

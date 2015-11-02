@@ -72,15 +72,15 @@
      is_superuser, ''),
 
 ] -%}
+
 {% block page_title %}
     Air Mozilla Management
 {% endblock %}
+
 {% block site_css %}
-    {% compress css %}
-    <link href="{{ static('manage/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('manage/css/manage.css') }}" rel="stylesheet" type="text/css">
-    {% endcompress %}
+    {% stylesheet 'manage_base' %}
 {% endblock %}
+
 {% block content %}
   <div class="navbar navbar-fixed-top navbar-inverse">
     <div class="navbar-inner">
@@ -138,10 +138,6 @@
 {% endblock %}
 
 {% block site_js %}
-  {{ super() }}
-  {% compress js %}
-  <script src="{{ static('manage/js/manage.js') }}"></script>
-  <script src="{{ static('manage/js/confirm-delete.js') }}"></script>
-  <script src="{{ static('manage/js/form-errors.js') }}"></script>
-  {% endcompress %}
+{{ super() }}
+{% javascript 'manage_base' %}
 {% endblock %}

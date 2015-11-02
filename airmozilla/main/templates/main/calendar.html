@@ -7,21 +7,14 @@ Calendar | {{ super() }}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-    <link href="{{ static('main/fullcalendar/fullcalendar.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('main/css/calendar.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
-  <link href="{{ static('main/fullcalendar/fullcalendar.print.css') }}" media="print" rel="stylesheet" type="text/css">
+  {% stylesheet 'calendar' %}
+  {% stylesheet 'calendar_print' %}
 {% endblock %}
 
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-  <script src="{{ static('main/fullcalendar/fullcalendar.min.js') }}"></script>
-  <script src="{{ static('main/jstz/jstz-1.0.4.min.js') }}"></script>
-  <script src="{{ static('main/js/calendar.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'calendar' %}
 {% endblock %}
 
 

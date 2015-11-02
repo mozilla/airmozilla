@@ -232,12 +232,6 @@ px      68    160    252    344    436    528    620    712    804    896    */
 .entry-header .vcard img { position: absolute; left: 0; top: .75em; left: 24px; border: 1px solid #fff; }
 .entry-header .vcard a:hover img, .entry-header .vcard a:focus img, .entry-header .vcard a:active img { border-color: inherit; }
 
-/*** Comment Count */
-.entry-comments { float: right; background: #fff; margin: 0; width: 92px; font: 1em/1 "Open Sans Light", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif; -o-box-shadow: 0 1px 1px rgba(0,0,0,.1); -ms-box-shadow: 0 1px 1px rgba(0,0,0,.1); box-shadow: 0 1px 1px rgba(0,0,0,.1); }
-.entry-comments a { display: block; background: transparent url("img/icn-comment.png") 24px 17px no-repeat; padding: 15px 5px 15px 47px; border: 1px solid #fff; }
-.entry-comments a:hover, .entry-comments a:focus, .entry-comments a:active { background-position: 24px -83px; }
-.show-comments.no-author .entry-comments { position: absolute; right: 0; top: 0; }
-
 /*** @Edit buttons */
 .edit { font-size: .857em; }
 .edit a { display: inline-block; padding: 1px 5px; margin-top: -2px; border: 1px solid #ccc; border-radius: 4px;
@@ -247,14 +241,6 @@ px      68    160    252    344    436    528    620    712    804    896    */
   background: linear-gradient(top, #fff 0, #eee 100%);
 }
 .edit a:hover, .edit a:focus { border-color: #999; }
-
-/*** @Posted date */
-.entry-posted { position: absolute; left: 0; top: 0; width: 48px; padding: 6px 10px 16px; background: url("img/bg-date-lt.png") center top no-repeat; text-align: center; font: 10px/1 "Open Sans Light", "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", Verdana, sans-serif; }
-.entry-posted a:link, .entry-posted a:visited, .entry-posted a:hover, .entry-posted a:focus, .entry-posted a:active { color: #3c3c3c; }
-.entry-posted .posted-month { display: block; font-size: 1.4em; text-transform: uppercase; }
-.entry-posted .posted-date { display: block; font-size: 2.6em; line-height: .95; }
-.entry-posted .posted-year { display: block; font-size: 1.4em; }
-
 
 /* @Content *********/
 .entry-content ul, .entry-content ol { margin: 0 0 1.5em 24px; }

@@ -12,6 +12,12 @@
   </style>
 {% endblock %}
 
+{% block site_js %}
+  {{ super() }}
+  <script>var VIDLY_URL_TO_SHORTCUT = '{{ url('manage:vidly_url_to_shortcode', event.pk) }}';</script>
+  {% javascript 'event_archive' %}
+{% endblock %}
+
 
 {% block manage_content %}
 
@@ -44,13 +50,4 @@
     <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
   </p>
 
-{% endblock %}
-
-
-{% block site_js %}
-  {{ super() }}
-  <script>var VIDLY_URL_TO_SHORTCUT = '{{ url('manage:vidly_url_to_shortcode', event.pk) }}';</script>
-  {% compress js %}
-    <script src="{{ static('manage/js/event-archive.js') }}"></script>
-  {% endcompress %}
 {% endblock %}

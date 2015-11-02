@@ -9,20 +9,13 @@
   {{ super() }}
   <script src="{{ static('manage/js/d3.min.js') }}"></script>
   <script src="{{ static('angular/angular.min.js') }}"></script>
-  {% compress js %}
-  <script src="{{ static('manage/metricsgraphics/metricsgraphics.js') }}"></script>
-  <script src="{{ static('manage/js/dashboard_graphs.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'dashboard_graphs' %}
 {% endblock %}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('manage/metricsgraphics/metricsgraphics.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
-  {% compress css %}
-  <link href="{{ static('manage/css/dashboard.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'metricsgraphics' %}
+  {% stylesheet 'dashboard' %}
 {% endblock %}
 
 {% block manage_content %}

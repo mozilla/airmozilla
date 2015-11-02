@@ -17,17 +17,7 @@ Air Mozilla | Mozilla, in Video
 {% endblock %}
 
 {% block site_css %}
-  {% compress css %}
-    <link href="{{ static('main/css/onemozilla.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('starred/css/star_event.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('main/css/fonts.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('main/css/main.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('main/css/tabzilla.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('main/autocompeter/autocompeter.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('main/css/autocompeter.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ static('browserid/persona-buttons.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
-
+{% stylesheet 'main_base' %}
 {% endblock %}
 
 {% block content %}
@@ -156,28 +146,16 @@ Air Mozilla | Mozilla, in Video
     ></autocompeter>
   {% endif %}
 
-  {# Instead of using browser_js() we here include them manually. It'll make the page faster #}
-  {% compress js %}
-  <script src="{{ static('js/libs/layzr.min.js') }}"></script>
-  <script src="{{ static('js/layzr-images.js') }}"></script>
-  <script src="{{ static('starred/js/star_event.js') }}"></script>
-  <script src="{{ static('main/js/nav.js') }}"></script>
-  <script src="{{ static('main/js/thumbnailhover.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'main_base' %}
 
   {% if not BROWSERID_DISABLED %}
-  {% compress js %}
-  <script src="{{ static('js/libs/include.js') }}"></script>
-  <script src="{{ static('browserid/api.js') }}"></script>
-  <script src="{{ static('browserid/browserid.js') }}"></script>
-  {% endcompress %}
+  {# Instead of using browser_js() we here include them manually. It'll make the page faster #}
+  {% javascript 'browserid' %}
   {% endif %}
 
   {% if include_autocompeter %}
   <script src="//cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js"></script>
-  {% compress js %}
-  <script src="{{ static('main/js/autocompeter.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'autocompeter' %}
   {% endif %}
 
 {% endblock %}

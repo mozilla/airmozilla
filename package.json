@@ -1,0 +1,12 @@
+{
+  "name": "AirMozilla",
+  "description": "The video broadcasting site for the Mozilla project",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mozilla/airmozilla.git"
+  },
+  "license": "MPL-2.0",
+  "dependencies": {
+    "yuglify": "^0.1.4"
+  }
+}

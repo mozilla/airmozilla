@@ -9,10 +9,10 @@ from mock import patch
 from django.test.client import RequestFactory
 
 from airmozilla.base import utils
-from airmozilla.base.tests.testbase import Response
+from airmozilla.base.tests.testbase import DjangoTestCase, Response
 
 
-class TestMisc(TestCase):
+class TestMisc(DjangoTestCase):
 
     def test_unhtml(self):
         input_ = 'A <a href="">FOO</a> BAR'
@@ -39,10 +39,11 @@ class TestMisc(TestCase):
         root_url = utils.get_base_url(request)
         eq_(root_url, 'https://testserver')
 
-    def test_get_abs_static(test):
+    def test_get_abs_static(self):
         rq = RequestFactory().get('/')
-        url = utils.get_abs_static('/img/firefox.png', rq)
-        eq_(url, 'http://testserver/img/firefox.png')
+        absolute_relative_path = self._create_static_file('foo.png', 'data')
+        url = utils.get_abs_static('foo.png', rq)
+        eq_(url, 'http://testserver%s' % absolute_relative_path)
 
     def test_roughly(self):
         numbers = []

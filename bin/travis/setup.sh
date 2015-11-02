@@ -26,3 +26,9 @@ CACHES = {
 
 RUN_SELENIUM_TESTS = True
 SETTINGS
+
+echo "Installing the node packages"
+npm install
+
+echo "Running collectstatic"
+python manage.py collectstatic --noinput

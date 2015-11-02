@@ -4,14 +4,6 @@
     width: 100%;
 }
 
-[class^="icon-"] {
-    background-image: url("../img/glyphicons-halflings.png");
-}
-
-.icon-white {
-    background-image: url("../img/glyphicons-halflings-white.png");
-}
-
 body {
     padding-top: 50px;
     overflow-y: scroll;

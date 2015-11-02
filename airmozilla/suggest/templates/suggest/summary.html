@@ -6,9 +6,7 @@ Event summary | {{ super() }}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('suggest/css/summary.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'suggest_summary' %}
 {% endblock %}
 
 {% block content_main %}
