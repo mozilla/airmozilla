@@ -376,17 +376,6 @@
     </p>
   </div>
 
-  {% if event.mozillian %}
-  <div class="alert alert-warning alert-dismissible" role="alert">
-    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-    <p>
-      <b>Note!</b>
-      This event is a Mozillians profile for
-      <a href="{{ mozillians_permalink(event.mozillian) }}">{{ mozillians_permalink(event.mozillian) }}</a>
-    </p>
-  </div>
-  {% endif %}
-
   {% include "manage/_default_form_upload.html" %}
 
   {% if suggested_event_comments %}

@@ -385,7 +385,6 @@ class Event(models.Model):
         default=60 * 60,  # seconds
         null=True,
     )
-    mozillian = models.CharField(max_length=200, null=True)
     creator = models.ForeignKey(User, related_name='creator', blank=True,
                                 null=True, on_delete=models.SET_NULL)
     created = models.DateTimeField(auto_now_add=True)

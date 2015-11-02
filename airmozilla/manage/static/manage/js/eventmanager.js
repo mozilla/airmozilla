@@ -235,8 +235,6 @@ function EventManagerController($scope, $http, $interval) {
                 return !!event.needs_approval;
             } else if ($scope.search_only === 'live') {
                 return !!event.is_live;
-            } else if ($scope.search_only === 'mozillian') {
-                return !!event.mozillian;
             } else {
                 console.warn('Unrecognized option', $scope.search_only);
             }
