@@ -10,7 +10,6 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, VidlySubmission
-from airmozilla.webrtc.sending import email_about_mozillian_video
 from .vidly import query
 
 
@@ -131,13 +130,6 @@ def archive(event, swallow_email_exceptions=False, verbose=False):
         for submission in submissions:
             submission.finished = timezone.now()
             submission.save()
-
-        # if it belonged to a Mozillian, then send an email to the creator
-        if event.mozillian:
-            email_about_mozillian_video(
-                event,
-                swallow_errors=not settings.DEBUG
-            )
 
 
 def build_absolute_url(uri):
