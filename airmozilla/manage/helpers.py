@@ -135,7 +135,7 @@ def comment_status_to_css_label(status):
 
 @register.function
 def event_status_to_css_label(status):
-    if status == Event.STATUS_INITIATED:
+    if status in (Event.STATUS_INITIATED, Event.STATUS_SUBMITTED):
         return 'label-default'
     if status in (Event.STATUS_PENDING, Event.STATUS_PROCESSING):
         return 'label-primary'
