@@ -337,27 +337,22 @@ def _unpack_dom(dom, main_tag_name):
     return results
 
 
-def get_video_redirect_info(tag, format_, hd=False, expires=60 * 60):
+def get_video_redirect_info(tag, format_, hd=False):
     assert format_ in ('webm', 'mp4'), format_
     if hd:
         format_ = 'hd_{}'.format(format_)
-    cache_key = 'video_redirect_info' + tag + format_
-    data = cache.get(cache_key)
-    if data is None:
-        vidly_url = 'https://vid.ly/{}?content=video&format={}'.format(
-            tag,
-            format_
-        )
-        req = requests.head(vidly_url)
-        if req.status_code == 404:
-            raise VidlyNotFoundError(tag)
-        assert req.status_code == 302, (req.status_code, vidly_url)
-        req2 = requests.head(req.headers['Location'])
-        data = {
-            'url': req.headers['Location'].split('?t=')[0],
-            'length': req2.headers['Content-Length'],
-            'type': req2.headers['Content-Type'],
-        }
-        cache.set(cache_key, data, expires)
-
+    vidly_url = 'https://vid.ly/{}?content=video&format={}'.format(
+        tag,
+        format_
+    )
+    req = requests.head(vidly_url)
+    if req.status_code == 404:
+        raise VidlyNotFoundError(tag)
+    assert req.status_code == 302, (req.status_code, vidly_url)
+    req2 = requests.head(req.headers['Location'])
+    data = {
+        'url': req.headers['Location'].split('?t=')[0],
+        'length': int(req2.headers['Content-Length']),
+        'type': req2.headers['Content-Type'],
+    }
     return data

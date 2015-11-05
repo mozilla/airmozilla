@@ -15,6 +15,7 @@ from django.utils.encoding import smart_text
 from airmozilla.base.utils import unique_slugify, roughly
 from airmozilla.main.fields import EnvironmentField
 from airmozilla.manage.utils import filename_to_notes
+from airmozilla.manage.vidly import get_video_redirect_info
 
 import pytz
 from sorl.thumbnail import ImageField
@@ -859,6 +860,37 @@ def event_update_slug(sender, instance, raw, *args, **kwargs):
             EventOldSlug.objects.create(slug=old.slug, event=instance)
     except Event.DoesNotExist:
         pass
+
+
+class VidlyMedia(models.Model):
+    tag = models.CharField(max_length=100)
+    hd = models.BooleanField(default=False)
+    video_format = models.CharField(max_length=100)
+    url = models.URLField()
+    size = models.BigIntegerField()  # bytes
+    content_type = models.CharField(max_length=100)
+
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def get_or_create(cls, tag, video_format, hd):
+        try:
+            return cls.objects.get(
+                tag=tag,
+                video_format=video_format,
+                hd=hd
+            )
+        except cls.DoesNotExist:
+            data = get_video_redirect_info(tag, video_format, hd)
+            return cls.objects.create(
+                tag=tag,
+                hd=hd,
+                video_format=video_format,
+                url=data['url'],
+                size=data['length'],
+                content_type=data['type']
+            )
 
 
 class URLMatch(models.Model):

@@ -526,7 +526,7 @@ class VidlyTestCase(DjangoTestCase):
         data = vidly.get_video_redirect_info('abc123', 'mp4', hd=True)
         eq_(data, {
             'url': 'http://cdn.vidly/file.mp4',
-            'length': '1234567',
+            'length': 1234567L,
             'type': 'video/mp5',
         })
 

@@ -449,7 +449,7 @@ class TestFeeds(DjangoTestCase):
         ok_('<title>Air Mozilla' not in response.content)
         ok_('<title>Rust on Air Mozilla' in response.content)
 
-    @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
+    @mock.patch('airmozilla.main.models.get_video_redirect_info')
     def test_itunes_feed_item(self, r_get_redirect_info):
 
         def mocked_get_redirect_info(tag, format_, hd=False, expires=60):
@@ -489,7 +489,7 @@ class TestFeeds(DjangoTestCase):
         ok_('<itunes:duration>01:01:01</itunes:duration>' in xml_)
         ok_('<itunes:keywords>Tag1,Tag2</itunes:keywords>' in xml_)
 
-    @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
+    @mock.patch('airmozilla.main.models.get_video_redirect_info')
     def test_itunes_feed_from_sub_channel(self, r_get_redirect_info):
 
         def mocked_get_redirect_info(tag, format_, hd=False, expires=60):
@@ -522,12 +522,11 @@ class TestFeeds(DjangoTestCase):
         url = reverse('main:itunes_feed', args=('events',))
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        # print response.content
         assert '<item>' in response.content
         xml_ = response.content.split('<item>')[1].split('</item>')[0]
         ok_(event.title in xml_)
 
-    @mock.patch('airmozilla.manage.vidly.get_video_redirect_info')
+    @mock.patch('airmozilla.main.models.get_video_redirect_info')
     def test_itunes_feed_with_repeated_titles(self, r_get_redirect_info):
 
         def mocked_get_redirect_info(tag, format_, hd=False, expires=60):
