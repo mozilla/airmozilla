@@ -2,20 +2,15 @@
 
 {% block site_css %}
 {{ super() }}
-{% compress css %}
-<link href="{{ static('select2/select2.css') }}" rel="stylesheet" type="text/css">
-<link href="{{ static('main/css/too-few-tags.css') }}" rel="stylesheet" type="text/css">
-{% endcompress %}
+{% stylesheet 'select2' %}
+{% stylesheet 'too_few_tags' %}
 {% endblock %}
 
 {% block site_js %}
-  {{ super() }}
-  <script src="{{ static('select2/select2.min.js') }}"></script>
-  {% compress js %}
-  <script src="{{ static('main/js/too-few-tags.js') }}"></script>
-  {% endcompress %}
+{{ super() }}
+<script src="{{ static('select2/select2.min.js') }}"></script>
+{% javascript 'too_few_tags' %}
 {% endblock %}
-
 
 {% block content_main %}
   <h2 class="section-title">

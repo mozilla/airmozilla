@@ -2,18 +2,13 @@
 
 {% block site_css %}
 {{ super() }}
-{% compress css %}
-<link href="{{ static('main/css/event.css') }}" rel="stylesheet" type="text/css">
-<link href="{{ static('popcorn/css/editor.css') }}" rel="stylesheet" type="text/css">
-{% endcompress %}
+{% stylesheet 'popcorn_editor' %}
 {% endblock %}
 
 {% block site_js %}
 {{ super() }}
-{% compress js %}
 <script src="{{ static('popcorn/PopcornEditor/src/PopcornEditor.js') }}"></script>
-<script src="{{ static('popcorn/js/editor.js') }}"></script>
-{% endcompress %}
+{% javascript 'popcorn_editor' %}
 {% endblock %}
 
 {% block page_title %}

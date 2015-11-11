@@ -6,10 +6,14 @@ Video Upload | {{ super() }}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-    <link href="{{ static('uploads/css/upload.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'upload' %}
 {% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'uploads' %}
+{% endblock %}
+
 
 {% block content_main %}
   <h2 class="section-title">Video Upload</h2>
@@ -68,12 +72,4 @@ Video Upload | {{ super() }}
   </form>
 
   <pre id="status"></pre>
-{% endblock %}
-
-{% block site_js %}
-  {{ super() }}
-  {% compress js %}
-  <script src="{{ static('uploads/js/s3upload.js') }}"></script>
-  <script src="{{ static('uploads/js/upload.js') }}"></script>
-  {% endcompress %}
 {% endblock %}

@@ -2,6 +2,8 @@
 # repo. If you need to override a setting locally, use settings/local.py
 import os
 
+from bundles import PIPELINE_CSS, PIPELINE_JS  # NOQA
+
 
 ROOT = os.path.abspath(
     os.path.join(
@@ -26,10 +28,10 @@ PROJECT_MODULE = 'airmozilla'
 ROOT_URLCONF = '%s.urls' % PROJECT_MODULE
 
 INSTALLED_APPS = (
-    'compressor',
+    'pipeline',
     'django_browserid',
-    'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'commonware.response.cookies',
@@ -78,17 +80,13 @@ STATIC_ROOT = path('static')
 # URL prefix for static files
 STATIC_URL = '/static/'
 
-COMPRESS_ROOT = STATIC_ROOT
-COMPRESS_CSS_FILTERS = (
-    'compressor.filters.css_default.CssAbsoluteFilter',
-    'compressor.filters.cssmin.CSSMinFilter'
-)
-
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
+    'pipeline.finders.PipelineFinder',
 )
+
+STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
@@ -175,20 +173,13 @@ def JINJA_CONFIG():
         'extensions': [
             'jinja2.ext.do',
             'jinja2.ext.with_',
-            'jinja2.ext.loopcontrols'
+            'jinja2.ext.loopcontrols',
+            'pipeline.templatetags.ext.PipelineExtension',
         ],
         'finalize': lambda x: x if x is not None else '',
     }
     return config
 
-
-def COMPRESS_JINJA2_GET_ENVIRONMENT():
-    """This function is automatically called by django-compressor"""
-    from jingo import env
-    from compressor.contrib.jinja2ext import CompressorExtension
-    env.add_extension(CompressorExtension)
-
-    return env
 
 # Remove localization middleware
 MIDDLEWARE_CLASSES = (
@@ -395,3 +386,6 @@ ELASTICSEARCH_INDEX = 'events'
 BASE_PASSWORD_HASHERS = HMAC_KEYS = []
 
 YOUTUBE_API_KEY = None
+
+# You have to run `npm install` for this to be installed in `./node_modules`
+PIPELINE_YUGLIFY_BINARY = path('node_modules/.bin/yuglify')

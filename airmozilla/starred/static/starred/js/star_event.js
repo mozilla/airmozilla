@@ -1,4 +1,4 @@
-var Stars = (function() {
+window.Stars = (function() {
     var stars = [],
         csrfToken, signedIn, postSyncCallback = false;
 

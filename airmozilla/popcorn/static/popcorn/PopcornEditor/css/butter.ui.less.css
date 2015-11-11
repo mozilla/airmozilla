@@ -14899,7 +14899,7 @@ a .icon {
   left: 0;
   height: 50px;
   width: 50px;
-  background: url("/resources/icons/ticket.png") top center no-repeat;
+  background: url("../resources/icons/ticket.png") top center no-repeat;
 }
 /*********************************************************
 * First-run
@@ -20407,7 +20407,7 @@ body {
   left: 0;
   height: 50px;
   width: 50px;
-  background: url("/resources/icons/ticket.png") top center no-repeat;
+  background: url("../resources/icons/ticket.png") top center no-repeat;
 }
 /*********************************************************
 * First-run

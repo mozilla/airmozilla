@@ -7,23 +7,14 @@
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('uploads/css/upload.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
-  {% compress css %}
-  <link href="{{ static('manage/css/event-upload.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'upload' %}
+  {% stylesheet 'event_upload' %}
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-  <script src="{{ static('uploads/js/s3upload.js') }}"></script>
-  <script src="{{ static('uploads/js/upload.js') }}"></script>
-  {% endcompress %}
-  {% compress js %}
-  <script src="{{ static('manage/js/event-upload.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'uploads' %}
+  {% javascript 'manage_event_upload' %}
 {% endblock %}
 
 

@@ -5,17 +5,13 @@ Editing Chapters for "{{ event.title }}" | Air Mozilla
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('main/css/edit-chapters.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'edit_chapters' %}
 {% endblock %}
 
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-  <script src="{{ static('main/js/edit-chapters.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'edit_chapters' %}
 {% endblock %}
 
 {% block sidebar %}{% endblock %}

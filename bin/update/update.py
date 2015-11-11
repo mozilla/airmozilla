@@ -48,7 +48,9 @@ def update_code(ctx, tag):
 def update_assets(ctx):
     with ctx.lcd(settings.SRC_DIR):
         ctx.local(
-            '%s/bin/python manage.py collectstatic --noinput' % venv_path
+            '%s/bin/python manage.py collectstatic --noinput --clear' % (
+                venv_path,
+            )
         )
 
 

@@ -76,9 +76,6 @@ Unidecode==0.04.17
 vobject==0.8.1c
 # sha256: aoy0QBER4BG1ecjFKlHNq5cAQcxUOBS72Vd6RSn-HNs
 BeautifulSoup==3.2.1
-# sha256: UE5EGWeseGBKs18DABj8mm-icOam6YRx0jEf139wZ0s
-# sha256: smA0Iw78731g5SZ4kO2mVt_EnFZ_JxJdkH7uT-f5puw
-django_compressor==1.4
 # sha256: F3KVsUQkAMks22fo4Y-f9ZRvtEL4WBO50IN4I3IuoI0
 django-cronjobs==0.2.3
 # sha256: AV1uiepPkO_mjIg3AvAKUDzsw82lsCCLCp6J6q_4naM
@@ -203,3 +200,9 @@ pyasn1-modules==0.0.8
 oauth2client==1.5.1
 # sha256: ow4jCut-vtvLXamZmhf6ijDlEubVsG9z1HxuA8jjV_0
 uritemplate==0.6
+# sha256: xxHohhXvN7I1nOMJeOrnxl5UkkrrBDIpZWxeI5Bl5ZY
+# sha256: pakJ9APQ6lbyEWGJSf9ON48W5amWvegZvStbDnqbuP4
+django-pipeline==1.5.4
+# sha256: BK-ioGq33MqdgXF7Qgp6FIJgYemyYUpcd90kx1zPl-Q
+# sha256: L-I0K7T-i44hfw0htZIcvlQIv5Ztn5ICXnB-iBsZi-0
+futures==3.0.3

@@ -7,9 +7,7 @@
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/vidly-media.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'vidly_media' %}
 {% endblock %}
 
 {% block site_css %}

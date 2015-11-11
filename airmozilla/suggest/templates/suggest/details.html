@@ -7,9 +7,7 @@ Event details | {{ super() }}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
   <link href="{{ static('select2/select2.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
   <link href="{{ static('suggest/jquery-ui/css/smoothness/jquery-ui-1.10.1.custom.min.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
@@ -17,10 +15,7 @@ Event details | {{ super() }}
   {{ super() }}
   <script src="{{ static('select2/select2.min.js') }}"></script>
   <script src="{{ static('suggest/jquery-ui/js/jquery-ui-1.10.1.custom.min.js') }}"></script>
-  {% compress js %}
-    <script src="{{ static('suggest/js/jquery-ui-timepicker-addon.js') }}"></script>
-    <script src="{{ static('suggest/js/details.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'suggest_details' %}
 {% endblock %}
 
 

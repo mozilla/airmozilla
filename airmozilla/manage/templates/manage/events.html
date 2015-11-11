@@ -6,19 +6,12 @@
   <script src="{{ static('angular/angular.min.js') }}"></script>
   <script src="{{ static('angular/angular-moment.min.js') }}"></script>
   {% if DEBUG %}<script src="{{ static('angular/watchcounter.js') }}"></script>{% endif %}
-  {% compress js %}
-  <script src="{{ static('manage/js/bootstrap-datepicker.js') }}"></script>
-  <script src="{{ static('manage/js/events.js') }}"></script>
-  <script src="{{ static('manage/js/eventmanager.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'eventmanager' %}
 {% endblock %}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('manage/css/datepicker.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ static('manage/css/events.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'eventmanager' %}
 {% endblock %}
 
 

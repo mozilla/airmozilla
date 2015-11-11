@@ -3,31 +3,16 @@
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('new/jquery-textcomplete/jquery.textcomplete.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ static('new/css/new.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'new' %}
 {% endblock %}
 
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-  <script src="{{ static('angular/angular.min.js') }}"></script>
-  <script src="{{ static('angular/angular-sanitize.min.js') }}"></script>
-  <script src="{{ static('angular/angular-animate.min.js') }}"></script>
-  <script src="{{ static('angular/angular-ui-router.min.js') }}"></script>
-  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
-  <script src="{{ static('uploads/js/s3upload.js') }}"></script>
+  {% javascript 'new_vendor' %}
   <script src="{{ static('new/jquery-textcomplete/jquery.textcomplete.min.js') }}"></script>
-  {% endcompress %}
   {% if DEBUG %}<script src="{{ static('angular/watchcounter.js') }}"></script>{% endif %}
-  {% compress js %}
-  <script src="{{ static('new/js/app.js') }}"></script>
-  <script src="{{ static('new/js/services.js') }}"></script>
-  <script src="{{ static('new/js/controllers.js') }}"></script>
-  {% endcompress %}
-
+  {% javascript 'new' %}
 {% endblock %}
 
 {% block extra_head %}

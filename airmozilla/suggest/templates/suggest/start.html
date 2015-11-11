@@ -15,16 +15,12 @@ Request | {{ super() }}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
-  <link href="{{ static('suggest/css/start.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
+  {% stylesheet 'suggest_start' %}
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-  <script src="{{ static('suggest/js/start.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'suggest_start' %}
 {% endblock %}
 
 

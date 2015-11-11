@@ -23,9 +23,7 @@
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-  <script src="{{ static('manage/js/related-content-testing.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'related_content_testing' %}
 {% endblock %}
 
 

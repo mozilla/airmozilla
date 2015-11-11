@@ -13,7 +13,5 @@
 
 {% block site_js %}
   {{ super() }}
-  {% compress js %}
-    <script src="{{ static('manage/js/staticpage-edit.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'staticpage_edit' %}
 {% endblock %}

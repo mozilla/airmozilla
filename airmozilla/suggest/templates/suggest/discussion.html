@@ -6,9 +6,7 @@ Discussion Configuration | {{ super() }}
 
 {% block site_css %}
   {{ super() }}
-  {% compress css %}
   <link href="{{ static('select2/select2.css') }}" rel="stylesheet" type="text/css">
-  {% endcompress %}
   <style>
   .disabled {
       opacity: 0.5;
@@ -19,9 +17,7 @@ Discussion Configuration | {{ super() }}
 {% block site_js %}
   {{ super() }}
   <script src="{{ static('select2/select2.min.js') }}"></script>
-  {% compress js %}
-  <script src="{{ static('suggest/js/discussion.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'suggest_discussion' %}
 {% endblock %}
 
 {% block content_main %}

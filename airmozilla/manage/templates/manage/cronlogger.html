@@ -9,9 +9,7 @@
   {{ super() }}
   <script src="{{ static('angular/angular.min.js') }}"></script>
   <script src="{{ static('angular/angular-moment.min.js') }}"></script>
-  {% compress js %}
-  <script src="{{ static('manage/js/cronlogger.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'cronlogger' %}
 {% endblock %}
 
 {% block site_css %}

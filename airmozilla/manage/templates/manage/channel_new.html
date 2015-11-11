@@ -39,9 +39,7 @@
   {{ super() }}
 
   {% if use_ace %}
-  {% compress js %}
-    <script src="{{ static('manage/js/channel-html-edit.js') }}"></script>
-  {% endcompress %}
+  {% javascript 'channel_html_edit' %}
   <!-- http://ace.ajax.org/#nav=embedding -->
   <script src="//d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
   {% endif %}

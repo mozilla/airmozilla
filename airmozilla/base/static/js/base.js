@@ -39,6 +39,8 @@ function setupJSTime(container) {
     });
     $('time.timeago', container).timeago();
 }
+// make it available globally
+window.setupJSTime = setupJSTime;
 
 $(function() {
     'use strict';

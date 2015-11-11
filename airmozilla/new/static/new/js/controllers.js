@@ -60,7 +60,7 @@ angular.module('new.controllers', ['new.services'])
                   '  </p>' +
                   '</div>',
         controllerAs: 'ld',
-        controller: function($scope) {
+        controller: ['$scope', function($scope) {
             this.message = $scope.message;
             this.on = $scope.on;
             $scope.$watch('on', function (val) {
@@ -68,7 +68,7 @@ angular.module('new.controllers', ['new.services'])
             }.bind(this));
             var size = $scope.size || 'large';
             this.outerClass = 'loading-outer-' + size;
-        }
+        }]
     };
 })
 

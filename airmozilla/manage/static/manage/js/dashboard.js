@@ -1,6 +1,7 @@
 angular.module('app', [])
 
-.filter('customNumber', function($filter) {
+.filter('customNumber', ['$filter',
+function($filter) {
     return function(input, fractionSize) {
         if (angular.isNumber(input)) {
             return $filter('number')(input, fractionSize);
@@ -8,7 +9,7 @@ angular.module('app', [])
             return input;
         }
     };
-})
+}])
 
 .controller('DashboardController', ['$scope', '$http',
 function($scope, $http) {

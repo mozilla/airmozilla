@@ -3,9 +3,7 @@
 
 {% block extra_head %}
 {{ super() }}
-{% compress css %}
-<link href="{{ static('search/css/search.css') }}" rel="stylesheet" type="text/css">
-{% endcompress %}
+{% stylesheet 'search' %}
 {% endblock %}
 
 {% block body_class %}with-sidebar{% endblock %}
