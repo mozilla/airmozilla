@@ -1,4 +1,3 @@
-import random
 from collections import defaultdict
 
 from django.conf import settings
@@ -9,7 +8,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.core.urlresolvers import reverse
 
-from airmozilla.main.models import Event, Channel, Tag
+from airmozilla.main.models import Event, Channel, Tag, VidlyMedia
 from airmozilla.base.utils import get_base_url, get_abs_static
 from airmozilla.main.helpers import short_desc, thumbnail
 from airmozilla.manage import vidly
@@ -151,17 +150,13 @@ class ITunesElements(object):
         handler.addQuickElement('itunes:subtitle', item['subtitle'])
         handler.addQuickElement('itunes:summary', item['summary'])
 
-        data = vidly.get_video_redirect_info(
-            item['vidly_tag'],
-            'mp4',
-            hd=True,  # Maybe this should depend on VidlySubmission
-        )
+        data = item['vidly_data']
         handler.addQuickElement('enclosure', attrs={
-            'url': data['url'],
-            'length': data['length'],
-            'type': data['type'],
+            'url': data.url,
+            'length': str(data.size),
+            'type': data.content_type,
         })
-        handler.addQuickElement('guid', data['url'], attrs={
+        handler.addQuickElement('guid', data.url, attrs={
             'isPermaLink': 'false'}
         )
 
@@ -288,18 +283,15 @@ class ITunesFeed(EventsFeed):
         items = []
         for event in qs:
             try:
-                vidly_redirect_info = vidly.get_video_redirect_info(
+                vidly_media = VidlyMedia.get_or_create(
                     event.template_environment['tag'],
                     'mp4',
                     hd=True,
-                    # We deliberately make the expiry date a bit random.
-                    # This is to prevent the cache to expiry on all of them
-                    # at the same time, but instead only some being expired.
-                    expires=60 * 60 + 60 * random.randint(1, 10)
                 )
             except vidly.VidlyNotFoundError:
+                print "vidlynotfounderror :(", repr(event)
                 continue
-            event._vidly_redirect_info = vidly_redirect_info
+            event._vidly_media = vidly_media
             items.append(event)
         return items
 
@@ -330,7 +322,7 @@ class ITunesFeed(EventsFeed):
             'subtitle': short_desc(event),
             'summary': event.description,
             'duration': event.duration,
-            'vidly_data': event._vidly_redirect_info,
+            'vidly_data': event._vidly_media,
             'vidly_tag': event.template_environment['tag'],
             'tags': self.all_tags.get(event.id, []),
         }
