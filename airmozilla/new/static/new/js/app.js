@@ -74,6 +74,11 @@ angular.module('new', [
         templateUrl: 'record.html',
         controller: 'RecordController'
     })
+    .state('youtubeVideo', {
+        url: '/youtube',
+        templateUrl: 'youtube.html',
+        controller: 'YouTubeController'
+    })
     .state('preemptiveDetails', {
         url: '/details',
         templateUrl: 'details.html',

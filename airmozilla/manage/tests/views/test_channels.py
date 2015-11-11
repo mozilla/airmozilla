@@ -21,6 +21,17 @@ class TestChannels(ManageTestCase):
         response = self.client.get(reverse('manage:channels'))
         eq_(response.status_code, 200)
 
+        # list again when one of them is a YouTube channel
+        channel = Channel.objects.create(
+            name='SXSW',
+            slug='sxsw',
+            youtube_id='x1x2x3x4'
+        )
+
+        response = self.client.get(reverse('manage:channels'))
+        eq_(response.status_code, 200)
+        ok_(channel.youtube_url in response.content)
+
     def test_channel_new(self):
         """ Channel form adds new channels. """
         # render the form

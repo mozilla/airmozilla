@@ -21,6 +21,11 @@
         <tr>
           <td>
             <a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a>
+            {% if channel.youtube_id %}
+              <a href="{{ channel.youtube_url }}"
+                 title="Originally a YouTube™ channel"
+              ><img src="{{ static('manage/img/youtube-128.png') }}" width="24" alt="YouTube logo"></a>
+            {% endif %}
             {% if channel.reverse_order %}
             <span class="label label-info">Reversed order</span>
             {% endif %}

@@ -1,0 +1,42 @@
+<h4>Share a YouTube™ Video</h4>
+
+{% raw %}
+<div ng-show="urlError" ng-cloak>
+  <h5>Something uncool about that URL</h5>
+  <p>{{ urlError }}</p>
+</div>
+
+<div ng-show="serverError" class="alert alert-danger show-hide">
+  <h4>Server Error</h4>
+  <p>An unexpected YouTube™ extraction error occurred. Sorry.</p>
+</div>
+
+<form ng-submit="startExtraction()" ng-show="!info">
+
+  <div class="youtube-intro">
+    <p>
+      <b>Know of a great video on YouTube™ that is relevant to what we do here at Mozilla?</b><br>
+      We don't copy the video. We embed it. A link will always be available
+      back to the original source on YouTube.com.
+    </p>
+  </div>
+
+  <input type="text" class="youtube-url" ng-model="url" placeholder="e.g. https://www.youtube.com/watch?v=PiBfOFqDIAI">
+  <button class="btn btn-primary submit" ng-disabled="fetching">Go fetch!</button>
+
+</form>
+
+<form ng-submit="createEvent()" ng-show="info">
+  <p>
+    <button class="btn btn-primary submit" ng-disabled="creating">Yes, proceed</button>
+    <button class="smaller" ng-click="cancel()" ng-disabled="creating">Cancel</button>
+  </p>
+
+  <h3>Preview: <i>{{ info.title }}</i></h3>
+  <h4><a ng-href="{{ info.externalURL }}" target="_blank">On YouTube.com</a></h4>
+  <iframe width="896" height="504" ng-src="{{ embedURL }}" frameborder="0" allowfullscreen></iframe>
+
+</form>
+
+
+{% endraw %}

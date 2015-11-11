@@ -76,6 +76,7 @@ angular.module('new.services', [])
 
         service.setId = function(id) {
             _id = id;
+            sessionStorage.setItem('lastNewId', id);
         };
         service.getId = function() {
             return _id;
@@ -438,4 +439,33 @@ angular.module('new.services', [])
         };
     }
 )
+
+
+.service('youtubeService',
+    ['$http',
+    function($http) {
+        var service = {};
+        var $appContainer = angular.element('#content');
+        var youtubeExtractUrl = $appContainer.data('youtube-extract-url');
+        var youtubeCreateUrl = $appContainer.data('youtube-create-url');
+
+        service.extractVideoInfo = function(url) {
+            return $http({
+                url: youtubeExtractUrl,
+                method: 'GET',
+                params: {
+                    url: url
+                }
+            });
+
+        };
+
+        service.createEvent = function(data) {
+            return $http.post(youtubeCreateUrl, data);
+        };
+
+        return service;
+    }]
+)
+
 ;

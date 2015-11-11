@@ -62,7 +62,7 @@
   </tr>
   <tr ng-if="event.status == 'initiated'">
     <td colspan="2" style="text-align: right">
-      <a ng-if="event.picture"
+      <a ng-if="event.picture && pictures"
          ui-sref="picture({id: event.id})"
          title="Pick a different picture">
          Pick a different picture ({{ ::pictures }} available)
@@ -91,7 +91,15 @@
       No picture yet. A default one will be picked for you.
     </td>
   </tr>
-  <tr>
+  <tr ng-if="event.youtube_id">
+    <th>Video:</th>
+    <td colspan="2">
+      <iframe width="640px" height="360px"
+        ng-src="{{ ::event.youtubeSrc }}"
+        frameborder="0" allowfullscreen></iframe>
+    </td>
+  </tr>
+  <tr ng-if="!event.youtube_id">
     <th>Video:</th>
     <td ng-if="loadingVideo">
       <p class="loading">Loading video info...</p>

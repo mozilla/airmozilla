@@ -89,3 +89,6 @@ PNGQUANT_LOCATION = None
 
 # Elastic search test indexing
 ELASTICSEARCH_INDEX = 'test-events'
+
+# For using the google API
+YOUTUBE_API_KEY = 'doesnthavetobesomethingreal'
