@@ -130,9 +130,6 @@ ALLOWED_BID = (
     'mozilla-japan.org',
 )
 
-# This is only needed when not in DEBUG mode
-# SITE_URL = 'http://127.0.0.1:8000'
-
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL_FAILURE = '/login-failure/'
@@ -231,10 +228,6 @@ COOKIES_SECURE = True
 # URL to connect to ElasticSearch
 ELASTICSEARCH_URL = 'http://localhost:9200/'
 
-# This is here in order to override the code related to elastic search
-# once things are said and done, ie. it works, this will be deleted
-USE_RELATED_CONTENT = False
-
 # Number of related events to display (max)
 RELATED_CONTENT_SIZE = 4
 
@@ -332,13 +325,6 @@ CONTRIBUTORS = (
 
 # Override this if you want to run the selenium based tests
 RUN_SELENIUM_TESTS = False
-
-
-# Whether we should use the new upload nav bar item.
-# Once the new upload is fully tested and ready to go live we might as
-# well delete this setting and remove the if-statement in
-# main.context_processors.nav_bar.
-USE_NEW_UPLOADER = True
 
 
 # When enabled, together with DEBUG==True, by visiting /god-mode/ you

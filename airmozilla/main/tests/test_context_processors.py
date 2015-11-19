@@ -142,8 +142,7 @@ class TestNavBar(TestCase):
             user=request.user,
             contributor=True,
         )
-        with self.settings(USE_NEW_UPLOADER=True):
-            data = nav_bar(request)['nav_bar']()
+        data = nav_bar(request)['nav_bar']()
         eq_(data['unfinished_events'], 0)
         urls = [x[1] for x in data['items']]
         ok_('/' in urls)
@@ -154,13 +153,6 @@ class TestNavBar(TestCase):
         ok_(reverse('starred:home') in urls)
         ok_(reverse('new:home') in urls)
         ok_('/browserid/logout/' in urls)
-
-        with self.settings(USE_NEW_UPLOADER=False):
-            # the old way
-            data = nav_bar(request)['nav_bar']()
-        urls = [x[1] for x in data['items']]
-        ok_(reverse('new:home') not in urls)
-        ok_(reverse('suggest:start') in urls)
 
     def test_signed_in_staff(self):
         request = RequestFactory().get('/')
@@ -193,8 +185,7 @@ class TestNavBar(TestCase):
         event.upload = upload
         event.save()
 
-        with self.settings(USE_NEW_UPLOADER=True):
-            data = nav_bar(request)['nav_bar']()
+        data = nav_bar(request)['nav_bar']()
         eq_(data['unfinished_events'], 1)
 
 
