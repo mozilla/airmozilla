@@ -43,6 +43,10 @@ def update_code(ctx, tag):
         ctx.local('%s/bin/peep install -r requirements.txt' % venv_path)
         ctx.local('virtualenv-2.7 --relocatable %s' % venv_path)
 
+        # Install the node dependencies
+        # The `--production` means it doesn't install the devDependencies
+        ctx.local('npm install --production')
+
 
 @task
 def update_assets(ctx):
