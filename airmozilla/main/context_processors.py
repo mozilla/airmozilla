@@ -40,14 +40,9 @@ def nav_bar(request):
                 status=Event.STATUS_INITIATED,
                 upload__isnull=False,
             ).count()
-            if settings.USE_NEW_UPLOADER:
-                items.append(
-                    ('New/Upload', reverse('new:home'), 'new', ''),
-                )
-            else:
-                items.append(
-                    ('Requests', reverse('suggest:start'), 'suggest', ''),
-                )
+            items.append(
+                ('New/Upload', reverse('new:home'), 'new', ''),
+            )
             if request.user.is_staff:
                 items.append(
                     ('Management', reverse('manage:events'), '', ''),
