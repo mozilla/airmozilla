@@ -28,6 +28,7 @@
 
 {% block content_tag %}
   ng-app="new"
+  data-has-youtube-api-key="{{ json_print(has_youtube_api_key) }}"
   data-sign-upload-url="{{ url('uploads:sign') }}"
   data-verify-size-url="{{ url('uploads:verify_size') }}"
   data-yours-url="{{ url('new:your_events') }}"

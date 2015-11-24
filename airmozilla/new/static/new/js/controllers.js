@@ -84,6 +84,8 @@ angular.module('new.controllers', ['new.services'])
         var archiveUrl = $appContainer.data('archive-url');
         var scrapeUrl = $appContainer.data('screencaptures-url');
         var eventUrl = $appContainer.data('event-url');
+
+        $scope.hasYouTubeAPIKey = $appContainer.data('has-youtube-api-key');
         $scope.loading = true;
 
         $http.get(yoursUrl)

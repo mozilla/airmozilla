@@ -18,6 +18,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.files import File
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_text
 
 from airmozilla.main.models import (
     Approval,
@@ -2444,7 +2445,7 @@ class TestPages(DjangoTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        ok_(event.title in smart_text(response.content))
 
         # make it so that viewing the event requires that you're a
         # certain group
@@ -2537,7 +2538,7 @@ class TestPages(DjangoTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        ok_(event.title in smart_text(response.content))
 
         # make it so that viewing the event requires that you're a
         # certain group
@@ -2548,7 +2549,7 @@ class TestPages(DjangoTestCase):
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        ok_(event.title in smart_text(response.content))
 
     def test_view_removed_event(self):
         event = Event.objects.get(title='Test event')
@@ -2571,19 +2572,20 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('This event is no longer available.' in response.content)
-        ok_(event.title in response.content)
+        ok_(event.title in smart_text(response.content))
 
         # but if signed in as a superuser, you can view it
         user.is_superuser = True
         user.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('This event is no longer available.' not in response.content)
-        ok_(event.title in response.content)
+        content = smart_text(response.content)
+        ok_('This event is no longer available.' not in content)
+        ok_(event.title in content)
         # but there is a flash message warning on the page that says...
         ok_(
             'Event is not publicly visible - not scheduled.'
-            in response.content
+            in content
         )
 
     def test_edgecast_smil(self):
@@ -3208,7 +3210,7 @@ class TestPages(DjangoTestCase):
         response = self.client.get('/')
         eq_(response.status_code, 200)
         ok_('Streaming Live Now' in response.content)
-        ok_(event.title in response.content)
+        ok_(event.title in unicode(response.content, 'utf-8'))
 
     def test_thumbnails(self):
         event = Event.objects.get(title='Test event')
