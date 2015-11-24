@@ -25,9 +25,9 @@ nose==1.3.4
 # sha256: uDndLZwRfHAUMMFJlWkYpCOphjtIsJyQ4wpgE-fS9E8
 # sha256: j4MIDaoknQNsvM-4rlzG_wB7iNbZN1ITca-r57Gbrbw
 mock==1.0.1
-# sha256: HbXa_k_oMC80RJKDhkuqdNDWQBNhOqIAkYGHv3aQLV8
-# sha256: uTV9LOvmGZcFXUF9YH-cZQ6BfNGjg7mhuIvx7a15fHU
-Django==1.7.10
+# sha256: EAFkVWiXwSGfM3BuY6ZWuISNM9CbAWHi3u_MUJeM9i0
+# sha256: IDkUT86PG2A9A_paVkNXjfGtAHxO1BphfwKjlD9wWaE
+Django==1.7.11
 # sha256: UCb-DKlgBwm2iucOCGocoADArwLoisjLEIAwxrW-jG0
 html2text==2015.6.21
 # sha256: HwRtz17HEu076GhLnzPJW3bijNHIJdsPXhVXv9h7N0U
