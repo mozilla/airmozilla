@@ -15,6 +15,7 @@ from django.utils.timezone import utc
 from django.core import mail
 from django.core.files import File
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_text
 
 from airmozilla.main.models import (
     SuggestedEvent,
@@ -869,7 +870,7 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:discussion', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(self.user.email in response.content)
+        ok_(self.user.email in smart_text(response.content))
 
         # suppose you have previously saved that there should another
         # moderator that isn't you
@@ -878,8 +879,9 @@ class TestPages(DjangoTestCase):
         discussion.moderators.add(bob)
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(bob.email in response.content)
-        ok_(self.user.email not in response.content)
+        content = smart_text(response.content)
+        ok_(bob.email in content)
+        ok_(self.user.email not in content)
 
     def test_autocomplete_email(self):
         url = reverse('suggest:autocomplete_emails')
@@ -998,9 +1000,10 @@ class TestPages(DjangoTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Enabled' in response.content)
-        ok_(self.user.email in response.content)
-        ok_(bob.email in response.content)
+        content = smart_text(response.content)
+        ok_('Enabled' in content)
+        ok_(self.user.email in content)
+        ok_(bob.email in content)
 
         # and there should be a link to change the discussion
         discussion_url = reverse('suggest:discussion', args=(event.pk,))

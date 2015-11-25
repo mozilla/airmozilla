@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_text
 
 from nose.tools import eq_, ok_
 
@@ -81,7 +82,7 @@ class TestEventDiscussion(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         emails = [user.email, 'richard@example.com']
-        ok_(', '.join(emails) in response.content)
+        ok_(', '.join(emails) in smart_text(response.content))
 
         # Now let's try to post something to it
         data = {

@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.utils.timezone import utc
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_text
 
 from nose.tools import eq_, ok_
 
@@ -85,18 +86,18 @@ class TestSearch(DjangoTestCase):
         self._login()
         response = self.client.get(url, {'q': 'test'})
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        ok_(event.title in smart_text(response.content))
 
         app = Approval.objects.create(event=event)
         response = self.client.get(url, {'q': 'test'})
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        ok_(event.title in smart_text(response.content))
 
         app.processed = True
         app.save()
         response = self.client.get(url, {'q': 'test'})
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        ok_(event.title in smart_text(response.content))
 
     def test_basic_search_with_privacy_filter(self):
         Event.objects.all().delete()

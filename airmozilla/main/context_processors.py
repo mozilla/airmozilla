@@ -101,6 +101,7 @@ def base(request):
         # used for things like {% if event.attr == Event.ATTR1 %}
         'Event': Event,
         'get_feed_data': get_feed_data,
+        'has_youtube_api_key': bool(settings.YOUTUBE_API_KEY),
     }
 
 
