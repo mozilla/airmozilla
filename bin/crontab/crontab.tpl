@@ -57,5 +57,8 @@ HOME=/tmp
 # Every 10 minutes
 */10 * * * * {{ cron }} related_content_index 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
+# Every week
+0 0 * * 0 {{ cron }} purge_old_cronlogs 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+
 
 MAILTO=root
