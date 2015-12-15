@@ -1,6 +1,5 @@
 import datetime
 
-import pytz
 from nose.tools import eq_, ok_
 import mock
 
@@ -178,13 +177,11 @@ class TestEventTweets(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('Something something' in response.content)
-        tz = pytz.timezone(event.location.timezone)
+        # tz = pytz.timezone(event.location.timezone)
         data = {
             'text': 'Different Bla ',
             'include_placeholder': True,
-            'send_date': (
-                tz.normalize(tweet.send_date)
-            ).strftime('%Y-%m-%d %H:%M'),
+            'send_date': tweet.send_date.strftime('%Y-%m-%d %H:%M'),
         }
         response = self.client.post(url, data)
         eq_(response.status_code, 302)

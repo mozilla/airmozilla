@@ -18,6 +18,17 @@
 {% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
+
+  {% if tweet.sent_date %}
+  <div class="alert alert-warning" role="alert">
+    <p>
+      <b>Note!</b><br>
+      This tweet has <a href="{{ full_tweet_url(tweet.tweet_id) }}">already been sent</a>
+      {{ tweet.sent_date|js_date }}!
+    </p>
+  </div>
+  {% endif %}
+
   <input type="hidden" name="event_edit_url" value="{{ url('manage:event_edit', event.pk) }}">
 
   {% if shortener_error %}
