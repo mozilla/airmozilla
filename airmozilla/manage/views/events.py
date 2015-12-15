@@ -1100,7 +1100,6 @@ def new_event_tweet(request, id):
 @transaction.atomic
 def edit_event_tweet(request, id, tweet_id):
     tweet = get_object_or_404(EventTweet, event__id=id, id=tweet_id)
-
     if request.method == 'POST':
         form = forms.EventTweetForm(
             data=request.POST,
@@ -1109,11 +1108,6 @@ def edit_event_tweet(request, id, tweet_id):
         )
         if form.is_valid():
             tweet = form.save()
-            if tweet.send_date:
-                assert tweet.event.location, "event must have a location"
-                tz = pytz.timezone(tweet.event.location.timezone)
-                tweet.send_date = tz_apply(tweet.send_date, tz)
-                tweet.save()
             messages.success(request, 'Tweet saved')
             return redirect('manage:event_tweets', tweet.event.id)
     else:
@@ -1122,6 +1116,7 @@ def edit_event_tweet(request, id, tweet_id):
     context = {
         'form': form,
         'event': tweet.event,
+        'tweet': tweet,
     }
     return render(request, 'manage/edit_event_tweet.html', context)
 

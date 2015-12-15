@@ -394,10 +394,7 @@ class EventTweetForm(BaseModelForm):
         else:
             del self.fields['include_placeholder']
 
-        if event.location:
-            self.fields['send_date'].help_text = (
-                'Timezone is %s' % event.location.timezone
-            )
+        self.fields['send_date'].help_text = 'Timezone is UTC'
 
 
 class ChannelForm(BaseModelForm):
