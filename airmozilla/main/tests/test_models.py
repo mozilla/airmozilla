@@ -502,3 +502,40 @@ class VidlyMediaTests(DjangoTestCase):
         )
         eq_(same_information, information)
         assert len(head_requests) == 2
+
+    def test_get_or_create_multiples(self):
+
+        first = VidlyMedia.objects.create(
+            tag='xyz123',
+            hd=True,
+            video_format='mp4',
+            url='http://first.com',
+            size=10000,
+            content_type='video/mp4'
+        )
+        information = VidlyMedia.get_or_create(
+            'xyz123',
+            'mp4',
+            True
+        )
+        eq_(information, first)
+
+        # Because the creation of these can happen in non-atomic views
+        # (ie. rendering the itunes feed), you might get a race condition
+        # in creating these so there might be multiples.
+        # The classmethod get_or_create (not to be confused with
+        # objects.get_or_create()) needs to be resilient to this.
+        second = VidlyMedia.objects.create(
+            tag='xyz123',
+            hd=True,
+            video_format='mp4',
+            url='http://second.com',
+            size=10001,
+            content_type='video/mp4'
+        )
+        information = VidlyMedia.get_or_create(
+            'xyz123',
+            'mp4',
+            True
+        )
+        eq_(information, second)
