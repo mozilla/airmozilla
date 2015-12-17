@@ -83,3 +83,9 @@ function postSaveHook(response) {
         });
     }
 }
+/* If this whole file gets wrapped in a bracket, e.g.
+  (...original code...)();
+  and then this function is not automatically available by other files.
+  So explicitly setting it on window will make it globally available.
+*/
+window.postSaveHook = postSaveHook;
