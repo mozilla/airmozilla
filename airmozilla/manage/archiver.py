@@ -60,7 +60,7 @@ def archive(event, swallow_email_exceptions=False, verbose=False):
                 if verbose:  # pragma: no cover
                     print (
                         'Unable to find Vid.ly video with tag %s for event '
-                        '"%s"' % (
+                        '"%s"\n' % (
                             tag,
                             event
                         )
@@ -96,7 +96,7 @@ def archive(event, swallow_email_exceptions=False, verbose=False):
                 )
                 if verbose:  # pragma: no cover
                     print (
-                        'Unable to archive event "%s" with tag %s'
+                        'Unable to archive event "%s" with tag %s\n'
                         % (
                             event,
                             tag
