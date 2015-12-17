@@ -875,22 +875,22 @@ class VidlyMedia(models.Model):
 
     @classmethod
     def get_or_create(cls, tag, video_format, hd):
-        try:
-            return cls.objects.get(
-                tag=tag,
-                video_format=video_format,
-                hd=hd
-            )
-        except cls.DoesNotExist:
-            data = get_video_redirect_info(tag, video_format, hd)
-            return cls.objects.create(
-                tag=tag,
-                hd=hd,
-                video_format=video_format,
-                url=data['url'],
-                size=data['length'],
-                content_type=data['type']
-            )
+        qs = cls.objects.filter(
+            tag=tag,
+            video_format=video_format,
+            hd=hd
+        )
+        for obj in qs.order_by('-modified'):
+            return obj
+        data = get_video_redirect_info(tag, video_format, hd)
+        return cls.objects.create(
+            tag=tag,
+            hd=hd,
+            video_format=video_format,
+            url=data['url'],
+            size=data['length'],
+            content_type=data['type']
+        )
 
 
 class URLMatch(models.Model):
