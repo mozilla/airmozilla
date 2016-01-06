@@ -28,7 +28,6 @@ PIPELINE_CSS = {
     },
     'discussion': {
         'source_filenames': (
-            'main/css/edit.css',
             'main/css/discussion.css',
         ),
         'output_filename': 'css/discussion.min.css',
@@ -45,9 +44,14 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/gallery-select.min.css',
     },
-    'main_event_edit': {
+    'select2': {
         'source_filenames': (
             'select2/select2.css',
+        ),
+        'output_filename': 'css/select2.min.css',
+    },
+    'main_event_edit': {
+        'source_filenames': (
             'main/css/edit.css',
         ),
         'output_filename': 'css/main-event-edit.min.css',
@@ -106,7 +110,6 @@ PIPELINE_CSS = {
     },
     'select2_bootstrap': {
         'source_filenames': (
-            'select2/select2.css',
             'select2/select2-bootstrap.css',
         ),
         'output_filename': 'css/select2-bootstrap.min.css',
@@ -132,7 +135,6 @@ PIPELINE_CSS = {
     },
     'popcorn_editor': {
         'source_filenames': (
-            'main/css/event.css',
             'popcorn/css/editor.css',
         ),
         'output_filename': 'css/popcorn-editor.min.css',
@@ -164,7 +166,6 @@ PIPELINE_CSS = {
     },
     'popcorn_status': {
         'source_filenames': (
-            'main/css/event.css',
             'popcorn/css/status.css',
         ),
         'output_filename': 'css/popcorn-status.min.css',
@@ -330,7 +331,6 @@ PIPELINE_JS = {
     'edit_event_tweet': {
         'source_filenames': (
             'manage/js/jquery-ui-1.10.1.custom.min.js',
-            'manage/js/jquery-ui-timepicker-addon.js',
             'manage/js/event-tweets.js',
         ),
         'output_filename': 'js/edit-event-tweet.min.js',
@@ -359,16 +359,20 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/event-edit.min.js',
     },
-    'event_request': {
+    'jquery_ui_timepicker': {
         'source_filenames': (
             'manage/js/jquery-ui-timepicker-addon.js',
+        ),
+        'output_filename': 'js/jquery-ui-timepicker.min.js',
+    },
+    'event_request': {
+        'source_filenames': (
             'manage/js/event-request.js',
         ),
         'output_filename': 'js/event-request.min.js',
     },
     'uploads': {
         'source_filenames': (
-            'uploads/js/s3upload.js',
             'uploads/js/upload.js',
         ),
         'output_filename': 'js/uploads.min.js',
@@ -482,9 +486,14 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/new-vendor.min.js',
     },
-    'new': {
+    's3upload': {
         'source_filenames': (
             'uploads/js/s3upload.js',
+        ),
+        'output_filename': 'js/s3upload.min.js',
+    },
+    'new': {
+        'source_filenames': (
             'new/js/app.js',
             'new/js/services.js',
             'new/js/controllers.js',
@@ -499,8 +508,7 @@ PIPELINE_JS = {
     },
     'suggest_details': {
         'source_filenames': (
-            'suggest/js/jquery-ui-timepicker-addon.js',
-            'suggest/js/details.js'
+            'suggest/js/details.js',
         ),
         'output_filename': 'js/suggest-details.min.js',
     },
@@ -525,12 +533,42 @@ PIPELINE_JS = {
     },
 }
 
-for config in PIPELINE_JS, PIPELINE_CSS:
+# This is sanity checks, primarily for developers. It checks that
+# you haven't haven't accidentally make a string a tuple with an
+# excess comma, no underscores in the bundle name and that the
+# bundle file extension is either .js or .css.
+# We also check, but only warn, if a file is re-used in a different bundle.
+# That's because you might want to consider not including that file in the
+# bundle and instead break it out so it can be re-used on its own.
+_used = {}
+for config in PIPELINE_JS, PIPELINE_CSS:  # NOQA
+    _trouble = set()
     for k, v in config.items():
         assert isinstance(k, basestring), k
         out = v['output_filename']
         assert isinstance(v['source_filenames'], tuple), v
-        assert isinstance(v['source_filenames'], tuple), v
         assert isinstance(out, basestring), v
         assert '_' not in out
-        assert out.endswith('.css') or out.endswith('.js')
+        assert out.endswith('.min.css') or out.endswith('.min.js')
+        for asset_file in v['source_filenames']:
+            if asset_file in _used:
+                print '{:<52} in {:<20} already in {}'.format(
+                    asset_file,
+                    k,
+                    _used[asset_file]
+                )
+                _trouble.add(asset_file)
+            _used[asset_file] = k
+
+    for asset_file in _trouble:
+        print "REPEATED", asset_file
+        found_in = []
+        sets = []
+        for k, v in config.items():
+            if asset_file in v['source_filenames']:
+                found_in.append(k)
+                sets.append(set(list(v['source_filenames'])))
+        print "FOUND IN", found_in
+        print "ALWAYS TOGETHER WITH", set.intersection(*sets)
+        print
+        break
