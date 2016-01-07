@@ -12,6 +12,7 @@
 
 {% block site_js %}
   {{ super() }}
+  {% javascript 'jquery_ui_timepicker' %}
   {% javascript 'edit_event_tweet' %}
 {% endblock %}
 

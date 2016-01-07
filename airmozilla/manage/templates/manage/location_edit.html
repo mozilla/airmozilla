@@ -7,6 +7,7 @@
 
 {% block site_css %}
   {{ super() }}
+  {% stylesheet 'select2' %}
   {% stylesheet 'select2_bootstrap' %}
   <style>
   textarea.form-control { height: 100px; }

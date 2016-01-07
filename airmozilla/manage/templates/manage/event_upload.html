@@ -13,6 +13,7 @@
 
 {% block site_js %}
   {{ super() }}
+  {% javascript 's3upload' %}
   {% javascript 'uploads' %}
   {% javascript 'manage_event_upload' %}
 {% endblock %}
