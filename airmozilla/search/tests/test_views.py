@@ -1,6 +1,7 @@
 import datetime
 import urllib
 import os
+import json
 
 from django.utils import timezone
 from django.utils.timezone import utc
@@ -10,7 +11,7 @@ from django.utils.encoding import smart_text
 
 from nose.tools import eq_, ok_
 
-from airmozilla.search.models import LoggedSearch
+from airmozilla.search.models import LoggedSearch, SavedSearch
 from airmozilla.main.models import Event, UserProfile, Tag, Channel, Approval
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -706,3 +707,137 @@ class TestSearch(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Nothing found' not in response.content)
         ok_('class="star"' in response.content)
+
+    def test_savesearch_link(self):
+        # make a search
+        url = reverse('search:home')
+        response = self.client.get(url, {'q': 'firefox'})
+        eq_(response.status_code, 200)
+
+        savesearch_url = reverse('search:savesearch')
+        ok_(savesearch_url not in response.content)
+
+        user = self._login()
+        response = self.client.get(url, {'q': 'firefox'})
+        eq_(response.status_code, 200)
+        ok_(savesearch_url in response.content)
+
+        response = self.client.post(savesearch_url, {'q': ''})
+        eq_(response.status_code, 400)
+
+        response = self.client.post(savesearch_url, {'q': 'xx'})
+        eq_(response.status_code, 400)
+
+        response = self.client.post(savesearch_url, {'q': 'firefox'})
+        eq_(response.status_code, 302)
+        savedsearch = SavedSearch.objects.get(user=user)
+        eq_(savedsearch.filters['title']['include'], 'firefox')
+
+    def test_savesearch_link_advanced(self):
+        tag = Tag.objects.create(name='Tag1')
+        channel = Channel.objects.create(name='Channel1', slug='channel')
+        user = self._login()
+        url = reverse('search:savesearch')
+        response = self.client.post(url, {
+            'q': 'firefox tag:tag1 channel:channel1'
+        })
+        eq_(response.status_code, 302)
+        savedsearch = SavedSearch.objects.get(user=user)
+        eq_(savedsearch.filters['title']['include'], 'firefox')
+        eq_(savedsearch.filters['tags']['include'], [tag.id])
+        eq_(savedsearch.filters['channels']['include'], [channel.id])
+
+    def test_savedsearch(self):
+        user = User.objects.create_user(
+            'bob', 'bob@example.com', 'secret'
+        )
+        savedsearch = SavedSearch.objects.create(
+            user=user,
+            filters={
+                'title': {
+                    'include': 'firefox'
+                }
+            },
+        )
+        url = reverse('search:savedsearch', args=(savedsearch.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+
+        assert self.client.login(username='bob', password='secret')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        tag1 = Tag.objects.create(name='tag1')
+        tag2 = Tag.objects.create(name='tag2')
+        tag3 = Tag.objects.create(name='tag3')
+
+        channel1 = Channel.objects.create(name='Channel1', slug='c1')
+        channel2 = Channel.objects.create(name='Channel2', slug='c2')
+
+        data = {
+            'name': 'My name',
+            'title_include': 'word',
+            'title_exclude': 'notword',
+            'tags_include': [tag1.id, tag2.id],
+            'tags_exclude': [tag3.id],
+            'channels_include': [channel1.id],
+            'channels_exclude': [channel2.id],
+            'privacy': [
+                Event.PRIVACY_CONTRIBUTORS,
+                Event.PRIVACY_COMPANY,
+            ],
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        savedsearch = SavedSearch.objects.get(id=savedsearch.id)
+        eq_(savedsearch.name, data['name'])
+        eq_(savedsearch.filters['privacy'], data['privacy'])
+        eq_(savedsearch.filters['title']['include'], 'word')
+        eq_(savedsearch.filters['title']['exclude'], 'notword')
+        eq_(savedsearch.filters['tags']['include'], [tag1.id, tag2.id])
+        eq_(savedsearch.filters['tags']['exclude'], [tag3.id])
+        eq_(savedsearch.filters['channels']['include'], [channel1.id])
+        eq_(savedsearch.filters['channels']['exclude'], [channel2.id])
+
+        # also, check how many events can be found with this search
+        response = self.client.get(url, {'sample': True})
+        eq_(response.status_code, 200)
+        events = json.loads(response.content)['events']
+        eq_(events, 0)
+
+    def test_save_someone_elses_saved_search(self):
+        original_user = User.objects.create_user(
+            'some', 'one@example.com', 'secret'
+        )
+        savedsearch = SavedSearch.objects.create(
+            user=original_user,
+            filters={
+                'title': {
+                    'include': 'firefox'
+                }
+            },
+        )
+        user = self._login()
+        url = reverse('search:savedsearch', args=(savedsearch.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        data = {
+            'name': 'Other name',
+            'title_include': 'Other',
+        }
+
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        ok_(not response['location'].endswith(url))
+
+        assert SavedSearch.objects.all().count() == 2
+        savedsearch = SavedSearch.objects.get(user=user)
+        new_url = reverse('search:savedsearch', args=(savedsearch.id,))
+        assert url != new_url
+        ok_(response['location'].endswith(new_url))
+
+        eq_(savedsearch.name, data['name'])
+        eq_(savedsearch.filters['title']['include'], 'Other')

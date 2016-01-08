@@ -2,12 +2,15 @@ import re
 import urllib
 import time
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django import http
 from django.db.utils import DatabaseError
 from django.db import transaction
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.views.decorators.http import require_POST
 
 from airmozilla.main.models import Event, Tag, Channel
 from airmozilla.main.views import is_contributor
@@ -16,7 +19,7 @@ from airmozilla.main.utils import get_event_channels
 
 from . import forms
 from . import utils
-from .models import LoggedSearch
+from .models import LoggedSearch, SavedSearch
 from .split_search import split_search
 
 
@@ -296,3 +299,115 @@ def _search(qs, q, **options):
     else:
         qs = qs.order_by('-start_time')
     return qs
+
+
+@require_POST
+@login_required
+@transaction.atomic()
+def savesearch(request):
+    q = request.POST.get('q', '').strip()
+    if not q:
+        return http.HttpResponseBadRequest('no q')
+    form = forms.SearchForm(request.POST)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+
+    title = form.cleaned_data['q']
+    rest, params = split_search(title, ('tag', 'channel'))
+    tags = None
+    channels = None
+    if params.get('tag'):
+        tags = Tag.objects.filter(name__iexact=params['tag'])
+        if tags:
+            title = rest
+    if params.get('channel'):
+        channels = Channel.objects.filter(
+            name__iexact=params['channel']
+        )
+        if channels:
+            title = rest
+
+    filters = {}
+    if q:
+        filters['title'] = {
+            'include': title
+        }
+    if tags:
+        filters['tags'] = {
+            'include': [tag.id for tag in tags],
+        }
+    if channels:
+        filters['channels'] = {
+            'include': [channel.id for channel in channels],
+        }
+    savedsearch = SavedSearch.objects.create(
+        user=request.user,
+        filters=filters,
+        is_active=True,
+    )
+    messages.success(
+        request,
+        'Search saved'
+    )
+    return redirect('search:savedsearch', id=savedsearch.id)
+
+
+@login_required
+@transaction.atomic()
+def savedsearch(request, id=None, slug=None):
+    savedsearch = get_object_or_404(SavedSearch, id=id)
+    # if id:
+    #     savedsearch = get_object_or_404(SavedSearch, id=id)
+    # elif slug:
+    #     savedsearch = get_object_or_404(SavedSearch, slug=slug)
+    # else:
+    #     raise NotImplementedError
+
+    if request.method == 'POST':
+        forked = False
+        if savedsearch.user != request.user:
+            # fork the saved search
+            forked = True
+            savedsearch = SavedSearch.objects.create(
+                user=request.user,
+                name=savedsearch.name,
+                filters=savedsearch.filters,
+            )
+        form = forms.SavedSearchForm(request.POST)
+        if form.is_valid():
+            data = form.export_filters()
+            savedsearch.name = form.cleaned_data['name']
+            savedsearch.filters = data
+            savedsearch.save()
+
+            if forked:
+                messages.success(
+                    request,
+                    'Saved Search forked and saved'
+                )
+            else:
+                messages.success(
+                    request,
+                    'Saved Search saved'
+                )
+            # if savedsearch.slug:
+            #     return redirect('search:savedsearch', slug=savedsearch.slug)
+            # else:
+            #     return redirect('search:savedsearch', id=savedsearch.id)
+            return redirect('search:savedsearch', id=savedsearch.id)
+    elif request.GET.get('sample'):
+        events = savedsearch.get_events()
+        return http.JsonResponse({'events': events.count()})
+    else:
+        data = forms.SavedSearchForm.convert_filters(
+            savedsearch.filters,
+            pks=True
+        )
+        data['name'] = savedsearch.name
+        form = forms.SavedSearchForm(data)
+
+    context = {
+        'savedsearch': savedsearch,
+        'form': form,
+    }
+    return render(request, 'search/savesearch.html', context)
