@@ -157,7 +157,7 @@ class TestEventEdit(DjangoTestCase):
             'short_description': event.short_description,
             'description': event.description,
             'additional_links': event.additional_links,
-            'tags': ', '.join(x.name for x in event.tags.all()),
+            'tags': [x.pk for x in event.tags.all()],
             'channels': [x.pk for x in event.channels.all()]
         }
         response = self.client.post(url, data)

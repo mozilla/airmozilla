@@ -11,6 +11,7 @@ from airmozilla.main.models import (
     Event,
     Channel,
     Chapter,
+    Tag,
 )
 from airmozilla.comments.models import Discussion
 
@@ -46,10 +47,34 @@ class PinForm(BaseForm):
         return value
 
 
+class TagsModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+
+    def clean(self, value):
+        if not value:
+            return self.queryset.none()
+        # convert the values to IDs
+        pks = []
+        for pk in value:
+            if not pk:
+                continue
+            if not pk.isdigit():
+                for tag in Tag.objects.filter(name__iexact=pk):
+                    pks.append(tag.id)
+                    break
+                else:
+                    pks.append(Tag.objects.create(name=pk).id)
+            else:
+                pks.append(int(pk))
+        return super(TagsModelMultipleChoiceField, self).clean(pks)
+
+
 class EventEditForm(BaseModelForm):
 
     event_id = forms.CharField(widget=forms.HiddenInput())
-    tags = forms.CharField(required=False)
+    tags = TagsModelMultipleChoiceField(
+        Tag.objects.all(),
+        required=False,
+    )
 
     class Meta:
         model = EventRevision
@@ -57,8 +82,12 @@ class EventEditForm(BaseModelForm):
 
     def __init__(self, *args, **kwargs):
         self.event = kwargs.pop('event', None)
+        no_tag_choices = kwargs.pop('no_tag_choices', None)
         super(EventEditForm, self).__init__(*args, **kwargs)
 
+        if no_tag_choices:
+            self.fields['tags'].queryset = self.event.tags.all()
+        self.fields['tags'].help_text = ''
         self.fields['channels'].queryset = (
             Channel.objects
             .filter(Q(never_show=False) | Q(id__in=self.event.channels.all()))
@@ -68,7 +97,7 @@ class EventEditForm(BaseModelForm):
         self.fields['placeholder_img'].label = (
             'Upload a picture from your computer'
         )
-        self.fields['channels'].help_text = ""
+        self.fields['channels'].help_text = ''
         self.fields['recruitmentmessage'].label = 'Recruitment message'
         self.fields['recruitmentmessage'].required = False
         self.fields['recruitmentmessage'].queryset = (

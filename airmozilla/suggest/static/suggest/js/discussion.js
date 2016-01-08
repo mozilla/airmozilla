@@ -1,46 +1,36 @@
 $(function() {
 
-    function process_emails(element, callback) {
-        var data = [];
-        var emails = [];
-        var first = true;
-        var disabled = true;
-        $.each(element.val().trim().split(','), function(i, email) {
-            email = email.trim();
-            if ($.inArray(email, emails) > -1) {
-                return;
-            }
-            if (first) {
-                disabled = true;
-                first = false;
-            } else {
-                disabled = false;
-            }
-            data.push({id: email, text: email, disabled: disabled});
-            emails.push(email);
-        });
-        callback(data);
-    }
-
     $('#id_emails')
         .css('width', '100%')
         .select2({
-            tags: [],
             ajax: {
                 url: $('#id_emails').data('autocomplete-url'),
                 dataType: 'json',
-                data: function(term) {
-                    return {q: term};
+                delay: 250,
+                data: function(params) {
+                    return {q: params.term};
                 },
-                results: function(data) {
-                    var options = [];
+                processResults: function(data, params) {
+                    var existing = $('#id_emails').val();
+                    var results = [];
+                    var emails = [];
                     $.each(data.emails, function(i, email) {
-                        options.push({id: email, text: email});
+                        email = email.trim();
+                        if ($.inArray(email, existing) > -1) {
+                            return;
+                        }
+                        results.push({
+                            id: email,
+                            text: email,
+                        });
                     });
-                    return {results: options};
-                }
+                    return {
+                        results: results,
+                    };
+                },
+                cache: true
             },
-            initSelection: process_emails
+            minimumInputLength: 1,
         });
 
     $('#id_enabled').change(function() {

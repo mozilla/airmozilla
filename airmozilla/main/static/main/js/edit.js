@@ -6,19 +6,8 @@ $(function() {
     $('#id_channels').css('width', '100%');
     $('#id_recruitmentmessage').css('width', '100%');
 
-    var process_tags = function process_tags(element, callback) {
-        var data = [];
-        $(element.val().split(',')).each(function () {
-            data.push({id: this, text: this});
-        });
-        callback(data);
-    };
-
     // Autocomplete tags - uses the select2 library
-    $('#id_tags').select2({
-        tags: [],
-        initSelection: process_tags
-    });
+    $('#id_tags').select2({tags: true});
 
     $.getJSON('/all-tags/')
     .then(function(response) {

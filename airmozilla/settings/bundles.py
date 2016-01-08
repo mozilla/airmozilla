@@ -46,7 +46,7 @@ PIPELINE_CSS = {
     },
     'select2': {
         'source_filenames': (
-            'select2/select2.css',
+            'select2/select2.min.css',
         ),
         'output_filename': 'css/select2.min.css',
     },
@@ -181,6 +181,12 @@ PIPELINE_CSS = {
             'suggest/css/summary.css',
         ),
         'output_filename': 'css/suggest-summary.min.css',
+    },
+    'select2_overrides': {
+        'source_filenames': (
+            'main/css/select2-overrides.css',
+        ),
+        'output_filename': 'css/select2-overrides.min.css',
     },
 }
 

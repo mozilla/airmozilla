@@ -7,13 +7,15 @@ Event details | {{ super() }}
 
 {% block site_css %}
   {{ super() }}
-  <link href="{{ static('select2/select2.css') }}" rel="stylesheet" type="text/css">
+  {% stylesheet 'select2' %}
+  {% stylesheet 'select2_overrides' %}
   <link href="{{ static('suggest/jquery-ui/css/smoothness/jquery-ui-1.10.1.custom.min.css') }}" rel="stylesheet" type="text/css">
+
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
-  <script src="{{ static('select2/select2.min.js') }}"></script>
+  <script src="{{ static('select2/select2.full.min.js') }}"></script>
   <script src="{{ static('suggest/jquery-ui/js/jquery-ui-1.10.1.custom.min.js') }}"></script>
   {% javascript 'jquery_ui_timepicker' %}
   {% javascript 'suggest_details' %}
