@@ -1,0 +1,14 @@
+.select2-container--default .select2-selection--multiple {
+  background-color: rgba(0,0,0,.1);
+  border-color: #2e404e;
+}
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+  border-color: #62869f;
+}
+input.select2-search__field {
+  color: #b4b4b4;
+}
+li.select2-selection__choice,
+li.select2-results__option {
+  color: #444;
+}

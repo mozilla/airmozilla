@@ -1311,7 +1311,7 @@ class TestEvents(ManageTestCase):
             reverse('manage:event_edit', kwargs={'id': event.pk}),
             dict(self.event_base_data,
                  title=event.title,
-                 tags='One, Two')
+                 tags=['One', 'Two'])
         )
         eq_(response.status_code, 302)
         event = Event.objects.get(pk=event.pk)
@@ -1326,7 +1326,7 @@ class TestEvents(ManageTestCase):
             reverse('manage:event_edit', kwargs={'id': event.pk}),
             dict(self.event_base_data,
                  title=event.title,
-                 tags='One, Two, THREE')
+                 tags=['One', 'Two', 'THREE'])
         )
         count_tags_after = Tag.objects.all().count()
         eq_(count_tags_before, count_tags_after)

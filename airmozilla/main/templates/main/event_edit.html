@@ -9,13 +9,14 @@ Editing {{ event.title }} | Air Mozilla
   {# this needs to match what base.forms.GallerySelect sets in Meta #}
   {% stylesheet 'gallery_select' %}
   {% stylesheet 'select2' %}
+  {% stylesheet 'select2_overrides' %}
   {% stylesheet 'main_event_edit' %}
 {% endblock %}
 
 
 {% block site_js %}
   {{ super() }}
-  <script src="{{ static('select2/select2.min.js') }}"></script>
+  <script src="{{ static('select2/select2.full.min.js') }}"></script>
   {% javascript 'gallery_select' %}
   {% javascript 'main_event_edit' %}
 {% endblock %}

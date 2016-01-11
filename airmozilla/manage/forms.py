@@ -40,6 +40,7 @@ from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
 from airmozilla.staticpages.models import StaticPage
 from airmozilla.base.helpers import show_duration_compact
+from airmozilla.main.forms import TagsModelMultipleChoiceField
 
 from .widgets import PictureWidget
 
@@ -87,7 +88,10 @@ class GroupEditForm(BaseModelForm):
 
 
 class EventRequestForm(BaseModelForm):
-    tags = forms.CharField(required=False)
+    tags = TagsModelMultipleChoiceField(
+        Tag.objects.all(),
+        required=False,
+    )
 
     class Meta:
         model = Event
@@ -124,6 +128,7 @@ class EventRequestForm(BaseModelForm):
             'New channel'
             '</a>' % reverse('manage:channel_new'))
         self.fields['placeholder_img'].label = 'Placeholder image'
+        self.fields['tags'].help_text = ''
         if 'instance' in kwargs:
             event = kwargs['instance']
             approvals = event.approval_set.all()
@@ -144,25 +149,6 @@ class EventRequestForm(BaseModelForm):
                     'Since there is no location, time zone of this date '
                     ' is UTC.'
                 )
-
-            if event.pk:
-                tags_formatted = ','.join(x.name for x in event.tags.all())
-                self.initial['tags'] = tags_formatted
-
-    def clean_tags(self):
-        tags = self.cleaned_data['tags']
-        split_tags = [t.strip() for t in tags.split(',') if t.strip()]
-        final_tags = []
-        for tag_name in split_tags:
-            try:
-                t = Tag.objects.get(name=tag_name)
-            except Tag.DoesNotExist:
-                try:
-                    t = Tag.objects.get(name__iexact=tag_name)
-                except Tag.DoesNotExist:
-                    t = Tag.objects.create(name=tag_name)
-            final_tags.append(t)
-        return final_tags
 
     def clean_slug(self):
         """Enforce unique slug across current slugs and old slugs."""

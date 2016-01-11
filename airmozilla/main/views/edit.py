@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
 from django.utils.cache import add_never_cache_headers
 
-from jsonview.decorators import json_view
 from sorl.thumbnail import get_thumbnail
 
 from airmozilla.main import forms
@@ -39,7 +38,7 @@ class EventEditView(EventView):
             'description': event.description,
             'short_description': event.short_description,
             'channels': [x.pk for x in event.channels.all()],
-            'tags': ', '.join([x.name for x in event.tags.all()]),
+            'tags': [x.pk for x in event.tags.all()],
             'call_info': event.call_info,
             'additional_links': event.additional_links,
             'recruitmentmessage': None,
@@ -74,7 +73,11 @@ class EventEditView(EventView):
 
         initial = self.event_to_dict(event)
         if form is None:
-            form = forms.EventEditForm(initial=initial, event=event)
+            form = forms.EventEditForm(
+                initial=initial,
+                event=event,
+                no_tag_choices=True,
+            )
             if not request.user.has_perm('main.change_recruitmentmessage'):
                 del form.fields['recruitmentmessage']
 
@@ -97,7 +100,6 @@ class EventEditView(EventView):
         return render(request, self.template_name, context)
 
     @transaction.atomic
-    @json_view
     def post(self, request, slug):
         event = self.get_event(slug, request)
         if isinstance(event, http.HttpResponse):
@@ -110,7 +112,12 @@ class EventEditView(EventView):
 
         previous = request.POST['previous']
         previous = json.loads(previous)
-        form = forms.EventEditForm(request.POST, request.FILES, event=event)
+
+        form = forms.EventEditForm(
+            request.POST,
+            request.FILES,
+            event=event,
+        )
         base_revision = None
 
         if form.is_valid():
@@ -139,7 +146,7 @@ class EventEditView(EventView):
                             current_value = None
 
                 elif key == 'tags':
-                    current_value = ', '.join(x.name for x in event.tags.all())
+                    current_value = [x.id for x in event.tags.all()]
                 elif key == 'channels':
                     current_value = [x.pk for x in event.channels.all()]
                 elif key == 'picture':
@@ -172,15 +179,10 @@ class EventEditView(EventView):
                             )
                         }
                 elif key == 'tags':
-                    value = set([
-                        x.strip()
-                        for x in value.split(',')
-                        if x.strip()
-                    ])
+                    value = set([x.name for x in value])
                     prev = set([
-                        x.strip()
-                        for x in previous['tags'].split(',')
-                        if x.strip()
+                        x.name for x
+                        in Tag.objects.filter(id__in=previous['tags'])
                     ])
                     for tag in prev - value:
                         tag_obj = Tag.objects.get(name=tag)

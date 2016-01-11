@@ -270,8 +270,14 @@ def details(request, id):
                 event.start_time,
                 pytz.timezone(event.location.timezone)
             )
-        initial = {'enable_discussion': not (event and not discussion)}
-        form = forms.DetailsForm(instance=event, initial=initial)
+        initial = {
+            'enable_discussion': not (event and not discussion),
+        }
+        form = forms.DetailsForm(
+            instance=event,
+            initial=initial,
+            no_tag_choices=True,
+        )
 
     data = {'form': form, 'event': event}
     return render(request, 'suggest/details.html', data)
@@ -287,7 +293,11 @@ def discussion(request, id):
     discussion = SuggestedDiscussion.objects.get(event=event)
 
     if request.method == 'POST':
-        form = forms.DiscussionForm(request.POST, instance=discussion)
+        form = forms.DiscussionForm(
+            request.POST,
+            instance=discussion,
+            all_emails=True,
+        )
         if form.is_valid():
             discussion = form.save()
 
@@ -312,7 +322,7 @@ def discussion(request, id):
                 emails.append(moderator.email)
         if not emails:
             emails.append(request.user.email)
-        initial = {'emails': ', '.join(emails)}
+        initial = {'emails': emails}
         form = forms.DiscussionForm(instance=discussion, initial=initial)
 
     context = {'event': event, 'form': form, 'discussion': discussion}

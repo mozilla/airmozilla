@@ -55,16 +55,17 @@ class TestPages(DjangoTestCase):
         super(TestPages, self).tearDown()
         shutil.rmtree(self.tmp_dir)
 
-    def _make_suggested_event(self,
-                              title="Cool O'Title",
-                              slug='cool-title',
-                              description='Some long description',
-                              short_description='Short description',
-                              additional_links='http://www.peterbe.com\n',
-                              location=None,
-                              start_time=None,
-                              pre_recorded=False
-                              ):
+    def _make_suggested_event(
+        self,
+        title="Cool O'Title",
+        slug='cool-title',
+        description='Some long description',
+        short_description='Short description',
+        additional_links='http://www.peterbe.com\n',
+        location=None,
+        start_time=None,
+        pre_recorded=False
+    ):
         location = location or Location.objects.get(name='Mountain View')
         start_time = start_time or datetime.datetime(
             2014, 1, 1, 12, 0, 0
@@ -521,7 +522,7 @@ class TestPages(DjangoTestCase):
             'timezone': 'US/Pacific',
             'location': mv.pk,
             'privacy': Event.PRIVACY_CONTRIBUTORS,
-            'tags': tag1.name + ', ' + tag2.name,
+            'tags': [tag1.name, tag2.name],
             'channels': channel.pk,
             'additional_links': 'http://www.peterbe.com\n',
             'call_info': 'vidyo room',
@@ -546,7 +547,7 @@ class TestPages(DjangoTestCase):
         eq_(event.call_info, 'vidyo room')
 
         # do it again, but now with different tags
-        data['tags'] = 'buzz, bar'
+        data['tags'] = ['buzz', 'bar']
         response = self.client.post(url, data)
         eq_(response.status_code, 302)
 
@@ -806,7 +807,7 @@ class TestPages(DjangoTestCase):
         data = {
             'enabled': True,
             'moderate_all': True,
-            'emails': self.user.email
+            'emails': [self.user.email],
         }
         # disable it
         response = self.client.post(url, dict(data, enabled=False))
@@ -819,24 +820,21 @@ class TestPages(DjangoTestCase):
         discussion.enabled = True
 
         # try to add something that doesn't look like a valid email address
-        response = self.client.post(url, dict(data, emails='not an email'))
+        response = self.client.post(url, dict(data, emails=['not an email']))
         eq_(response.status_code, 200)
 
         # add two new emails one of which we don't already have a user for
         bob = User.objects.create_user('bob', 'bob@mozilla.com', 'secret')
         # note the deliberate duplicate only different in case
-        emails = ' %s , %s, %s, new@mozilla.com ' % (
+        emails = [
             self.user.email,
             bob.email,
-            self.user.email.upper()
-        )
+            self.user.email.upper(),
+        ]
         response = self.client.post(url, dict(data, emails=emails))
         eq_(response.status_code, 302)
         self.assertRedirects(response, next_url)
-        eq_(discussion.moderators.all().count(), 3)
-        # this should have created a new user
-        new_user = User.objects.get(email='new@mozilla.com')
-        ok_(not new_user.has_usable_password())
+        eq_(discussion.moderators.all().count(), 2)
 
         # if you now open the form again these emails should be in there
         # already
@@ -846,7 +844,6 @@ class TestPages(DjangoTestCase):
         # it can't trust the sort order on these expected email addresses
         ok_('fake@f.com' in response.content)
         ok_('bob@mozilla.com' in response.content)
-        ok_('new@mozilla.com' in response.content)
 
     def test_discussion_default_moderator(self):
         location, = Location.objects.filter(name='Mountain View')
