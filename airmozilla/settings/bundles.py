@@ -188,6 +188,12 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/select2-overrides.min.css',
     },
+    'savesearch': {
+        'source_filenames': (
+            'search/css/savesearch.css',
+        ),
+        'output_filename': 'css/savesearch.min.css',
+    },
 }
 
 #
@@ -536,6 +542,12 @@ PIPELINE_JS = {
             'suggest/js/suggest.js',
         ),
         'output_filename': 'js/suggest-base.min.js',
+    },
+    'savesearch': {
+        'source_filenames': (
+            'search/js/savesearch.js',
+        ),
+        'output_filename': 'js/savesearch.min.js',
     },
 }
 

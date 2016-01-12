@@ -6,6 +6,23 @@
 {% stylesheet 'search' %}
 {% endblock %}
 
+{% block site_js %}
+  {{ super() }}
+
+  <script>
+  $(function() {
+    if (localStorage.getItem('savesearch')) {
+      $('.savesearch-create-form').show();
+    } else {
+      console.log("To enable Save Search, type this in on the console:\n");
+      console.log("localStorage.setItem('savesearch', true);\n");
+      console.log("Then refresh the page");
+    }
+  });
+  </script>
+{% endblock %}
+
+
 {% block body_class %}with-sidebar{% endblock %}
 
 {% block sidebar_inner %}
@@ -122,6 +139,24 @@
       {% endif %}
     </ul>
   </nav>
+  {% endif %}
+
+  {% if search_form and not search_form.errors %}
+  {# by default, it's hidden. For testing purposes. #}
+  <div class="savesearch-create-form" style="display:none">
+    {% if request.user.is_active %}
+    <form action="{{ url('search:savesearch') }}" method="post">
+      <input type="hidden" name="q" value="{{ search_form.q.value() }}">
+      {{ csrf() }}
+      <button>Save this search</button>
+    </form>
+    {% else %}
+    <p>
+      <b>Tip!</b>
+      If you sign in you can save this search.
+    </p>
+    {% endif %}
+  </div>
   {% endif %}
 
 {% endblock %}
