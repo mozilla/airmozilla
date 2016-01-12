@@ -458,6 +458,12 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/tagmanager.min.js',
     },
+    'tweetmanager': {
+        'source_filenames': (
+            'manage/js/tweetmanager.js',
+        ),
+        'output_filename': 'js/tweetmanager.min.js',
+    },
     'url_transforms': {
         'source_filenames': (
             'manage/js/url-transforms.js',

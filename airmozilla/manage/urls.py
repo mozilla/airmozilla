@@ -93,6 +93,8 @@ urlpatterns = patterns(
         name='new_event_tweet'),
     url(r'^events/all/tweets/$', events.all_event_tweets,
         name='all_event_tweets'),
+    url(r'^events/all/tweets/data/$', events.all_event_tweets_data,
+        name='all_event_tweets_data'),
     url(r'^events/archive/(?P<id>\d+)/$', events.event_archive,
         name='event_archive'),
     url(r'^events/archive/(?P<id>\d+)/auto/$',

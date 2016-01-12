@@ -5,50 +5,115 @@
   All Event Tweets
 {% endblock %}
 
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
+  {% javascript 'tweetmanager' %}
+{% endblock %}
+
 {% block site_css %}
   {{ super() }}
   <style>
   td.text { font-size: 0.8em; font-style: italic; }
   td.buttons { text-align: right; }
+  .truncate-title {
+    max-width: 200px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   </style>
 {% endblock %}
 
 {% block manage_content %}
-  <form action="" method="post">
-  {{ csrf() }}
-  <table class="table table-striped">
+<div ng-app="tweetmanagerApp" ng-controller="TweetManagerController">
+  <p ng-if="loading" class="loading">
+    <img src="{{ static('img/spinner.gif') }}">
+    <span class="blinking">Loading all tags...</span>
+  </p>
+  {% raw %}
+  <table class="table table-striped table-bordered" ng-class="{hidden: loading}" ng-cloak>
     <thead>
       <tr>
-        <th>Event</th>
+        <th><a href="#" ng-click="sortBy('event.title')" ng-class="{active: sort_by=='event.title'}">Event</a></th>
         <th>Text</th>
-        <th>Sent/Sending</th>
+        <th><a href="#" ng-click="sortBy('send_date', true)" ng-class="{active: sort_by=='send'}">Sent/Sending</a></th>
         <th>Creator</th>
-        <th></th>
+        <th>
+          {{ filtered_items.length }} tweets found
+        </th>
       </tr>
+    <tr>
+      <td>
+        <input type="search" class="form-control" ng-model="search_event" placeholder="Search by event">
+      </td>
+      <td>
+        <input type="search" class="form-control" ng-model="search_text" placeholder="Search by text">
+      </td>
+      <td>
+        <select name="status" ng-model="search_status">
+          <option value="">All</option>
+          <option value="future">Future</option>
+          <option value="past">Past</option>
+          <option value="failed">Failed</option>
+        </select>
+      </td>
+      <td>
+
+      </td>
+      <td>
+        <a href="#" class="btn btn-default btn-xs btn-primary"
+          ng-if="hasFilter()"
+          ng-click="clearFilter()">Clear filter</a>
+      </td>
+    </tr>
     </thead>
     <tbody>
-      {% for tweet in paginate %}
-      <tr>
-        <td><a href="{{ url('manage:event_edit', tweet.event.pk) }}" title="{{ tweet.event.title }}">{{ truncate_words(tweet.event.title, 4) }}</a></td>
-        <td class="text">{{ tweet.text|truncate(100) }}</td>
+      <tr ng-repeat="tweet in filtered_items = (tweets | filter:filterBySearch | filter:filterByFuture) | orderBy:sort_by:sort_by_desc | startFrom:currentPage*pageSize | limitTo:pageSize">
+        <td >
+          <a class="truncate-title" href="{{ url('manage:event_edit', tweet.event.pk) }}" title="{{ tweet.event.title }}">{{ tweet.event.title }}</a>
+        </td>
+        <td class="text">{{ tweet.text | limitTo : 100 }}</td>
         <td>
-          {% include "manage/_tweet_state.html" %}
+          <a ng-if="tweet.tweet_id" href="{{ tweet.full_tweet_url }}">
+            <i class="glyphicon glyphicon-ok icon-positive"></i>
+            <time title="{{ formatDate(tweet.sent_date) }}" am-time-ago="tweet.sent_date"></time>
+          </a>
+          <span ng-if="!tweet.tweet_id && tweet.sent_date">
+            <i  class="glyphicon glyphicon-warning-sign icon-negative"></i>
+            Failed to send {{ tweet.sent_date }}
+          </span>
+          <span ng-if="!tweet.tweet_id && !tweet.sent_date">
+            <span ng-if="!tweet.event._is_scheduled">Needs to be scheduled first</span>
+            <span ng-if="!tweet.event._is_scheduled && tweet.event._needs_approval">Needs to be approved first</span>
+            <span ng-if="tweet.event._is_scheduled && !tweet.event._needs_approval">
+              Not yet sent
+              <i class="glyphicon glyphicon-time"></i>
+              <time title="{{ formatDate(tweet.send_date) }}" am-time-ago="tweet.send_date"></time>
+            </span>
+          </span>
         </td>
         <td>
-          {% if tweet.creator %}
+          <span ng-if="tweet.creator">
             {{ tweet.creator.email }}
-          {% else %}
+          </span>
+          <span ng-if="!tweet.creator">
             <i>n/a</i>
-          {% endif %}
+          </span>
         </td>
         <td>
           <a class="btn btn-default btn-sm" href="{{ url('manage:event_tweets', tweet.event.pk) }}">Manage tweets</a>
         </td>
       </tr>
-      {% endfor %}
     </tbody>
   </table>
-  {% include "manage/_paginate.html" %}
-  </form>
+  {% endraw %}
+
+  {% include "manage/_angular_pagesize.html" %}
+  {% include "manage/_angular_paginate.html" %}
+
+</div>
 
 {% endblock %}

@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from nose.tools import eq_, ok_
 import mock
@@ -276,7 +277,7 @@ class TestEventTweets(ManageTestCase):
             group=group,
         )
         assert event not in Event.objects.approved()
-        url = reverse('manage:all_event_tweets')
+        url = reverse('manage:all_event_tweets_data')
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
@@ -287,13 +288,10 @@ class TestEventTweets(ManageTestCase):
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Bla bla' in response.content)
-        ok_('Needs to be approved first' in response.content)
-        from airmozilla.main.helpers import js_date
-        ok_(
-            js_date(tweet.send_date.replace(microsecond=0))
-            not in response.content
-        )
+        data = json.loads(response.content)
+        first_tweet, = data['tweets']
+        eq_(first_tweet['text'], 'Bla bla')
+        ok_(first_tweet['event']['_needs_approval'])
 
         # also check that 'Bla bla' is shown on the Edit Event page
         edit_url = reverse('manage:event_edit', args=(event.pk,))
@@ -307,33 +305,33 @@ class TestEventTweets(ManageTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Bla bla' in response.content)
-        ok_(
+        data = json.loads(response.content)
+        first_tweet, = data['tweets']
+
+        tweet_url = (
             'https://twitter.com/%s/status/1234567890'
             % settings.TWITTER_USERNAME
-            in response.content
         )
-        ok_(
-            js_date(tweet.sent_date.replace(microsecond=0))
-            in response.content
-        )
+        eq_(first_tweet['full_tweet_url'], tweet_url)
 
         tweet.tweet_id = None
         tweet.error = "Some error"
         tweet.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Bla bla' in response.content)
-        ok_(
-            'https://twitter.com/%s/status/1234567890'
-            % settings.TWITTER_USERNAME
-            not in response.content
-        )
-        ok_(
-            js_date(tweet.sent_date.replace(microsecond=0))
-            in response.content
-        )
-        ok_('Failed to send' in response.content)
+        data = json.loads(response.content)
+        first_tweet, = data['tweets']
+        ok_('full_tweet_url' not in first_tweet)
+
+        ok_('creator' not in first_tweet)
+        assert self.user.email
+        tweet.creator = self.user
+        tweet.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        data = json.loads(response.content)
+        first_tweet, = data['tweets']
+        eq_(first_tweet['creator'], {'email': self.user.email})
 
     @mock.patch('airmozilla.manage.views.events.send_tweet')
     def test_force_send_now(self, mocked_send_tweet):
