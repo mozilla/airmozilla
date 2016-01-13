@@ -61,6 +61,7 @@ from airmozilla.manage import vidly
 from airmozilla.manage import archiver
 from airmozilla.manage import sending
 from airmozilla.manage import videoinfo
+from airmozilla.manage.helpers import full_tweet_url
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Survey
 from airmozilla.uploads.models import Upload
@@ -1123,21 +1124,54 @@ def edit_event_tweet(request, id, tweet_id):
 
 @staff_required
 @permission_required('main.change_event')
-@transaction.atomic
 def all_event_tweets(request):
     """Summary of tweets and submission of tweets"""
-    tweets = (
+    return render(request, 'manage/all_event_tweets.html')
+
+
+@staff_required
+@permission_required('main.change_event')
+@json_view
+def all_event_tweets_data(request):
+    """Summary of tweets and submission of tweets (the data)"""
+    context = {}
+    tweets_qs = (
         EventTweet.objects
         .filter()
         .select_related('event')
         .order_by('-send_date')
     )
-    paged = paginate(tweets, request.GET.get('page'), 10)
-    data = {
-        'paginate': paged,
+    tweets = []
+    for tweet in tweets_qs.select_related('event', 'creator'):
+        each = {
+            'id': tweet.id,
+            'text': tweet.text,
+            'tweet_id': tweet.tweet_id,
+            'failed_attempts': tweet.failed_attempts,
+            'send_date': tweet.send_date.isoformat(),
+            'sent_date': (
+                tweet.sent_date and tweet.sent_date.isoformat() or None
+            ),
+            'event': {
+                'pk': tweet.event.pk,
+                'title': tweet.event.title,
+                '_is_scheduled': tweet.event.is_scheduled(),
+                '_needs_approval': tweet.event.needs_approval(),
+            },
+        }
+        if tweet.creator:
+            each['creator'] = {
+                'email': tweet.creator.email,
+            }
+        if tweet.tweet_id:
+            each['full_tweet_url'] = full_tweet_url(tweet.tweet_id)
+        tweets.append(each)
+    context['tweets'] = tweets
+    context['urls'] = {
+        'manage:event_edit': reverse('manage:event_edit', args=(0,)),
+        'manage:event_tweets': reverse('manage:event_tweets', args=(0,)),
     }
-
-    return render(request, 'manage/all_event_tweets.html', data)
+    return context
 
 
 @staff_required
