@@ -19,8 +19,6 @@ class SearchForm(BaseForm):
 
 class SavedSearchForm(BaseForm):
 
-    name = forms.CharField(required=False, label='Name this search (optional)')
-
     title_include = forms.CharField(required=False, label='Title (must)')
     title_exclude = forms.CharField(required=False, label='Title (exclude)')
 
@@ -52,6 +50,8 @@ class SavedSearchForm(BaseForm):
         label='Privacy (optional)',
         widget=forms.widgets.CheckboxSelectMultiple(),
     )
+
+    name = forms.CharField(required=False, label='Name this search (optional)')
 
     def __init__(self, *args, **kwargs):
         super(SavedSearchForm, self).__init__(*args, **kwargs)
