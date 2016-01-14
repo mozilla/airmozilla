@@ -340,6 +340,10 @@ def savesearch(request):
         filters['channels'] = {
             'include': [channel.id for channel in channels],
         }
+
+    for other in SavedSearch.objects.filter(user=request.user, is_active=True):
+        if other.filters == filters:
+            return redirect('search:savedsearch', id=other.id)
     savedsearch = SavedSearch.objects.create(
         user=request.user,
         filters=filters,

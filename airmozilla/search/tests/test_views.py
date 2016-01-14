@@ -747,6 +747,25 @@ class TestSearch(DjangoTestCase):
         eq_(savedsearch.filters['tags']['include'], [tag.id])
         eq_(savedsearch.filters['channels']['include'], [channel.id])
 
+    def test_savesearch_avoid_duplicates(self):
+        tag = Tag.objects.create(name='Tag1')
+        channel = Channel.objects.create(name='Channel1', slug='channel')
+        user = self._login()
+        SavedSearch.objects.create(
+            user=user,
+            filters={
+                'title': {'include': 'firefox'},
+                'tags': {'include': [tag.id]},
+                'channels': {'include': [channel.id]},
+            }
+        )
+        url = reverse('search:savesearch')
+        response = self.client.post(url, {
+            'q': 'firefox tag:tag1 channel:channel1'
+        })
+        eq_(response.status_code, 302)
+        eq_(SavedSearch.objects.all().count(), 1)
+
     def test_savedsearch(self):
         user = User.objects.create_user(
             'bob', 'bob@example.com', 'secret'
