@@ -39,6 +39,11 @@ $(function() {
         submitting = true;
     }
 
+    $('form button[name="cancel"]').on('click', function(event) {
+        event.preventDefault();
+        location.href = $('form[data-eventurl]').data('eventurl');
+    });
+
     $('form.event-edit').submit(function() {
         if (submitting) {
             console.warn('Accidental double-submit');
