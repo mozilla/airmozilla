@@ -105,6 +105,9 @@ class EventEditView(EventView):
         if isinstance(event, http.HttpResponse):
             return event
 
+        if request.POST.get('cancel'):
+            return redirect('main:event', event.slug)
+
         if not self.can_view_event(event, request):
             return self.cant_view_event(event, request)
         if not self.can_edit_event(event, request):

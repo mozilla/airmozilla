@@ -97,6 +97,35 @@ class TestEventEdit(DjangoTestCase):
         event = Event.objects.get(pk=event.pk)
         eq_(event.title, 'Different title')
 
+    def test_edit_title_cancel(self):
+        event = Event.objects.get(title='Test event')
+        self._attach_file(event, self.main_image)
+        url = reverse('main:event_edit', args=(event.slug,))
+        self._login()
+        data = self._event_to_dict(event)
+        previous = json.dumps(data)
+        data = {
+            'event_id': event.id,
+            'previous': previous,
+            'title': 'Different title',
+            'short_description': event.short_description,
+            'description': event.description,
+            'additional_links': event.additional_links,
+            'tags': ', '.join(x.name for x in event.tags.all()),
+            'channels': [x.pk for x in event.channels.all()],
+            'cancel': 'cancel',  # important!
+        }
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:event', args=(event.slug,))
+        )
+        ok_(not EventRevision.objects.all())
+        # make sure it didn't actually change
+        event = Event.objects.get(id=event.id)
+        eq_(event.title, 'Test event')
+
     def test_edit_channel(self):
         event = Event.objects.get(title='Test event')
         self._attach_file(event, self.main_image)
