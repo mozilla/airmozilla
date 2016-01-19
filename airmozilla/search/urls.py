@@ -5,7 +5,15 @@ from . import views
 urlpatterns = patterns(
     '',
     url(r'^$', views.home, name='home'),
+    url(r'^saved/$', views.savedsearches, name='savedsearches'),
+    url(r'^saved/data/$', views.savedsearches_data, name='savedsearches_data'),
+    url(
+        r'^saved/(?P<id>\d+)/delete/$',
+        views.delete_savedsearch,
+        name='delete_savedsearch'
+    ),
     url(r'^save/(?P<id>\d+)/$', views.savedsearch, name='savedsearch'),
     url(r'^save/(?P<slug>[-\w]+)/$', views.savedsearch, name='savedsearch'),
     url(r'^save/$', views.savesearch, name='savesearch'),
+
 )

@@ -547,3 +547,8 @@ px      68    160    252    344    436    */
   .main-feature .entry-summary .wp-post-image { width: 148px; }
 
 }
+
+/* For all angular apps in main */
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+    display: none !important;
+}

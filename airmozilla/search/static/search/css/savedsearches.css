@@ -1,0 +1,37 @@
+table.savedsearches {
+    width: 100%;
+    table-layout: fixed;
+}
+table.savedsearches td {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+table.savedsearches th.events,
+table.savedsearches td.events {
+    width: 80px;
+    text-align: center;
+}
+table.savedsearches th.buttons,
+table.savedsearches td.buttons {
+    width: 180px;
+}
+table.savedsearches th.links,
+table.savedsearches td.links {
+    width: 180px;
+}
+table.savedsearches th {
+    text-align: left;
+}
+td.buttons {
+    text-align: right;
+}
+
+td.buttons button {
+    font-size: 80%;
+    padding: 4px 12px;
+}
+
+td.loading {
+    background: url(../../new/img/spinner-20272A.gif) no-repeat;
+}

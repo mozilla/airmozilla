@@ -12,6 +12,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 
+from jsonview.decorators import json_view
+
 from airmozilla.main.models import Event, Tag, Channel
 from airmozilla.main.views import is_contributor
 from airmozilla.base.utils import paginator
@@ -152,6 +154,29 @@ def home(request):
                 sort=request.GET.get('sort'),
                 fuzzy=True
             )
+    elif request.GET.get('ss'):
+        savedsearch = get_object_or_404(
+            SavedSearch,
+            id=request.GET.get('ss')
+        )
+        context['savedsearch'] = savedsearch
+        events = savedsearch.get_events()
+        # But if you're just browsing we want to make sure you don't
+        # see anything you're not supposed to see.
+        if request.user.is_active:
+            if is_contributor(request.user):
+                events = events.exclude(privacy=Event.PRIVACY_COMPANY)
+        else:
+            events = events.filter(privacy=Event.PRIVACY_PUBLIC)
+
+        # It's not obvious how to sort these. They all match the saved
+        # search.
+        # Let's keep it simple and sort by start time for now
+        events = events.order_by('-start_time')
+    else:
+        events = None
+
+    if events is not None:
 
         try:
             page = int(request.GET.get('page', 1))
@@ -175,7 +200,11 @@ def home(request):
         next_page_url = prev_page_url = None
 
         def url_maker(page):
-            querystring = {'q': context['q'].encode('utf-8'), 'page': page}
+            querystring = {'page': page}
+            if context.get('savedsearch'):
+                querystring['ss'] = context['savedsearch'].id
+            else:
+                querystring['q'] = context['q'].encode('utf-8')
             querystring = urllib.urlencode(querystring)
             return '%s?%s' % (reverse('search:home'), querystring)
 
@@ -194,7 +223,7 @@ def home(request):
         if (
             log_searches and
             not _database_error_happened and
-            request.GET['q'].strip()
+            request.GET.get('q', '').strip()
         ):
             logged_search = LoggedSearch.objects.create(
                 term=request.GET['q'][:200],
@@ -341,13 +370,13 @@ def savesearch(request):
             'include': [channel.id for channel in channels],
         }
 
-    for other in SavedSearch.objects.filter(user=request.user, is_active=True):
+    for other in SavedSearch.objects.filter(user=request.user):
         if other.filters == filters:
             return redirect('search:savedsearch', id=other.id)
+
     savedsearch = SavedSearch.objects.create(
         user=request.user,
         filters=filters,
-        is_active=True,
     )
     messages.success(
         request,
@@ -415,3 +444,43 @@ def savedsearch(request, id=None, slug=None):
         'form': form,
     }
     return render(request, 'search/savesearch.html', context)
+
+
+@login_required
+def savedsearches(request):
+    context = {}
+    return render(request, 'search/savedsearches.html', context)
+
+
+@login_required
+@json_view
+def savedsearches_data(request):
+    context = {}
+    qs = SavedSearch.objects.filter(
+        user=request.user
+    ).order_by('-created')
+    searches = []
+    for savedsearch in qs:
+        item = {
+            'id': savedsearch.id,
+            'name': savedsearch.name,
+            'summary': savedsearch.summary,
+            'modified': savedsearch.modified.isoformat(),
+        }
+        searches.append(item)
+    context['savedsearches'] = searches
+    context['urls'] = {
+        'search:savedsearch': reverse('search:savedsearch', args=(0,)),
+        'search:home': reverse('search:home'),
+    }
+    return context
+
+
+@login_required
+@json_view
+def delete_savedsearch(request, id):
+    savedsearch = get_object_or_404(SavedSearch, id=id)
+    if savedsearch.user != request.user:
+        return http.HttpResponseForbidden('Not yours to delete')
+    savedsearch.delete()
+    return {'ok': True}
