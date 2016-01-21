@@ -8,7 +8,9 @@
 
 {% block site_js %}
 {{ super() }}
-<script src="{{ static('popcorn/PopcornEditor/src/PopcornEditor.js') }}"></script>
+{# NOTE: This URL is used inside our own editor.js file too. Hence the global here #}
+<script>window.POPCORN_EDITOR_CDN_URL = "{{ POPCORN_EDITOR_CDN_URL }}";</script>
+<script src="{{ POPCORN_EDITOR_CDN_URL }}/PopcornEditor/src/PopcornEditor.js"></script>
 {% javascript 'popcorn_editor' %}
 {% endblock %}
 

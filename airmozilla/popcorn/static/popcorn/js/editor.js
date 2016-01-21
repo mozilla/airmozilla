@@ -17,9 +17,9 @@ $(document).ready(function () {
             console.warn("Unable to load popcorn data :(");
             console.error.apply(console, arguments);
         });
-    })
+    });
     // Initialize the editor with the div id and path to Popcorn Editor.
-    PopcornEditor.init('editor', '/static/popcorn/PopcornEditor/editor.html');
+    PopcornEditor.init('editor', window.POPCORN_EDITOR_CDN_URL + '/PopcornEditor/editor.html');
     PopcornEditor.listen('save', function (message) {
         $.post($('#editor').data('save'), {
             data: JSON.stringify(message),

@@ -375,3 +375,5 @@ YOUTUBE_API_KEY = None
 
 # You have to run `npm install` for this to be installed in `./node_modules`
 PIPELINE_YUGLIFY_BINARY = path('node_modules/.bin/yuglify')
+
+POPCORN_EDITOR_CDN_URL = "//d2edlhmcxlovf.cloudfront.net"
