@@ -1,7 +1,0 @@
-<select name="supportedLocales" id="supportedLocales">
-  <% languages.forEach(function(locale) { %>
-    <option value="<%= locale %>" <% if (locale == localeInfo.lang) { %> selected="selected" <% } %> >
-      <%= languageEnglishName(locale) + ' - ' + languageNameFor(locale) %>
-    </option>
-  <% }) %>
-</select>
