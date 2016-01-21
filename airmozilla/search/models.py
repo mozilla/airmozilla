@@ -4,7 +4,7 @@ from django.utils import timezone
 
 from jsonfield.fields import JSONField
 
-from airmozilla.main.models import Event
+from airmozilla.main.models import Event, Channel, Tag
 
 
 def _get_now():
@@ -26,9 +26,7 @@ class SavedSearch(models.Model):
     filters = JSONField()
 
     parent = models.ForeignKey('self', related_name='savedsearch', null=True)
-
     user = models.ForeignKey(User)
-    is_active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -37,7 +35,10 @@ class SavedSearch(models.Model):
 
         # this is just the text search
         if self.filters['title'].get('include'):
-            sql = "to_tsvector('english', title) @@ to_tsquery('english', %s)"
+            sql = (
+                "to_tsvector('english', title) @@ "
+                "plainto_tsquery('english', %s)"
+            )
             qs = qs.extra(
                 where=[sql],
                 params=[self.filters['title']['include']]
@@ -72,3 +73,42 @@ class SavedSearch(models.Model):
             qs = qs.filter(privacy__in=self.filters['privacy'])
 
         return qs
+
+    @property
+    def summary(self):
+        """return a string that tries to be human-readable and a summary
+        of the saved search."""
+        parts = []
+
+        for key in ('title', 'tags', 'channels'):
+            if key not in self.filters:
+                continue
+            for op in ('include', 'exclude'):
+                if self.filters[key].get(op):
+                    value = self.filters[key][op]
+                    if key == 'tags':
+                        value = ', '.join(
+                            x.name for x in
+                            Tag.objects.filter(id__in=value)
+                        )
+                    elif key == 'channels':
+                        value = ', '.join(
+                            x.name for x in
+                            Channel.objects.filter(id__in=value)
+                        )
+                    else:
+                        assert isinstance(value, basestring)
+                    parts.append('{} must {}: {}'.format(
+                        key.title(),
+                        op,
+                        value
+                    ))
+        if self.filters.get('privacy'):
+            choices = dict(Event.PRIVACY_CHOICES)
+            parts.append('Privacy: {}'.format(
+                ', '.join([
+                    choices[x] for x in self.filters['privacy']
+                ])
+            ))
+
+        return '; '.join(parts)

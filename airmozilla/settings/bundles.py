@@ -194,6 +194,12 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/savesearch.min.css',
     },
+    'savedsearches': {
+        'source_filenames': (
+            'search/css/savedsearches.css',
+        ),
+        'output_filename': 'css/savedsearches.min.css',
+    },
 }
 
 #
@@ -554,6 +560,12 @@ PIPELINE_JS = {
             'search/js/savesearch.js',
         ),
         'output_filename': 'js/savesearch.min.js',
+    },
+    'savedsearches': {
+        'source_filenames': (
+            'search/js/savedsearches.js',
+        ),
+        'output_filename': 'js/savedsearches.min.js',
     },
 }
 

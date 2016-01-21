@@ -8,11 +8,6 @@ ui-view {
     display: block;
 }
 
-[ng-cloak],
-.ng-cloak {
-  display: none !important;
-}
-
 input.has-error,
 textarea.has-error {
     border: 1px solid darkred;

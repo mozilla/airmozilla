@@ -474,6 +474,23 @@ class TestSearch(DjangoTestCase):
         response = self.client.get(url, {'q': 'TEST EVENT', 'page': 0})
         eq_(response.status_code, 400)
 
+        # Do the same but using a saved search
+        savedsearch = SavedSearch.objects.create(
+            user=User.objects.create(username='anybody'),
+            filters={
+                'title': {'include': 'TesT EveNt'},
+            }
+        )
+        response = self.client.get(url, {'ss': savedsearch.id})
+        eq_(response.status_code, 200)
+        # When no search highlighting, the title appears in the thumbnail's
+        # title attribute and in the title link itself.
+        eq_(response.content.count('Test event'), 10 * 2)
+
+        response = self.client.get(url, {'ss': savedsearch.id, 'page': 2})
+        eq_(response.status_code, 200)
+        eq_(response.content.count('Test event'), 5 * 2)
+
     def test_search_by_tag(self):
         assert Event.objects.approved()
         url = reverse('search:home')
@@ -860,3 +877,77 @@ class TestSearch(DjangoTestCase):
 
         eq_(savedsearch.name, data['name'])
         eq_(savedsearch.filters['title']['include'], 'Other')
+
+    def test_savedsearches(self):
+        # first render the basic savedsearches page
+        url = reverse('search:savedsearches')
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+
+        user = self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # now for the data
+        url = reverse('search:savedsearches_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content)['savedsearches'], [])
+
+        # create a sample saved search
+        tag1 = Tag.objects.create(name='tag1')
+        tag2 = Tag.objects.create(name='tag2')
+
+        channel1 = Channel.objects.create(name='Channel1', slug='c1')
+        channel2 = Channel.objects.create(name='Channel2', slug='c2')
+
+        savedsearch = SavedSearch.objects.create(
+            user=user,
+            name='Some Name',
+            filters={
+                'title': {
+                    'include': 'INCLUDE',
+                    'exclude': 'EXCLUDE',
+                },
+                'tags': {
+                    'include': [tag1.id],
+                    'exclude': [tag2.id],
+                },
+                'channels': {
+                    'include': [channel1.id],
+                    'exclude': [channel2.id],
+                },
+                'privacy': [
+                    Event.PRIVACY_CONTRIBUTORS,
+                    Event.PRIVACY_COMPANY,
+                ]
+            }
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        savedsearches = json.loads(response.content)['savedsearches']
+        eq_(len(savedsearches), 1)
+        first, = savedsearches
+        eq_(first['modified'], savedsearch.modified.isoformat())
+        eq_(first['name'], savedsearch.name)
+        eq_(first['id'], savedsearch.id)
+        eq_(first['summary'], savedsearch.summary)
+
+        # Now delete it.
+        delete_url = reverse(
+            'search:delete_savedsearch',
+            args=(savedsearch.id,)
+        )
+        # But before we try to do that, let's make sure it's not possible
+        # if it belongs to someone else.
+        other_user = User.objects.create(username='other')
+        savedsearch.user = other_user
+        savedsearch.save()
+        response = self.client.post(delete_url)
+        eq_(response.status_code, 403)
+
+        savedsearch.user = user
+        savedsearch.save()
+        response = self.client.post(delete_url)
+        eq_(response.status_code, 200)
+        ok_(not SavedSearch.objects.all())
