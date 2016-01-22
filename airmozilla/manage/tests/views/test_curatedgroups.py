@@ -3,6 +3,7 @@ import json
 from nose.tools import eq_
 import mock
 
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.test_mozillians import (
@@ -14,6 +15,10 @@ from .base import ManageTestCase
 
 
 class TestCuratedGroups(ManageTestCase):
+
+    def tearDown(self):
+        super(TestCuratedGroups, self).tearDown()
+        cache.clear()
 
     @mock.patch('logging.error')
     @mock.patch('requests.get')
