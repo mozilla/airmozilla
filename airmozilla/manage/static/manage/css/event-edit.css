@@ -24,7 +24,7 @@ table.suggested-event-upload .file-name {
     font-size: 80%;
 }
 
-#privacy-vidly-mismatch {
+.alert-hidden {
     display: none;
 }
 

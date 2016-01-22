@@ -34,7 +34,8 @@ from airmozilla.main.models import (
     EventHitStats,
     UserProfile,
     CuratedGroup,
-    Picture
+    Picture,
+    LocationDefaultEnvironment,
 )
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -2283,6 +2284,51 @@ class TestEvents(ManageTestCase):
         submission = VidlySubmission.objects.get(id=submission.id)
         # it should not have changed
         ok_(not submission.token_protection)
+
+    def test_is_template_environment_mismatch(self):
+        event = Event.objects.get(title='Test event')
+
+        url = reverse(
+            'manage:event_template_environment_mismatch',
+            args=(event.id,)
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), None)
+
+        assert event.location
+        assert event.template
+        event.template_environment = {
+            'foo': 'bar'
+        }
+        event.save()
+
+        LocationDefaultEnvironment.objects.create(
+            location=event.location,
+            template=event.template,
+            privacy=event.privacy,
+            template_environment={
+                'something': 'different',
+            }
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(
+            json.loads(response.content)['url'],
+            reverse('manage:location_edit', args=(event.location.id,))
+        )
+
+        # we can now post here
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+        # reload
+        event = Event.objects.get(id=event.id)
+        eq_(
+            event.template_environment,
+            {
+                'something': 'different',
+            }
+        )
 
     def test_edit_event_archive_time(self):
         event = Event.objects.get(title='Test event')
