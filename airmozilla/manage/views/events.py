@@ -414,13 +414,13 @@ def _event_process(request, form, event):
                 if x.strip()
             ]
             if names:
-                all = mozillians.get_all_groups_cached()
+                all_groups = mozillians.get_all_groups_cached()
             for name in names:
                 group, __ = CuratedGroup.objects.get_or_create(
                     event=event,
                     name=name
                 )
-                found = [x for x in all if x['name'] == name]
+                found = [x for x in all_groups if x['name'] == name]
                 if found and found[0]['url'] != group.url:
                     group.url = found[0]['url']
                     group.save()

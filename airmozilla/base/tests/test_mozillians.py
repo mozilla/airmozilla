@@ -257,6 +257,10 @@ assert json.loads(GROUPS2)
 
 class TestMozillians(TestCase):
 
+    def tearDown(self):
+        super(TestMozillians, self).tearDown()
+        cache.clear()
+
     @mock.patch('requests.get')
     def test_is_vouched(self, rget):
         def mocked_get(url, **options):
