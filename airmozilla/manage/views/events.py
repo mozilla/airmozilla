@@ -52,6 +52,7 @@ from airmozilla.main.models import (
     EventAssignment,
     Picture,
     Chapter,
+    LocationDefaultEnvironment,
 )
 from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
@@ -622,6 +623,50 @@ def event_privacy_vidly_mismatch(request, id):
     event = get_object_or_404(Event, id=id)
     # first of all, the video template must be a vid.ly one
     return is_privacy_vidly_mismatch(event)
+
+
+@json_view
+@staff_required
+@permission_required('main.change_event')
+@transaction.atomic
+def event_template_environment_mismatch(request, id):
+    event = get_object_or_404(Event, id=id)
+
+    location_default_environment = None
+    # Check if the template_environment of this event is different
+    # from that in a matched LocationDefaultEnvironment.
+    if event.template and event.location:
+        matches = LocationDefaultEnvironment.objects.filter(
+            location=event.location,
+            privacy=event.privacy,
+            template=event.template
+        )
+        for match in matches:
+            if event.template_environment != match.template_environment:
+                # oh noes!
+                location_default_environment = match
+                break
+
+    if request.method == 'POST':
+        assert location_default_environment
+        event.template_environment = (
+            location_default_environment.template_environment
+        )
+        event.save()
+        messages.success(
+            request,
+            'Template environment successfully changed.'
+        )
+        return redirect('manage:event_edit', event.id)
+    else:
+        if location_default_environment:
+            return {
+                'id': location_default_environment.id,
+                'url': reverse('manage:location_edit', args=(
+                    location_default_environment.location.id,
+                )),
+            }
+    return None
 
 
 @staff_required

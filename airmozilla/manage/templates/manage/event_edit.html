@@ -362,7 +362,7 @@
 
   <!-- this is hidden by default but possibly made visible by the result of an AJAX call -->
   <div id="privacy-vidly-mismatch" data-url="{{ url('manage:event_privacy_vidly_mismatch', event.id) }}"
-       class="alert alert-warning alert-dismissible" role="alert">
+       class="alert alert-hidden alert-warning alert-dismissible" role="alert">
     <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
     <p>
       <b>Note!</b><br>
@@ -370,6 +370,24 @@
       video.<br>
       Simply pressing the <b>"Save changes"</b> button will correct this.
     </p>
+  </div>
+
+  <!-- this is hidden by default but possibly made visible by the result of an AJAX call -->
+  <div id="template-environment-mismatch" data-url="{{ url('manage:event_template_environment_mismatch', event.id) }}"
+       class="alert alert-hidden alert-warning alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <p>
+      <b>Warning!</b><br>
+      This event's <b>Template environment</b> does not match
+      the default Template environment for this Template, Location and Privacy.
+    </p>
+    <p>
+      See the <a href="" class="link">matching location</a>.
+    </p>
+    <form action="{{ url('manage:event_template_environment_mismatch', event.id) }}" method="post">
+      {{ csrf() }}
+      <button class="btn btn-primary" type="submit">Correct this event's Template environment</button>
+    </form>
   </div>
 
   {% include "manage/_default_form_upload.html" %}
