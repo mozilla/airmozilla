@@ -12,8 +12,7 @@ urlpatterns = patterns(
         views.delete_savedsearch,
         name='delete_savedsearch'
     ),
-    url(r'^save/(?P<id>\d+)/$', views.savedsearch, name='savedsearch'),
-    url(r'^save/(?P<slug>[-\w]+)/$', views.savedsearch, name='savedsearch'),
+    url(r'^saved/(?P<id>\d+)/$', views.savedsearch, name='savedsearch'),
     url(r'^save/$', views.savesearch, name='savesearch'),
 
 )
