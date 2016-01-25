@@ -92,4 +92,6 @@ def curated_groups_autocomplete(request):
         for x in all
         if q.lower() in x['name'].lower()
     ]
+    # naively sort by how good the match is
+    groups.sort(key=lambda x: x[0].lower().find(q.lower()))
     return {'groups': groups}

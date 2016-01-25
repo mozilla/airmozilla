@@ -35,6 +35,7 @@ from airmozilla.main.models import (
     Picture,
     Topic,
     Chapter,
+    CuratedGroup,
 )
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
@@ -121,6 +122,7 @@ class EventRequestForm(BaseModelForm):
         )
 
     def __init__(self, *args, **kwargs):
+        self.curated_groups_choices = kwargs.pop('curated_groups_choices', [])
         super(EventRequestForm, self).__init__(*args, **kwargs)
         self.fields['channels'].help_text = (
             '<a href="%s" class="btn btn-default" target="_blank">'
@@ -180,17 +182,32 @@ class EventRequestForm(BaseModelForm):
         return data
 
 
+class CuratedGroupsChoiceField(forms.MultipleChoiceField):
+    """The purpose of this overridden field is so that we can create
+    CuratedGroup objects if need be.
+    """
+
+    def clean(self, value):
+        if self.event.id:
+            for name in value:
+                CuratedGroup.objects.get_or_create(
+                    event=self.event,
+                    name=name
+                )
+        return value
+
+
 class EventEditForm(EventRequestForm):
     approvals = forms.ModelMultipleChoiceField(
         queryset=Group.objects.filter(permissions__codename='change_approval'),
         required=False,
         widget=forms.CheckboxSelectMultiple()
     )
-    curated_groups = forms.CharField(
+    curated_groups = CuratedGroupsChoiceField(
         required=False,
         help_text='Curated groups only matter if the event is open to'
                   ' "%s".' % [x[1] for x in Event.PRIVACY_CHOICES
-                              if x[0] == Event.PRIVACY_CONTRIBUTORS][0]
+                              if x[0] == Event.PRIVACY_CONTRIBUTORS][0],
     )
 
     class Meta(EventRequestForm.Meta):
@@ -214,6 +231,11 @@ class EventEditForm(EventRequestForm):
 
     def __init__(self, *args, **kwargs):
         super(EventEditForm, self).__init__(*args, **kwargs)
+
+        # This is important so that the clean() method on this field
+        # can create new CuratedGroup records if need be.
+        self.fields['curated_groups'].event = self.instance
+        self.fields['curated_groups'].choices = self.curated_groups_choices
 
         if 'pin' in self.fields:
             self.fields['pin'].help_text = (

@@ -5,7 +5,7 @@ $(function() {
 
     // all the things we're going to do select2 on,
     // explicitely make sure they're 100%
-    $('#id_tags, #id_location,  #id_channels, #id_curated_groups').css('width', '100%');
+    $('#id_tags, #id_location,  #id_channels').css('width', '100%');
 
     // Autocomplete tags - uses the select2 library
     $('#id_tags').select2({

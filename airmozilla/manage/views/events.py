@@ -174,18 +174,31 @@ def event_request(request, duplicate_id=None):
                 )
                 for moderator in discussion.moderators.all():
                     dup_discussion.moderators.add(moderator)
-
+            if form.cleaned_data['curated_groups']:
+                for name in form.cleaned_data['curated_groups']:
+                    CuratedGroup.objects.get_or_create(
+                        name=name,
+                        event=event
+                    )
             messages.success(request,
                              'Event "%s" created.' % event.title)
             return redirect('manage:events')
     else:
+        curated_groups_choices = []
         if duplicate_id and discussion:
             initial['enable_discussion'] = True
         if duplicate_id and curated_groups:
-            initial['curated_groups'] = ', '.join(
-                x.name for x in curated_groups
+            initial['curated_groups'] = curated_groups.values_list(
+                'name',
+                flat=True
             )
-        form = form_class(initial=initial)
+            curated_groups_choices = [
+                (x, x) for x in initial['curated_groups']
+            ]
+        form = form_class(
+            initial=initial,
+            curated_groups_choices=curated_groups_choices
+        )
 
     context = {
         'form': form,
@@ -411,12 +424,11 @@ def _event_process(request, form, event):
             # we split them by ,
             names = [
                 x.strip() for x in
-                form.cleaned_data['curated_groups'].split(',')
+                form.cleaned_data['curated_groups']
                 if x.strip()
             ]
-            if names:
-                all_groups = mozillians.get_all_groups_cached()
             for name in names:
+                all_groups = mozillians.get_all_groups(name)
                 group, __ = CuratedGroup.objects.get_or_create(
                     event=event,
                     name=name
@@ -503,10 +515,18 @@ def event_edit(request, id):
             return redirect('manage:events')
     else:
         initial = {}
-        initial['curated_groups'] = ','.join(
-            x[0] for x in curated_groups.values_list('name')
+        initial['curated_groups'] = curated_groups.values_list(
+            'name',
+            flat=True
         )
-        form = form_class(instance=event, initial=initial)
+        curated_groups_choices = [
+            (x, x) for x in initial['curated_groups']
+        ]
+        form = form_class(
+            instance=event,
+            initial=initial,
+            curated_groups_choices=curated_groups_choices,
+        )
 
     context = {
         'form': form,
