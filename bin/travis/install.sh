@@ -2,11 +2,11 @@
 # pwd is the git repo.
 set -e
 
-echo "Install peep"
-pip install bin/peep-2.4.1.tar.gz
+echo "Install latestish pip"
+pip install -U "pip>=8.0.0"
 
 echo "Install Python dependencies"
-peep install -r requirements.txt
+pip install --require-hashes -r requirements.txt
 # less important requirements
 pip install -r dev-requirements.txt
 

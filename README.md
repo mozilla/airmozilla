@@ -56,11 +56,16 @@ need to install XCode and on Linux you'll need to install `python-dev`.
 [This article on pyladies.com](http://www.pyladies.com/blog/Get-Your-Mac-Ready-for-Python-Programming/)
 has a lot of useful information.
 
-Once you have a virtualenv you want to use, you need to install all the
+Make sure that your `pip` in your `virtualenv` is version 8 or higher! To
+check it might look like this:
+
+    $ pip --version
+    pip 8.0.2 from /Users/peterbe/virtualenvs/airmozilla/lib/python2.7/site-packages (python 2.7)
+
+Once you have a `virtualenv` you want to use, you need to install all the
 dependencies. You do this with:
 
-    pip install bin/peep-2.4.1.tar.gz
-    peep install -r requirements.txt
+    pip install -r requirements.txt
     pip install -r dev-requirements.txt
 
 The second file is necessary so you can
@@ -82,6 +87,7 @@ git config --global url."https://".insteadOf git://
 git clone https://github.com/mozilla/airmozilla.git
 cd airmozilla
 pip install -r requirements.txt
+pip install -r dev-requirements.txt
 ```
 
 **Step 3 - Create a database**
@@ -776,7 +782,7 @@ for Python is expected to be under 80 characters wide.
 The help yourself enforce this automatically, you need to set up the following
 git hooks. First, in your virtualenv, install this:
 
-    pip install flake8
+    pip install -U flake8
 
 Next you need to create (or amend) the file:
 
