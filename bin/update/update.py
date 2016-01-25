@@ -39,8 +39,9 @@ def update_code(ctx, tag):
         )
         execfile(activate_env, dict(__file__=activate_env))
 
-        ctx.local('%s/bin/pip install bin/peep-2.4.1.tar.gz' % venv_path)
-        ctx.local('%s/bin/peep install -r requirements.txt' % venv_path)
+        # this makes sure we have pip 8.x at least
+        ctx.local('%s/bin/pip install -U pip' % venv_path)
+        ctx.local('%s/bin/pip install --require-hashes -r requirements.txt' % venv_path)
         ctx.local('virtualenv-2.7 --relocatable %s' % venv_path)
 
         # Install the node dependencies
