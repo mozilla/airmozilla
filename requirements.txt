@@ -112,8 +112,6 @@ fancy-tag==0.2.0
 commonware==0.4.2
 # sha256: LRy1WDkWc99RCaP-XoT95hYO3IskGz6xmrPTq-m43zE
 cef==0.5
-# sha256: aLzPfWX4LppstFym1qD3o35lVH9HUNrrmjq9wcvd9hI
-https://github.com/mozilla/nuggets/archive/ce50688.zip#egg=nuggets
 # sha256: JhKhkajVhCv6BX5BulC7udy3IkGdJAjHjP9HWNB1SGg
 html5lib==0.9999999
 # sha256: HDW0rCBs7y0kgWyJ-Jzyid09OM98RJuz-re_bUPwGx8
