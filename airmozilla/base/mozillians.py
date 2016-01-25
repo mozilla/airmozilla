@@ -107,10 +107,10 @@ def get_all_groups(name_search=None):
     next_url = None
     while True:
         found = _fetch_groups(name=name_search, url=next_url)
-        next_url = found['next']
         all_groups.extend(found['results'])
         if len(all_groups) >= found['count']:
             break
+        next_url = found['next']
     return all_groups
 
 

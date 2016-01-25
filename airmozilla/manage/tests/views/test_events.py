@@ -14,6 +14,7 @@ import pyquery
 from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
 from django.core import mail
+from django.core.cache import cache
 from django.utils import timezone
 from django.utils.timezone import utc
 from django.core.files import File
@@ -854,7 +855,27 @@ class TestEvents(ManageTestCase):
             list(discussion.moderators.all())
         )
 
-    def test_event_duplication_with_curated_groups(self):
+    @mock.patch('requests.get')
+    def test_event_duplication_with_curated_groups(self, rget):
+
+        def mocked_get(url, **options):
+            if '/v2/groups/' in url and 'name=badasses' in url:
+                return Response(json.dumps({
+                    "count": 1,
+                    "results": [
+                        {
+                            "url": "http://muzillians.org/group/1",
+                            "_url": "http://muzillians.org/api/group/1",
+                            "id": "1000",
+                            "name": "badasses",
+                            "member_count": 1,
+                            "next": "should not be necessary",
+                        }
+                    ]
+                }))
+            raise NotImplementedError(url)
+        rget.side_effect = mocked_get
+
         event = Event.objects.get(title='Test event')
         CuratedGroup.objects.create(
             event=event,
@@ -876,12 +897,14 @@ class TestEvents(ManageTestCase):
             'estimated_duration': event.estimated_duration,
             'channels': [x.pk for x in event.channels.all()],
             'enable_discussion': True,
-            'curated_groups': 'badasses'
+            'curated_groups': ['badasses'],
         }
         response = self.client.post(url, data)
         eq_(response.status_code, 302)
         # this is expected to exist
         ok_(CuratedGroup.objects.get(event__title='Different'))
+
+        cache.clear()
 
     def test_event_duplication_with_picture(self):
         event = Event.objects.get(title='Test event')
@@ -1913,10 +1936,11 @@ class TestEvents(ManageTestCase):
         ok_('Curated groups' in response.content)
         response = self.client.post(
             url,
-            dict(self.event_base_data,
-                 title=event.title,
-                 curated_groups='Group 1, Group 2'
-                 )
+            dict(
+                self.event_base_data,
+                title=event.title,
+                curated_groups=['Group 1', 'Group 2'],
+            )
         )
         eq_(response.status_code, 302)
         ok_(CuratedGroup.objects.get(event=event, name='Group 1'))
@@ -1925,15 +1949,19 @@ class TestEvents(ManageTestCase):
         # edit it again
         response = self.client.post(
             url,
-            dict(self.event_base_data,
-                 title=event.title,
-                 curated_groups='Group 1, Group X'
-                 )
+            dict(
+                self.event_base_data,
+                title=event.title,
+                curated_groups=['Group 1', 'Group X'],
+            )
         )
         eq_(response.status_code, 302)
         ok_(CuratedGroup.objects.get(event=event, name='Group 1'))
         ok_(CuratedGroup.objects.get(event=event, name='Group X'))
         ok_(not CuratedGroup.objects.filter(event=event, name='Group 2'))
+
+        # because fetching groups is cached
+        cache.clear()
 
     def test_event_upload(self):
         event = Event.objects.get(title='Test event')
