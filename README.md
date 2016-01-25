@@ -463,7 +463,7 @@ h2.summary {
 Getting help
 ------------
 
-The best place to get help on development is to go the the `#airmozilla-dev`
+The best place to get help on development is to go to the `#airmozilla-dev`
 IRC channel on `irc.mozilla.org`.
 
 
