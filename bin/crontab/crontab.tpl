@@ -60,8 +60,8 @@ HOME=/tmp
 # Every week
 0 0 * * 0 {{ cron }} purge_old_cronlogs 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
-# Every 55 minutes
-*/55 * * * * {{ cron }} keep_all_mozillians_group_cache_hot 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+# Every hour, at 5min past
+5 * * * * {{ cron }} keep_all_mozillians_group_cache_hot 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
 
 MAILTO=root
