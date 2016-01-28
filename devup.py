@@ -301,6 +301,21 @@ def install_python_dependencies(repo_root, virtualenv_name):
     _proceed()
 
 
+def install_node_dependencies(repo_root):
+    print
+    print (
+        "Now we're going to install the Node dependencies.\n"
+        "This assumes you have a working version of npm.\n"
+        "The command we're going to use is:\n"
+        "npm install"
+    )
+    _process_streamed(
+        'npm install'
+    )
+    print "Great! Node dependencies installed."
+    _proceed()
+
+
 def install_python_dev_dependencies(repo_root, virtualenv_name):
     # then virtualenv_name is a path
     print
@@ -431,6 +446,7 @@ def run():
     venv_path = create_virtualenv(repo_root)
     install_python_dependencies(repo_root, venv_path)
     install_python_dev_dependencies(repo_root, venv_path)
+    install_node_dependencies(repo_root)
 
     about_first_migration(repo_root, venv_path)
 
