@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, Channel, Tag, VidlyMedia
+from airmozilla.search.models import SavedSearch
 from airmozilla.base.utils import get_base_url, get_abs_static
 from airmozilla.main.helpers import short_desc, thumbnail
 from airmozilla.manage import vidly
@@ -48,6 +49,12 @@ class EventsFeed(Feed):
         self._root_url = get_base_url(request)
         self._channel = get_object_or_404(Channel, slug=channel_slug)
         self._not_channel = None
+        if request.GET.get('ss'):
+            self._savedsearch = get_object_or_404(
+                SavedSearch, id=request.GET['ss']
+            )
+        else:
+            self._savedsearch = None
         if not_channel_slug:
             self._not_channel = get_object_or_404(
                 Channel,
@@ -69,12 +76,15 @@ class EventsFeed(Feed):
 
     def items(self):
         now = timezone.now()
-        qs = (
-            Event.objects.scheduled_or_processing()
-            .filter(start_time__lt=now,
-                    channels=self._channel)
-            .order_by('-start_time')
-        )
+        if self._savedsearch:
+            qs = self._savedsearch.get_events()
+        else:
+            qs = (
+                Event.objects.scheduled_or_processing()
+                .filter(channels=self._channel)
+            )
+        qs = qs.filter(start_time__lt=now).order_by('-start_time')
+
         if self._not_channel:
             qs = qs.exclude(channels=self._not_channel)
         if not self.private_or_public or self.private_or_public == 'public':

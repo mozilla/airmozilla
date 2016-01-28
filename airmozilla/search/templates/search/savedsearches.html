@@ -63,8 +63,9 @@
         <span ng-if="savedsearch._count !== undefined">{{ savedsearch._count }}</span>
       </td>
       <td class="links">
-        <a href="{{ url('search:home') }}?savedsearch={{ savedsearch.id }}">Browse</a>
-        links links links
+
+        <a href="{{ url('search:home') }}?ss={{ savedsearch.id }}">Browse</a>
+        <a href="{{ url('feed') }}?ss={{ savedsearch.id }}">Feed</a>
       </td>
       <td class="buttons">
         <span ng-if="savedsearch._confirmDelete">Sure?</span>
