@@ -38,8 +38,24 @@ except ImportError:
     from urllib.parse import urlparse  # 3.4
 
 
+PACKAGES = [
+    # Pip has no dependencies, as it vendors everything:
+    ('https://pypi.python.org/packages/source/p/pip/pip-8.0.2.tar.gz',
+     '46f4bd0d8dfd51125a554568d646fe4200a3c2c6c36b9f2d06d2212148439521'),
+    # This version of setuptools has only optional dependencies:
+    ('https://pypi.python.org/packages/source/s/setuptools/'
+     'setuptools-19.4.tar.gz',
+     '214bf29933f47cf25e6faa569f710731728a07a19cae91ea64f826051f68a8cf'),
+    # We require Python 2.7 or later because we don't support wheel's
+    # conditional dep on argparse. This version of wheel has no other
+    # dependencies:
+    ('https://pypi.python.org/packages/source/w/wheel/wheel-0.26.0.tar.gz',
+     'eaad353805c180a47545a256e6508835b65a8e830ba1093ed8162f19a50a530c')
+]
+
+
 class HashError(Exception):
-     def __str__(self):
+    def __str__(self):
         url, path, actual, expected = self.args
         return ('{url} did not match the expected hash {expected}. Instead, '
                 'it was {actual}. The file (left at {path}) may have been '
@@ -82,23 +98,10 @@ def hashed_download(url, temp, digest):
 def main():
     temp = mkdtemp(prefix='pipstrap-')
     try:
-        packages = [
-            # Pip has no dependencies, as it vendors everything:
-            ('https://pypi.python.org/packages/source/p/pip/pip-8.0.2.tar.gz',
-             '46f4bd0d8dfd51125a554568d646fe4200a3c2c6c36b9f2d06d2212148439521'),
-            # This version of setuptools has only optional dependencies:
-            ('https://pypi.python.org/packages/source/s/setuptools/setuptools-19.4.tar.gz',
-             '214bf29933f47cf25e6faa569f710731728a07a19cae91ea64f826051f68a8cf'),
-            # We require Python 2.7 or later because we don't support wheel's
-            # conditional dep on argparse. This version of wheel has no other
-            # dependencies:
-            ('https://pypi.python.org/packages/source/w/wheel/wheel-0.26.0.tar.gz',
-             'eaad353805c180a47545a256e6508835b65a8e830ba1093ed8162f19a50a530c')
-        ]
         downloads = [hashed_download(url, temp, digest)
-                     for url, digest in packages]
+                     for url, digest in PACKAGES]
         check_output('pip install --no-index --no-deps -U ' +
-                         ' '.join(quote(d) for d in downloads),
+                     ' '.join(quote(d) for d in downloads),
                      shell=True)
     except HashError as exc:
         print(exc)
