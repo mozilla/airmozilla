@@ -119,11 +119,11 @@ class TestEventTweets(ManageTestCase):
         ok_(EventTweet.objects.all().count())
         now = timezone.now()
         event_tweet, = EventTweet.objects.all()
-        _fmt = '%Y%m%d%H%M'
-        eq_(
-            event_tweet.send_date.strftime(_fmt),
-            now.strftime(_fmt)
-        )
+        # To avoid being unlucky about the second ticking over
+        # just before we compare these, make it OK to be up to 2 seconds
+        # apart.
+        diff = abs(event_tweet.send_date - now)
+        ok_(diff < datetime.timedelta(seconds=2))
         ok_(not event_tweet.sent_date)
         ok_(not event_tweet.error)
         ok_(not event_tweet.tweet_id)
