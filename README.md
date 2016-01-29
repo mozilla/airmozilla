@@ -75,14 +75,6 @@ The second file is necessary so you can
 Note: We're assuming you have already activated a `virtualenv` which will
 have its own `pip`.
 
-Note 2: Windows users, before you start cloning you need to make sure you're not going to
-use the git protocol to clone any submodule, otherwise you will get ``fatal: read error: Invalid argument``
-errors.
-
-```
-git config --global url."https://".insteadOf git://
-```
-
 ```
 git clone https://github.com/mozilla/airmozilla.git
 cd airmozilla
