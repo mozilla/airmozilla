@@ -3,7 +3,7 @@
 set -e
 
 echo "Install latestish pip"
-pip install --quiet -U "pip>=8.0.0"
+python bin/pipstrap.py
 
 echo "Install Python dependencies"
 pip install --quiet --require-hashes -r requirements.txt
