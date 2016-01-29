@@ -468,10 +468,17 @@ def savedsearches_data(request):
             'modified': savedsearch.modified.isoformat(),
         }
         searches.append(item)
+
+    # We need a general Feed URL that is tailored to this user
+    from airmozilla.main.context_processors import base
+    feed = base(request)['get_feed_data']()
+
     context['savedsearches'] = searches
     context['urls'] = {
         'search:savedsearch': reverse('search:savedsearch', args=(0,)),
         'search:home': reverse('search:home'),
+        'feed': feed['url'],
+
     }
     return context
 

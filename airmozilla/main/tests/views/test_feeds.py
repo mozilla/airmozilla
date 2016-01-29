@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.utils import timezone
 from django.core.files import File
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 from airmozilla.main.models import (
     Approval,
@@ -20,6 +21,7 @@ from airmozilla.main.models import (
     Template,
     Tag,
 )
+from airmozilla.search.models import SavedSearch
 from airmozilla.base.tests.testbase import DjangoTestCase
 
 
@@ -269,6 +271,32 @@ class TestFeeds(DjangoTestCase):
             '<link>https://vid.ly/abc123?content=video&amp;format=webm</link>'
             in response.content
         )
+
+    def test_feed_with_savedsearch(self):
+        url = reverse('main:feed')
+        response = self.client.get(url)
+        ok_('Test event' in response.content)
+
+        savedsearch = SavedSearch.objects.create(
+            user=User.objects.create(username='richard'),
+            filters={
+                'title': {
+                    'include': 'FLY'
+                }
+            }
+        )
+
+        response = self.client.get(url, {'ss': savedsearch.id})
+        ok_('Test event' not in response.content)
+        event = Event.objects.get(title='Test event')
+        event.title = 'Flying to the Moon'
+        event.save()
+        response = self.client.get(url, {'ss': savedsearch.id})
+        ok_('Flying to the Moon' not in response.content)
+        # because the feed is cached
+        cache.clear()
+        response = self.client.get(url, {'ss': savedsearch.id})
+        ok_('Flying to the Moon' in response.content)
 
     def test_feed_cache(self):
         delay = datetime.timedelta(days=1)

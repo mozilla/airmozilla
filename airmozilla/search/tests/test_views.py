@@ -933,6 +933,21 @@ class TestSearch(DjangoTestCase):
         eq_(first['id'], savedsearch.id)
         eq_(first['summary'], savedsearch.summary)
 
+        # We should also have a list of URLs.
+        urls = json.loads(response.content)['urls']
+        # One of which is the right feed URL base
+        eq_(urls['feed'], reverse('main:feed', args=('company',)))
+
+        # but if we're just a contributor the link should be different
+        UserProfile.objects.create(
+            user=user,
+            contributor=True
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        urls = json.loads(response.content)['urls']
+        eq_(urls['feed'], reverse('main:feed', args=('contributors',)))
+
         # Now delete it.
         delete_url = reverse(
             'search:delete_savedsearch',
