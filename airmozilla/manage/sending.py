@@ -136,3 +136,27 @@ def email_about_approval_requested(event, group, base_url):
     )
     email.attach_alternative(html_body, "text/html")
     email.send()
+
+
+def email_sending_test(subject, html_body, emails, base_url):
+    base_url = fix_base_url(base_url)
+    context = {
+        'base_url': base_url,
+        'subject': subject,
+        'html_body': html_body,
+    }
+    html_body = render_to_string(
+        'manage/_email_sending_test.html',
+        context,
+    )
+    body = html2text(html_body)
+    email = EmailMultiAlternatives(
+        subject,
+        body,
+        'Air Mozilla <%s>' % settings.EMAIL_FROM_ADDRESS,
+        emails
+    )
+    email.attach_alternative(html_body, "text/html")
+    email.send()
+
+    return email

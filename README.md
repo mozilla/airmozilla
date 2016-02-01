@@ -178,6 +178,9 @@ this. So uncomment the line `EMAIL_BACKEND` to:
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ```
 
+**Note!** See below on **How to Debug Emails** for a more extensive
+exploration on this.
+
 The majority of the remaining settings are important security details for
 third-party services like AWS, Vid.ly, Mozillians, Twitter, Bit.ly and
 Sentry.
@@ -679,6 +682,29 @@ We're now going to initiate an event with this template:
 You should now see your video in the Event manager
 (`http://localhost:8000/manage/events/`) and on the main page
 (`http://localhost:8000/`)!
+
+
+How to Debug Emails
+-------------------
+
+Air Mozilla depends on pretty emails to be sent to real people. To debug
+these emails that we send, you don't want to have to rely on actually
+sending them for reals.
+
+To get actual `.eml` files (that can be opened with Mail, Airmail or
+Thunderbird) on your file system, add this to your
+`airmozilla/settings/local.py`:
+
+```python
+EMAIL_BACKEND = 'airmozilla.base.utils.EmlEmailBackend'
+EMAIL_FILE_PATH = '/tmp/captured-emails/'
+```
+
+Now, to actually send some emails, you can either click around and perform
+various actions that trigger sending an email. Then you can inspect the files
+that get created in that directory set `EMAIL_FILE_PATH` to.
+*Or*, you log in to the management pages as a superuser and click the
+"Email Sending" tool in the bottom of the navigation bar.
 
 Contributing
 ------------

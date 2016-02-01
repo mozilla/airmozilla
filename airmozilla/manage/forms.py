@@ -1107,3 +1107,22 @@ class EventDurationForm(BaseModelForm):
             "Note! If you remove this value (make it blank), it will be "
             "unset and automatically be re-evaluated."
         )
+
+
+class EmailSendingForm(BaseForm):
+
+    to = forms.CharField(
+        help_text='Semi colon separated list of emails'
+    )
+    subject = forms.CharField()
+    html_body = forms.CharField(
+        label='HTML Body',
+        widget=forms.widgets.Textarea()
+    )
+
+    def clean_to(self):
+        value = self.cleaned_data['to']
+        value = [x.strip() for x in value.split(';') if x.strip()]
+        if not value:
+            raise forms.ValidationError('Email list of emails')
+        return value
