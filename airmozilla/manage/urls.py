@@ -30,6 +30,7 @@ from .views import (
     chapters,
     related,
     durations,
+    email_sending,
 )
 
 
@@ -335,5 +336,8 @@ urlpatterns = patterns(
     url(r'^durations/$',
         durations.report_all,
         name='durations_report_all'),
+    url(r'^emailsending/$',
+        email_sending.home,
+        name='email_sending'),
 
 )
