@@ -95,8 +95,9 @@ django-appconf==0.6 \
 django-nose==1.4.2 \
     --hash=sha256:736ae53e3ec47dbbb3049999c18ce54585af299ef88172d9a27cb5fda29daa00 \
     --hash=sha256:80f9d3690e0db830c376ae971728148d760dd64d444d1c092747d663a0d72f73
-django-session-csrf==0.5 \
-    --hash=sha256:44e4639ec057a6b6a9dddb869d4e3a4818fc9278ec490cce39aef08440592a93
+django-session-csrf==0.6 \
+    --hash=sha256:009d574590aeebff230bda3d8c1cacd9d48b204cc1a784a5d3be3638727f8d16 \
+    --hash=sha256:ccfddfbf947a51c8b095a5e63bed43005a277a5581de92ed373eb06b75ceec77
 django-sha2==0.4 \
     --hash=sha256:b06a86451a99d6c26bfa65082999dbf658e087e596e9292cce688b53eabaaada
 django-multidb-router==0.6 \
