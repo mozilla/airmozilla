@@ -849,7 +849,7 @@ def event_pictures_rotate(request, event):
     for picture in Picture.objects.filter(event=event):
         img = Image.open(picture.file.path)
         format = picture.file.name.lower().endswith('.png') and 'png' or 'jpeg'
-        img = img.rotate(direction == 'left' and 90 or 270)
+        img = img.rotate(direction == 'left' and 90 or 270, expand=True)
         f = StringIO()
         try:
             img.save(f, format=format)
