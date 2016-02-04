@@ -119,8 +119,8 @@ ordereddict==1.1 \
     --hash=sha256:1c35b4ac206cef2d24816c89f89cf289dd3d38cf7c449bb3fab7bf6d43f01b1f
 readability-api==0.2.4 \
     --hash=sha256:d8a471809f3b5a3dbe797a70c8cf775c037f625f236f704f44f2244eec838c23
-django-jsonfield==0.9.13 \
-    --hash=sha256:12ae3dd4543f8dc5cc5f4bdd7f6fd168f4d1624414d753a441573ccc187a8e43
+django-jsonfield==0.9.15 \
+    --hash=sha256:429690b1c69cbd65c6c592c66d1592f8a1cf3d5282103083731fa90ea53c17c2
 python-memcached==1.57 \
     --hash=sha256:3b689a135afb2fdb6da2298d5213780f43a3f210cf8c960d50b252acb3f62902 \
     --hash=sha256:544419fd5e33300835de3b2f8462a145dda451d5e3088a69e0cd0da2b5bc0f7a
