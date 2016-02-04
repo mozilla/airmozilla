@@ -109,8 +109,8 @@ django-browserid==0.10.1 \
     --hash=sha256:d41b87d1eb424d18ba2dbe733131e9d873e709cc11eb73da248c34eec1d5ed6e
 fancy-tag==0.2.0 \
     --hash=sha256:6a4179f2a2accda2b273bfd86de6f7024cee203043cc9a7c040fe7b306bbe120
-commonware==0.4.2 \
-    --hash=sha256:3b1350428ded438baa853443f737cf3931eb4608024ef7817b60e5ddba749d3f
+commonware==0.4.3 \
+    --hash=sha256:a7b02a5f76d89a79f861926fb34e029cc4343c13802525c818542a39fe788cce
 cef==0.5 \
     --hash=sha256:2d1cb558391673df5109a3fe5e84fde6160edc8b241b3eb19ab3d3abe9b8df31
 html5lib==0.9999999 \
