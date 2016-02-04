@@ -200,9 +200,9 @@ uritemplate==0.6 \
 django-pipeline==1.5.4 \
     --hash=sha256:c711e88615ef37b2359ce30978eae7c65e54924aeb043229656c5e239065e596 \
     --hash=sha256:a5a909f403d0ea56f211618949ff4e378f16e5a996bde819bd2b5b0e7a9bb8fe
-futures==3.0.3 \
-    --hash=sha256:04afa2a06ab7dcca9d81717b420a7a14826061e9b2614a5c77dd24c75ccf97e4 \
-    --hash=sha256:2fe2342bb4fe8b8e217f0d21b5921cbe5408bf966d9f92025e707e881b198bed
+futures==3.0.4 \
+    --hash=sha256:4e860d18d866ff6c5f2804ebcbb16415f4f29cf57efea919178b809cf99326b6 \
+    --hash=sha256:19485d83f7bd2151c0aeaf88fbba3ee50dadfb222ffc3b66a344ef4952b782a3
 rsa==3.3 \
     --hash=sha256:928fdb62edfff5c9860f932f76aea7c94bfbcd3f0e7acf6dd64ccd19a597e9c7
 MarkupSafe==0.23 \
