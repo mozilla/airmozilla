@@ -36,6 +36,7 @@ from airmozilla.main.models import (
     EventLiveHits,
     Chapter,
 )
+from airmozilla.search.models import SavedSearch
 from airmozilla.surveys.models import Survey, Question, next_question_order
 from airmozilla.staticpages.models import StaticPage
 from airmozilla.base.tests.test_mozillians import (
@@ -63,7 +64,13 @@ class TestPages(DjangoTestCase):
             slug=settings.DEFAULT_CHANNEL_SLUG
         )
 
-    def _calendar_url(self, privacy, location=None, channel_slug=None):
+    def _calendar_url(
+        self,
+        privacy,
+        location=None,
+        channel_slug=None,
+        savedsearch=None
+    ):
         if channel_slug:
             url = reverse(
                 'main:calendar_channel_ical',
@@ -78,6 +85,9 @@ class TestPages(DjangoTestCase):
                 if not isinstance(location, int) and 'name' in location:
                     location = location.name
                 url += '?location=%s' % urllib.quote_plus(location)
+        if savedsearch:
+            url += '?' in url and '&' or '?'
+            url += 'ss={}'.format(savedsearch)
         return url
 
     def test_contribute_json(self):
@@ -771,6 +781,59 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Test event' not in response.content)
         ok_('Second test event' in response.content)
+
+    def test_calendar_by_savedsearch(self):
+        event1 = Event.objects.get(title='Test event')
+        event2 = Event.objects.create(
+            title='Second test event',
+            description='Anything',
+            start_time=event1.start_time,
+            archive_time=event1.archive_time,
+            privacy=Event.PRIVACY_PUBLIC,
+            status=event1.status,
+            placeholder_img=event1.placeholder_img,
+            location=event1.location
+        )
+        channel = Channel.objects.create(name='Channel', slug='channel')
+        event2.channels.add(channel)
+
+        savedsearch = SavedSearch.objects.create(
+            user=User.objects.create(username='notimportant'),
+            filters={
+                'title': {
+                    'include': 'TEST'
+                }
+            }
+        )
+
+        url = self._calendar_url('public', savedsearch=999999)
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        url = self._calendar_url('public', savedsearch=savedsearch.id)
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' in response.content)
+
+        # If we change the saved search, it should update the feed
+        # automatically.
+        savedsearch.filters['title']['include'] = 'SECOND'
+        savedsearch.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' not in response.content)
+        ok_('Second test event' in response.content)
+
+        # change this back and mess with the channel
+        savedsearch.filters['title']['include'] = 'Test'
+        savedsearch.filters['channels'] = {'exclude': [channel.id]}
+        savedsearch.save()
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Test event' in response.content)
+        ok_('Second test event' not in response.content)
 
     def test_calendars_page(self):
         london = Location.objects.create(

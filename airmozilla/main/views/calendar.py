@@ -22,6 +22,7 @@ from airmozilla.main.models import (
     Location,
     Channel,
 )
+from airmozilla.search.models import SavedSearch
 from airmozilla.main.views import is_contributor
 from airmozilla.main import forms
 
@@ -106,10 +107,14 @@ def calendars(request):
 
 def events_calendar_ical(request, privacy=None, channel_slug=None):
     cache_key = 'calendar'
+    savedsearch = None
     if privacy:
         cache_key += '_%s' % privacy
     if channel_slug:
         cache_key += '_%s' % channel_slug
+    if request.GET.get('ss'):
+        savedsearch = get_object_or_404(SavedSearch, id=request.GET['ss'])
+        cache_key += '_%s' % savedsearch.pk
     if request.GET.get('location'):
         if request.GET.get('location').isdigit():
             location = get_object_or_404(
@@ -134,7 +139,10 @@ def events_calendar_ical(request, privacy=None, channel_slug=None):
     cal = vobject.iCalendar()
 
     now = timezone.now()
-    base_qs = Event.objects.scheduled_or_processing()
+    if savedsearch:
+        base_qs = savedsearch.get_events()
+    else:
+        base_qs = Event.objects.scheduled_or_processing()
     if channel_slug:
         channel = get_object_or_404(
             Channel,
@@ -158,6 +166,11 @@ def events_calendar_ical(request, privacy=None, channel_slug=None):
         title = 'Air Mozilla Private Events'
     else:
         title = 'Air Mozilla Events'
+    if savedsearch:
+        if savedsearch.name:
+            title += ' (from saved search "{}")'.format(savedsearch.name)
+        else:
+            title += ' (from saved search)'
     if location:
         base_qs = base_qs.filter(location=location)
 
@@ -197,6 +210,8 @@ def events_calendar_ical(request, privacy=None, channel_slug=None):
     filename = 'AirMozillaEvents%s' % (privacy and privacy or '')
     if location:
         filename += '_%s' % slugify(location.name)
+    if savedsearch:
+        filename += '_ss%s' % savedsearch.id
     filename += '.ics'
     response['Content-Disposition'] = (
         'inline; filename=%s' % filename)

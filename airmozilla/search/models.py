@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.dispatch import receiver
+from django.core.cache import cache
 
 from jsonfield.fields import JSONField
 
@@ -112,3 +114,14 @@ class SavedSearch(models.Model):
             ))
 
         return '; '.join(parts)
+
+
+@receiver(models.signals.post_save, sender=SavedSearch)
+def invalidate_savedsearch_caches(sender, instance, **kwargs):
+    # invalidate the calendars
+    for privacy in ('public', 'contributors', 'company'):
+        assert instance.id
+        cache_key = 'calendar_{}_{}'.format(privacy, instance.id)
+        # Remember, you get no error if you try to delete a key that
+        # doesn't exist.
+        cache.delete(cache_key)
