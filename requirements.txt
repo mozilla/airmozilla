@@ -118,8 +118,8 @@ html5lib==0.9999999 \
     --hash=sha256:2612a191a8d5842bfa057e41ba50bbb9dcb722419d2408c78cff4758d0754868
 ordereddict==1.1 \
     --hash=sha256:1c35b4ac206cef2d24816c89f89cf289dd3d38cf7c449bb3fab7bf6d43f01b1f
-readability-api==0.2.4 \
-    --hash=sha256:d8a471809f3b5a3dbe797a70c8cf775c037f625f236f704f44f2244eec838c23
+readability-api==1.0.2 \
+    --hash=sha256:62b04a54d59471cad0388cc28db1f65f0ec471ae5268cdfee699c6839ba5f2dd
 django-jsonfield==0.9.15 \
     --hash=sha256:429690b1c69cbd65c6c592c66d1592f8a1cf3d5282103083731fa90ea53c17c2
 python-memcached==1.57 \
@@ -207,3 +207,9 @@ rsa==3.3 \
     --hash=sha256:928fdb62edfff5c9860f932f76aea7c94bfbcd3f0e7acf6dd64ccd19a597e9c7
 MarkupSafe==0.23 \
     --hash=sha256:a4ec1aff59b95a14b45eb2e23761a0179e98319da5a7eb76b56ea8cdc7b871c3
+pytest==2.8.7 \
+    --hash=sha256:33612ed6de42f05640fe058aafdf08899eabcb210da74aeb0b788de9695c8bb5 \
+    --hash=sha256:fc4c86be54fce08e4b85b646a736efa18c6cde7599c1d2919f4f74629e018baf
+py==1.4.31 \
+    --hash=sha256:4a3e4f3000c123835ac39cab5ccc510642153bc47bc1f13e2bbb53039540ae69 \
+    --hash=sha256:a6501963c725fc2554dabfece8ae9a8fb5e149c0ac0a42fd2b02c5c1c57fc114
