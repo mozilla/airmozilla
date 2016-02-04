@@ -40,18 +40,8 @@
       {% for event in events %}
       <tr data-id="{{ event.pk }}">
         <td>{{ event.title }}</td>
-        {% if event.upcoming %}
         <td>{{ event.start_time|js_date }}</td>
         <td>{{ event.location }}</td>
-        {% else %}
-        <td colspan="2">N/A
-            {% if event.popcorn_url %}
-            (popcorn)
-            {% else %}
-            (pre-recorded)
-            {% endif %}
-        </td>
-        {% endif %}
         <td>{{ event.user.email }}</td>
         <td>{{ event.first_submitted|js_date }}</td>
         <td>

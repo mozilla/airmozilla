@@ -157,7 +157,7 @@ class Template(models.Model):
         ' <code>{{ any_variable_name }}</code> for per-event'
         ' tags. Other Jinja2 constructs are available, along with the related'
         ' <code>request</code>, <code>datetime</code>, <code>event</code> '
-        ' objects, <code>popcorn_url</code> and the <code>md5</code> function.'
+        ' objects, and the <code>md5</code> function.'
         ' You can also reference <code>autoplay</code> and it\'s always safe.'
         ' Additionally we have <code>vidly_tokenize(tag, seconds)</code>,'
         ' <code>edgecast_tokenize([seconds], **kwargs)</code> and '
@@ -620,7 +620,14 @@ def invalidate_curated_group_names(sender, instance, **kwargs):
 class SuggestedEvent(models.Model):
     user = models.ForeignKey(User)
     title = models.CharField(max_length=200)
+
+    # XXX this can be migrated away (together with popcorn_url)
+    # When we do, let's really delete all SuggestedEvent objects
+    # where popcorn_url != null.
+    # See airmozilla/main/migrations/0012_auto_20160204_1503.py for the
+    # initial solution to this.
     upcoming = models.BooleanField(default=True)
+
     slug = models.SlugField(blank=True, max_length=215, unique=True,
                             db_index=True)
     placeholder_img = ImageField(
@@ -646,6 +653,7 @@ class SuggestedEvent(models.Model):
     additional_links = models.TextField(blank=True)
     remote_presenters = models.TextField(blank=True, null=True)
 
+    # XXX this can be migrated away
     popcorn_url = models.URLField(null=True, blank=True)
 
     privacy = models.CharField(max_length=40, choices=Event.PRIVACY_CHOICES,
@@ -665,6 +673,7 @@ class SuggestedEvent(models.Model):
     STATUS_RETRACTED = 'retracted'
     STATUS_REJECTED = 'rejected'
     STATUS_ACCEPTED = 'accepted'
+    STATUS_REMOVED = 'removed'
     STATUS_CHOICES = (
         (STATUS_CREATED, 'Created'),
         (STATUS_SUBMITTED, 'Submitted'),
@@ -672,6 +681,7 @@ class SuggestedEvent(models.Model):
         (STATUS_REJECTED, 'Bounced back'),
         (STATUS_RETRACTED, 'Retracted'),
         (STATUS_ACCEPTED, 'Accepted'),
+        (STATUS_REMOVED, 'Removed'),
     )
     status = models.CharField(
         max_length=40,

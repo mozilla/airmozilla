@@ -1,5 +1,3 @@
-import requests
-
 from django import forms
 from django.conf import settings
 from django.db.models import Q
@@ -22,15 +20,6 @@ from . import utils
 
 
 class StartForm(BaseModelForm):
-
-    event_type = forms.ChoiceField(
-        label='What kind of event is this?',
-        choices=[
-            ('upcoming', 'Upcoming'),
-            ('popcorn', 'Popcorn')
-        ],
-        widget=forms.widgets.RadioSelect()
-    )
 
     class Meta:
         model = SuggestedEvent
@@ -62,26 +51,6 @@ class TitleForm(BaseModelForm):
                 if Event.objects.filter(slug=cleaned_data['slug']):
                     raise forms.ValidationError('Slug already taken')
         return cleaned_data
-
-
-class PopcornForm(BaseModelForm):
-
-    class Meta:
-        model = SuggestedEvent
-        fields = ('popcorn_url',)
-
-    def __init__(self, *args, **kwargs):
-        super(PopcornForm, self).__init__(*args, **kwargs)
-        self.fields['popcorn_url'].label = 'Popcorn URL'
-
-    def clean_popcorn_url(self):
-        url = self.cleaned_data['popcorn_url']
-        if '://' not in url:
-            url = 'http://' + url
-        response = requests.get(url)
-        if response.status_code != 200:
-            raise forms.ValidationError('URL can not be found')
-        return url
 
 
 class DescriptionForm(BaseModelForm):
@@ -161,32 +130,26 @@ class DetailsForm(BaseModelForm):
         self.fields['topics'].label = 'Topics (if any)'
         self.fields['topics'].required = False
 
-        if not self.instance.upcoming:
-            del self.fields['location']
-            del self.fields['start_time']
-            del self.fields['remote_presenters']
-            del self.fields['call_info']
-        else:
-            self.fields['location'].required = True
-            self.fields['start_time'].required = True
-            self.fields['location'].help_text = (
-                "Choose an Air Mozilla origination point. &lt;br&gt;"
-                "If the location of your event isn't on the list, "
-                "choose Live Remote.  &lt;br&gt;"
-                "Note that live remote dates and times are UTC."
-            )
-            self.fields['remote_presenters'].help_text = (
-                "If there will be presenters who present remotely, please "
-                "enter email addresses, names and locations about these "
-                "presenters."
-            )
-            self.fields['remote_presenters'].widget.attrs['rows'] = 3
-            self.fields['call_info'].widget = forms.widgets.TextInput()
-            self.fields['call_info'].label = 'Vidyo room (if any)'
-            self.fields['call_info'].help_text = (
-                "If you're using a Vidyo room, which one?&lt;br&gt;"
-                "Required for Cyberspace events."
-            )
+        self.fields['location'].required = True
+        self.fields['start_time'].required = True
+        self.fields['location'].help_text = (
+            "Choose an Air Mozilla origination point. &lt;br&gt;"
+            "If the location of your event isn't on the list, "
+            "choose Live Remote.  &lt;br&gt;"
+            "Note that live remote dates and times are UTC."
+        )
+        self.fields['remote_presenters'].help_text = (
+            "If there will be presenters who present remotely, please "
+            "enter email addresses, names and locations about these "
+            "presenters."
+        )
+        self.fields['remote_presenters'].widget.attrs['rows'] = 3
+        self.fields['call_info'].widget = forms.widgets.TextInput()
+        self.fields['call_info'].label = 'Vidyo room (if any)'
+        self.fields['call_info'].help_text = (
+            "If you're using a Vidyo room, which one?&lt;br&gt;"
+            "Required for Cyberspace events."
+        )
 
         # The list of available locations should only be those that are
         # still active. However, if you have a previously chosen location

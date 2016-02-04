@@ -28,10 +28,6 @@ table.suggestions th {
     margin-top: 15px;
 }
 
-h2.add-event {
-    display: none;
-}
-
 .controls li label, .controls li {
     display: inline;
 }

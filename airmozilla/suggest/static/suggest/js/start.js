@@ -49,18 +49,4 @@ $(function() {
         }
     });
 
-    $('input[name="upcoming"]').change(function() {
-        if ($(this).val() === 'True') {
-            $('h2.schedule-event').show();
-            $('h2.add-event').hide();
-        } else {
-            $('h2.schedule-event').hide();
-            $('h2.add-event').show();
-        }
-    });
-    $('input[name="upcoming"]').change();
-
-    if (location.hash === '#new-popcorn') {
-        $('input[value="popcorn"]').prop("checked", true);
-    }
 });

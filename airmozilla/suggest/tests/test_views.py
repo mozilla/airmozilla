@@ -5,7 +5,6 @@ import tempfile
 import shutil
 
 import pytz
-from mock import patch
 from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User, Group, Permission
@@ -27,8 +26,6 @@ from airmozilla.main.models import (
     Picture,
     Topic,
 )
-from airmozilla.base.tests.testbase import Response
-from airmozilla.uploads.models import Upload
 from airmozilla.comments.models import SuggestedDiscussion
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -64,7 +61,6 @@ class TestPages(DjangoTestCase):
         additional_links='http://www.peterbe.com\n',
         location=None,
         start_time=None,
-        pre_recorded=False
     ):
         location = location or Location.objects.get(name='Mountain View')
         start_time = start_time or datetime.datetime(
@@ -75,7 +71,6 @@ class TestPages(DjangoTestCase):
         event = SuggestedEvent.objects.create(
             user=self.user,
             title=title,
-            upcoming=not pre_recorded,
             slug=slug,
             description=description,
             short_description=short_description,
@@ -89,18 +84,6 @@ class TestPages(DjangoTestCase):
         event.tags.add(tag2)
         channel = Channel.objects.create(name='ChannelX', slug='channelx')
         event.channels.add(channel)
-
-        if pre_recorded:
-            upload = Upload.objects.create(
-                user=self.user,
-                url='https://s3.com/file1',
-                file_name='file1',
-                mime_type='image/video',
-                size=12345,
-                suggested_event=event
-            )
-            event.upload = upload
-            event.save()
 
         return event
 
@@ -128,37 +111,14 @@ class TestPages(DjangoTestCase):
 
         response = self.client.post(url, {
             'title': 'A New World',
-            'event_type': 'upcoming'
         })
         eq_(response.status_code, 302)
 
         event = SuggestedEvent.objects.get(title='A New World')
         url = reverse('suggest:description', args=(event.pk,))
-        ok_(event.upcoming)
-        eq_(event.popcorn_url, None)
         eq_(event.slug, 'a-new-world')
         ok_(not event.start_time)
         eq_(event.status, SuggestedEvent.STATUS_CREATED)
-        self.assertRedirects(response, url)
-
-    def test_start_popcorn(self):
-        url = reverse('suggest:start')
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-
-        response = self.client.post(url, {
-            'title': 'A New World',
-            'event_type': 'popcorn'
-        })
-        eq_(response.status_code, 302)
-
-        event = SuggestedEvent.objects.get(title='A New World')
-        url = reverse('suggest:popcorn', args=(event.pk,))
-        ok_(not event.upcoming)
-        eq_(event.popcorn_url, 'https://')
-        eq_(event.slug, 'a-new-world')
-        ok_(event.start_time)
-        eq_(event.location, None)
         self.assertRedirects(response, url)
 
     def test_start_duplicate_slug(self):
@@ -168,7 +128,6 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:start')
         response = self.client.post(url, {
             'title': 'TEST Event',
-            'event_type': 'upcoming'
         })
         eq_(response.status_code, 302)
         suggested_event, = SuggestedEvent.objects.all()
@@ -191,7 +150,6 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:start')
         response = self.client.post(url, {
             'title': 'TEST Event',
-            'event_type': 'upcoming'
         })
         eq_(response.status_code, 302)
         suggested_event, = SuggestedEvent.objects.all()
@@ -211,7 +169,6 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:start')
         response = self.client.post(url, {
             'title': 'A New World',
-            'event_type': 'upcoming'
         })
         eq_(response.status_code, 302)
         eq_(SuggestedEvent.objects.filter(title='A New World').count(), 2)
@@ -227,17 +184,11 @@ class TestPages(DjangoTestCase):
         Event.objects.get(title='Test event', slug='test-event')
         url = reverse('suggest:start')
 
-        response = self.client.post(url, {'title': 'TEST Event'})
+        response = self.client.post(url, {'title': ''})
         eq_(response.status_code, 200)
         ok_('Form error' in response.content)
 
-        response = self.client.post(
-            url,
-            {
-                'title': 'Cool Title',
-                'event_type': 'upcoming'
-            }
-        )
+        response = self.client.post(url, {'title': 'Cool Title'})
         eq_(response.status_code, 302)
         suggested_event, = SuggestedEvent.objects.all()
         eq_(suggested_event.title, 'Cool Title')
@@ -394,71 +345,6 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:delete', args=(event.pk,))
         response = self.client.post(url)
         eq_(response.status_code, 400)
-
-    @patch('requests.get')
-    def test_popcorn(self, rget):
-
-        def mocked_get(url, **kwargs):
-            if 'badurl.com' in url:
-                return Response('not found', 404)
-            elif 'goodurl.com' in url:
-                return Response(open(HAS_OPENGRAPH_FILE).read())
-            elif '.png' in url:
-                return Response(open(PNG_FILE, 'rb').read())
-            raise NotImplementedError(url)
-
-        rget.side_effect = mocked_get
-
-        event = SuggestedEvent.objects.create(
-            user=self.user,
-            title='Cool Title',
-            slug='cool-title',
-        )
-        assert event.upcoming
-        url = reverse('suggest:popcorn', args=(event.pk,))
-        response = self.client.get(url)
-        eq_(response.status_code, 302)
-        # you have no business here on an upcoming event
-        self.assertRedirects(
-            response,
-            reverse('suggest:description', args=(event.pk,))
-        )
-        event.upcoming = False
-        event.popcorn_url = 'https://'
-        now = timezone.now()
-        event.start_time = now
-        event.save()
-
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-
-        response = self.client.post(url, {'popcorn_url': 'https://'})
-        eq_(response.status_code, 200)
-        ok_('Enter a valid URL' in response.content)
-
-        response = self.client.post(
-            url,
-            {'popcorn_url': 'https://badurl.com/'}
-        )
-        eq_(response.status_code, 200)
-        ok_('URL can not be found' in response.content)
-
-        with self.settings(MEDIA_ROOT=self.tmp_dir):
-            response = self.client.post(
-                url,
-                {'popcorn_url': 'https://goodurl.com/'}
-            )
-            eq_(response.status_code, 302)
-            url = reverse('suggest:description', args=(event.pk,))
-            self.assertRedirects(response, url)
-            # reload
-            event = SuggestedEvent.objects.get(pk=event.pk)
-            eq_(event.popcorn_url, 'https://goodurl.com/')
-            ok_(event.placeholder_img)
-            ok_(os.path.isfile(
-                os.path.join(
-                    self.tmp_dir, event.placeholder_img.path)
-                ))
 
     def test_description(self):
         event = SuggestedEvent.objects.create(
@@ -700,24 +586,6 @@ class TestPages(DjangoTestCase):
         ok_('Babylon' not in response.content)
         ok_('Mountain View' in response.content)
 
-    def test_details_prerecorded_event(self):
-        event = SuggestedEvent.objects.create(
-            user=self.user,
-            upcoming=False,
-            title='Cool Title',
-            slug='cool-title',
-            description='Some long description',
-            short_description=''
-        )
-        url = reverse('suggest:details', args=(event.pk,))
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-
-        # because it's a pre-recorded event
-        ok_('Remote presenters' not in response.content)
-        ok_('Location' not in response.content)
-        ok_('Start time' not in response.content)
-
     def test_details_timezone_formatting(self):
         location = Location.objects.create(
             name='Paris',
@@ -918,7 +786,6 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
-        # these appear because it's an upcoming event
         ok_('Location' in response.content)
         ok_('Start time' in response.content)
         ok_('Remote presenters' in response.content)
@@ -931,39 +798,6 @@ class TestPages(DjangoTestCase):
         ok_('Mountain View' in response.content)
         ok_('US/Pacific' in response.content)
         ok_('12:00' in response.content)
-        ok_('Tag1' in response.content)
-        ok_('Tag2' in response.content)
-        ok_('ChannelX' in response.content)
-        ok_(
-            '<a href="http://www.peterbe.com">http://www.peterbe.com</a>'
-            in response.content
-        )
-        # there should also be links to edit things
-        ok_(reverse('suggest:title', args=(event.pk,)) in response.content)
-        ok_(reverse('suggest:description', args=(event.pk,))
-            in response.content)
-        ok_(reverse('suggest:details', args=(event.pk,)) in response.content)
-        ok_(reverse('suggest:placeholder', args=(event.pk,))
-            in response.content)
-        # the event is not submitted yet
-        ok_('Submit for review' in response.content)
-
-    def test_summary_on_prerecorded_event(self):
-        event = self._make_suggested_event(pre_recorded=True)
-        url = reverse('suggest:summary', args=(event.pk,))
-        response = self.client.get(url)
-        eq_(response.status_code, 200)
-
-        # these do NOT appear because it's a pre-recorded event
-        ok_('Location' not in response.content)
-        ok_('Start time' not in response.content)
-        ok_('Remote presenters' not in response.content)
-
-        ok_("Cool O&#39;Title" in response.content)
-        ok_('cool-title' in response.content)
-        ok_('Some long description' in response.content)
-        ok_('Short description' in response.content)
-        ok_('12:00' not in response.content)
         ok_('Tag1' in response.content)
         ok_('Tag2' in response.content)
         ok_('ChannelX' in response.content)

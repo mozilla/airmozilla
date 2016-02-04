@@ -8,7 +8,6 @@ urlpatterns = patterns(
     url(r'^autocomplete-emails/', views.autocomplete_emails,
         name='autocomplete_emails'),
     url(r'^(?P<id>\d+)/title/$', views.title, name='title'),
-    url(r'^(?P<id>\d+)/popcorn/$', views.popcorn, name='popcorn'),
     url(r'^(?P<id>\d+)/description/$', views.description, name='description'),
     url(r'^(?P<id>\d+)/details/$', views.details, name='details'),
     url(r'^(?P<id>\d+)/discussion/$', views.discussion, name='discussion'),
