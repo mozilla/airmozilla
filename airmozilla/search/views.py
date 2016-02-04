@@ -14,7 +14,7 @@ from django.views.decorators.http import require_POST
 
 from jsonview.decorators import json_view
 
-from airmozilla.main.models import Event, Tag, Channel
+from airmozilla.main.models import Event, Tag, Channel, get_profile_safely
 from airmozilla.main.views import is_contributor
 from airmozilla.base.utils import paginator
 from airmozilla.main.utils import get_event_channels
@@ -473,11 +473,21 @@ def savedsearches_data(request):
     from airmozilla.main.context_processors import base
     feed = base(request)['get_feed_data']()
 
+    if request.user.is_active:
+        profile = get_profile_safely(request.user)
+        if profile and profile.contributor:
+            calendar_privacy = 'contributors'
+        else:
+            calendar_privacy = 'company'
+    else:
+        calendar_privacy = 'public'
+
     context['savedsearches'] = searches
     context['urls'] = {
         'search:savedsearch': reverse('search:savedsearch', args=(0,)),
         'search:home': reverse('search:home'),
         'feed': feed['url'],
+        'ical': reverse('main:calendar_ical', args=(calendar_privacy,)),
 
     }
     return context
