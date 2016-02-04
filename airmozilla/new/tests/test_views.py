@@ -36,6 +36,13 @@ from airmozilla.manage.tests.views.test_vidlymedia import (
 )
 
 
+def almost_eq_(one, two, delta):
+    if isinstance(delta, int):
+        ok_(abs(one - two) <= delta, '%r !~= %r' % (one, two))
+    else:
+        raise NotImplementedError(delta)
+
+
 class TestNew(DjangoTestCase):
     sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
 
@@ -991,6 +998,7 @@ class TestNew(DjangoTestCase):
         eq_(json.loads(response.content), True)
         picture = Picture.objects.get(id=picture.id)
         file_after = picture.file
+
         ok_(file_before != file_after)
 
         img_after = Image.open(picture.file.path)
@@ -998,8 +1006,8 @@ class TestNew(DjangoTestCase):
         img_after.close()
 
         # numbers transposed?
-        eq_(size_before[0], size_after[1])
-        eq_(size_before[1], size_after[0])
+        almost_eq_(size_before[0], size_after[1], 2)
+        almost_eq_(size_before[1], size_after[0], 2)
 
         # rotate it back
         response = self.post_json(url, {'direction': 'left'})
@@ -1012,10 +1020,11 @@ class TestNew(DjangoTestCase):
         img_after_after.close()
 
         # numbers transposed?
-        eq_(size_after[0], size_after_after[1])
-        eq_(size_after[1], size_after_after[0])
+        almost_eq_(size_after[0], size_after_after[1], 2)
+        almost_eq_(size_after[1], size_after_after[0], 2)
 
-        eq_(size_before, size_after_after)
+        almost_eq_(size_before[0], size_after_after[0], 2)
+        almost_eq_(size_before[1], size_after_after[1], 2)
 
     def test_picture_save(self):
         event = self._create_event()
