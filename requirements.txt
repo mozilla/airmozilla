@@ -146,9 +146,8 @@ anyjson==0.3.3 \
 amqp==1.4.6 \
     --hash=sha256:e34e9765a6120f4664c120f4198a786c39a0fb7e4a59bd19a2d6e3a884b63889 \
     --hash=sha256:ebcfc867de5a68f9f5ba14d11dbad88e6aff8435a8d39339d5ceb0e5b06de640
-django-celery==3.1.16 \
-    --hash=sha256:07a9c650a1f20e040cf5fffd0bcd920a81d0734915130d898c0325c5fafb2ec4 \
-    --hash=sha256:ba2aa3cf54bb710f46f16889fa18331317458a92e2531be8e3e8d383efd4a14d
+django-celery==3.1.17 \
+    --hash=sha256:254a95b0a4386df1fd949823942f6312c80fba3c88c5efad79cad8648bc5feb5
 popcoder==0.1.2 \
     --hash=sha256:7c77607f95ff9799c17c7b2b165a012ade3bdf5686069b3d2def9412d75fb7bb \
     --hash=sha256:52a637c4f5ce31329c35cd66e0ea8ee81b8641348bccedb8709d3594242cdeba
