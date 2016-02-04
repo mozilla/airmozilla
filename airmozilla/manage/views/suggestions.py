@@ -117,12 +117,9 @@ def suggestion_review(request, id):
                     'channels': [x.pk for x in event.channels.all()],
                     'call_info': event.call_info,
                     'privacy': event.privacy,
-                    'popcorn_url': event.popcorn_url,
                     'estimated_duration': event.estimated_duration,
                     'topics': [x.pk for x in event.topics.all()],
                 }
-                if dict_event['popcorn_url'] == 'https://':
-                    dict_event['popcorn_url'] = ''
                 real_event_form = forms.EventRequestForm(
                     data=dict_event,
                 )
@@ -135,29 +132,24 @@ def suggestion_review(request, id):
                     real.additional_links = event.additional_links
                     real.remote_presenters = event.remote_presenters
                     real.creator = request.user
-                    if real.popcorn_url and not event.upcoming:
-                        real.archive_time = real.start_time
-                    if event.upcoming:
-                        real.status = Event.STATUS_SUBMITTED
-                        # perhaps we have a default location template
-                        # environment
-                        if real.location:
-                            try:
-                                default = (
-                                    LocationDefaultEnvironment.objects
-                                    .get(
-                                        location=real.location,
-                                        privacy=real.privacy
-                                    )
+                    real.status = Event.STATUS_SUBMITTED
+                    # perhaps we have a default location template
+                    # environment
+                    if real.location:
+                        try:
+                            default = (
+                                LocationDefaultEnvironment.objects
+                                .get(
+                                    location=real.location,
+                                    privacy=real.privacy
                                 )
-                                real.template = default.template
-                                real.template_environment = (
-                                    default.template_environment
-                                )
-                            except LocationDefaultEnvironment.DoesNotExist:
-                                pass
-                    else:
-                        real.status = Event.STATUS_PENDING
+                            )
+                            real.template = default.template
+                            real.template_environment = (
+                                default.template_environment
+                            )
+                        except LocationDefaultEnvironment.DoesNotExist:
+                            pass
                     real.save()
                     [real.tags.add(x) for x in event.tags.all()]
                     [real.channels.add(x) for x in event.channels.all()]

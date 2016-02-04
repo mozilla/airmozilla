@@ -21,11 +21,11 @@ Event summary | {{ super() }}
           This event has been accepted but not yet scheduled.
         {% elif event.accepted.status == Event.STATUS_SCHEDULED %}
           {% if event.accepted.needs_approval() %}
-          This event has been accepted but is pending approval.
+            This event has been accepted but is pending approval.
           {% else %}
-          This event is
-          <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.<br>
-          {% if event.upcoming %}
+            This event is
+            <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.<br>
+
             {% if event.start_time != event.accepted.start_time %}
               <b>Note!</b><br>
               The <b>scheduled time</b> is different from what you requested. The scheduled time is:
@@ -37,7 +37,6 @@ Event summary | {{ super() }}
               The <b>scheduled location</b> is different from what you requested. The scheduled location is:
               <b>{{ event.accepted.location.name }}</b>.
             {% endif %}
-          {% endif %}
 
           {% endif %}
         {% elif event.accepted.status == Event.STATUS_REMOVED %}
@@ -119,7 +118,6 @@ Event summary | {{ super() }}
       <td colspan="2" class="edit-link"><a href="{{ url('suggest:details', event.pk) }}">Change details</a></td>
     </tr>
     {% endif %}
-    {% if event.upcoming %}
     <tr>
       <th>Location</th>
       <td>
@@ -149,7 +147,6 @@ Event summary | {{ super() }}
       <th>Estimated duration</th>
       <td>{{ show_duration(event.estimated_duration) }}</td>
     </tr>
-    {% endif %}
     <tr>
       <th>Privacy</th>
       <td>{{ event.get_privacy_display() }}</td>
@@ -172,7 +169,6 @@ Event summary | {{ super() }}
       <th>Additional links</th>
       <td>{{ event.additional_links|urlize|nl2br }}</td>
     </tr>
-    {% if event.upcoming %}
     <tr>
       <th>Remote presenters</th>
       <td>
@@ -183,7 +179,6 @@ Event summary | {{ super() }}
         {% endif %}
       </td>
     </tr>
-    {% endif %}
     <tr>
       <th>Topics</th>
       <td>
