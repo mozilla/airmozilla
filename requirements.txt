@@ -2,7 +2,8 @@ psycopg2==2.5.4 --hash=sha256:24ba3f328aba08d8d505bc2a8f68a94ebe24a85e8483640b66
 Jinja2==2.8 \
     --hash=sha256:1cc03ef32b64be19e0a5b54578dd790906a34943fe9102cfdae0d4495bd536b4 \
     --hash=sha256:bc1ff2ff88dbfacefde4ddde471d1417d3b304e8df103a7a9437d47269201bf4
-simplejson==3.6.5 --hash=sha256:2a3189f79d1c7b8a2149a0e783c0b4217fad9b30a6e7d60450f2553dc2c0e57e
+simplejson==3.8.1 \
+    --hash=sha256:428ac8f3219c78fb04ce05895d5dff9bd813c05a9a7922c53dc879cd32a12493
 Pillow==2.7.0 \
     --hash=sha256:01047449bc6e46792217fe62deba683979a60b33de7efd99ed564cf43907021b \
     --hash=sha256:228f73c20509f5dc61e59680376bab0ab2fffec05b25518d83c08ba0b0d4847b \
@@ -163,4 +164,3 @@ rsa==3.3 \
     --hash=sha256:928fdb62edfff5c9860f932f76aea7c94bfbcd3f0e7acf6dd64ccd19a597e9c7
 MarkupSafe==0.23 \
     --hash=sha256:a4ec1aff59b95a14b45eb2e23761a0179e98319da5a7eb76b56ea8cdc7b871c3
-
