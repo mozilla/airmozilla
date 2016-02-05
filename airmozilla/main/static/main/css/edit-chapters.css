@@ -14,7 +14,7 @@ table.chapters th {
     text-align: left;
 }
 table.chapters .text {
-    max-width: 455px;
+    max-width: 435px;
 }
 table.chapters td {
     vertical-align: top;
@@ -24,9 +24,13 @@ table.chapters tbody tr {
     border-bottom: 1px solid #333;
 }
 
-button.edit, button.cancel, button.delete {
+button.edit, button.cancel, button.delete, button.seek {
     font-size: 80%;
     padding: 4px 12px;
+}
+button.seek {
+    /* extra narrow */
+    padding: 4px 3px;
 }
 
 form input[name="text"] {

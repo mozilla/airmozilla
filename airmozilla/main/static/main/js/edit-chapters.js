@@ -113,11 +113,13 @@ $(function() {
                 playing = true;
                 $('button.play').hide();
                 $('button.pause').show();
+                $('button.seek').show();
             });
             jwplayer_player.onPause(function(event) {
                 playing = false;
                 $('button.pause').hide();
                 $('button.play').show();
+                $('button.seek').show();
                 $('button.cancel').show();
                 $('form input[name="text"]').focus();
             });
@@ -130,16 +132,21 @@ $(function() {
         }
     }, 1000);
 
-    $('button.play').on('click', function() {
+    $('form .adding').on('click', 'button.play', function() {
         jwplayer_player.play();
         $(this).hide();
         $('button.pause').show();
     });
-    $('button.pause').on('click', function() {
+    $('form .adding').on('click', 'button.pause', function() {
         jwplayer_player.pause();
         $(this).hide();
         $('button.play').show();
         $('form input[name="text"]').focus();
+    });
+    $('form .adding').on('click', 'button.seek', function() {
+        var seek = $(this).data('seek');
+        // If currentTime + seek  becomes a negative number, it's fine.
+        jwplayer_player.seek(currentTime + seek);
     });
 
     $('table.chapters').on('click', 'button.edit', function() {
