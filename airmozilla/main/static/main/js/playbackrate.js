@@ -3,8 +3,8 @@ $(function() {
         // if the dom node isn't there don't bother with any of this
         return;
     }
-    function highlightCurrentPlaybackrate() {
-        var current = document.querySelector('video').playbackRate;
+    function highlightCurrentPlaybackrate(current) {
+        // var current = document.querySelector('video').playbackRate;
         $('.playbackrate .options a').each(function() {
             if ($(this).data('rate') === current) {
                 $(this).addClass('current');
@@ -22,6 +22,19 @@ $(function() {
         }
     }
 
+    var _setup = false;
+    var setupRatechangeEvent = function() {
+        if (_setup) return;
+        var videoElement = document.querySelector('video');
+        if (videoElement) {
+            videoElement.addEventListener('ratechange', function(event) {
+                console.log('Rate changed', event.target.playbackRate);
+                highlightCurrentPlaybackrate(event.target.playbackRate);
+            });
+            _setup = true;
+        }
+    };
+
     // expand the options into the page
     var options = $('.playbackrate .options');
     $.each(options.data('options'), function() {
@@ -34,14 +47,13 @@ $(function() {
 
     $('.playbackrate').on('click', 'a.open', function(event) {
         event.preventDefault();
+        setupRatechangeEvent();  // can be called repeatedly
         $('.playbackrate .options').toggle();
-        highlightCurrentPlaybackrate();
     });
 
     $('.playbackrate .options').on('click', 'a', function(event) {
         event.preventDefault();
         document.querySelector('video').playbackRate = $(this).data('rate');
-        highlightCurrentPlaybackrate();
     });
 
     // It doesn't really matter which of tearout.js or this file that does
