@@ -8,7 +8,7 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 
 from airmozilla.main.models import Event
-from airmozilla.manage.views.utils import STOPWORDS
+from airmozilla.base.utils import STOPWORDS
 
 
 doc_type = 'event'

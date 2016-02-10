@@ -67,13 +67,14 @@ from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Survey
 from airmozilla.uploads.models import Upload
 from airmozilla.base.helpers import show_duration
+from airmozilla.base.utils import STOPWORDS
 from .decorators import (
     staff_required,
     permission_required,
     superuser_required,
     cancel_redirect
 )
-from .utils import can_edit_event, get_var_templates, STOPWORDS
+from .utils import can_edit_event, get_var_templates
 
 
 @staff_required

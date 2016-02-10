@@ -14,7 +14,7 @@ from django.utils.html import avoid_wrapping
 
 from bootstrapform.templatetags.bootstrap import bootstrap_horizontal
 
-from airmozilla.manage.views.utils import STOPWORDS
+from airmozilla.base.utils import STOPWORDS
 from airmozilla.main.models import Event, EventOldSlug
 from airmozilla.comments.models import Comment
 
