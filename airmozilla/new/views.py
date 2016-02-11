@@ -88,7 +88,9 @@ def must_be_your_event(f):
 
 @login_required
 def home(request):
-    context = {}
+    context = {
+        'has_youtube_api_key': bool(settings.YOUTUBE_API_KEY),
+    }
     request.show_sidebar = False
     return render(request, 'new/home.html', context)
 
