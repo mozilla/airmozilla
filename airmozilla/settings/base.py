@@ -321,6 +321,7 @@ CONTRIBUTORS = (
     'gloriadwomoh',
     'a-buck',
     'anjalymehla',
+    'julian.alexander.murillo',
 )
 
 # Override this if you want to run the selenium based tests
