@@ -1,17 +1,14 @@
 $(function() {
-    var open = false;
-    $('#nav-new > a').on('click', function() {
-        $('#nav-new .sub-options').toggle();
-        open = !open;
+    $('li.has-sub-items > a').on('click', function() {
+        $('.sub-options').hide();
+        $('.sub-options', $(this).parents('li')).fadeIn(250);
         return false;
     });
     $('#page').on('click', function() {
-        if (open) {
-            $('#nav-new > a').click();
-        }
+        $('.sub-options').hide();
     });
-    $('#nav-new .sub-options a.close').on('click', function() {
-        $('#nav-new > a').click();
+    $('.sub-options a.close').on('click', function() {
+        $('.sub-options', $(this).parents('li.has-sub-items')).fadeOut(250);
         return false;
     });
 });

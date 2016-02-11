@@ -30,25 +30,24 @@ Air Mozilla | Mozilla, in Video
     <nav id="nav-main">
       <ul>
         {% set nav_main = nav_bar() %}
-        {% for title, url_, id, class in nav_main['items'] %}
-          <li id="nav-{{ id }}">
+        {% for title, url_, id, class, sub_items in nav_main['items'] %}
+          <li id="nav-{{ id }}"{% if sub_items %} class="has-sub-items"{% endif %}>
             <a href="{{ url_ }}"
               class="{{ class }}{% if id == page %} current{% endif %}">
             {{ title }}
             </a>
-            {% if id == 'new' %}
+            {% if sub_items %}
             <div class="sub-options">
               <ul>
                 <li><a class="close">close</a></li>
-                {% if nav_main['unfinished_events'] %}  {# comes from the nav_bar context processor #}
-                <li><a href="{{ url('new:home') }}">Unfinished Videos ({{ nav_main['unfinished_events'] }})</a></li>
-                {% endif %}
-                <li><a href="{{ url('new:home') }}record">Web Camera Video</a></li>
-                <li><a href="{{ url('new:home') }}upload">Upload Video</a></li>
-                {% if has_youtube_api_key %}
-                <li><a href="{{ url('new:home') }}youtube">YouTube™ video</a></li>
-                {% endif %}
-                <li><a href="{{ url('suggest:start') }}#new">Upcoming Event</a></li>
+                {% for title, url_, id, class in sub_items %}
+                <li>
+                  <a href="{{ url_ }}"
+                    class="{{ class }}{% if id == page %} current{% endif %}">
+                  {{ title }}
+                  </a>
+                </li>
+                {% endfor %}
               </ul>
             </div>
             {% endif %}
