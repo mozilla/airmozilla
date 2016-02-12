@@ -9,8 +9,8 @@ $(function () {
                 }
             })
             .fail(function () {
-                console.error("Failed to fetch event status. Stops looking.");
+                console.warn("Failed to fetch event status. Stops looking.");
                 clearInterval(interval);
             });
-    }, 10 * 1000);
+    }, 20 * 1000);
 });
