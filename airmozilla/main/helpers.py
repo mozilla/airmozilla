@@ -145,7 +145,9 @@ def pluralize(value, form='s'):
 
 @register.function
 def json_print(value, indent=0):
-    return jinja2.Markup(json.dumps(value, indent=indent))
+    return jinja2.Markup(
+        json.dumps(value, indent=indent).replace('</', '<\\/')
+    )
 
 
 @register.filter
