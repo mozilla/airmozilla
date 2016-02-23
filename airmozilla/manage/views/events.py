@@ -11,7 +11,7 @@ import boto
 
 from django.conf import settings
 from django import http
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, Permission
 from django.core.cache import cache
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -860,13 +860,15 @@ def event_upload(request, id):
 def event_assignment(request, id):
     event = get_object_or_404(Event, id=id)
     context = {}
+    permission_required = Permission.objects.get(codename='can_be_assigned')
     assignment, __ = EventAssignment.objects.get_or_create(event=event)
     if request.method == 'POST':
         assignment.event = event
         assignment.save()
         form = forms.EventAssignmentForm(
             instance=assignment,
-            data=request.POST
+            data=request.POST,
+            permission_required=permission_required,
         )
         if form.is_valid():
             form.save()
@@ -877,11 +879,15 @@ def event_assignment(request, id):
             return redirect('manage:event_edit', event.pk)
 
     else:
-        form = forms.EventAssignmentForm(instance=assignment)
+        form = forms.EventAssignmentForm(
+            instance=assignment,
+            permission_required=permission_required,
+        )
 
     context['event'] = event
     context['assignment'] = assignment
     context['form'] = form
+    context['permission_required'] = permission_required
     return render(request, 'manage/event_assignment.html', context)
 
 

@@ -583,6 +583,11 @@ class EventAssignment(models.Model):
     created = models.DateTimeField(default=_get_now)
     modified = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        permissions = (
+            ('can_be_assigned', 'Can be assigned to events'),
+        )
+
 
 class CuratedGroup(models.Model):
 
