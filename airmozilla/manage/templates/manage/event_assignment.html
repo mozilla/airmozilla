@@ -29,6 +29,11 @@
 
   {% include "manage/_default_form.html" %}
 
+
+  <p style="margin-top:25px">
+    <b>Note!</b> Only users with the <b>{{ permission_required.name }}</b> permission
+    can be assigned.
+  </p>
   <p style="margin-top:25px">
     <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
   </p>

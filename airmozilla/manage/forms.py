@@ -916,6 +916,7 @@ class EventAssignmentForm(BaseModelForm):
         fields = ('locations', 'users')
 
     def __init__(self, *args, **kwargs):
+        permission_required = kwargs.pop('permission_required')
         super(EventAssignmentForm, self).__init__(*args, **kwargs)
         users = (
             User.objects
@@ -923,6 +924,7 @@ class EventAssignmentForm(BaseModelForm):
                 'email_lower': 'LOWER(email)'
             })
             .filter(is_active=True, is_staff=True)
+            .filter(groups__permissions=permission_required)
             .order_by('email_lower')
         )
 

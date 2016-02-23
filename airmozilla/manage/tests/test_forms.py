@@ -1,6 +1,6 @@
 from nose.tools import eq_, ok_
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission, Group
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 from airmozilla.manage import forms
@@ -29,7 +29,8 @@ class TestForms(DjangoTestCase):
         zorro = User.objects.create(
             username='zorro',
             email='Zorro@email.com',
-            is_staff=True
+            is_staff=True,
+            is_superuser=True,
         )
         carlos = User.objects.create(
             username='carlos',
@@ -37,15 +38,36 @@ class TestForms(DjangoTestCase):
             )
 
         assignment = EventAssignment.objects.create(event=event)
-        form = forms.EventAssignmentForm(instance=assignment)
+        perm = Permission.objects.get(
+            codename='can_be_assigned',
+        )
+        form = forms.EventAssignmentForm(
+            instance=assignment,
+            permission_required=perm,
+        )
         eq_(form.fields['locations'].choices, [(barcelona.pk, barcelona.name)])
+        eq_(form.fields['users'].choices, [])
+        # That's because it's not enough to be staff or superuser.
+        # But you definitely have to be staff
+        group = Group.objects.create(name='Assignees')
+        group.permissions.add(perm)
+        carlos.groups.add(group)
+        alf.groups.add(group)
+        assert carlos.has_perm('main.can_be_assigned')
+        assert alf.has_perm('main.can_be_assigned')
+        form = forms.EventAssignmentForm(
+            instance=assignment,
+            permission_required=perm,
+        )
         eq_(
             form.fields['users'].choices,
             [
                 (alf.pk, 'alf@email.com (Alf)'),
-                (zorro.pk, u'Zorro@email.com')
             ]
         )
         ok_(
             (carlos.pk, 'carlos@email.com') not in form.fields['users'].choices
-            )
+        )
+        ok_(
+            (zorro.pk, 'Zorro@email.com') not in form.fields['users'].choices
+        )
