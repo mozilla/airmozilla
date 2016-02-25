@@ -966,3 +966,33 @@ class TestSearch(DjangoTestCase):
         response = self.client.post(delete_url)
         eq_(response.status_code, 200)
         ok_(not SavedSearch.objects.all())
+
+    def test_new_savedsearch(self):
+        url = reverse('search:new_savedsearch')
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+
+        user = self._login()
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # try to submit the form with NOTHING in it
+        response = self.client.post(url, {})
+        eq_(response.status_code, 200)
+        ok_('Nothing entered' in response.content)
+
+        # just name is not good enough
+        response = self.client.post(url, {'name': 'Something'})
+        eq_(response.status_code, 200)
+        ok_('Nothing entered' in response.content)
+
+        # now actually save something
+        response = self.client.post(url, {
+            'name': 'Something',
+            'title_exclude': 'Curse word',
+        })
+        eq_(response.status_code, 302)
+
+        savedsearch, = SavedSearch.objects.filter(user=user)
+        eq_(savedsearch.name, 'Something')
+        eq_(savedsearch.filters['title']['exclude'], 'Curse word')

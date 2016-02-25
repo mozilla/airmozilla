@@ -387,14 +387,8 @@ def savesearch(request):
 
 @login_required
 @transaction.atomic()
-def savedsearch(request, id=None, slug=None):
+def savedsearch(request, id=None):
     savedsearch = get_object_or_404(SavedSearch, id=id)
-    # if id:
-    #     savedsearch = get_object_or_404(SavedSearch, id=id)
-    # elif slug:
-    #     savedsearch = get_object_or_404(SavedSearch, slug=slug)
-    # else:
-    #     raise NotImplementedError
 
     if request.method == 'POST':
         forked = False
@@ -423,10 +417,6 @@ def savedsearch(request, id=None, slug=None):
                     request,
                     'Saved Search saved'
                 )
-            # if savedsearch.slug:
-            #     return redirect('search:savedsearch', slug=savedsearch.slug)
-            # else:
-            #     return redirect('search:savedsearch', id=savedsearch.id)
             return redirect('search:savedsearch', id=savedsearch.id)
     elif request.GET.get('sample'):
         events = savedsearch.get_events()
@@ -442,6 +432,34 @@ def savedsearch(request, id=None, slug=None):
     context = {
         'savedsearch': savedsearch,
         'form': form,
+        'use_findable': True,
+    }
+    return render(request, 'search/savesearch.html', context)
+
+
+@login_required
+@transaction.atomic()
+def new_savedsearch(request):
+    if request.method == 'POST':
+        form = forms.SavedSearchForm(request.POST)
+        if form.is_valid():
+            data = form.export_filters()
+            SavedSearch.objects.create(
+                user=request.user,
+                filters=data,
+                name=form.cleaned_data['name'],
+            )
+            messages.success(
+                request,
+                'Saved Search saved'
+            )
+            return redirect('search:savedsearches')
+    else:
+        form = forms.SavedSearchForm()
+
+    context = {
+        'form': form,
+        'use_findable': False,
     }
     return render(request, 'search/savesearch.html', context)
 
