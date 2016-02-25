@@ -3,7 +3,7 @@ import calendar
 from django.contrib.auth.models import User
 from django import http
 from django.shortcuts import get_object_or_404, render, redirect
-from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import cache_page
 from django.template.loader import render_to_string
 from django.db.models import Q, Max
 from django.core.cache import cache
@@ -201,7 +201,7 @@ def event_data(request, id):
     return context
 
 
-@never_cache
+@cache_page(5)  # must match interval in comments.js
 @json_view
 def event_data_latest(request, id):
     cache_key = 'latest_comment:%s' % (id,)
