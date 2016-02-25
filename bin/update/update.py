@@ -54,6 +54,8 @@ def update_code(ctx, tag):
 @task
 def update_assets(ctx):
     with ctx.lcd(settings.SRC_DIR):
+        # make sure there's a 'static' dir
+        ctx.local('mkdir -p static')
         ctx.local(
             '%s/bin/python manage.py collectstatic --noinput --clear' % (
                 venv_path,
