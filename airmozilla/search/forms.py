@@ -142,6 +142,17 @@ class SavedSearchForm(BaseForm):
                 )
             )
 
+        any_data = False
+        for key, value in cleaned_data.items():
+            if key == 'name':
+                # doesn't count
+                continue
+            if value:
+                any_data = True
+                break
+        if not any_data:
+            raise forms.ValidationError('Nothing entered')
+
         return cleaned_data
 
     def export_filters(self):

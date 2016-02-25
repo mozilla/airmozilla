@@ -33,6 +33,7 @@
   </div>
 </form>
 
+{% if use_findable %}
 <div class="findable">
   <p>
     <b>Number of events findable: <span class="findingout">...</span></b>
@@ -41,6 +42,7 @@
     Actual number might depend on how the search is used and privacy levels.
   </p>
 </div>
+{% endif %}
 
 <p style="margin-top:40px">
   <a href="{{ url('search:savedsearches') }}">List of all of your Saved Searches</a>

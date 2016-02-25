@@ -19,17 +19,19 @@ $(function() {
         $('.saving').show();
     });
 
-    $.getJSON('.', {sample: true})
-    .then(function(r) {
-        $('.findable span.findingout')
-        .addClass('number')
-        .removeClass('findingout')
-        .text(r.events);
-        $('.findable').show(300);
-    })
-    .fail(function() {
-        console.error.apply(console, arguments);
-        $('.findable').hide();
-    });
+    if ($('.findable').length) {
+        $.getJSON('.', {sample: true})
+        .then(function(r) {
+            $('.findable span.findingout')
+            .addClass('number')
+            .removeClass('findingout')
+            .text(r.events);
+            $('.findable').show(300);
+        })
+        .fail(function() {
+            console.error.apply(console, arguments);
+            $('.findable').hide();
+        });
+    }
 
 });

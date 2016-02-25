@@ -3,7 +3,6 @@
 {% block site_js %}
   {{ super() }}
   <script src="{{ static('angular/angular.min.js') }}"></script>
-  {% if DEBUG %}<script src="{{ static('angular/watchcounter.js') }}"></script>{% endif %}
   {% javascript 'savedsearches' %}
 {% endblock %}
 
@@ -86,6 +85,12 @@
   </tbody>
   {% endraw %}
 </table>
+
+
+<form action="{{ url('search:new_savedsearch')}}">
+  <button>Create a new Saved Search</button>
+</form>
+
 
 <div ng-if="failed" ng-cloak>
   <div class="alert alert-danger">
