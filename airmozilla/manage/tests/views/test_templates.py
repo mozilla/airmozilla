@@ -39,7 +39,10 @@ class TestTemplates(ManageTestCase):
             'name': 'new name',
             'content': 'new content'
         })
-        self.assertRedirects(response_ok, reverse('manage:templates'))
+        self.assertRedirects(
+            response_ok,
+            reverse('manage:template_edit', args=(template.id,))
+        )
         template = Template.objects.get(id=template.id)
         eq_(template.content, 'new content')
         response_fail = self.client.post(url, {
@@ -82,7 +85,10 @@ class TestTemplates(ManageTestCase):
         # reload
         template = Template.objects.get(pk=template.id)
         ok_(template.default_popcorn_template)
-        self.assertRedirects(response_ok, reverse('manage:templates'))
+        self.assertRedirects(
+            response_ok,
+            reverse('manage:template_edit', args=(template.id,))
+        )
         # only exactly one should have default_popcorn_template on
         eq_(Template.objects.filter(default_popcorn_template=True).count(), 1)
 
@@ -112,7 +118,10 @@ class TestTemplates(ManageTestCase):
         # reload
         template = Template.objects.get(pk=template.id)
         ok_(template.default_archive_template)
-        self.assertRedirects(response_ok, reverse('manage:templates'))
+        self.assertRedirects(
+            response_ok,
+            reverse('manage:template_edit', args=(template.id,))
+        )
         # only exactly one should have default_popcorn_template on
         eq_(Template.objects.filter(default_archive_template=True).count(), 1)
 

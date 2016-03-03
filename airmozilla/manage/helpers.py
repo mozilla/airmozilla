@@ -107,10 +107,8 @@ def format_message(message):
             '<a href="%s" class="message-inline">%s</a>'
             % (link, label)
         )
-        message = jinja2.Markup(message)
 
-    if '<code>' in message and '</code>' in message:
-        message = jinja2.Markup(message)
+    message = jinja2.Markup(message)
 
     return message
 

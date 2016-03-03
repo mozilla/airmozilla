@@ -39,7 +39,10 @@ def get_var_templates(template):
         'akamai_tokenize',
         'popcorn_url',
         'event',
+        'poster_url',
     )
-    undeclared_variables = [x for x in meta.find_undeclared_variables(ast)
-                            if x not in exceptions]
+    undeclared_variables = [
+        x for x in meta.find_undeclared_variables(ast)
+        if x not in exceptions
+    ]
     return ["%s=" % v for v in undeclared_variables]

@@ -506,6 +506,24 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('autoplay=false' in response.content)
 
+    def test_view_event_with_poster_url_in_template(self):
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name="My Template",
+            content=(
+                '<video poster="{{ poster_url() }}"></video>'
+            )
+        )
+        event.template = template
+        event.template_environment = {}
+        event.save()
+        url = reverse('main:event', kwargs={'slug': event.slug})
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        poster_url = re.findall('<video poster="(.*)">', response.content)[0]
+        ok_(poster_url.endswith('.png'))
+        ok_(poster_url.startswith(settings.MEDIA_URL))
+
     def test_event_with_vidly_download_links(self):
         cache.clear()  # we don't want past vidly info cache to affect
         event = Event.objects.get(title='Test event')

@@ -181,8 +181,13 @@ def event_request(request, duplicate_id=None):
                         name=name,
                         event=event
                     )
-            messages.success(request,
-                             'Event "%s" created.' % event.title)
+            messages.success(
+                request,
+                'Event <a href="{}">{}</a> created.'.format(
+                    reverse('manage:event_edit', args=(event.id,)),
+                    event.title,
+                )
+            )
             return redirect('manage:events')
     else:
         curated_groups_choices = []

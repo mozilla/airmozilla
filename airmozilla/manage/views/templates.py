@@ -79,15 +79,14 @@ def template_edit(request, id):
                     other_template.default_archive_template = False
                     other_template.save()
 
-            messages.info(
+            messages.success(
                 request,
-                'Template <b>{name}</b> saved. [Edit again]({url})'.format(
+                'Template <b>{name}</b> saved.'.format(
                     name=template.name,
-                    url=reverse('manage:template_edit', args=(template.id,)),
                 )
             )
 
-            return redirect('manage:templates')
+            return redirect('manage:template_edit', template.id)
     else:
         form = forms.TemplateEditForm(instance=template)
 

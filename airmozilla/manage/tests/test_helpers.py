@@ -55,7 +55,7 @@ class MiscTests(TestCase):
     def test_format_message(self):
         result = format_message('bla')
         eq_(result, 'bla')
-        ok_(not isinstance(result, jinja2.Markup))
+        ok_(isinstance(result, jinja2.Markup))
 
         # or it's an object
         class M(object):
@@ -68,14 +68,6 @@ class MiscTests(TestCase):
         eq_(
             result,
             'Go <a href="/page.html" class="message-inline">to</a>'
-        )
-        ok_(isinstance(result, jinja2.Markup))
-
-        # or if it contains a balance <code> tag
-        result = format_message("<code>Code</code>")
-        eq_(
-            result,
-            '<code>Code</code>'
         )
         ok_(isinstance(result, jinja2.Markup))
 
