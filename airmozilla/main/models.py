@@ -155,9 +155,11 @@ class Template(models.Model):
     content = models.TextField(
         help_text='The HTML framework for this template.  Use'
         ' <code>{{ any_variable_name }}</code> for per-event'
-        ' tags. Other Jinja2 constructs are available, along with the related'
+        ' tags. Other Jinja constructs are available, along with the related'
         ' <code>request</code>, <code>datetime</code>, <code>event</code> '
-        ' objects, and the <code>md5</code> function.'
+        ' objects, and the <code>md5</code> function. There is also the '
+        ' <code>poster_url</code> variable which is the full URL to the '
+        ' poster of the event.<br>'
         ' You can also reference <code>autoplay</code> and it\'s always safe.'
         ' Additionally we have <code>vidly_tokenize(tag, seconds)</code>,'
         ' <code>edgecast_tokenize([seconds], **kwargs)</code> and '

@@ -521,6 +521,11 @@ class EventView(View):
 
 
 def get_video_tagged(event, request, autoplay=False, tag=None):
+
+    def poster_url(geometry='896x504', crop='center'):
+        image = event.picture and event.picture.file or event.placeholder_img
+        return thumbnail(image, geometry, crop=crop).url
+
     context = {
         'md5': lambda s: hashlib.md5(s).hexdigest(),
         'event': event,
@@ -531,6 +536,7 @@ def get_video_tagged(event, request, autoplay=False, tag=None):
         'akamai_tokenize': akamai_tokenize,
         'popcorn_url': event.popcorn_url,
         'autoplay': autoplay and 'true' or 'false',  # javascript
+        'poster_url': poster_url,
     }
     if isinstance(event.template_environment, dict):
         context.update(event.template_environment)
