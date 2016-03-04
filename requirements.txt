@@ -173,8 +173,6 @@ fancy-tag==0.2.0 \
     --hash=sha256:6a4179f2a2accda2b273bfd86de6f7024cee203043cc9a7c040fe7b306bbe120
 commonware==0.4.3 \
     --hash=sha256:a7b02a5f76d89a79f861926fb34e029cc4343c13802525c818542a39fe788cce
-cef==0.5 \
-    --hash=sha256:2d1cb558391673df5109a3fe5e84fde6160edc8b241b3eb19ab3d3abe9b8df31
 html5lib==0.9999999 \
     --hash=sha256:2612a191a8d5842bfa057e41ba50bbb9dcb722419d2408c78cff4758d0754868
 ordereddict==1.1 \
