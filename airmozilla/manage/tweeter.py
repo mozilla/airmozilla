@@ -4,11 +4,11 @@ import os
 import stat
 import logging
 import urlparse
+from importlib import import_module
 
 import twython
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.importlib import import_module
 from django.utils import timezone
 from django.contrib.sites.models import Site
 from django.conf import settings
@@ -16,7 +16,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.core.urlresolvers import reverse
 
-from airmozilla.main.helpers import thumbnail
+from airmozilla.main.templatetags.jinja_helpers import thumbnail
 from airmozilla.main.models import EventTweet, Event, Approval
 from airmozilla.base.utils import shorten_url, unhtml
 

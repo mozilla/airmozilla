@@ -19,7 +19,11 @@ urlpatterns = patterns(
     url(r'^$', pages.home, name='home'),
     url(r'^channels/(?P<channel_slug>[-\w]+)/$', pages.home,
         name='home_channels'),
-    url(r'^page/1/$', RedirectView.as_view(url='/'), name='first_page'),
+    url(
+        r'^page/1/$',
+        RedirectView.as_view(url='/', permanent=False),
+        name='first_page'
+    ),
     url(r'^page/(?P<page>\d+)/$', pages.home, name='home'),
     url(r'^channels/(?P<channel_slug>[-\w]+)/page/(?P<page>\d+)/$',
         pages.home, name='home_channels'),

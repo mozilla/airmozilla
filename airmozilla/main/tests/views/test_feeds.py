@@ -53,7 +53,7 @@ class TestFeeds(DjangoTestCase):
         )
 
         self.patch_get_thumbnail = mock.patch(
-            'airmozilla.main.helpers.get_thumbnail'
+            'airmozilla.main.templatetags.jinja_helpers.get_thumbnail'
         )
         mocked_get_thumbnail = self.patch_get_thumbnail.start()
 

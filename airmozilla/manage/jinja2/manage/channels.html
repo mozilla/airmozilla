@@ -1,0 +1,82 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "channels" %}
+
+{% block manage_title %}
+    Channels
+{% endblock %}
+
+{% block manage_content %}
+  <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Channel</th>
+        <th>Parent</th>
+        <th>Events</th>
+        <th>Visibility</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for channel in channels %}
+        <tr>
+          <td>
+            <a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a>
+            {% if channel.youtube_id %}
+              <a href="{{ channel.youtube_url }}"
+                 title="Originally a YouTube™ channel"
+              ><img src="{{ static('manage/img/youtube-128.png') }}" width="24" alt="YouTube logo"></a>
+            {% endif %}
+            {% if channel.reverse_order %}
+            <span class="label label-info">Reversed order</span>
+            {% endif %}
+            {% if channel.exclude_from_trending %}
+            <span class="label label-warning">Excluded from Trending</span>
+            {% endif %}
+            {% if channel.default %}
+            <span class="label label-primary">Default Channel</span>
+            {% endif %}
+            {% if channel.cover_art %}
+            {% set thumb = thumbnail(channel.cover_art, '30x30') %}
+            <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+                 title="Cover art ({{ channel.cover_art.width }}x{{ channel.cover_art.height }}px)"
+                 alt="Cover art">
+            {% endif %}
+          </td>
+          <td>
+            {% if channel.parent %}
+            <a href="{{ url('main:home_channels', channel.parent.slug) }}">{{ channel.parent.name }}</a>
+            {% endif %}
+          </td>
+          <td>{{ channel.event_set.count() }}</td>
+          <td>
+            {% if channel.always_show %}
+            <span class="label label-success">Always show</span>
+            {% elif channel.never_show %}
+            <span class="label label-default">Never show</span>
+            {% endif %}
+          </td>
+          <td>
+            <a class="btn btn-default btn-sm" href="{{ url('manage:channel_edit', channel.id) }}">
+            <i class="glyphicon glyphicon-edit"></i>
+              Edit
+            </a>
+            <form method="post" class="confirm"
+                  action="{{ url('manage:channel_remove', channel.id) }}">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-sm" type="submit">
+                <i class="glyphicon glyphicon-trash"></i>
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    <a class="btn btn-primary" href="{{ url('manage:channel_new') }}">
+      <i class="glyphicon glyphicon-plus-sign"></i>
+      New channel
+    </a>
+  </p>
+{% endblock %}

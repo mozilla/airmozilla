@@ -57,7 +57,7 @@ class TestEventEditChapters(DjangoTestCase):
         )
         response = self.client.get(url, {'all': True})
         eq_(response.status_code, 200)
-        eq_(response['Cache-Control'], 'max-age=0')
+        ok_('max-age=0' in response['Cache-Control'])
         chapters = json.loads(response.content)['chapters']
         chapter, = chapters
         eq_(chapter['timestamp'], 70)

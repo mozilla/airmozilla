@@ -979,7 +979,8 @@ class TestEvents(ManageTestCase):
         # and now the real test
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(edit_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(edit_url in response_content)
 
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_vidly_url_to_shortcode(self, p_urllib2):
@@ -1785,9 +1786,9 @@ class TestEvents(ManageTestCase):
 
         view_url_event = reverse('main:event', args=(event.slug,))
         view_url_event_hit = reverse('main:event', args=(event_hit.slug,))
-
-        eq_(response.content.count(view_url_event_hit), 1)
-        eq_(response.content.count(view_url_event), 0)
+        response_content = response.content.decode('utf-8')
+        eq_(response_content.count(view_url_event_hit), 1)
+        eq_(response_content.count(view_url_event), 0)
 
     def test_event_edit_without_vidly_template(self):
         """based on https://bugzilla.mozilla.org/show_bug.cgi?id=879725"""
@@ -1827,7 +1828,7 @@ class TestEvents(ManageTestCase):
             'Additional comments from original requested event'
             in response.content
         )
-        ok_('hi!<br>&#34;friend&#34;' in response.content)
+        ok_('hi!<br />&quot;friend&quot;' in response.content)
 
     def test_event_edit_of_retracted_submitted_event(self):
         event = Event.objects.get(title='Test event')

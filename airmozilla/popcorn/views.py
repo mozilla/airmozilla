@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
 
-from airmozilla.main.helpers import thumbnail
+from airmozilla.main.templatetags.jinja_helpers import thumbnail
 from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.main.views.pages import EventView
 from airmozilla.manage.archiver import email_about_archiver_error

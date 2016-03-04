@@ -1,0 +1,75 @@
+{% extends 'main/main_base.html' %}
+
+{% block page_title %}
+Video Upload | {{ super() }}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'upload' %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'uploads' %}
+{% endblock %}
+
+
+{% block content_main %}
+  <h2 class="section-title">Video Upload</h2>
+  <form id="upload"
+        method="post"
+        action="{{ url('uploads:save') }}"
+        data-sign_upload_url="{{ url('uploads:sign') }}"
+        data-verify_size_url="{{ url('uploads:verify_size') }}"
+        data-save_url="{{ url('uploads:save') }}">
+    {% csrf_token %}
+
+    <div class="pre-progress">
+      <p>Select the large file you want to upload. Click the "Browse..." button to start.</p>
+      <div>
+        <input type="file" id="file">
+        <button class="start">Start upload</button>
+      </div>
+    </div>
+
+    <div class="in-progress">
+      <p>Uploading...</p>
+      <div class="progress-bar" id="progressbar">
+        <div class="progress-bar-wrapper">
+          <progress value="0" max="100"></progress>
+          <span class="progress-value">0%</span>
+        </div>
+      </div>
+      <p>Once the file has been uploaded and verified, it gets saved to your upload history automatically.
+      Hang tight!</p>
+    </div>
+
+    <input type="hidden" name="url">
+
+    <div class="mid-progress">
+      <p><b>Great!</b> Upload completed. Verifying upload...</p>
+    </div>
+
+    <div class="post-progress">
+      <p>
+        <b class="file-size"></b> Uploaded.
+        Took about <b class="upload-time"></b>.
+      </p>
+    </div>
+
+    <div class="post-save">
+      <p><b>Excellent!</b>
+      File upload saved to <a href="{{ url('uploads:home') }}">Your Upload History</a>.</p>
+
+      <p class="suggested-event">
+      You got started requesting an event. Do you want to continue that request now?<br>
+      <a href="#"></a>
+      </p>
+    </div>
+
+
+  </form>
+
+  <pre id="status"></pre>
+{% endblock %}

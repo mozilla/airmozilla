@@ -1,0 +1,287 @@
+{% extends 'suggest/suggest_base.html' %}
+
+{% block page_title %}
+Event summary | {{ super() }}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'suggest_summary' %}
+{% endblock %}
+
+{% block content_main %}
+  {% include "suggest/_breadcrumb.html" %}
+  <h2 class="section-title">Event summary</h2>
+
+  {% if event.accepted %}
+  <div class="accepted">
+    <h3>Accepted!</h3>
+    <p>
+        {% if event.accepted.status == Event.STATUS_INITIATED %}
+          This event has been accepted but not yet scheduled.
+        {% elif event.accepted.status == Event.STATUS_SCHEDULED %}
+          {% if event.accepted.needs_approval() %}
+            This event has been accepted but is pending approval.
+          {% else %}
+            This event is
+            <a href="{{ url('main:event', event.accepted.slug) }}">accepted and scheduled</a>.<br>
+
+            {% if event.start_time != event.accepted.start_time %}
+              <b>Note!</b><br>
+              The <b>scheduled time</b> is different from what you requested. The scheduled time is:
+              <b>{{ event.accepted.location_time.strftime('%d %B %Y - %H:%M') }}</b>
+              ({{ event.accepted.start_time|js_date }}).<br>
+            {% endif %}
+            {% if event.location != event.accepted.location %}
+              <b>Note!</b><br>
+              The <b>scheduled location</b> is different from what you requested. The scheduled location is:
+              <b>{{ event.accepted.location.name }}</b>.
+            {% endif %}
+
+          {% endif %}
+        {% elif event.accepted.status == Event.STATUS_REMOVED %}
+          This event was accepted but was later removed.
+        {% endif %}
+    </p>
+  </div>
+  {% elif event.submitted %}
+  <form action="" method="post" class="unsubmission">{% csrf_token %}
+    <h3>Submitted!</h3>
+    <p>This was submitted by <strong>{{ event.user.email }}</strong>
+    <strong>{{ event.submitted|js_date }}</strong>.</p>
+
+    {% if request.user == event.user %}
+    <p>An Air Mozilla producer will review your event and either schedule
+    it for broadcast or request additional information from you.</p>
+    <button type="submit" class="btn btn-primary submit" name="unsubmit">Retract submission</button>
+    {% else %}
+    <p><a href="{{ url('manage:suggestions') }}#s{{ event.pk }}">Suggestions Management &raquo;</a></p>
+    {% endif %}
+  </form>
+  {% else %}
+  <div class="not-submitted">
+    <h3>Almost there...</h3>
+    {% if event.first_submitted %}
+      <p>
+        Your event is no longer submitted. It was either retracted or bounced back. See below for
+        possible <b>review comments</b>. Submit again when it's ready.
+      </p>
+    {% else %}
+      <p>
+        Your event is not yet submitted. Check through the details and submit when you think you're ready.
+      </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <table>
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:title', event.pk) }}">Change title</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Title</th>
+      <td>{{ event.title }}</td>
+    </tr>
+    <tr>
+      <th>Slug</th>
+      <td>{{ event.slug }}</td>
+    </tr>
+    {% if event.popcorn_url %}
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:popcorn', event.pk) }}">Change Popcorn URL</a></td>
+    </tr>
+    {% endif %}
+
+    <tr>
+        <th>Popcorn URL</th>
+        <td><a href="{{ event.popcorn_url }}" target="_blank">{{ truncate_url(event.popcorn_url, 70) }}</a></td>
+    </tr>
+    {% endif %}
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:description', event.pk) }}">Change description</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Description</th>
+      <td>{{ event.description | urlize | linebreaks }}</td>
+    </tr>
+    <tr>
+      <th>Short description</th>
+      <td>{{ event.short_description | urlize | linebreaks }}</td>
+    </tr>
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:details', event.pk) }}">Change details</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Location</th>
+      <td>
+        {% if event.location %}
+          {{ event.location }} ({{ event.location.timezone }})
+        {% else %}
+          <i>No location</i>
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Vidyo room</th>
+      <td>{{ event.call_info }}</td>
+    </tr>
+    <tr>
+      <th>Start time</th>
+      <td>
+        {% if event.location %}
+          {{ event.location_time.strftime('%d %B %Y - %H:%M') }}
+          ({{ event.start_time|js_date }})
+        {% else %}
+          {{ event.start_time|js_date }}
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Estimated duration</th>
+      <td>{{ show_duration(event.estimated_duration) }}</td>
+    </tr>
+    <tr>
+      <th>Privacy</th>
+      <td>{{ event.get_privacy_display() }}</td>
+    </tr>
+    <tr>
+      <th>Tags</th>
+      <td>{% for tag in event.tags.all() %}
+      {{ tag }}{% if not loop.last %}, {% endif %}
+      {% endfor %}
+      </td>
+    </tr>
+    <tr>
+      <th>Channels</th>
+      <td>{% for channel in event.channels.all() %}
+      {{ channel.name }}<br>
+      {% endfor %}
+      </td>
+    </tr>
+    <tr>
+      <th>Additional links</th>
+      <td>{{ event.additional_links | urlize | linebreaks }}</td>
+    </tr>
+    <tr>
+      <th>Remote presenters</th>
+      <td>
+        {% if event.remote_presenters %}
+          {{ event.remote_presenters | urlize | linebreaks }}
+        {% else %}
+          none
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Topics</th>
+      <td>
+        {% for topic in event.topics.all() %}
+          <span title="Public events require approval from: {% for g in topic.groups.all() %}{{ g }}{% if not loop.last %}, {% endif %}{% endfor %}"
+          >{{ topic.topic }}</span><br>
+        {% else %}
+          none
+        {% endfor %}
+      </td>
+    </tr>
+
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:discussion', event.pk) }}">Change discussion</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+        <th>Discussion</th>
+        <td>
+            {% if discussion and discussion.enabled %}
+                <b>Enabled</b><br>
+                {% if discussion.moderate_all %}
+                All comments moderated.
+                {% else %}
+                Comments not moderated.
+                {% endif %}
+                <br>
+                Email notifications sent to:
+                {% for user in discussion.moderators.all() %}
+                  {{ user.email }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            {% else %}
+            Not enabled
+            {% endif %}
+        </td>
+    </tr>
+
+    {% if not event.submitted %}
+    <tr>
+      <td colspan="2" class="edit-link"><a href="{{ url('suggest:placeholder', event.pk) }}">Change placeholder</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Placeholder picture</th>
+      <td>
+        {% if event.picture or event.placeholder_img %}
+          {{ show_thumbnail(event, '160x90') }}
+        {% else %}
+          <p>No image!</p>
+        {% endif %}
+      </td>
+    </tr>
+
+    {% if event.submitted %}
+    <tr>
+      <th>Submitted</th>
+      <td>{{ event.submitted|js_date }}</td>
+    </tr>
+    {% endif %}
+    {% if event.review_comments %}
+    <tr>
+      <th>Review comments</th>
+      <td>
+        <div class="comment-text">{{ event.review_comments | urlize | linebreaks }}</div>
+      </td>
+    </tr>
+    {% endif %}
+
+    <tr>
+      <th>Additional comments</th>
+      <td>
+        {% for comment in comments %}
+        <div class="comment">
+          <div class="comment-text">{{ comment.comment | urlize | linebreaks }}</div>
+          <p>By
+            {% if comment.user == request.user %}
+              You
+            {% else %}
+              {{ comment.user.email }}
+            {% endif %}
+            -
+            {{ comment.created|js_date }}
+          </p>
+        </div>
+        {% endfor %}
+        <form action="" method="post" class="comment">{% csrf_token %}
+        {{ bootstrapform(comment_form) }}
+        <div>
+          <button type="submit" class="btn btn-primary submit" value="Comment" name="save_comment">Comment</button>
+        </div>
+
+        </form>
+      </td>
+    </tr>
+  </table>
+
+
+  {% if not event.submitted %}
+  <form action="" method="post" class="submission">{% csrf_token %}
+    <h3>Is it ready?</h3>
+    <button type="submit" class="btn btn-primary submit" name="submit">Submit for review</button>
+  </form>
+  {% endif %}
+
+{% endblock %}

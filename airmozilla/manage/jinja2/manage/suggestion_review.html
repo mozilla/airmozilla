@@ -1,0 +1,223 @@
+{% extends 'manage/suggestions.html' %}
+
+{% block manage_title %}
+  Reviewing suggested event "{{ event.title }}"
+{% endblock %}
+
+{% block site_css %}
+    {{ super() }}
+    <style type="text/css">
+    form textarea { height: 100px; }
+    .comment {
+        margin-left: 160px;
+        margin-bottom: 10px;
+        border-bottom: 4px solid rgb(250,250,250);
+    }
+    .comment-text {
+        font-style: italic;
+    }
+    </style>
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+  <table class="table">
+      <tr>
+        <td>State</td>
+        <td>{{ event.get_status_display() }}</td>
+      </tr>
+      <tr>
+        <td>Title</td>
+        <td>{{ event.title }}</td>
+      </tr>
+      <tr>
+        <td>Slug</td>
+        <td>{{ event.slug }}</td>
+      </tr>
+      <tr>
+        <td>Placeholder image</td>
+        <td>
+          {% if event.picture %}
+          <a href="{{ event.picture.url }}">View</a>
+          {% else %}
+          <a href="{{ event.placeholder_img.url }}">View</a>
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Description</td>
+        <td>{{ event.description }}</td>
+      </tr>
+      <tr>
+        <td>Short description</td>
+        <td>{{ event.short_description }}</td>
+      </tr>
+      <tr>
+        <td>Start time</td>
+        <td>{{ event.start_time|js_date }}</td>
+      </tr>
+      <tr>
+        <td>Estimated duration</td>
+        <td>
+          {{ show_duration(event.estimated_duration) }}
+        </td>
+      </tr>
+      <tr>
+        <td>Location</td>
+        <td>{{ event.location }}</td>
+      </tr>
+      <tr>
+        <td>Vidyo room</td>
+        <td>{{ event.call_info }}</td>
+      </tr>
+      <tr>
+        <td>Privacy</td>
+        <td>{{ event.get_privacy_display() }}</td>
+      </tr>
+      <tr>
+        <td>Additional links</td>
+        <td>{{ event.additional_links and event.additional_links | urlize_and_linebreaksbr or '' }}</td>
+      </tr>
+      <tr>
+        <td>Remote presenters</td>
+        <td>{{ event.remote_presenters and event.remote_presenters | urlize_and_linebreaksbr or '' }}</td>
+      </tr>
+      <tr>
+        <td>Creator</td>
+        <td><a href="mailto:{{ event.user.email }}">{{ event.user.email }}</a></td>
+      </tr>
+      <tr>
+        <td>Submitted</td>
+        <td>{{ event.first_submitted | js_date }}</td>
+      </tr>
+    {% for row in data %}
+      <tr>
+        <td>{{ row[0] }}</td>
+        <td>{% if row[1] %}{{ row[1] }}{% endif %}</td>
+      </tr>
+    {% endfor %}
+      {% if event.submitted and event.submitted != event.first_submitted %}
+      <tr>
+         <td>Re-submitted</td>
+         <td>{{ event.submitted|js_date }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td>Tags</td>
+        <td>
+          {% for tag in event.tags.all() %}
+            &bull; {{ tag.name }}<br>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>Channels</td>
+        <td>
+          {% for channel in event.channels.all() %}
+            &bull; {{ channel.name }}<br>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+        <td>Topics</td>
+        <td>
+          {% for topic in event.topics.all() %}
+            &bull; {{ topic.topic }}
+            <abbr title="Groups that will require approval if event is public">
+              ({%- for group in topic.groups.all() -%}
+                {{ group.name }}{% if not loop.last %}, {% endif %}
+              {%- endfor %})
+            </abbr>
+            <br>
+          {% endfor %}
+        </td>
+      </tr>
+      <tr>
+          <td>Discussion</td>
+          <td>
+              {% if discussion and discussion.enabled %}
+                  <b>Enabled</b><br>
+                  {% if discussion.moderate_all %}
+                  All comments moderated.
+                  {% else %}
+                  Comments not moderated.
+                  {% endif %}
+                  <br>
+                  Email notifications sent to:
+                  {% for user in discussion.moderators.all() %}
+                    {{ user.email }}{% if not loop.last %}, {% endif %}
+                  {% endfor %}
+              {% else %}
+              Not enabled
+              {% endif %}
+          </td>
+      </tr>
+  </table>
+  {% if real_event_form %}
+  {{ real_event_form.errors }}
+  {% endif %}
+
+  {% if event.accepted %}
+    <p>
+      Already turned into
+      <a href="{{ url('manage:event_edit', event.accepted.id) }}">an accepted event</a>.
+    </p>
+  {% else %}
+  {% if event.submitted %}
+  <form method="post" class="form-horizontal">
+    {% csrf_token %}
+    {{ bootstrapform_horizontal(form) }}
+    <div class="form-group form-buttons">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-success"
+                name="approve" value="approve" id="submit_approve">
+          <i class="glyphicon glyphicon-ok icon-positive"></i>
+          Approve
+        </button>
+        <button type="submit" class="btn btn-danger" title="Saying 'Reject' is too harsh"
+                name="reject" value="reject" id="submit_reject">
+          <i class="glyphicon glyphicon-remove icon-negative"></i>
+          Bounce back
+        </button>
+      </div>
+    </div>
+  </form>
+  {% else %}
+    <div class="form-actions">
+      {% if event.review_comments %}
+      <p>Last review comment: <i>{{ event.review_comments }}</i></p>
+      <form method="post">
+        {% csrf_token %}
+        <button name="unbounce" value="unbounce" class="btn btn-primary"
+          >Un-bounce to review again</button>
+      </form>
+      {% else %}
+      <p>Event is currently not submitted. It was either bounced back or retracted by
+      the original submitter.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% endif %}
+
+<div class="comments">
+  <h3>Additional comments</h3>
+
+  {% include "manage/_suggestion_comments.html" %}
+
+  <form method="post" class="form-horizontal">
+  {% csrf_token %}
+  {{ bootstrapform_horizontal(comment_form) }}
+    <div class="form-group form-buttons">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-primary"
+                name="save_comment" value="comment">
+          Comment
+        </button>
+      </div>
+    </div>
+  </form>
+
+</div>
+
+{% endblock %}

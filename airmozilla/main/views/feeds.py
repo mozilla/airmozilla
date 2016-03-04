@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from airmozilla.main.models import Event, Channel, Tag, VidlyMedia
 from airmozilla.search.models import SavedSearch
 from airmozilla.base.utils import get_base_url, get_abs_static
-from airmozilla.main.helpers import short_desc, thumbnail
+from airmozilla.main.templatetags.jinja_helpers import short_desc, thumbnail
 from airmozilla.manage import vidly
 
 

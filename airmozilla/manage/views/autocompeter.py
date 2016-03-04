@@ -3,7 +3,7 @@ from StringIO import StringIO
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
-from django.contrib.sites.models import RequestSite
+from django.contrib.sites.requests import RequestSite
 
 from jsonview.decorators import json_view
 

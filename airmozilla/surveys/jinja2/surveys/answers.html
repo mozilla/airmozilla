@@ -1,0 +1,37 @@
+{% for question in questions %}
+  <p class="label">{{ question.label }}</p>
+  <table>
+    {% for choice in question.choices %}
+    <tr {% if choice.your_answer %}class="your-answer"{% endif %}>
+      <!-- <td class="number">{{ choice.number }}</td> -->
+      <!-- <td class="percent">{{ '%.f' % choice.percent }}%</td> -->
+      <td class="choice">{{ choice.answer }}</td>
+      <td class="bar">
+        <div style="width:{{ max_(choice.percent - 10, 0) }}%">&nbsp;</div>
+        <span>{{ '%.f' % choice.percent }}%</span>
+
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endfor %}
+
+<form action="{{ url('surveys:load', survey.id) }}" method="post">
+  {% csrf_token %}
+
+  <div class="loading">
+    <img src="{{ static('main/img/ajax-loader.gif') }}" alt=""> Please wait...
+  </div>
+
+  <div class="submission">
+    {% if request.user.is_active %}
+    <input type="submit" value="Undo your submission" class="small"
+         name="resetmine" title="Allows you to vote again">
+    <span class="note">Your answer is shown in <em>italic</em>.</span>
+    {% else %}
+    <span class="note">Sign in to contribute.
+    It's still anonymized.</span>
+
+    {% endif %}
+  </div>
+</form>

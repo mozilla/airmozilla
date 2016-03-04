@@ -1,0 +1,123 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Event Upload for "{{ event.title }}"
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'upload' %}
+  {% stylesheet 'event_upload' %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 's3upload' %}
+  {% javascript 'uploads' %}
+  {% javascript 'manage_event_upload' %}
+{% endblock %}
+
+
+{% block manage_content %}
+  <input type="hidden" name="event_edit_url" value="{{ url('manage:event_edit', event.pk) }}">
+  <form id="upload"
+        method="post"
+        action="{{ url('uploads:save') }}"
+        data-sign_upload_url="{{ url('uploads:sign') }}"
+        data-verify_size_url="{{ url('uploads:verify_size') }}"
+        data-save_url="{{ url('uploads:save') }}"
+        data-vidly-shortcut-url="{{ url('manage:vidly_url_to_shortcode', event.pk) }}"
+        data-vidly-submit-details='{{ json_print(vidly_submit_details) }}'
+        data-event-archive-url="{{ url('manage:event_archive', event.pk) }}"
+        data-event-fetch-duration-url="{{ url('manage:event_fetch_duration', event.pk) }}"
+        data-event-fetch-screencaptures-url="{{ url('manage:event_fetch_screencaptures', event.pk) }}"
+        data-event-archive-details='{{ json_print(event_archive_details) }}'>
+    {% csrf_token %}
+
+    <div class="pre-progress">
+      <p>Select the large file you want to upload. Click the "Browse..." button to start.</p>
+      <div>
+        <input type="file" id="file"><br>
+        <input checked="checked" id="id_automate_vidly_submission" name="automate_vidly_submission" type="checkbox" />
+        <span>Automate Vid.ly submission after success</span>
+      </div>
+      <div>
+        <button class="start btn btn-primary">Start upload</button>
+      </div>
+    </div>
+
+    <div class="in-progress" style="float:none; clear:right">
+      <p>Uploading...</p>
+      <div class="progress-bar" id="progressbar">
+          <div class="progress-bar-wrapper">
+              <progress value="0" max="100"></progress>
+              <span class="progress-value">0%</span>
+          </div>
+      </div>
+    </div>
+
+    <input type="hidden" name="url">
+
+    <div class="mid-progress">
+      <p><b>Great!</b> Upload completed. Verifying upload...</p>
+    </div>
+
+    <div class="post-progress">
+      <p><b class="file-size"></b> Uploaded.</p>
+    </div>
+
+    <div class="automation-progress" style="float:none; clear:right">
+      <p class="pre-automation">
+        <b>Automating Vid.ly submission</b><br>
+        Submitting the uploaded file to Vid.ly and changing the event's template.
+      </p>
+      <div class="progress-bar" id="automation-progressbar" style="float:none">
+          <div class="progress-bar-wrapper">
+              <progress value="0" max="100"></progress>
+              <span class="progress-value">0%</span>
+          </div>
+      </div>
+      <p class="post-automation">
+        <b>Automation has fully completed.</b><br>
+        The event will appear in Air Mozilla once Vid.ly transcoding finishes.<br>
+        <a href="{{ url('manage:events') }}"><b>Return to Event manager</b></a>
+      </p>
+
+    </div>
+
+    <div class="post-save">
+      <p><b>Excellent!</b></p>
+      <p class="event">
+      Event now has a file upload, click to archive:
+      <a href="#"></a>
+      </p>
+    </div>
+
+  </form>
+
+  {% if event.upload %}
+
+  <p style="clear:both; margin-top:25px"><strong>File Currently Uploaded:</strong></p>
+  <table class="event-upload">
+     <tr>
+       <th>Name:</th>
+       <td class="file-name">{{ event.upload.file_name }}</td>
+     </tr>
+     <tr>
+       <th>Size:</th>
+       <td>{{ event.upload.size | filesizeformat }}</td>
+     </tr>
+     <tr>
+       <th>URL:</th>
+       <td><a href="{{ event.upload.url }}">Open</td>
+     </tr>
+  </table>
+  {% endif %}
+
+   <p style="margin-top:35px; clear:left">
+     <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+   </p>
+
+
+{% endblock %}

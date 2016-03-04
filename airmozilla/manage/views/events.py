@@ -25,8 +25,10 @@ from django.core.urlresolvers import reverse
 
 from jsonview.decorators import json_view
 
-from airmozilla.main.helpers import thumbnail, short_desc
-from airmozilla.manage.helpers import scrub_transform_passwords
+from airmozilla.main.templatetags.jinja_helpers import thumbnail, short_desc
+from airmozilla.manage.templatetags.jinja_helpers import (
+    scrub_transform_passwords,
+)
 from airmozilla.base import mozillians
 from airmozilla.base.utils import (
     paginate,
@@ -62,11 +64,11 @@ from airmozilla.manage import vidly
 from airmozilla.manage import archiver
 from airmozilla.manage import sending
 from airmozilla.manage import videoinfo
-from airmozilla.manage.helpers import full_tweet_url
+from airmozilla.manage.templatetags.jinja_helpers import full_tweet_url
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Survey
 from airmozilla.uploads.models import Upload
-from airmozilla.base.helpers import show_duration
+from airmozilla.base.templatetags.jinja_helpers import show_duration
 from airmozilla.base.utils import STOPWORDS
 from .decorators import (
     staff_required,
@@ -709,6 +711,12 @@ def event_edit_duration(request, id):
         form = forms.EventDurationForm(request.POST, instance=event)
         if form.is_valid():
             event = form.save()
+            # For some reason, if you pass it `duration=''` it thinks
+            # you don't want to set this value, so it doesn't change
+            # it. So we manually fix that for this case.
+            if form.cleaned_data['duration'] is None:
+                event.duration = None
+                event.save()
             if event.duration:
                 messages.success(
                     request,
@@ -1113,7 +1121,15 @@ def new_event_tweet(request, id):
         form = forms.EventTweetForm(event, data=request.POST)
         if form.is_valid():
             event_tweet = form.save(commit=False)
-            if event_tweet.send_date:
+            # The send_date is automatically assigned on the event.
+            # If the user didn't try to set it, it gets a default date
+            # with a timezone. All is well.
+            # If you did try to set it and used non-timezone-human-text
+            # to try to set it we have to correct it for you.
+            # This is basically because we need to store with timezone
+            # but we can't expect our users to type in timezone information
+            # on the string they're entering into the input field.
+            if event_tweet.send_date and form.cleaned_data['send_date']:
                 assert event.location, "event must have a location"
                 tz = pytz.timezone(event.location.timezone)
                 event_tweet.send_date = tz_apply(event_tweet.send_date, tz)

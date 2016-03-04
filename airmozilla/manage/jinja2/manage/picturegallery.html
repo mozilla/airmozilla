@@ -1,0 +1,221 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "picturegallery" %}
+
+{% block manage_title %}
+    Picture Gallery
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
+  {% javascript 'picture_gallery' %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'picture_gallery' %}
+{% endblock %}
+
+{% block manage_content %}
+
+<div ng-app="picturegalleryApp" ng-controller="PictureGalleryController">
+  <p ng-if="loading" class="loading">
+    <img src="{{ static('img/spinner.gif') }}">
+    <span class="blinking">Loading pictures...</span>
+  </p>
+
+  {% if event %}
+    <h4>
+      You are here to associate a picture with
+      <a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a>
+
+    <script>
+      window.CURRENT_EVENT = {{ event.id }};
+      {% if event.picture %}
+        window.CURRENT_EVENT_PICTURE = {{ event.picture.id }};
+      {% endif %}
+    </script>
+
+    </h4>
+
+    {% if event.placeholder_img %}
+
+      <p>
+        <a class="btn btn-danger"
+           ng-show="!deleteAllConfirmation"
+           ng-click="toggleDeleteAllConfirmation()">
+          <i class="glyphicon glyphicon-minus-sign"></i>
+          Remove all pictures made for this event.
+        </a>
+      </p>
+
+      <p ng-show="deleteAllConfirmation && !deleteAllSuccess">
+        Are you sure?
+        <button class="btn btn-danger btn-sm"
+        ng-click="deleteAllPictures()">
+        Yes
+        </button>
+        <button class="btn btn-default btn-sm"
+        ng-click="toggleDeleteAllConfirmation()">Cancel</button>
+        <br>
+      </p>
+
+      <div ng-show="deleteAllSuccess" class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+      </button>
+      <p>
+        Successfully deleted all pictures associated with the event {{ event.title }}.
+      </p>
+     </div>
+
+    {% else %}
+
+     <div class="alert alert-warning alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+      </button>
+      <p>
+        Unable to delete all pictures associated with this event because the event
+        relies on one of them and has no fallback placeholder image.
+      </p>
+     </div>
+
+    {% endif %}
+
+  {% endif %}
+
+  <p style="float: right">
+    <a class="btn btn-primary"
+       href="{{ url('manage:picture_add') }}{% if event %}?event={{ event.id }}{% endif %}">
+      <i class="glyphicon glyphicon-plus-sign"></i>
+      Upload more pictures
+    </a>
+  </p>
+
+  <!-- using this form for AJAX saving the notes -->
+  {% csrf_token %}
+  {% raw %}
+
+  <div class="row filter-bar" ng-class="{hidden: loading}">
+    <input type="text" ng-model="search_notes" placeholder="Find by notes">
+    <select name="created" ng-model="search_created">
+      <option value="">Uploaded</option>
+      <option value="today">Today</option>
+      <option value="yesterday">Yesterday</option>
+      <option value="this_week">This week</option>
+      <option value="older_than_this_week">Older than this week</option>
+    </select>
+
+    <button type="button" class="btn btn-default btn-xs btn-primary"
+      ng-if="hasFilter()" ng-click="clearFilter()">Clear filter</button>
+  </div>
+
+  <div class="col-md-3"
+     ng-repeat="picture in filtered_items = (pictures | filter:filterBySearch) | startFrom:currentPage*pageSize | limitTo:pageSize track by $index"
+      ng-class="{'current-event-picture': current_event_picture == picture.id, 'clearfix': $index % 4 == 0}">
+    <div class="thumbnail">
+      <a href="{{ url('manage:picture_edit', picture.id) }}" title="Click to edit">
+        <img ng-src="{{ url('manage:redirect_picture_thumbnail', picture.id) }}?geometry=201x113"
+             ng-class="{inactive: !picture.is_active}">
+        <span class="label label-primary picture-metadata">
+          {{ picture.width }}x{{ picture.height }}
+          {{ picture.size | filesize }}
+        </span>
+        <span ng-if="picture.default_placeholder"
+              class="label label-success picture-default-placeholder">
+          Default placeholder
+        </span>
+        <span ng-if="!picture.is_active"
+              class="label label-danger picture-default-placeholder">
+          Inactive!
+        </span>
+
+      </a>
+      <div class="caption">
+
+        <input name="notes" value="{{ picture.notes }}"
+         ng-model="picture.notes"
+         placeholder="no notes">
+        <button
+          ng-click="saveNotes(picture)"
+          class="btn btn-xs"
+          ng-class="{'btn-primary': !picture._saving}">
+          <span ng-if="picture._saving">Saving</span>
+          <span ng-if="!picture._saving">Save</span>
+        </button>
+        <button
+          class="btn btn-danger btn-xs"
+          ng-show="!picture._delete_confirmation && !picture.cant_delete"
+          ng-click="toggleDeleteConfirmation(picture)">Delete</button>
+        <br>
+        <a href="" ng-show="picture.events.length"
+           ng-click="toggleShowEvents(picture)">
+           <ng-pluralize count="picture.events.length"
+            when="{'one': '1 event', 'other': '{} events'}">
+          </ng-pluralize>
+        </a>
+
+        <br>
+        <button ng-click="associatePicture(picture)" ng-show="current_event && current_event_picture != picture.id"
+                class="btn btn-primary">
+          Pick this for the event
+        </button>
+        <p ng-show="current_event && current_event_picture == picture.id">
+          <b>Current event picture</b>
+        </p>
+        <span ng-show="picture._show_events">
+          <span ng-repeat="event in picture.events">
+            <a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a><br>
+          </span>
+        </span>
+
+        <p ng-show="picture._delete_confirmation">
+          Are you sure?
+          <button class="btn btn-danger btn-xs"
+            ng-click="deletePicture(picture)">
+            Yes
+          </button>
+          <button class="btn btn-default btn-xs"
+            ng-click="toggleDeleteConfirmation(picture)">Cancel</button>
+          <br>
+          <small ng-show="picture.events.length">
+            Careful. This picture is used by <b>{{ picture.events.length }}</b>
+            events.
+          </small>
+        </p>
+
+
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="!filtered_items.length">
+      <p><b>Filtered too much?</b></p>
+      <p ng-if="search_notes">
+        <a href="#" ng-click="resetFilter('search_notes')">Drop notes search on <code>{{ search_notes }}</code></a>
+      </p>
+      <p ng-if="search_created">
+        <a href="#" ng-click="resetFilter('search_created')">Drop the filter on uploaded</a>
+      </p>
+  </div>
+
+  <div id="total-pictures-stats">
+    <p>
+      <b>Total # pictures:</b>
+      {{ stats.total_pictures }}
+      ({{ stats.event_pictures }} of those belong to specific events)
+    </p>
+  </div>
+  {% endraw %}
+
+  <div ng-show="filtered_items.length">
+    {% set paginate_label='Pictures per page' %}
+    {% include "manage/_angular_pagesize.html" %}
+    {% include "manage/_angular_paginate.html" %}
+  </div>
+
+
+</div>
+{% endblock %}

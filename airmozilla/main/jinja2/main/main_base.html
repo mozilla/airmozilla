@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% set page = page|default('home') -%}
+
+{% block page_title %}Air Mozilla | Mozilla, in Video{% endblock %}
+
+{% block extra_head %}
+{% set feed = get_feed_data() %}
+<link rel="alternate" title="{{ feed.title }}" href="{{ feed.url }}" type="application/rss+xml">
+<meta property="og:title" content="{{ self.page_title() }}">
+<meta property="og:url" content="{{ request.build_absolute_uri() }}">
+<meta property="og:description" content="Air Mozilla is the Internet multimedia presence of Mozilla, with live and pre-recorded shows, interviews, news snippets, tutorial videos, and features about the Mozilla community.">
+<meta property="og:image" content="{{ abs_static('img/logo-airmo-og.png') }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+{% endblock %}
+
+{% block site_css %}
+{% stylesheet 'main_base' %}
+{% endblock %}
+
+{% block content %}
+  {% if not BROWSERID_DISABLED %}
+  {{ browserid_info() }}
+  {% endif %}
+  <div id="page">
+  <div class="wrap">
+  <header id="masthead">
+    <nav id="nav-main">
+      <ul>
+        {% set nav_main = nav_bar() %}
+        {% for title, url_, id, class, sub_items in nav_main['items'] %}
+          <li id="nav-{{ id }}"{% if sub_items %} class="has-sub-items"{% endif %}>
+            <a href="{{ url_ }}"
+              class="{{ class }}{% if id == page %} current{% endif %}">
+            {{ title }}
+            </a>
+            {% if sub_items %}
+            <div class="sub-options">
+              <ul>
+                <li><a class="close">close</a></li>
+                {% for title, url_, id, class in sub_items %}
+                <li>
+                  <a href="{{ url_ }}"
+                    class="{{ class }}{% if id == page %} current{% endif %}">
+                  {{ title }}
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+          </li>
+        {% endfor %}
+
+        {% if not request.user.is_active %}
+        <li>
+          {# the redirect_next function comes from the browserid context processor #}
+          {% if not BROWSERID_DISABLED %}
+          {{ browserid_login(text='Sign in', color='dark', next=redirect_next()) }}
+          {% endif %}
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% if request.user.is_authenticated() %}
+      <starred-event data-post="{{ url('starred:sync') }}"
+        data-ids="{{ star_ids }}">{% csrf_token %}
+      </starred-event>
+    {% endif %}
+    {% block banner %}
+      {% include "main/_banner_small.html" %}
+    {% endblock %}
+    <div id="tabzilla">
+      <a href="https://www.mozilla.org/">Mozilla</a>
+    </div>
+
+  </header>
+
+  <div id="content" {% block content_tag %}{% endblock %}
+       data-thumbnails-url="{{ url('main:thumbnails') }}">
+    <div id="content-main" class="main" role="main">
+      {% if messages %}
+          {% for message in messages %}
+            <div class="alert
+             {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+              <a href="#" class="close">&times;</a>
+              {{ message }}
+            </div>
+          {% endfor %}
+      {% endif %}
+
+      {% block content_main %}{% endblock %}
+    </div>
+    {% block sidebar %}
+    <div id="content-sub" class="sub sidebar widgets" role="complementary">
+      {% block sidebar_inner %}{% endblock %}
+    </div>
+    {% endblock %}
+  </div>
+
+  </div>
+  <div id="full-width-content">
+    {% block full_width_content %}{% endblock %}
+  </div>
+  </div>
+<footer id="site-info" role="contentinfo">
+  <div class="wrap">
+    <p id="foot-logo">
+      <a class="top" href="#page">{{ _('Return to top') }}</a>
+      <a class="logo" href="//mozilla.org" rel="external">Mozilla</a>
+    </p>
+    <p id="colophon">
+      Except where otherwise
+      <a href="//www.mozilla.org/en-US/about/legal.html#site" rel="external">noted</a>,
+      content on this site is licensed under the
+      <a href="http://creativecommons.org/licenses/by-sa/3.0/"
+      rel="external license">Creative Commons Attribution Share-Alike License v3.0</a>
+      or any later version.
+    </p>
+    <nav id="nav-meta">
+      <ul>
+        <li><a href="{{ url('main:contributors') }}">Contributors</a></li>
+        <li><a href="https://github.com/mozilla/airmozilla">Code on GitHub</a></li>
+        <li><a href="https://bugzilla.mozilla.org/enter_bug.cgi?format=guided#h=dupes%7CAir+Mozilla%7COther">
+          Report a bug</a></li>
+        <li><a href="/contact-us/">{{ _('Contact Us') }}</a></li>
+        <li><a href="//www.mozilla.org/en-US/privacy" rel="external">{{ _('Privacy Policy') }}</a></li>
+        <li><a href="//www.mozilla.org/en-US/about/legal.html" rel="external">{{ _('Legal Notices') }}</a></li>
+        <li><a href="//www.mozilla.org/en-US/legal/fraud-report/index.html" rel="external">{{ _('Report Trademark Abuse') }}</a></li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {# the day Air Mozilla uses L10n we can remove this /en-US/ here. For now it reduces redirects. #}
+
+  {% if include_autocompeter %}
+  <autocompeter
+    data-groups="{{ autocompeter_groups }}"
+    data-domain="{{ autocompeter_domain }}"
+    data-url="{{ autocompeter_url }}"
+    ></autocompeter>
+  {% endif %}
+
+  {% javascript 'main_base' %}
+
+  {% if not BROWSERID_DISABLED %}
+  {# Instead of using browser_js() we here include them manually. It'll make the page faster #}
+  {% javascript 'browserid' %}
+  {% endif %}
+
+  {% if include_autocompeter %}
+  <script src="//cdn.jsdelivr.net/autocompeter/1/autocompeter.min.js"></script>
+  {% javascript 'autocompeter' %}
+  {% endif %}
+
+{% endblock %}

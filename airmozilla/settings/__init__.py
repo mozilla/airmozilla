@@ -16,15 +16,19 @@ except ImportError, exc:  # pragma: no cover
 # This takes care of removing that pesky warning, about raven not
 # being configured in local development, that looks like an error.
 try:
-    assert RAVEN_CONFIG['dsn']
+    assert RAVEN_CONFIG['dsn']  # NOQA
 except (NameError, KeyError, AssertionError):  # pragma: no cover
     # Then it's not been configured!
-    INSTALLED_APPS = list(INSTALLED_APPS)
+    INSTALLED_APPS = list(INSTALLED_APPS)  # NOQA
     INSTALLED_APPS.remove('raven.contrib.django.raven_compat')
     INSTALLED_APPS = tuple(INSTALLED_APPS)
 
 
 if len(sys.argv) > 1 and sys.argv[1] == 'test':
+    # Shuts up excessive logging when running tests
+    import logging
+    logging.disable(logging.WARNING)
+
     from .test import *  # NOQA
 
     # Are you getting full benefit from django-nose?

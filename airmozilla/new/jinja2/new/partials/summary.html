@@ -1,0 +1,180 @@
+<h4>Summary</h4>
+
+{% raw %}
+
+<loading on="loading" message="Loading summary details..."></loading>
+
+<table ng-if="!loading" class="summary show-hide">
+  <tr ng-if="event.status == 'initiated'">
+    <td colspan="2" style="text-align: right">
+      <a ui-sref="details({id: event.id})"
+         title="You can come back here later">
+         Change any of these details
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th>Title:</th>
+    <td class="event-title">{{ ::event.title }}</td>
+  </tr>
+  <tr>
+    <th>Description:</th>
+    <td>{{ ::event.description }}</td>
+  </tr>
+  <tr>
+    <th>Privacy:</th>
+    <td>{{ ::event.privacy_display }}</td>
+  </tr>
+  <tr>
+    <th>Links:</th>
+    <td ng-bind-html="event.additional_links | linky">
+    </td>
+  </tr>
+  <tr>
+    <th>Tags:</th>
+    <td>
+      <span ng-if="event.tags">{{ ::event.tags }}</span>
+      <a ng-if="!event.tags" ui-sref="details({id: event.id})"
+      >No tags entered!</a>
+    </td>
+  </tr>
+  <tr>
+    <th>Channels:</th>
+    <td>
+      <span ng-repeat="channel in event.channels">
+        <a ng-href="{{ ::channel.url }}" target="_self"
+        >{{ ::channel.name }}</a>{{ !$last && ', ' || '' }}
+      </span>
+      <span ng-if="!event.channels.length">
+        <a ui-sref="details({id: event.id})">No channel chosen!</a>
+      </span>
+    </td>
+  </tr>
+  <tr ng-if="event.privacy=='public' && event.topics.length">
+    <th>
+      Topics:
+    </th>
+    <td>
+      <span ng-repeat="topic in event.topics">
+        {{ ::topic.topic }}<br>
+      </span>
+    </td>
+  </tr>
+  <tr ng-if="event.status == 'initiated'">
+    <td colspan="2" style="text-align: right">
+      <a ng-if="event.picture && pictures"
+         ui-sref="picture({id: event.id})"
+         title="Pick a different picture">
+         Pick a different picture ({{ ::pictures }} available)
+      </a>
+      <a ng-if="!event.picture && pictures"
+         ui-sref="picture({id: event.id})"
+         title="Pick a picture">
+         Pick a picture ({{ ::pictures }} available)
+      </a>
+      <a ng-if="!event.picture && !pictures"
+         ui-sref="picture({id: event.id})"
+         title="Pick a picture">
+         Still waiting for pictures to chose
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th>Picture:</th>
+    <td ng-if="event.picture">
+      <img ng-src="{{ ::event.picture.url }}"
+           width="{{ ::event.picture.width }}"
+           height="{{ ::event.picture.height }}"
+           alt="Placeholder picture">
+    </td>
+    <td ng-if="!event.picture">
+      No picture yet. A default one will be picked for you.
+    </td>
+  </tr>
+  <tr ng-if="event.youtube_id">
+    <th>Video:</th>
+    <td colspan="2">
+      <iframe width="640px" height="360px"
+        ng-src="{{ ::event.youtubeSrc }}"
+        frameborder="0" allowfullscreen></iframe>
+    </td>
+  </tr>
+  <tr ng-if="!event.youtube_id">
+    <th>Video:</th>
+    <td ng-if="loadingVideo">
+      <p class="loading">Loading video info...</p>
+    </td>
+    <td ng-if="!loadingVideo && video.finished">
+      <iframe ng-src="{{ ::video.iframeSrc }}" frameborder="0" scrolling="no"
+        style="overflow-y: hidden; width: 640px; height: 360px" seamless="seamless"
+        ></iframe>
+      <p ng-if="video.duration">
+        <small><b>Duration:</b> {{ ::video.duration_human }}</small>
+      </p>
+    </td>
+    <td ng-if="!loadingVideo && !video.finished">
+      <p ng-if="video.tag">
+        The video has been submitted for transcoding but
+        it has not finished yet.<br>
+        Current transcoding status is: <b>{{ ::video.status }}</b><br>
+        <span ng-if="video.estimated_time_left && video.estimated_time_left > 0">
+          Estimate of how soon it will be finished:
+          <b title="Assuming there are no transcoding errors">
+            {{ video.estimated_time_left | showduration }}
+          </b>
+        </span>
+        <span ng-if="video.estimated_time_left && video.estimated_time_left < 0">
+          Video transcoding appears to have taken longer than expected.
+        </span>
+      </p>
+      <p ng-if="!video.tag">
+        The video has not yet been submitted.
+      </p>
+    </td>
+  </tr>
+</table>
+
+<div class="alert alert-danger" ng-if="publishingError">
+  <h4>Publishing Error</h4>
+  <p>
+    An error occured when we tried to publish your event.
+  </p>
+  <p>
+    You can either wait a little bit and try again later. Hopefully by
+    then our developers will have noticed and rectified the problem.
+  </p>
+  <p>
+    Or, you can <a href="#" ng-click="resetPublishingError()">try again</a>.
+  </p>
+</div>
+
+<form class="submission" ng-if="!loading && event.status != 'initiated'">
+  <h4>
+    <a ui-sref="published({id: event.id})">
+      Event is already published
+    </a>
+  </h4>
+
+</form>
+
+<form ng-submit="publish()" method="post" class="submission"
+      ng-if="!loading && !publishingError && event.status == 'initiated'">
+  {% csrf_token %}
+  <h3>Is it ready?</h3>
+
+  <button type="submit" class="btn btn-primary submit" name="submit"
+          ng-if="!publishing">
+    Yes, let's publish!
+  </button>
+  <p ng-if="!publishing">
+    As soon as you have published, the event will be viewable as soon
+    as the video transcoding is finished.<br>
+    You will be able to edit the event just like you can edit any other
+    video
+  </p>
+  <p class="loading" ng-if="publishing">
+    Publishing your video now...
+  </p>
+</form>
+
+{% endraw %}

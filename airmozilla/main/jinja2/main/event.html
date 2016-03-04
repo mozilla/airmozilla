@@ -1,0 +1,363 @@
+{% extends 'main/main_base.html' %}
+{% set page='explore' %}
+
+{% block page_title %}{{ event.get_unique_title() }} | {{ super() }}{% endblock %}
+
+{% block site_css %}
+{{ super() }}
+{% stylesheet 'event' %}
+{% endblock %}
+
+{% block extra_head %}
+<meta name="keywords" content="{{ ','.join(tags) }}">
+<meta property="og:title" content="{{ event.get_unique_title() }}">
+<meta property="og:url" content="{{ make_absolute(url('main:event', event.slug)) }}">
+<meta property="og:description" content="{{ short_desc(event, strip_html=True) }}">
+{# these are the same dimensions as used in Roku thumbnails #}
+{% if event.picture %}
+  {% set thumb = thumbnail(event.picture.file, '385x218', crop='center') %}
+{% elif event.placeholder_img %}
+  {% set thumb = thumbnail(event.placeholder_img, '385x218', crop='center') %}
+{% else %}
+  {% set thumb = None %}
+{% endif %}
+{% if thumb %}
+<meta property="og:image" content="{{ make_absolute(thumb.url) }}">
+<meta property="og:image:width" content="{{ thumb.width }}">
+<meta property="og:image:height" content="{{ thumb.height }}">
+{% endif %}
+{% endblock %}
+
+{% block site_js %}
+{{ super() }}
+{% javascript 'event' %}
+{% endblock %}
+
+{% block content_main %}
+  <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
+
+    {% if warning %}
+    <div class="warning">
+      <p>Warning: {{ warning }}</p>
+    </div>
+    {% endif %}
+
+    <div class="entry-content" data-event-status="{{ event.status }}">
+      {% if event.is_pending() %}
+        <p class="pending">
+          Event is currently in a pending state meaning it will soon be made available.
+          <br>
+          {% if estimated_time_left %}
+            {% include "main/_show_estimated_time_left.html" %}
+          {% endif %}
+        </p>
+      {% elif event.is_processing() %}
+        <div class="warning">
+          <p>
+            This video is currently being transcoded; that will take some time.
+            Feel free to check again on its status after a while.
+          </p>
+          {% if estimated_time_left %}
+          <p>
+            {% include "main/_show_estimated_time_left.html" %}
+          </p>
+          {% endif %}
+        </div>
+      {% else %}
+        {% if video %}
+          {{ video|safe }}
+          <p class="play-options">
+            <span class="tearout">
+              <a class="open"
+                 title="Click to open up just the video in a pop-up"></a>
+              <span class="problem"></span>
+            </span>
+            {% if not event.is_live() %}
+            <span class="playbackrate">
+              <a class="open inactive"
+                 title="Click to see playback rate options"></a>
+              <span class="options"
+                data-options="[[0.5, &quot;Half the speed&quot;], [1, &quot;Normal speed&quot;], [1.25, &quot;One and a quarter the speed&quot;], [1.5, &quot;One and a half the speed&quot;]]">
+              </span>
+              <span class="problem"></span>
+            </span>
+            {% endif %}
+          </p>
+
+        {% else %}
+          {{ show_thumbnail(event, '121x68') }}
+        {% endif %}
+      {% endif %}
+     <header class="entry-header">
+      <h1 class="entry-title">
+        {{ event.title }}
+        {{ star_tag(event.id) }}
+      </h1>
+
+      {% if event.is_upcoming() %}
+      <h4>
+         <p>
+            {{ event.start_time | js_date }}
+            {% if event.location %}
+             &mdash;
+             {{ event.location_time.strftime("%I:%M%p") }}
+              {% if not event.location.name.startswith('Cyberspace') and not
+                 event.is_prerecorded() %}
+                 in {{ event.location.name }}
+              {% endif %}
+            {% endif %}
+          </p>
+       </h4>
+      {% endif %}
+
+      {% include "main/_event_privacy.html" %}
+    </header>
+
+      <p>{{ event.description | carefulnl2br | safe_html }}</p>
+
+      <div class="tabs">
+
+        <div class="tab">
+          <input type="radio" id="tab-details" name="tab-group-1" checked>
+          <label for="tab-details">Details</label>
+          <div class="content">
+            <p>
+              {% if event.is_prerecorded() %}
+                  Uploaded: {{ event.start_time | js_date }}
+              {% else %}
+                  Start time: {{ event.start_time | js_date }}
+              {% endif %}
+              {% if event.is_upcoming() %}
+                {% if event.location %}
+                  &mdash;
+                  {{ event.location_time.strftime("%I:%M%p") }}
+                {% endif %}
+              {% endif %}
+              <br>
+
+              {% if event.location and not event.location.name.startswith('Cyberspace')
+                 and not event.is_prerecorded() %}
+                Location: {{ event.location.name }}<br>
+              {% endif %}
+
+              {% if event.duration %}
+                Duration: {{ show_duration(event.duration) }}<br>
+              {% elif event.is_upcoming() %}
+                Estimated duration: {{ show_duration(event.estimated_duration) }}<br>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+      {% if chapters or can_edit_chapters %}
+        <div class="tab">
+          <input type="radio" id="tab-chapters" name="tab-group-1">
+          <label for="tab-chapters">Chapters</label>
+          <div class="content chapters extra-long">
+            {% if chapters %}
+            <ul>
+              {% for chapter in chapters %}
+              <li>
+                <a href="#@{{ show_duration_compact(chapter.timestamp) }}" data-ts="{{ chapter.timestamp }}" title="{{ show_duration(chapter.timestamp, include_seconds=True) }}">
+                  {{ chapter.text }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% if can_edit_chapters %}
+            <p>
+              <a href="{{ url('main:event_edit_chapters', event.slug) }}">Edit chapters &raquo;</a>
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if event.additional_links %}
+        <div class="tab">
+          <input type="radio" id="tab-1" name="tab-group-1">
+          <label for="tab-1">Additional Links</label>
+          <div class="content additional-links extra-long">
+            {{ event.additional_links | urlize_and_linebreaksbr }}
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="tab">
+        <input type="radio" id="tab-2" name="tab-group-1">
+        <label for="tab-2">Tags</label>
+        <div class="content">
+          <p>
+          {% if tags and request.user.is_active %}
+             {% for tag in tags %}
+               <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
+             {% endfor %}
+             <br>
+             <a href="{{ url('main:event_edit', event.slug) }}">You can edit the event tags</a>
+         {% elif not tags and request.user.is_active %}
+             <a href="{{ url('main:event_edit', event.slug) }}">Help us assign some tags for this event</a>
+         {% elif not request.user.is_active %}
+             <p>Sign in so you can help adding tags to this event</p>
+         {% endif %}
+         </p>
+        </div>
+      </div>
+
+      {% if channels %}
+        <div class="tab">
+          <input type="radio" id="tab-3" name="tab-group-1">
+          <label for="tab-3">Channels</label>
+          <div class="content">
+            <p>
+              {% for channel in channels %}
+                <a href="{{ url('main:home_channels', channel.slug) }}" class="channel">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
+              {% endfor %}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if event.call_info and (event.is_upcoming() or event.is_live()) %}
+        <div class="tab">
+          <input type="radio" id="tab-4" name="tab-group-1">
+          <label for="tab-4">Call Info</label>
+          <div class="content">
+            <p>{{ event.call_info }}</p>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if hits or event.is_live() %}
+        <div class="tab">
+           <input type="radio" id="tab-stats" name="tab-group-1">
+          <label for="tab-stats">Stats</label>
+          <div class="content">
+            {% if hits %}
+            <p>Views since archived: {{ thousands(hits) }}</p>
+            {% endif %}
+            {% if event.is_live() %}
+            <p class="islive" data-url="{{ url('main:event_livehits', event.id) }}">
+              {% csrf_token %}
+              Number of live views: <b></b>
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if not pending and video and event.is_public() and not event.needs_approval() %}
+        <div class="tab">
+          <input type="radio" id="tab-embed" name="tab-group-1">
+          <label for="tab-embed">Embed</label>
+          <div class="content embed">
+            <a href="#" class="current">Small (640x380)</a>
+            <a href="#">Big (896x504)</a>
+            <br>
+            <textarea rows="2" class="small-embed-code">{{ embed_code }}</textarea>
+            <textarea rows="2" class="big-embed-code hidden">{{ embed_code_big }}</textarea>
+          </div>
+        </div>
+        {% if vidly_tag %}
+        <div class="tab">
+          <input type="radio" id="tab-download" name="tab-group-1">
+          <label for="tab-download">Download</label>
+          <div class="content">
+            <p>
+              <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=webm"
+                 download="{{ event.slug }}.webm">WebM</a>
+              {% if vidly_hd %}
+              (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_webm"
+                 download="{{ event.slug }}-hd.webm">HD</a>)
+              {% endif %},
+              <a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=mp4"
+                 download="{{ event.slug }}.mp4">Mpeg4</a>
+              {% if vidly_hd %}
+              (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_mp4"
+                 download="{{ event.slug }}-hd.mp4">HD</a>)
+              {% endif %}
+              <br>
+              To download, right-click and select &quot;Save Link As...&quot;
+            </p>
+          </div>
+        </div>
+        {% endif %}
+      {% endif %}
+
+      {% if can_manage_edit_event or can_edit_event %}
+        <div class="tab">
+          <input type="radio" id="tab-edit" name="tab-group-1">
+          <label for="tab-edit">Edit</label>
+          <div class="content">
+            {% if can_manage_edit_event %}
+              <p>
+                <a href="{{ url('manage:event_edit', event.pk) }}" title="Shortcut to edit this event">Producer edit event &raquo;</a><br>
+              </p>
+            {% endif %}
+            {% if can_edit_event %}
+              <p>
+                <a href="{{ url('main:event_edit', event.slug) }}"
+                   title="Click to edit any of the meta data about this event">Edit event data &raquo;</a>
+              </p>
+              {% if can_edit_chapters %}
+              <p>
+                <a href="{{ url('main:event_edit_chapters', event.slug) }}">Edit chapters &raquo;</a>
+              </p>
+              {% endif %}
+
+              {% if can_edit_discussion %}
+              <p>
+                <a href="{{ url('main:event_discussion', event.slug) }}"
+                   title="You are allowed to configure the discussion on this event">Change discussion configuration &raquo;</a>
+              </p>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if event.is_public() %}
+        <div class="tab">
+          <input type="radio" id="tab-share" name="tab-group-1">
+          <label for="tab-share">Share</label>
+          <div class="content">
+            <p>
+              <a class="share" href="https://www.facebook.com/sharer/sharer.php?u={{ make_absolute(url('main:event', event.slug)) | urlencode }}" target="_blank">Share on Facebook</a>
+            </p>
+            <p>
+              <a class="share" href="https://twitter.com/share?text={{ event.get_unique_title() | urlencode }}&amp;url={{ make_absolute(url('main:event', event.slug)) | urlencode }}" target="_blank">Share on Twitter</a>
+            </p>
+            <p>
+              <a class="share" href="https://www.linkedin.com/shareArticle?mini=true&amp;url={{ make_absolute(url('main:event', event.slug)) | urlencode }}&amp;title={{ event.get_unique_title() | urlencode }}" target="_blank">Share on LinkedIn</a>
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+
+      {% if not pending %}
+
+        {% if survey_id %}
+        {% include "surveys/container.html" %}
+        {% endif %}
+
+        {% if discussion.enabled %}
+        {% include "comments/container.html" %}
+        {% endif %}
+
+      {% endif %}
+
+      {% if recruitmentmessage %}
+      <div class="recruitmentmessage">
+        <h5>A message from <a href="https://careers.mozilla.org/">Mozilla Careers</a></h5>
+        <p>If you found this interesting, check out this great career opportunity:<br>
+          <a href="{{ recruitmentmessage.url }}" title="Takes you to the Mozilla Careers site"
+          >{{ recruitmentmessage.text }}</a>
+        </p>
+      </div>
+      {% endif %}
+
+    </div>
+  </article>
+{% endblock %}

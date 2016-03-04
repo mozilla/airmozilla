@@ -1,0 +1,63 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "autocompeter" %}
+
+{% block manage_title %}
+  Autocompeter
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'manage_autocompeter' %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  form.stats pre,
+  form.test pre {
+    display: none;
+  }
+  </style>
+{% endblock %}
+
+{% block manage_content %}
+
+<p>
+  <a href="https://autocompeter.com">Autocompeter</a> is the service we use
+  to index all of our titles for a auto-complete feature on our search widget.
+</p>
+
+<form action="" class="stats" data-url="{{ url('manage:autocompeter_stats') }}">
+  <pre>Loading stats...</pre>
+  <button class="btn btn-primary">Fetch stats</button>
+</form>
+
+
+<form action="" method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
+  {{ bootstrapform_horizontal(form) }}
+  <div>
+    <button type="submit" class="btn btn-primary submit" name="submit">Send Update</button>
+  </div>
+</form>
+
+<hr>
+
+<form action="" class="form-horizontal test" role="form"
+      data-url="{{ url('manage:autocompeter_test') }}">
+  <pre>Loading results...</pre>
+  <div class="form-group">
+    <label class="control-label col-sm-2 col-lg-2 " for="id_term">Term</label>
+    <div class="col-sm-10 col-lg-10 ">
+      <input class="form-control" id="id_term" name="term" type="text" value="">
+    </div>
+  </div>
+
+  <div>
+    <button type="submit" class="btn btn-primary submit" name="submit">Test search</button>
+  </div>
+</form>
+
+{% endblock %}

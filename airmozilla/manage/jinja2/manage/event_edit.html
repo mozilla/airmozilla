@@ -1,0 +1,405 @@
+{% extends "manage/event_request.html" %}
+{% set page = "events" %}
+
+{% block manage_title %}
+  {% if event.slug %}
+    Editing event "<a href="{{ url('main:event', event.slug) }}">{{ event.title }}</a>"
+  {% else %}
+    Editing event "{{ event.title }}"
+  {% endif %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'event_edit' %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'event_edit' %}
+{% endblock %}
+
+
+{% block content_class %}col-md-6{% endblock %}
+{% block extra_columns %}
+<div class="col-md-4">
+  <div class="sidebar span4 well">
+    {% for approval in event.approval_set.all() %}
+      <p>
+      {% if approval.processed %}
+        {% set badge = 'success' if approval.approved else 'important' %}
+        <span class="badge badge-{{ badge }}">
+          {{ 'Approved' if approval.approved else 'Rejected' }}
+        </span>
+        <span class="badge badge-inverse">{{ approval.group }}</span>
+        &nbsp;
+        {{ approval.processed_time|js_date }}<br>{{ approval.user.email }}
+        {% if approval.comment %}
+          - {{ approval.comment }}
+        {% endif %}
+      {% else %}
+        Needs review from {{ approval.group }}
+      {% endif %}
+    </p>
+    {% endfor %}
+    {% if not almost_equal(event.modified, event.created) %}
+    <p>
+      <span class="badge badge-info">Modified</span>
+      {{ event.modified|js_date }}<br>{{ event.modified_user.email }}
+    </p>
+    {% endif %}
+    <p>
+      <span class="badge badge-info">Created</span>
+      {{ event.created|js_date }}<br>{{ event.creator.email }}
+    </p>
+    {% if suggested_event %}
+    <p>
+      <a href="{{ url('suggest:summary', suggested_event.pk) }}">
+        <span class="badge badge-info">Requested by</span>
+      </a>
+      {% if suggested_event.submitted %}
+        {{ suggested_event.submitted | js_date }}
+      {% else %}
+        <br>
+        <em>suggested event submission retracted</em>
+      {% endif %}
+      <br>
+      {{ suggested_event.user.email }}
+      <a href="{{ url('manage:suggestion_review', suggested_event.id) }}"
+         title="Allows you to send comments to the to {{ suggested_event.user.email }}"
+         >See request</a>
+    </p>
+    {% endif %}
+
+    {% if event.duration %}
+    <p>
+      <b>Duration:</b>
+      <a href="{{ url('manage:event_edit_duration', event.id) }}"
+         title="Change or introspect the duration value"
+         >{{ show_duration(event.duration, include_seconds=True) }}</a>
+    </p>
+    {% endif %}
+
+    {% if archived_hits or live_hits %}
+    <dl class="hits">
+      {% if archived_hits %}
+        <dt>Archived hits:</dt>
+        <dd>{{ thousands(archived_hits) }}</dd>
+      {% endif %}
+      {% if live_hits %}
+        <dt>Live hits:</dt>
+        <dd>{{ thousands(live_hits) }}</dd>
+      {% endif %}
+      {% if archived_hits and live_hits %}
+        <dt>Total hits:</dt>
+        <dd>{{ thousands(archived_hits + live_hits) }}</dd>
+      {% endif %}
+    </dl>
+    {% endif %}
+
+    {% if suggested_event and suggested_event.upload %}
+        <p style="margin-top:25px"><strong>File Upload</strong> (from requested event)</p>
+        <table class="event-upload">
+          <tr>
+            <th>Name:</th>
+            <td class="file-name">
+              <a href="{{ suggested_event.upload.url }}">{{ suggested_event.upload.file_name }}</a>
+            </td>
+          </tr>
+          <tr>
+            <th>Size:</th>
+            <td>
+              {{ suggested_event.upload.size | filesizeformat }}
+              {% if suggested_event.upload.upload_time %}
+                <small>
+                  ({{ show_duration(suggested_event.upload.upload_time) }} to upload)
+                </small>
+              {% endif %}
+            </td>
+          </tr>
+        </table>
+        <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
+    {% elif event.upload %}
+        <p style="margin-top:25px"><strong>File Upload</strong></p>
+        <table class="event-upload">
+           <tr>
+             <th>Name:</th>
+             <td class="file-name">
+               <a href="{{ event.upload.url }}">
+                 {{ event.upload.file_name }}
+                </a>
+             </td>
+           </tr>
+           <tr>
+             <th>Size:</th>
+             <td>
+               {{ event.upload.size | filesizeformat }}
+               {% if event.upload.upload_time %}
+                 <small>
+                   ({{ show_duration(event.upload.upload_time) }} to upload)
+                 </small>
+               {% endif %}
+             </td>
+           </tr>
+           {% if count_event_uploads and request.user.is_superuser %}
+           <tr>
+             <td colspan="2">
+               <a href="{{ url('manage:uploads') }}?event={{ event.id }}">
+                 See all <b>{{ count_event_uploads }}</b> uploads for this event
+                </a>
+             </td>
+           </tr>
+           {% endif %}
+        </table>
+        <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
+    {% elif event.is_pending() or event.is_processing() %}
+        <p style="margin-top:25px"><strong>File Upload</strong></p>
+        <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload original file</a></p>
+    {% endif %}
+
+    {% if event.is_live() and event.is_scheduled() %}
+    <form action="{{ url('manage:stop_live_event', event.pk) }}" method="post" style="margin-top:25px">
+      {% csrf_token %}
+      <p>
+        <button class="btn btn-danger"
+           title="This will change the status to pending and redirect you to upload the file"
+           >Stop Live event</button>
+      </p>
+    </form>
+    {% endif %}
+
+    <p style="margin-top:25px"><strong>Tweets</strong></p>
+    {% for tweet in tweets %}
+      {% if loop.first %}
+      <ul>
+      {% endif %}
+      <li>
+        "{{ truncate_words(tweet.text, 10) }}"<br>
+
+        {% if tweet.sent_date %}
+          <a href="{{ full_tweet_url(tweet.tweet_id) }}">Sent {{ tweet.sent_date|js_date }}</a>
+          {% if tweet.include_placeholder %}
+          <small>(with placeholder image)</small>
+          {% endif %}
+        {% else %}
+          {% if not tweet.event.is_scheduled() %}
+            Needs to be scheduled first
+          {% elif tweet.event.needs_approval() %}
+            Needs to be approved first
+          {% else %}
+            Not yet sent
+            ({{ tweet.send_date|js_date }})
+          {% endif %}
+
+        {% endif %}
+      </li>
+      {% if loop.last %}</ul>{% endif %}
+    {% endfor %}
+
+    <p>
+    {% if tweets %}
+      <a href="{{ url('manage:event_tweets', event.pk) }}" class="btn btn-primary btn-sm">Manage tweets</a>
+    {% elif event.is_public() %}
+      <a href="{{ url('manage:new_event_tweet', event.pk) }}" class="btn btn-primary btn-sm">Prepare a new tweet</a>
+    {% else %}
+      Not a public event
+    {% endif %}
+    </p>
+
+    {% if is_vidly_event %}
+    <p style="margin-top:25px"><strong>Vid.ly Media</strong></p>
+    <p>
+      <span id="vidly-submission" data-id="{{ event.pk }}" class="label">Finding out</span>
+      {% if perms.main.add_vidlysubmission %}
+      {% set submission_count=vidly_submissions.count() %}
+      {% if submission_count %}
+        <small>
+        <a href="{{ url('manage:event_vidly_submissions', event.pk) }}"
+        >{% if submission_count == 1 %}1 Vid.ly Submission{% else %}{{ submission_count }} Vid.ly Submissions{% endif %}</a>
+        </small>
+      {% endif %}
+      {% endif %}
+    </p>
+    {% endif %}
+
+    <p style="margin-top:25px"><strong>Discussions</strong></p>
+    <p>
+      <a href="{{ url('manage:event_discussion', event.pk) }}" class="btn btn-primary btn-sm">
+      {% if discussion %}
+        Discussion
+        {% if discussion.enabled %}
+        enabled
+        {% else %}
+        disabled
+        {% endif %}
+      {% else %}
+        Discussion not configured
+      {% endif %}
+      </a>
+      {% if discussion %}
+        <a href="{{ url('manage:event_comments', event.pk) }}">{{ comments_count }} posted comments</a>
+      {% endif %}
+    </p>
+
+    {% if approvals %}
+    <p style="margin-top:25px"><strong>Approval Requested</strong></p>
+    <dl>
+    {% for approval in approvals %}
+        <dt>{{ approval.group.name }}</dt>
+        <dd>
+        {% if approval.approved %}
+          Approved by {{ approval.user.email }}
+        {% else %}
+          {% if approval.processed %}
+            Rejected by {{ approval.user.email }}
+            {% if approval.comment %}
+            <br><b>Comment:</b> {{ approval.comment }}
+            {% endif %}
+          {% else %}
+            Waiting.
+          {% endif %}
+        {% endif %}
+        </dd>
+    {% endfor %}
+    </dl>
+    {% endif %}
+
+    {% if stuck_pending %}
+    <form action="{{ url('manage:event_archive_auto', event.pk) }}" method="post">
+    <p style="margin-top:25px"><strong>Pending to archive</strong></p>
+    <p>This event is <strong>pending</strong> but has a finished Vid.ly submission.<br>
+    <button class="btn btn-primary btn-xs">Auto Archive now</button>
+    </p>
+    {% endif %}
+
+    <p style="margin-top:25px"><strong>Event Assignment</strong></p>
+    <p>
+      <a href="{{ url('manage:event_assignment', event.pk) }}" class="btn btn-primary btn-sm">
+        {% if assignment %}
+          {% set users_count = assignment.users.count() %}
+          {% set locations_count = assignment.locations.count() %}
+          {{ users_count }} user{{ users_count|pluralize }},
+          {{ locations_count }} location{{ locations_count|pluralize }} assigned
+        {% else %}
+          No assignments set up
+        {% endif %}
+      </a>
+      {% if event.location %}
+      <br><small>(default location: {{ event.location }})</small>
+      {% endif %}
+    </p>
+
+    <p style="margin-top:25px"><strong>Event Transcript</strong></p>
+    <p>
+      <a href="{{ url('manage:event_transcript', event.pk) }}" class="btn btn-primary btn-sm">
+        {% if event.transcript %}
+        {{ event.transcript | wordcount }} words
+        {% else %}
+        0 words
+        {% endif %}
+      </a>
+      <small>{{ amara_videos_count }} Amara video{{ amara_videos_count | pluralize }}</small>
+    </p>
+
+    <p style="margin-top:25px"><strong>Survey</strong></p>
+    <p>
+      {% if survey %}
+      <a href="{{ url('manage:event_survey', event.id) }}" class="btn btn-primary btn-sm"
+        title="{{ survey.name }}"
+        >{% if survey.active %}Survey active{% else %}Survey <b>not</b> active{% endif %}</a>
+      {% else %}
+        <a href="{{ url('manage:event_survey', event.id) }}" class="btn btn-primary btn-sm">Associate with survey</a>
+      {% endif %}
+    </p>
+
+    <p style="margin-top:25px"><strong>Chapters</strong></p>
+    <p>
+      <a href="{{ url('manage:event_chapters', event.id) }}"
+         class="btn btn-primary btn-sm">Chapters ({{ chapters_count }})</a>
+    </p>
+
+    {% if is_superuser %}
+    <p style="margin-top:25px"><strong>Archive Time</strong></p>
+    <p>
+      {% if event.archive_time %}
+      {{ event.archive_time | js_date }}
+      {% else %}
+      Not archived
+      {% endif %}
+      <br>
+      <a href="{{ url('manage:event_archive_time', event.id) }}"
+         class="btn btn-xs btn-primary"
+      >Change</a>
+    </p>
+
+    {% if event.is_removed() %}
+    <p style="margin-top:25px"><strong>Really Delete</strong></p>
+    <p class="really-delete-metadata">
+        This event last changed {{ event.modified | js_date }}
+      <br>
+      <a href="#"
+         class="btn btn-xs btn-primary really-delete"
+      >Delete</a>
+    </p>
+    <form action="{{ url('manage:event_delete', event.id) }}"
+          method="post"
+          class="really-delete-confirmation">
+      {% csrf_token %}
+      <b>Are you sure?</b><br>
+      This will delete everything associated with this event.<br>
+      <button type="submit" class="btn btn-xs btn-primary"
+      >Yes delete forever</button>
+      <a href="#" class="btn btn-xs btn-default cancel">Cancel</a>
+    </form>
+    {% endif %}
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block manage_content %}
+
+  <!-- this is hidden by default but possibly made visible by the result of an AJAX call -->
+  <div id="privacy-vidly-mismatch" data-url="{{ url('manage:event_privacy_vidly_mismatch', event.id) }}"
+       class="alert alert-hidden alert-warning alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <p>
+      <b>Note!</b><br>
+      This event's <b>privacy does not match the token protection of its Vid.ly</b>
+      video.<br>
+      Simply pressing the <b>"Save changes"</b> button will correct this.
+    </p>
+  </div>
+
+  <!-- this is hidden by default but possibly made visible by the result of an AJAX call -->
+  <div id="template-environment-mismatch" data-url="{{ url('manage:event_template_environment_mismatch', event.id) }}"
+       class="alert alert-hidden alert-warning alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <p>
+      <b>Warning!</b><br>
+      This event's <b>Template environment</b> does not match
+      the default Template environment for this Template, Location and Privacy.
+    </p>
+    <p>
+      See the <a href="" class="link">matching location</a>.
+    </p>
+    <form action="{{ url('manage:event_template_environment_mismatch', event.id) }}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-primary" type="submit">Correct this event's Template environment</button>
+    </form>
+  </div>
+
+  {% include "manage/_default_form_upload.html" %}
+
+  {% if suggested_event_comments %}
+  <div class="suggested-event-comments">
+  <h3>Additional comments from original requested event</h3>
+
+  {% set comments=suggested_event_comments %}
+  {% include "manage/_suggestion_comments.html" %}
+
+  </div>
+  {% endif %}
+
+{% endblock %}

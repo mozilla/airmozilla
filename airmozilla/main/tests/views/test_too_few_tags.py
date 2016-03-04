@@ -14,8 +14,6 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 
 class TestTooFewTags(DjangoTestCase):
-    # other_image = 'airmozilla/manage/tests/other_logo.png'
-    # third_image = 'airmozilla/manage/tests/other_logo_reversed.png'
 
     def test_view_random_event(self):
         url = reverse('main:too_few_tags')
@@ -44,6 +42,7 @@ class TestTooFewTags(DjangoTestCase):
         ok_('value="%s"' % event.id in response.content)
 
         event.tags.add(Tag.objects.create(name='mytag2'))
+
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('value="%s"' % event.id not in response.content)

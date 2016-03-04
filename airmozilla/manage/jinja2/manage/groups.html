@@ -1,0 +1,49 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "groups" %}
+
+{% block manage_title %}
+    Group permissions
+{% endblock %}
+
+{% block manage_content %}
+    <table id="group_perms_table" class="table table-striped table-bordered">
+        <thead>
+            <th>Name</th>
+            <th>Permission grants</th>
+            <th></th>
+            <th></th>
+        </thead>
+        <tbody>
+            {% for g in groups %}
+                <tr>
+                    <td>{{ g.name }}</td>
+                    <td>
+                    {% for perm in g.permissions.all() %}
+                        {{ perm.name }}.
+                    {% endfor %}
+                    </td>
+                    <td>
+                        <a href="{{ url('manage:group_edit', g.id) }}" class="btn btn-default btn-sm">
+                            <i class="glyphicon glyphicon-edit"></i>
+                            Edit
+                        </a>
+                    </td>
+                    <td>
+                        <form method="post" class="confirm"
+                              action="{{ url('manage:group_remove', g.id) }}">
+                          {% csrf_token %}
+                          <button class="btn btn-danger btn-sm" type="submit">
+                            <i class="glyphicon glyphicon-trash"></i>
+                            Delete
+                          </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url('manage:group_new') }}" class="btn btn-primary">
+        <i class="glyphicon glyphicon-plus-sign"></i>
+        New group
+    </a>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "error_trigger" %}
+
+{% block manage_title %}
+  Error Trigger
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+
+<p>
+  So we can test triggering exceptions and making sure they get handled.
+</p>
+
+<form method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
+  {{ bootstrapform_horizontal(form) }}
+  <div>
+    <button type="submit" class="btn btn-primary submit" name="submit">Thanks Obama!</button>
+  </div>
+</form>
+
+
+{% endblock %}

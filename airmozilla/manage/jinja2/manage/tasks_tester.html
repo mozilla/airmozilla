@@ -1,0 +1,24 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "tasks_tester" %}
+
+{% block manage_title %}
+  Tasks Tester
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+
+<p>
+  So we can test if we can run background (message queued) tasks.
+</p>
+
+<form action="" method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
+  <div>
+    <button type="submit" class="btn btn-primary submit" name="submit">Send Test</button>
+  </div>
+</form>
+
+
+{% endblock %}

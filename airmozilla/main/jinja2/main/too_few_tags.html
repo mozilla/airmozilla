@@ -1,0 +1,92 @@
+{% extends 'main/main_base.html' %}
+
+{% block site_css %}
+{{ super() }}
+{% stylesheet 'select2' %}
+{% stylesheet 'too_few_tags' %}
+{% endblock %}
+
+{% block site_js %}
+{{ super() }}
+<script src="{{ static('select2/select2.min.js') }}"></script>
+{% javascript 'too_few_tags' %}
+{% endblock %}
+
+{% block content_main %}
+  <h2 class="section-title">
+    Events With Too Few Tags
+  </h2>
+  <h4 class="section-title">
+    Tags are used to link events together. The more useful tags we have the better.
+    <br>
+    There are currently <b>{{ count }}</b> events that have too few tags.
+  </h4>
+
+  {% if event %}
+    {% set href = url('main:event', slug=event.slug) %}
+    <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry">
+      <header class="entry-header">
+        <h2 class="entry-title">
+          <a href="{{ href }}">{{ event.title }}</a>
+        </h2>
+      </header>
+      <div class="entry-summary">
+        <p class="event-date">{{ event.start_time|js_date }}</p>
+        <a href="{{ href }}">{{ show_thumbnail(event) }}</a>
+        <p class="links">
+          <a class="go" href="{{ url('main:event', event.slug) }}"
+            >View event
+          </a>
+          <br>
+          <a class="go" href="{{ url('main:event_edit', event.slug) }}"
+            >Edit event
+          </a>
+        </p>
+        <p><b>Short description</b><br>
+          {% if event.short_description %}
+            {{ event.short_description | carefulnl2br | safe_html }}
+          {% else %}
+            <i>none</i>
+          {% endif %}
+        </p>
+        <p><b>Full description</b><br>
+          {% if event.description %}
+            {{ event.description | carefulnl2br | safe_html }}
+          {% else %}
+            <i>none</i>
+          {% endif %}
+        </p>
+        {% if event.additional_links %}
+        <p><b>Additional links</b><br>
+          {{ event.additional_links | urlize_and_linebreaksbr }}
+        </p>
+        {% endif %}
+        <form action="" method="post">
+          {% csrf_token %}
+          {{ form.event_id }}
+          <div class="form-group">
+            <label class="control-label  " for="id_tags">Tags</label>
+            {{ form.tags }}
+            <button type="submit" class="btn btn-primary submit" name="submit">
+              Save
+            </button>
+            <span class="saving">
+                <img src="{{ static('img/ajax-loader.gif') }}" width="24" height="24" style="vertical-align:middle">
+                Saving saving saving...
+            </span>
+          </div>
+        </form>
+      </div>
+    </article>
+
+    <form action="" method="get" xstyle="float: right">
+      <button>Skip &raquo;</button>
+    </form>
+
+  {% else %}
+    <h4>Wow! That's amazing</h4>
+    <p>There are no events that need help at the moment.</p>
+
+  {% endif %}
+
+{% endblock %}

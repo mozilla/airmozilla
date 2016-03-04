@@ -235,8 +235,8 @@ class RecruitmentMessage(models.Model):
 
     modified_user = models.ForeignKey(User, null=True,
                                       on_delete=models.SET_NULL)
-    created = models.DateTimeField(default=_get_now)
-    modified = models.DateTimeField(auto_now=True, default=_get_now)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['text']
@@ -579,7 +579,7 @@ class EventRevision(models.Model):
 
 class EventAssignment(models.Model):
 
-    event = models.ForeignKey(Event, unique=True)
+    event = models.OneToOneField(Event)
     locations = models.ManyToManyField(Location)
     users = models.ManyToManyField(User)
     created = models.DateTimeField(default=_get_now)
@@ -738,7 +738,7 @@ class EventTweet(models.Model):
     creator = models.ForeignKey(User, blank=True, null=True,
                                 on_delete=models.SET_NULL)
     # when to send it
-    send_date = models.DateTimeField(default=_get_now)
+    send_date = models.DateTimeField(default=timezone.now)
     # when it was sent
     sent_date = models.DateTimeField(blank=True, null=True)
     error = models.TextField(blank=True, null=True)
@@ -934,7 +934,7 @@ class URLTransform(models.Model):
 
 
 class EventHitStats(models.Model):
-    event = models.ForeignKey(Event, unique=True, db_index=True)
+    event = models.OneToOneField(Event, db_index=True)
     total_hits = models.IntegerField()
     shortcode = models.CharField(max_length=100)
     modified = models.DateTimeField(default=_get_now)
@@ -948,7 +948,7 @@ def update_modified(sender, instance, raw, *args, **kwargs):
 
 
 class EventLiveHits(models.Model):
-    event = models.ForeignKey(Event, unique=True, db_index=True)
+    event = models.OneToOneField(Event, db_index=True)
     total_hits = models.IntegerField(default=0)
     modified = models.DateTimeField(auto_now=True)
 
@@ -984,8 +984,8 @@ class Picture(models.Model):
     is_active = models.BooleanField(default=True)
     modified_user = models.ForeignKey(User, null=True,
                                       on_delete=models.SET_NULL)
-    created = models.DateTimeField(default=_get_now)
-    modified = models.DateTimeField(auto_now=True, default=_get_now)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     def __repr__(self):
         return "<%s: %r>" % (self.__class__.__name__, self.notes)

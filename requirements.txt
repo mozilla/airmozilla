@@ -91,9 +91,9 @@ nose==1.3.4 \
 mock==1.0.1 \
     --hash=sha256:b839dd2d9c117c701430c149956918a423a9863b48b09c90e30a6013e7d2f44f \
     --hash=sha256:8f83080daa249d036cbccfb8ae5cc6ff007b88d6d937521371afabe7b19badbc
-Django==1.7.11 \
-    --hash=sha256:100164556897c1219f33706e63a656b8848d33d09b0161e2deefcc50978cf62d \
-    --hash=sha256:2039144fce8f1b603d03fa5a5643578df1ad007c4ed41a617f02a3943f7059a1
+Django==1.8.10 \
+    --hash=sha256:471b41cb53d675138475b488c429424ed143e57ad755a2c8ab1206ac30490284 \
+    --hash=sha256:d2e5b11eb694984957378419f809b7205598326373d509d0262f9f84b17d1a23
 html2text==2015.6.21 \
     --hash=sha256:5026fe0ca9600709b68ae70e086a1ca000c0af02e88ac8cb108030c6b5be8c6d
 requests==2.5.1 \
@@ -155,8 +155,6 @@ requests-oauthlib==0.6.1 \
 bleach==1.4.2 \
     --hash=sha256:58a2c153c0b5450695c34ce2eddc23fb3ee476b31a878e6a5c24c75fd1ed4d89 \
     --hash=sha256:56018a17d1488eb1a1e18e7cdddcaea24d3c7b3704172e356f6916c577f4fd9e
-jingo==0.7.1 \
-    --hash=sha256:c495a8dfd0a9c1d3d8ed02121bbb28b6c9d34d4da30aa93a7e639c0f3d7b0639
 django-appconf==0.6 \
     --hash=sha256:06b64baf26c7a436cbb81464e7a50047aea30db1059dbe6e09dc443efa23ba20
 django-nose==1.4.3 \
@@ -165,8 +163,9 @@ django-nose==1.4.3 \
 django-session-csrf==0.6 \
     --hash=sha256:009d574590aeebff230bda3d8c1cacd9d48b204cc1a784a5d3be3638727f8d16 \
     --hash=sha256:ccfddfbf947a51c8b095a5e63bed43005a277a5581de92ed373eb06b75ceec77
-django-browserid==0.10.1 \
-    --hash=sha256:d41b87d1eb424d18ba2dbe733131e9d873e709cc11eb73da248c34eec1d5ed6e
+django-browserid==2.0.1 \
+    --hash=sha256:77b0c0bba21171b0b40bf6aa057165577e53d648cc64080c81bf8453784fdc5c \
+    --hash=sha256:ab3a6cb78121b34816a99548596b9b66d8fec9b51d5709a21d15b243ea6ad8ad
 fancy-tag==0.2.0 \
     --hash=sha256:6a4179f2a2accda2b273bfd86de6f7024cee203043cc9a7c040fe7b306bbe120
 commonware==0.4.3 \
@@ -270,3 +269,5 @@ pytest==2.9.0 \
 py==1.4.31 \
     --hash=sha256:4a3e4f3000c123835ac39cab5ccc510642153bc47bc1f13e2bbb53039540ae69 \
     --hash=sha256:a6501963c725fc2554dabfece8ae9a8fb5e149c0ac0a42fd2b02c5c1c57fc114
+django-jinja==2.1.2 \
+    --hash=sha256:fc2b6a65201b27711e800eb2e1262ff42a32f027bd2267e34121f1bd2bd6b933

@@ -1,0 +1,81 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "tags" %}
+
+{% block manage_title %}
+    Tags
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  {% javascript 'tagmanager' %}
+{% endblock %}
+
+{% block manage_content %}
+<div ng-app="tagmanagerApp" ng-controller="TagManagerController">
+  <p ng-if="loading" class="loading">
+    <img src="{{ static('img/spinner.gif') }}">
+    <span class="blinking">Loading all tags...</span>
+  </p>
+  {% raw %}
+  <table class="table table-striped table-bordered" ng-class="{hidden: loading}">
+    <thead>
+    <tr>
+        <th><a href="#" ng-click="sortBy('name')" ng-class="{active: sort_by=='name'}">Tag</a></th>
+        <th><a href="#" ng-click="sortBy('_usage_count', true)" ng-class="{active: sort_by=='_usage_count'}">Usage count</a></th>
+        <th>
+          {{ filtered_items.length }} tags found
+        </th>
+    </tr>
+    <tr>
+        <td>
+            <input type="search" class="form-control" ng-model="search_name" placeholder="Search by name">
+        </td>
+        <td>
+            <input type="search" class="form-control" ng-model="search_minimum" placeholder="Minimum" style="width:100px">
+        </td>
+        <td>
+            <a href="#" class="btn btn-default btn-xs btn-primary"
+              ng-if="hasFilter()"
+              ng-click="clearFilter()">Clear filter</a>
+        </td>
+    </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="tag in filtered_items = (tags | filter:filterBySearch | filter:filterByRepeated) | orderBy:sort_by:sort_by_desc | startFrom:currentPage*pageSize | limitTo:pageSize">
+            <td>
+              <a href="/?tag={{ tag.name }}" class="tag">{{ tag.name }}</a>
+              <span ng-if="tag._repeated" class="label label-warning">repeated</span>
+            </td>
+            <td>{{ tag._usage_count }}</td>
+            <td><a href="{{ url('manage:tag_edit', tag.id) }} " class="btn btn-default btn-xs">
+                <i class="glyphicon glyphicon-edit"></i>
+                Edit
+                </a>
+                <form method="post" class="confirm"
+                      action="{{ url('manage:tag_remove', tag.id) }}" ng-submit="confirmDelete($event)">
+                  {% endraw %}{% csrf_token %}{% raw %}
+                  <button class="btn btn-danger btn-xs" type="submit">
+                    <i class="glyphicon glyphicon-trash"></i>
+                    Delete
+                  </button>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+  {% endraw %}
+  {% include "manage/_angular_pagesize.html" %}
+  {% include "manage/_angular_paginate.html" %}
+  {% raw %}
+  <div class="repeated-option" style="margin-bottom:25px">
+    <label for="id_repeated">Only show repeated tags
+      <input type="radio" value="yes"  ng-model="show_only_repeated"> Yes
+      <input type="radio" value="no" ng-model="show_only_repeated"> No
+    </label>
+  </div>
+  {% endraw %}
+</div>
+
+{% endblock %}

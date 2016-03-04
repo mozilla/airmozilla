@@ -48,7 +48,7 @@ from airmozilla.main.models import (
 from airmozilla.comments.models import Discussion
 from airmozilla.uploads.models import Upload
 from airmozilla.manage import videoinfo
-from airmozilla.base.helpers import show_duration
+from airmozilla.base.templatetags.jinja_helpers import show_duration
 from airmozilla.base.utils import simplify_form_errors
 from airmozilla.manage import sending
 from airmozilla.base import youtube
@@ -810,6 +810,7 @@ def event_delete(request, event):
 @transaction.atomic
 def unsubscribe(request, identifier):
     context = {}
+
     cache_key = 'unsubscribe-%s' % identifier
 
     user_id = cache.get(cache_key)
@@ -818,7 +819,7 @@ def unsubscribe(request, identifier):
     else:
         user = None
         cache.set(cache_key, request.user.id, 60)
-    context['user'] = user
+    context['user_'] = user
 
     if request.method == 'POST':
         if not user:

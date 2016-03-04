@@ -1,8 +1,8 @@
 import json
+from importlib import import_module
 
 from django.conf import settings
 from django.test import TestCase
-from django.utils.importlib import import_module
 from django.core.urlresolvers import reverse
 
 import mock
@@ -177,8 +177,6 @@ class TestViews(TestCase):
         eq_(response['content-type'], 'application/json')
         redirect = json.loads(response.content)['redirect']
         eq_(redirect, settings.LOGIN_REDIRECT_URL)
-        # self.assertRedirects(response,
-        #                      settings.LOGIN_REDIRECT_URL)
 
     @mock.patch('requests.get')
     def test_was_contributor_now_mozilla_bid(self, rget):

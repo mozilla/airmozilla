@@ -1,0 +1,153 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='vidly_media' -%}
+
+{% block manage_title %}
+  Vid.ly Media
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'vidly_media' %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  th.buttons, td.buttons { width: 280px; }
+  form.resubmit { display: none; }
+  div.info { display: none; }
+  td span.errored { color: darkred; }
+  td span.finished { color: green; }
+  .timings-link { float: right; }
+  </style>
+{% endblock %}
+
+
+{% block manage_content %}
+
+<h4 class="timings-link">
+  <a href="{{ url('manage:vidly_media_timings')}}">Vid.ly Media Timings</a>
+</h4>
+
+<p>
+  These are all the events that use a template that has the
+  word <code>Vid.ly</code> in the name.<br>
+  {% if status %}
+  These are all videos with the status <code>{{ status }}</code>.<br>
+  You can also try:
+    <a href="?status=New">New</a> or
+    <a href="?status=Processing">Processing</a>.
+  {% else %}
+    Or, reverse the search and find <a href="?status=Error">all that have errored</a>.
+  {% endif %}
+</p>
+<p>
+{% if repeated %}
+  Return to <a href=".">all Vid.ly media</a>.
+{% else %}
+  Show only events that have <a href="?repeated=event">more than one Vid.ly submission</a>.
+{% endif %}
+</p>
+
+<div class="info">
+<p style="text-align:right">
+  <button class="btn btn-xs close-info">&times; close</button>
+</p>
+<table class="table table-bordered">
+
+</table>
+</div>
+
+  <form action="{{ url('manage:vidly_media_resubmit') }}" method="post" class="resubmit">
+  {% csrf_token %}
+  <div class="alert alert-block past-submission">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <h4>Note!</h4>
+    <p>No past submission recorded for this media.</p>
+  </div>
+
+  {{ bootstrapform(vidly_resubmit_form) }}
+  {% set submit_text = 'Re-submit' %}
+  {% include "manage/_form_buttons.html" %}
+  </form>
+
+  <form action="" method="post">
+  {% csrf_token %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Event</th>
+        {% if repeated %}<th># Submissions</th>{% endif %}
+        <th>Timings</th>
+        <th>Template</th>
+        <th>Status</th>
+        <th class="buttons">Options</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in paginate %}
+      <tr>
+        <td>
+          {% if event.title %}
+          <a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}"
+            data-privacy="{{ event.privacy }}">{{ truncate_words(event.title, 8) }}</a>
+          {% else %}
+          <a href="{{ url('manage:event_edit', event.pk) }}" title="{{ event.title }}"
+            data-privacy="{{ event.privacy }}"><em>no title</em></a>
+          {% endif %}
+        </td>
+        {% if repeated %}
+        <td>
+          <a href="{{ url('manage:event_vidly_submissions', event.pk) }}"
+          >{{ get_repeats(event) }}</a>
+        </td>
+        {% endif %}
+        <td>
+          {% for submission in submissions.get(event.id, []) %}
+            {% if submission.errored %}
+            <span class="errored" title="Time it took till transcoding errored">
+              {{ submission.errored_duration | formatduration }}
+              <span title="Event duration">
+                ({{ submission.event.duration | formatduration }})
+              </span>
+            </span>
+            {% elif submission.finished %}
+            <span class="finished" title="Time it took to finish transcoding">
+              {{ submission.finished_duration | formatduration }}
+              <span title="Event duration">
+                ({{ submission.event.duration | formatduration }})
+              </span>
+            </span>
+            {% endif %}
+          {% endfor %}
+        </td>
+        <td>
+          {{ event.template.name }}
+        </td>
+        <td>
+          <span data-id="{{ event.pk }}" class="label">Finding out</span>
+        </td>
+        <td class="buttons">
+          <button name="resubmit" class="btn btn-default btn-xs" value="{{ event.pk }}">
+            <i class="glyphicon glyphicon-repeat"></i>
+            Re-submit
+          </button>
+          <button name="info" class="btn btn-default btn-xs" value="{{ event.pk }}">
+            <i class="glyphicon glyphicon-search"></i>
+            Show info
+          </button>
+          <button name="refresh" class="btn btn-default btn-xs" value="{{ event.pk }}">
+            <i class="glyphicon glyphicon-refresh"></i>
+            Refresh
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if not status %}
+  {% include "manage/_paginate.html" %}
+  {% endif %}
+  </form>
+
+{% endblock %}

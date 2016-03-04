@@ -1,0 +1,112 @@
+{% extends 'main/main_base.html' %}
+{% set page='explore' %}
+{% block page_title %}
+Editing {{ event.title }} | Air Mozilla
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {# this needs to match what base.forms.GallerySelect sets in Meta #}
+  {% stylesheet 'gallery_select' %}
+  {% stylesheet 'select2' %}
+  {% stylesheet 'select2_overrides' %}
+  {% stylesheet 'main_event_edit' %}
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('select2/select2.full.min.js') }}"></script>
+  {% javascript 'gallery_select' %}
+  {% javascript 'main_event_edit' %}
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block content_main %}
+  <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
+    <h3 class="section-title">Editing
+      "<a href="{{ url('main:event', event.slug) }}" title="Go back to viewing the event">{{ event.title }}</a>"</h3>
+    <p><a href="{{ url('main:event', event.slug) }}">&laquo; Go back to event</a></p>
+
+    {% if invalid_form(form) %}
+    <div class="alert alert-danger">
+        <h4>Form errors!</h4>
+        <p>The submitted form contains errors preventing it from completing the request.<br>
+        Review the form and look for error messages in red.</p>
+    </div>
+    {% endif %}
+    {% if conflict_errors %}
+    <div class="alert alert-danger">
+        <h4>Conflict error!</h4>
+        <p>Something you tried to change has more recently been changed by somebody else.</p>
+        <p>The fields you tried to edit, that couldn't be saved, is shown in red.</p>
+        <ul class="conflict-errors">
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="form-horizontal event-edit" enctype="multipart/form-data"
+      data-eventurl="{{ url('main:event', event.slug) }}"
+      {% if thumbnail_url %}data-thumbnail-url="{{ thumbnail_url }}"{% endif %}
+      {% if conflict_errors %}data-conflict-errors='{{ json_print(conflict_errors) }}'{% endif %}
+      >
+        {% csrf_token %}
+        <div style="display:none"><input type="hidden" name="previous" value="{{ previous }}"></div>
+        {{ bootstrapform(form) }}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary submit" name="submit">
+                Save
+            </button>
+            <button class="btn cancel" name="cancel" value="cancel">Cancel</button>
+            <span class="saving">
+                <img src="{{ static('img/ajax-loader.gif') }}" width="24" height="24" style="vertical-align:middle">
+                Saving saving saving...
+            </span>
+
+        </div>
+    </form>
+
+  </article>
+
+  <h3>Previous Revisions</h3>
+  {% if revisions %}
+  <table style="width:100%">
+    <thead>
+      <tr>
+        <th>Who</th>
+        <th>When</th>
+        <th colspan="2">Difference</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for revision in revisions %}
+      <tr>
+        <td>
+          {% if revision.user %}
+          {{ revision.user.email }}
+          {% else %}
+          <em>Original version</em>
+          {% endif %}
+        </td>
+        <td>{{ revision.created | js_date }}</td>
+        <td>
+          {% if not loop.last %}
+          <a href="{{ url('main:event_change', event.slug, revision.pk) }}">View change</a>
+          {% endif %}
+        </td>
+        <td>
+          {% if not loop.first %}
+          <a href="{{ url('main:event_difference', event.slug, revision.pk) }}">View difference</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p><em>No previous revisions</em></p>
+  {% endif %}
+
+{% endblock %}

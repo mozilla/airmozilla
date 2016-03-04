@@ -219,7 +219,7 @@ class TestEventTweets(ManageTestCase):
         eq_(response.status_code, 200)
         ok_('Bla bla' in response.content)
         ok_('Needs to be approved first' in response.content)
-        from airmozilla.main.helpers import js_date
+        from airmozilla.main.templatetags.jinja_helpers import js_date
         ok_(
             js_date(tweet.send_date.replace(microsecond=0))
             not in response.content

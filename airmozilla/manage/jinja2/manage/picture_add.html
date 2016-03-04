@@ -1,0 +1,33 @@
+{% extends "manage/manage_base.html" %}
+{% set page = "picturegallery" %}
+
+{% block manage_title %}
+    Upload pictures
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <link href="{{ static('dropzone/css/dropzone.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('dropzone/dropzone.min.js') }}"></script>
+  {% javascript 'picture_add' %}
+{% endblock %}
+
+{% block manage_content %}
+
+<form action="." method="post" enctype="multipart/form-data"
+      id="picture-dropzone" class="dropzone">
+    {% csrf_token %}
+</form>
+
+<p>
+  When you're done
+  <a href="{{ url('manage:picturegallery') }}{% if event %}?event={{ event.id }}{% endif %}"
+    >go back to the Picture Gallery</a>
+</p>
+
+
+{% endblock %}

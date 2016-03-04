@@ -226,7 +226,7 @@ def suggestion_review(request, id):
     comments = (
         SuggestedEventComment.objects
         .filter(suggested_event=event)
-        .select_related('User')
+        .select_related('user')
         .order_by('created')
     )
 

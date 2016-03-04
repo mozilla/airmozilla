@@ -1,0 +1,6 @@
+{% include "manage/_alert_form_errors.html" %}
+<form method="post" class="form-horizontal" role="form">
+    {% csrf_token %}
+    {{ bootstrapform_horizontal(form) }}
+    {% include "manage/_form_buttons.html" %}
+</form>

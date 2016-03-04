@@ -285,7 +285,7 @@ class TestStarredEvent(DjangoTestCase):
             else:
                 ok_(match not in response.content, i)
 
-        output = response.content
+        output = response.content.decode('utf-8')
         ok_('href="%s"' % reverse('starred:home', args=(2,)) in output)
         ok_('href="%s"' % reverse('starred:home', args=(0,)) not in output)
 
@@ -299,7 +299,7 @@ class TestStarredEvent(DjangoTestCase):
             else:
                 ok_(match not in response.content, i)
 
-        output = response.content
+        output = response.content.decode('utf-8')
         ok_('href="%s"' % reverse('starred:home', args=(1,)) in output)
         ok_('href="%s"' % reverse('starred:home', args=(3,)) in output)
 
@@ -313,6 +313,6 @@ class TestStarredEvent(DjangoTestCase):
             else:
                 ok_(match not in response.content, i)
 
-        output = response.content
+        output = response.content.decode('utf-8')
         ok_('href="%s"' % reverse('starred:home', args=(2,)) in output)
         ok_('href="%s"' % reverse('starred:home', args=(4,)) not in output)

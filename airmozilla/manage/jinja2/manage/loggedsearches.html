@@ -1,0 +1,58 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='loggedsearches' -%}
+
+{% block manage_title %}
+  Logged Searches
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  td.text { font-size: 0.8em; font-style: italic; }
+  td.buttons { text-align: right; }
+  </style>
+{% endblock %}
+
+{% block manage_content %}
+  <p>
+    <a href="{{ url('manage:loggedsearches_stats') }}">Logged Searches Stats</a>
+  </p>
+
+  <form action="" method="post">
+  {% csrf_token %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th>Results</th>
+        <th>Page</th>
+        <th title="ID deliberately hashed to prevent identity leakage">User</th>
+        <th>Clicked</th>
+        <th>Date</td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for search in paginate %}
+      <tr>
+        <td>
+          <a href="{{ url('search:home') }}?q={{ search.term | urlencode }}&amp;_nolog"><code>{{ truncate_chars(search.term, 70) }}</code></a>
+        </td>
+        <td>{{ search.results }}</td>
+        <td>{{ search.page }}</td>
+        <td>{{ hash_user_id(search.user_id) }}</td>
+        <td>
+          {% if search.event_clicked %}
+          <a href="{{ url('main:event', search.event_clicked.slug) }}">{{ truncate_chars(search.event_clicked.title, 50) }}</a>
+          {% endif %}
+        </td>
+        <td>
+          {{ search.date | js_date }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "manage/_paginate.html" %}
+  </form>
+
+{% endblock %}

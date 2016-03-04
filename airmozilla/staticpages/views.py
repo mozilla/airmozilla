@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.http import Http404, HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
-from django.template import loader, RequestContext, Template
+from django.template import loader, engines
 from django.utils.safestring import mark_safe
 
 from airmozilla.main.models import Event
@@ -48,16 +48,16 @@ def render_staticpage(request, staticpage):
         t = loader.get_template(DEFAULT_TEMPLATE)
 
     if staticpage.allow_querystring_variables:
-        title_t = Template(staticpage.title)
-        content_t = Template(staticpage.content)
+        title_t = engines['backend'].from_string(staticpage.title)
+        content_t = engines['backend'].from_string(staticpage.content)
+
         params = {}
         for key, value in request.REQUEST.items():
             if key.startswith('request'):
                 continue
             params[key] = value
-        context = RequestContext(request, params)
-        staticpage.title = title_t.render(context)
-        staticpage.content = content_t.render(context)
+        staticpage.title = title_t.render(params, request)
+        staticpage.content = content_t.render(params, request)
     else:
         # To avoid having to always use the "|safe" filter in flatpage
         # templates, mark the title and content as already safe (since
@@ -65,13 +65,13 @@ def render_staticpage(request, staticpage):
         staticpage.title = mark_safe(staticpage.title)
         staticpage.content = mark_safe(staticpage.content)
 
-    c = RequestContext(request, {
+    context = {
         'staticpage': staticpage,
         # This is specifically to help the main_base.html template
         # that tries to decide which nav bar item to put a dot under.
         'page': staticpage.url,
-    })
-    response = HttpResponse(t.render(c))
+    }
+    response = HttpResponse(t.render(context, request))
     for key, value in staticpage.headers.items():
         response[key] = value
     # print repr(staticpage.headers)

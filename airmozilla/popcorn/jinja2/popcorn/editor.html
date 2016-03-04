@@ -1,0 +1,31 @@
+{% extends 'main/main_base.html' %}
+
+{% block site_css %}
+{{ super() }}
+{% stylesheet 'event' %}
+{% stylesheet 'popcorn_editor' %}
+{% endblock %}
+
+{% block site_js %}
+{{ super() }}
+{# NOTE: This URL is used inside our own editor.js file too. Hence the global here #}
+<script>window.POPCORN_EDITOR_CDN_URL = "{{ POPCORN_EDITOR_CDN_URL }}";</script>
+<script src="{{ POPCORN_EDITOR_CDN_URL }}/PopcornEditor/src/PopcornEditor.js"></script>
+{% javascript 'popcorn_editor' %}
+{% endblock %}
+
+{% block page_title %}
+Popcorn Editor | {{ super() }}
+{% endblock %}
+
+{% block content_main %}{% endblock %}
+
+{% block full_width_content %}
+<div id="editor"
+     data-slug="{{ slug }}"
+     data-url="{{ url('popcorn:popcorn_data') }}"
+     data-save="{{ url('popcorn:save_edit') }}">{% csrf_token %}</div>
+{% endblock %}
+
+{% block sidebar%}
+{% endblock %}
