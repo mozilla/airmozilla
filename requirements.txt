@@ -224,10 +224,10 @@ certifi==2015.04.28 \
 urllib3==1.14 \
     --hash=sha256:ffe8859ca4fdfb021c2e8e0d3033f6c5eb372f8d4c3fd5455523055a2806a437 \
     --hash=sha256:dd4fb13a4ce50b18338c7e4d665b21fd38632c5d4b1d9f1a1379276bd3c08d37
-google-api-python-client==1.4.2 \
-    --hash=sha256:2cd7ccc797b0f5d1ef75ea1ebf749da47c4972daf534d22fd3c6b4dfbd9a88ee \
-    --hash=sha256:76a3802d3596ea79648d9e1d5b56daadbf09b3de3d413abc6787425753ca692c \
-    --hash=sha256:fb7b5a8dabcecf3fd9cac0d7753d8dc4bcd7220570db82a3938414e8ec77dc7f
+google-api-python-client==1.5.0 \
+    --hash=sha256:ffb89782c74702bd47d217709741717f0e4812d87f6cea04783f991d3eb51abd \
+    --hash=sha256:dec1773cdbd5b322c4fd3c636fb0aac29c44179b86204b4b416151b6b915db0e \
+    --hash=sha256:7b60666c321a3bd0b4b9e383cf44c0f6754b70844344b770ef4a474d775e1cfc
 pyasn1==0.1.9 \
     --hash=sha256:61f9d99e3cef65feb1bfe3a2eef7a93eb93819d345bf54bcd42f4e63d5204dae \
     --hash=sha256:1802a6dd32045e472a419db1441aecab469d33e0d2749e192abdec52101724af \
