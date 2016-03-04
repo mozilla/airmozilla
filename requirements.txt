@@ -157,9 +157,9 @@ jingo==0.7.1 \
     --hash=sha256:c495a8dfd0a9c1d3d8ed02121bbb28b6c9d34d4da30aa93a7e639c0f3d7b0639
 django-appconf==0.6 \
     --hash=sha256:06b64baf26c7a436cbb81464e7a50047aea30db1059dbe6e09dc443efa23ba20
-django-nose==1.4.2 \
-    --hash=sha256:736ae53e3ec47dbbb3049999c18ce54585af299ef88172d9a27cb5fda29daa00 \
-    --hash=sha256:80f9d3690e0db830c376ae971728148d760dd64d444d1c092747d663a0d72f73
+django-nose==1.4.3 \
+    --hash=sha256:19b8daf4cd5e66603dc58018f0384117097de18714775338cdb76a94d48d8966 \
+    --hash=sha256:92f7433367011746cc3cbd3d5e67dcc11066c8b8567b9a514948eeea11fa5843
 django-session-csrf==0.6 \
     --hash=sha256:009d574590aeebff230bda3d8c1cacd9d48b204cc1a784a5d3be3638727f8d16 \
     --hash=sha256:ccfddfbf947a51c8b095a5e63bed43005a277a5581de92ed373eb06b75ceec77
