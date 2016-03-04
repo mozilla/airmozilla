@@ -1,5 +1,7 @@
-coverage==3.7.1
-pep8==1.6.2
-pyflakes==0.9.2
-mccabe==0.3.1
-flake8==2.4.1
+coverage==4.0.3
+pep8==1.7.0
+pyflakes==1.1.0
+mccabe==0.4.0
+flake8==2.5.4
+piprot==0.9.6
+hashin==0.3
