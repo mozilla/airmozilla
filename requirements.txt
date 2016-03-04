@@ -164,8 +164,6 @@ django-session-csrf==0.6 \
     --hash=sha256:ccfddfbf947a51c8b095a5e63bed43005a277a5581de92ed373eb06b75ceec77
 django-sha2==0.4 \
     --hash=sha256:b06a86451a99d6c26bfa65082999dbf658e087e596e9292cce688b53eabaaada
-django-multidb-router==0.6 \
-    --hash=sha256:4c488dcb84cffd88bcd2b1651962b767f9bb245206407c8ea678043cd39d3ca8
 tower==0.4.1 \
     --hash=sha256:b13b8c19d9c36143fd614e535c23fdbe7b146cb82b8d9a246ecacb368e14d2dd
 Babel==1.3 \
