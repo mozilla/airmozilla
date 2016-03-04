@@ -270,9 +270,9 @@ rsa==3.3 \
     --hash=sha256:928fdb62edfff5c9860f932f76aea7c94bfbcd3f0e7acf6dd64ccd19a597e9c7
 MarkupSafe==0.23 \
     --hash=sha256:a4ec1aff59b95a14b45eb2e23761a0179e98319da5a7eb76b56ea8cdc7b871c3
-pytest==2.8.7 \
-    --hash=sha256:33612ed6de42f05640fe058aafdf08899eabcb210da74aeb0b788de9695c8bb5 \
-    --hash=sha256:fc4c86be54fce08e4b85b646a736efa18c6cde7599c1d2919f4f74629e018baf
+pytest==2.9.0 \
+    --hash=sha256:8429b6803ca95ad179ad2db53233c42aec0323279347bb6bdc652bba4e2bfb49 \
+    --hash=sha256:6fad53ccbf0903c69db93d67b83df520818b06c7597ed8a8407bc5fdffd5e40e
 py==1.4.31 \
     --hash=sha256:4a3e4f3000c123835ac39cab5ccc510642153bc47bc1f13e2bbb53039540ae69 \
     --hash=sha256:a6501963c725fc2554dabfece8ae9a8fb5e149c0ac0a42fd2b02c5c1c57fc114
