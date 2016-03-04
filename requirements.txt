@@ -165,8 +165,6 @@ django-nose==1.4.3 \
 django-session-csrf==0.6 \
     --hash=sha256:009d574590aeebff230bda3d8c1cacd9d48b204cc1a784a5d3be3638727f8d16 \
     --hash=sha256:ccfddfbf947a51c8b095a5e63bed43005a277a5581de92ed373eb06b75ceec77
-django-sha2==0.4 \
-    --hash=sha256:b06a86451a99d6c26bfa65082999dbf658e087e596e9292cce688b53eabaaada
 django-browserid==0.10.1 \
     --hash=sha256:d41b87d1eb424d18ba2dbe733131e9d873e709cc11eb73da248c34eec1d5ed6e
 fancy-tag==0.2.0 \
