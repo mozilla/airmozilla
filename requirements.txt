@@ -149,9 +149,9 @@ django-bootstrap-form==3.2 \
     --hash=sha256:015d6e89ea4f90efe68c883702f00a503cecc3cda5b0208b0a9e89eaaff89da3
 regex==2014.12.24 \
     --hash=sha256:8e238fc338480ddbd783088e84582a37a75f07c99275337332c9a399b20191f2
-requests-oauthlib==0.5.0 \
-    --hash=sha256:658d9aba85338be8c1d1532c9fb5807b381dc7166e469ff0f62fcaa4240d9eb8 \
-    --hash=sha256:c7d2ee6c2e8c58a0fd60c2d7d21ce93c8d2b22e7a9f232d4bf915326afb479af
+requests-oauthlib==0.6.1 \
+    --hash=sha256:905306080ec0cc6b3c65c8101f471fccfdb9994c16dd116524fd3fc0790d46d7 \
+    --hash=sha256:7c708e8e2a4aa6a905cf91f28420d75db37270e0ec8fc951915c098dd8bde53e
 bleach==1.4.2 \
     --hash=sha256:58a2c153c0b5450695c34ce2eddc23fb3ee476b31a878e6a5c24c75fd1ed4d89 \
     --hash=sha256:56018a17d1488eb1a1e18e7cdddcaea24d3c7b3704172e356f6916c577f4fd9e
