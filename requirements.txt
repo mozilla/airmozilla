@@ -123,8 +123,8 @@ oauth2==1.5.211 \
     --hash=sha256:82a38f674da1fa496c0fc4df714cbb058540bed72a30c50a2e344b0d984c4d21
 raven==3.4.1 \
     --hash=sha256:c27e40ab3ccf37f30a9f77acb4917370d9341e25abda8e94b9bd48c7127f7d48
-oauthlib==0.7.2 \
-    --hash=sha256:a051f04ee8ec3305055ab34d87b36c9a449375e07c7d6a05bcafa48329cac7c3
+oauthlib==1.0.3 \
+    --hash=sha256:ef4bfe4663ca3b97a995860c0173b967ebd98033d02f38c9e1b2cbb6c191d9ad
 awesome-slugify==1.6.5 \
     --hash=sha256:bbdec3fa2187917473a2efad092b57f7125a55f841a7cf6a1773178d32ccfd71
 six==1.10.0 \
