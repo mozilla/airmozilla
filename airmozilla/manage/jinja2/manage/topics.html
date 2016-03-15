@@ -1,0 +1,57 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='topics' -%}
+
+{% block manage_title %}
+  Topics
+{% endblock %}
+
+{% block manage_content %}
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Groups</th>
+        <th>Sort Order</th>
+        <th style="width:200px"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for topic in topics %}
+      <tr>
+        <td>
+          {{ topic.topic }}
+          {% if not topic.is_active %}
+          <span class="label label-default" title="Inactive topic">Inactive</span>
+          {% endif %}
+        </td>
+        <td>
+          {% for group in topic.groups.all() %}
+          {{ group.name }}{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </td>
+        <td>{{ topic.sort_order }}</td>
+        <td>
+          <a class="btn btn-default btn-sm" href="{{ url('manage:topic_edit', topic.id) }}">
+            <i class="glyphicon glyphicon-edit"></i>
+            Edit
+          </a>
+            <form method="post" class="confirm"
+                  action="{{ url('manage:topic_remove', topic.id) }}">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-sm" type="submit">
+                <i class="glyphicon glyphicon-trash"></i>
+                Delete
+              </button>
+            </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    <a class="btn btn-primary" href="{{ url('manage:topic_new') }}">
+      <i class="glyphicon glyphicon-plus-sign"></i>
+      New topic
+    </a>
+  </p>
+{% endblock %}

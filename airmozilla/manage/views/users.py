@@ -132,4 +132,4 @@ def user_edit(request, id):
     else:
         form = forms.UserEditForm(instance=user)
     return render(request, 'manage/user_edit.html',
-                  {'form': form, 'user': user})
+                  {'form': form, 'user_': user})

@@ -32,7 +32,7 @@ MANAGERS = ADMINS
 
 # Debugging displays nice error messages, but leaks memory. Set this to False
 # on all server instances and True only for development.
-#DEBUG = TEMPLATE_DEBUG = True
+#DEBUG = True
 
 # To get all exceptions and tracebacks in the terminal instead of Django errors
 #DEBUG_PROPAGATE_EXCEPTIONS = True

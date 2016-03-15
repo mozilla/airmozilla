@@ -5,7 +5,7 @@ from . import views
 
 urlpatterns = patterns(
     '',
-    url(r'^page/1/$', RedirectView.as_view(url='/starred/'),
+    url(r'^page/1/$', RedirectView.as_view(url='/starred/', permanent=False),
         name='first_starred_page'),
     url(r'^page/(?P<page>\d+)/$', views.home, name='home'),
     url(r'^$', views.home, name='home'),

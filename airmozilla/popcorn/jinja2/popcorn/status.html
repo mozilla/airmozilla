@@ -1,0 +1,110 @@
+{% extends 'main/main_base.html' %}
+
+{% block site_css %}
+{{ super() }}
+{% stylesheet 'event' %}
+{% stylesheet 'popcorn_status' %}
+{% endblock %}
+
+{% block page_title %}
+Air Mozilla | Mozilla, in Video
+{% endblock %}
+
+{% block content_main %}
+<h2 class="revisions-header">Status</h2>
+{% if is_transcoding %}
+  <div class="status status-processing">
+    <h2>
+      We are currently <b>transcoding an edit</b> for this event. No further
+      submissions for edits will be accepted until this is completed.
+    </h2>
+  </div>
+{% elif is_waiting %}
+  <div class="status status-pending">
+    <h2>
+      We are currently <b>waiting to process an edit</b> for this event. No further
+      submissions for edits will be accepted until this is completed.
+    </h2>
+  </div>
+{% elif is_processing %}
+  <div class="status status-processing">
+    <h2>
+      We are currently <b>rendering an edit</b> for this event. No further
+      submissions for edits will be accepted until this is completed.
+    </h2>
+  </div>
+{% else %}
+  <div class="status status-success">
+    <h2>
+      This event has no edits to process.
+    </h2>
+  </div>
+{% endif %}
+
+<h2 class="revisions-header">Revisions</h2>
+
+<form action="{{ url('popcorn:revert', event.slug) }}" method="post">
+  {% csrf_token %}
+  <table style="width:100%" id="revisions">
+    <thead>
+      <tr>
+        <th>Who</th>
+        <th>When</th>
+        <th>Preview Link</th>
+        <th>Revert</th
+      </tr>
+    </thead>
+    <tbody>
+      {% for edit in edits %}
+      <tr>
+        <td>
+          {% if edit.user.email %}
+          {{ edit.user.email }}
+          {% endif %}
+        </td>
+        <td>{{ edit.created | js_date }}</td>
+        <td>
+          {% if edit._tag %}
+            {% if edit._tag_finished %}
+            <a href="{{ url('main:event', event.slug) }}?tag={{ edit._tag }}">Click to View</a>
+            {% else %}
+            {% endif %}
+          {% else %}
+          This edit is currently in the state of <b>{{ edit.get_status_display() }}</b>
+          {% endif %}
+        </td>
+        <td>
+          {% if edit._tag and edit._tag != event.template_environment['tag'] %}
+            {% if edit._tag_finished %}
+              <button name="tag" value="{{ edit._tag }}">Revert to this version</button>
+            {% else %}
+              <i>Waiting for transcoding to finish</i>
+            {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td>
+          <em>Original version</em>
+        </td>
+        <td>{{ first_submission.submission_time | js_date }}</td>
+        <td>
+          {% if first_submission.tag %}
+          <a href="{{ url('main:event', event.slug) }}?tag={{ first_submission.tag }}">Click to View</a>
+          {% endif %}
+        </td>
+        <td>
+          {% if any_revertable_edits %}
+          <button name="tag" value="{{ first_submission.tag }}">Revert to this version</button>
+          {% endif %}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</form>
+
+{% endblock %}
+
+{% block sidebar%}
+{% endblock %}

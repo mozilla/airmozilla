@@ -1,0 +1,51 @@
+{% extends 'search/home.html' %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'select2' %}
+  {% stylesheet 'select2_overrides' %}
+  {% stylesheet 'savesearch' %}
+  {% stylesheet 'main_event_edit' %}
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('select2/select2.full.min.js') }}"></script>
+  {% javascript 'savesearch' %}
+{% endblock %}
+
+{% block content_main %}
+<h2>Saved Search</h2>
+
+<form action="" method="post">
+  {% csrf_token %}
+  {{ bootstrapform_horizontal(form) }}
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary submit" name="submit">
+        Save Saved Search
+    </button>
+    <span class="saving">
+        <img src="{{ static('img/ajax-loader.gif') }}" width="24" height="24" style="vertical-align:middle">
+        Saving saving saving...
+    </span>
+  </div>
+</form>
+
+{% if use_findable %}
+<div class="findable">
+  <p>
+    <b>Number of events findable: <span class="findingout">...</span></b>
+  </p>
+  <p>
+    Actual number might depend on how the search is used and privacy levels.
+  </p>
+</div>
+{% endif %}
+
+<p style="margin-top:40px">
+  <a href="{{ url('search:savedsearches') }}">List of all of your Saved Searches</a>
+</p>
+
+{% endblock %}

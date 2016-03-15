@@ -1,0 +1,53 @@
+{% extends "manage/event_request.html" %}
+{% set page = "events" %}
+
+{% block manage_title %}
+  Archiving event "{{ event.title }}"
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style type="text/css">
+  .last-url code { font-size: 10px; }
+  </style>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script>var VIDLY_URL_TO_SHORTCUT = '{{ url('manage:vidly_url_to_shortcode', event.pk) }}';</script>
+  {% javascript 'event_archive' %}
+{% endblock %}
+
+
+{% block manage_content %}
+
+  <div id="vidly-shortcutter">
+    {% if default_archive_template %}
+    <input type="hidden" name="default_archive_template" value="{{ default_archive_template.pk }}">
+    {% endif %}
+    <h4 class="hint">Let me help!</h4>
+    <p class="hint">
+      <a href="#vidly-shortcutter">Automatic URL to Vid.ly converter</a><br>
+      <span class="last-result" style="display:none">Last generated code: <code></code></span><br>
+      <span class="last-url" style="display:none">URL submitted: <code></code></span>
+    </p>
+    <form class="form-horizontal" style="display:none">
+      {% csrf_token %}
+      <h4>URL to Vid.ly shortcutter!</h4>
+      {{ bootstrapform_horizontal(vidly_shortcut_form) }}
+      <p class="loading" style="float:left;display:none">
+        <img src="{{ static('img/spinner.gif') }}" alt="Loading..."> Please wait...
+      </p>
+      {% set submit_text = 'Fetch it' %}
+      {% include "manage/_form_buttons.html" %}
+    </form>
+  </div>
+
+  {% set submit_text = 'Archive this event' %}
+  {% include "manage/_default_form.html" %}
+
+  <p>
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

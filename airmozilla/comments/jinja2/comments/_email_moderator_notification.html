@@ -1,0 +1,32 @@
+{% extends 'email_base.html' %}
+
+{% block content %}
+<p>A comment has been posted and requires moderation on<br/>
+  <a href="{{ base_url }}{{ url('main:event', event.slug) }}"
+     style="font-weight:bold">{{ event.title }}</a><br/>
+  by
+  <strong>{%- if comment.user.get_full_name() %}
+    {{ comment.user.get_full_name() }}
+  {% else %}
+    {{ obscure_email(comment.user.email) }}
+  {% endif -%}</strong>:
+</p>
+
+<blockquote style="margin-bottom:35px; font-style: italic">
+{{ comment.comment | urlize_and_linebreaksbr }}
+</blockquote>
+
+<p>
+To view the comment and make a decisions there go
+<a href="{{ base_url }}{{ url('main:event', event.slug) }}#comment-{{ comment.pk }}">directly to the comment</a>.
+</p>
+
+<p>
+  If you're certain what you want to do, click here to:
+</p>
+<ul>
+  <li><a href="{{ base_url }}{{ approve_comment_url }}">Approve immediately</a></li>
+  <li><a href="{{ base_url }}{{ remove_comment_url }}">Remove immediately</a></li>
+</ul>
+
+{% endblock %}

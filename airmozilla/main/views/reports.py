@@ -205,6 +205,7 @@ def too_few_tags(request):
         .annotate(count=Count('event'))
         .filter(count__lt=2)
     )
+
     assert request.user.is_active
     if is_contributor(request.user):
         few_tags = few_tags.exclude(event__privacy=Event.PRIVACY_COMPANY)
@@ -215,13 +216,15 @@ def too_few_tags(request):
     try:
         event, = zero_tags.order_by('?')[:1]
     except ValueError:
-        try:
-            first, = few_tags.order_by('?')[:1]
-            event = Event.objects.get(id=first['event_id'])
-        except ValueError:
-            # there's nothing!
-            event = None
-            assert count == 0
+        event = None
+        if few_tags.count():
+            try:
+                first, = few_tags.order_by('?')[:1]
+                event = Event.objects.get(id=first['event_id'])
+            except ValueError:
+                # there's nothing!
+                event = None
+                assert count == 0
 
     context = {
         'count': count,

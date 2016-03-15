@@ -10,6 +10,7 @@ from django.test import TestCase, LiveServerTestCase
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files import File
+from django.utils import timezone
 
 from pipeline.storage import PipelineCachedStorage
 
@@ -53,7 +54,10 @@ class DjangoTestCase(TestCase):
 
     def _login(self, username='mary', email='mary@mozilla.com', pwd='secret'):
         user = User.objects.create_user(
-            username, email, pwd
+            username,
+            email,
+            pwd,
+            last_login=timezone.now()
         )
         assert self.client.login(username=username, password=pwd)
         return user

@@ -19,7 +19,7 @@ from django.db.models import Q
 from django.core.files import File
 
 from airmozilla.main.models import Event, VidlySubmission, Picture
-from airmozilla.base.helpers import show_duration
+from airmozilla.base.templatetags.jinja_helpers import show_duration
 from airmozilla.manage import vidly
 
 REGEX = re.compile('Duration: (\d+):(\d+):(\d+).(\d+)')

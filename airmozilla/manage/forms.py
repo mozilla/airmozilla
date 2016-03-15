@@ -40,7 +40,7 @@ from airmozilla.main.models import (
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
 from airmozilla.staticpages.models import StaticPage
-from airmozilla.base.helpers import show_duration_compact
+from airmozilla.base.templatetags.jinja_helpers import show_duration_compact
 from airmozilla.main.forms import TagsModelMultipleChoiceField
 
 from .widgets import PictureWidget
@@ -383,7 +383,7 @@ class EventTweetForm(BaseModelForm):
             )
 
         if event.placeholder_img or event.picture:
-            from airmozilla.main.helpers import thumbnail
+            from airmozilla.main.templatetags.jinja_helpers import thumbnail
             if event.picture:
                 pic = event.picture.file
             else:

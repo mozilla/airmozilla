@@ -1,0 +1,136 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='vidly_media' -%}
+
+{% block manage_title %}
+  Vid.ly Submissions for "{{ event.title }}"
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'event_vidly_submissions' %}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  td.url { font-size: 0.8em; }
+  div.info { display: none; }
+  td span.errored { color: darkred; }
+  td span.finished { color: green; }
+  </style>
+{% endblock %}
+
+
+{% block manage_content %}
+
+{% if active_submission %}
+  {% if active_submission.token_protection and event.privacy == 'public' %}
+  <div class="alert alert-danger" role="alert">
+    <p>
+      <b>Warning!</b>
+      This is a <b>public</b> event whose active Vid.ly submission requires
+      a token.
+    </p>
+  </div>
+  {% endif %}
+{% endif %}
+
+
+<form action="" method="post">{% csrf_token %}
+
+  <div class="info">
+    <p style="text-align:right">
+      <button class="btn btn-xs close-info">&times; close</button>
+    </p>
+    <table class="table table-bordered">
+
+    </table>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th></th>
+        <th>URL</th>
+        <th>Date</th>
+        <th>Timing</th>
+        <th>Shortcode</th>
+        <th>Token</th>
+        <th>HD</th>
+        <th>Error</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for submission in paginate %}
+      <tr>
+        <td>
+          {% if event.template_environment and event.template_environment['tag'] == submission.tag %}
+          <span class="label label-info" title="The one still being used now by this event">Actively used</span>
+          {% else %}
+            <input type="checkbox" name="id" value="{{ submission.id }}" checked>
+          {% endif %}
+        </td>
+        <td class="url">{{ scrub_transform_passwords(submission.url) }}</td>
+        <td>{{ submission.submission_time|js_date }}</td>
+        <td>
+          {% if submission.errored %}
+          <span class="errored">
+            {{ submission.errored_duration | formatduration }}
+          </span>
+          {% elif submission.finished %}
+          <span class="finished">
+            {{ submission.finished_duration | formatduration }}
+          </span>
+          {% else %}
+          n/a
+          {% endif %}
+        </td>
+        <td>
+          {% if submission.tag %}<code>{{ submission.tag }}</code>{% endif %}
+        </td>
+        <td>
+          {% if submission.token_protection %}
+          <i class="glyphicon glyphicon-ok icon-positive"></i>
+          {% else %}
+          <i class="glyphicon glyphicon-minus-sign icon-negative"></i>
+          {% endif %}
+        </td>
+        <td>
+          {% if submission.hd %}
+          <i class="glyphicon glyphicon-ok icon-positive"></i>
+          {% else %}
+          <i class="glyphicon glyphicon-minus-sign icon-negative"></i>
+          {% endif %}
+        </td>
+        <td>
+          {% if not submission.submission_error %}
+          <i class="glyphicon glyphicon-minus-sign icon-negative"></i>
+          {% else %}
+          <i class="glyphicon glyphicon-ok icon-positive"></i>
+          <button name="info" class="btn btn-xs" value="{{ submission.pk }}">
+            <i class="glyphicon glyphicon-search"></i>
+            Show info
+          </button>
+          {% endif %}
+        </td>
+        <td>
+          <span data-tag="{{ submission.tag }}" class="label status">Finding out</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <button type="submit" class="btn btn-primary">Delete selected submissions from Vid.ly</button>
+  <input type="checkbox" name="forced" value="1" id="id_forced">
+  <label for="id_forced">Delete even submissions not found on Vid.ly</label>
+</form>
+
+  {% include "manage/_paginate.html" %}
+
+<p>
+  <a href="..">&larr; Return to event</a>
+</p>
+
+{% endblock %}

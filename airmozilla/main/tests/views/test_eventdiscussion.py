@@ -25,23 +25,26 @@ class TestEventDiscussion(DjangoTestCase):
         user = self._login()
         response = self.client.get(event_url)
         eq_(response.status_code, 200)
+        response_content = response.content.decode('utf-8')
         # still not!
-        ok_(url not in response.content)
-        ok_(edit_url in response.content)
+        ok_(url not in response_content)
+        ok_(edit_url in response_content)
 
         event.creator = user
         event.save()
         response = self.client.get(event_url)
         eq_(response.status_code, 200)
+        response_content = response.content.decode('utf-8')
         # still not because there's no discussion set up
-        ok_(url not in response.content)
-        ok_(edit_url in response.content)
+        ok_(url not in response_content)
+        ok_(edit_url in response_content)
 
         Discussion.objects.create(event=event)
         response = self.client.get(event_url)
         eq_(response.status_code, 200)
-        ok_(url in response.content)
-        ok_(edit_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(url in response_content)
+        ok_(edit_url in response_content)
 
     def test_permission_access(self):
         event = Event.objects.get(title='Test event')

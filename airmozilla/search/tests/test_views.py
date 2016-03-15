@@ -737,7 +737,8 @@ class TestSearch(DjangoTestCase):
         user = self._login()
         response = self.client.get(url, {'q': 'firefox'})
         eq_(response.status_code, 200)
-        ok_(savesearch_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(savesearch_url in response_content)
 
         response = self.client.post(savesearch_url, {'q': ''})
         eq_(response.status_code, 400)

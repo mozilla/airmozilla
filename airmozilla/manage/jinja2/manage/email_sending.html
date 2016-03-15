@@ -1,0 +1,62 @@
+{% extends "manage/manage_base.html" %}
+
+{% set page = "email_sending" %}
+
+{% block manage_title %}Email Sending{% endblock %}
+
+{% block manage_content %}
+
+<p>
+  This tool allows you to send anybody an email. <br>
+  You are allowed to type unchecked HTML that goes into the email. <br>
+  <b>Only Superusers are allowed to do this.</b>
+</p>
+
+<dl>
+  <dt>EMAIL_BACKEND:</dt>
+  <dd><code>{{ EMAIL_BACKEND }}</code></dd>
+{% if EMAIL_FILE_PATH %}
+  <dt>EMAIL_FILE_PATH:</dt>
+  <dd><code>{{ EMAIL_FILE_PATH }}</code></dd>
+{% endif %}
+</dl>
+
+{% if EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend' %}
+<div class="alert alert-warning">
+  <p>
+    <b>Warning!</b> It seems your <code>EMAIL_BACKEND</code> really is SMTP.
+    If it works, an actual email <b>will be sent</b>.
+  </p>
+</div>
+{% endif %}
+
+
+<h3>Send and Email</h3>
+<p>Fill in a subject and a body to attempt actually sending an email.</p>
+
+<form method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
+  {{ bootstrapform_horizontal(form) }}
+  <div class="form-group form-buttons">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-primary submit" name="submit">Send</button>
+    </div>
+  </div>
+</form>
+
+{% if sent_email %}
+<hr>
+<div class="alert alert-success">
+  Email
+  {% if EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend' %}
+  sent
+  {% else %}
+  "sent"
+  {% endif %}
+  to: {{ ', '.join(sent_email.recipients()) }}
+</div>
+<h3>Sent HTML Body</h3>
+<pre>{{ sent_html_body }}</pre>
+{% endif %}
+
+{% endblock %}

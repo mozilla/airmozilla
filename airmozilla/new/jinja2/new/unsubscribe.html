@@ -1,0 +1,50 @@
+{% extends "main/main_base.html" %}
+
+{% set page='unsubscribe' %}
+
+{% block page_title %}
+Unsubscribe from new video emails
+{% endblock %}
+
+{% block site_css %}
+{{ super() }}
+<style type="text/css">
+.main form { margin: 40px; text-align: center; }
+</style>
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script>
+  $(function() {
+      $('input[name="cancel"]').click(function() {
+          location.href = '/';
+          return false;
+      });
+  });
+  </script>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block content_main %}
+  <h2 class="section-title">Unsubscribe from new video emails</h2>
+
+  {% if user_ %}
+  <form action="" method="post">{% csrf_token %}
+
+    <h4>Are you sure you want unsubscribe from all new video emails?</h4>
+
+    <input type="submit" value="Yes, unsubscribe">
+    <input type="button" name="cancel" value="No, cancel">
+  </form>
+  {% else %}
+    <p>
+      <b>Sorry :(</b><br>
+      It appears your unsubscription link is invalid. Or it has simply expired.
+    </p>
+    <p>
+      Go back to <a href="/">the home page</a>.
+    </p>
+  {% endif %}
+{% endblock %}

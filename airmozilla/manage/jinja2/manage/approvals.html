@@ -1,0 +1,79 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='approvals' -%}
+
+{% block manage_title %}
+  Approvals pending
+{% endblock %}
+
+{% block manage_content %}
+
+  {% if not user_groups.count() %}
+  <div class="alert alert-block">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <h4>Note!</h4>
+    You are not a member of any group that could have approvals.
+  </div>
+  {% endif %}
+
+  {% if approvals %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Event title</th>
+        <th>Start time</th>
+        <th>Location</th>
+        <th>Event Originator</th>
+        <th>Created</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for approval in approvals %}
+      <tr>
+        <td><a href="{{ url('main:event', approval.event.slug) }}">{{ approval.event.title }}</a></td>
+        <td>{{ approval.event.start_time|js_date }}</td>
+        <td>{{ approval.event.location }}</td>
+        <td>
+          {% set suggested_event = get_suggested_event(approval.event) %}
+          {% if suggested_event %}
+            {{ suggested_event.user.email }}
+          {% else %}
+            {{ approval.event.creator.email }}
+          {% endif %}
+        </td>
+        <td>{{ approval.event.created|js_date }}</td>
+        <td>
+          <a class="btn btn-primary"
+             href="{{ url('manage:approval_review', approval.id) }}">
+            <i class="glyphicon glyphicon-wrench"></i>
+            Review
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% if recent %}
+  <h3>Recent reviews from your group</h3>
+  <form action="{{ url('manage:approval_reconsider') }}" method="post">{% csrf_token %}
+  <ul>
+  {% for review in recent %}
+    <li>
+        {{ review.user.get_full_name() }} ({{ review.group }})
+        <strong>{{ 'approved' if review.approved else 'rejected' }}</strong>
+        "{{ review.event.title }}" - {{ review.processed_time|js_date }}
+        {% if review.comment %}
+          - {{ review.comment }}
+        {% endif %}
+        <button class="btn btn-default btn-xs" name="id" value="{{ review.pk }}">Reconsider</button>
+    </li>
+  {% endfor %}
+  </ul>
+</form>
+  {% endif %}
+  {% if not approvals and not recent %}
+    <p>No approvals are waiting!</p>
+    <p>Check back here to review and sign off on events.</p>
+  {% endif %}
+{% endblock %}

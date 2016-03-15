@@ -15,7 +15,7 @@ from airmozilla.main.models import (
     Chapter,
 )
 from airmozilla.main.views.pages import EventView, get_video_tagged
-from airmozilla.main.helpers import js_date
+from airmozilla.main.templatetags.jinja_helpers import js_date
 
 
 class EventEditView(EventView):

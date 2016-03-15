@@ -35,7 +35,8 @@ class TestEventEdit(DjangoTestCase):
         self._login()
         response = self.client.get(reverse('main:event', args=(event.slug,)))
         eq_(response.status_code, 200)
-        ok_(url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(url in response_content)
 
     def test_cant_view(self):
         event = Event.objects.get(title='Test event')
@@ -768,29 +769,30 @@ class TestEventEdit(DjangoTestCase):
 
         # because there's no difference between this and the event now
         # we should NOT have a link to see the difference for the user_revision
+        response_content = response.content.decode('utf-8')
         ok_(
             reverse('main:event_difference',
                     args=(event.slug, user_revision.pk))
-            not in response.content
+            not in response_content
         )
         # but there should be a link to the change
         ok_(
             reverse('main:event_change',
                     args=(event.slug, user_revision.pk))
-            in response.content
+            in response_content
         )
         # since the base revision doesn't have any changes there shouldn't
         # be a link to it
         ok_(
             reverse('main:event_change',
                     args=(event.slug, base_revision.pk))
-            not in response.content
+            not in response_content
         )
         # but there should be a link to the change
         ok_(
             reverse('main:event_difference',
                     args=(event.slug, base_revision.pk))
-            in response.content
+            in response_content
         )
 
     def test_cant_view_all_revision_changes(self):
@@ -915,4 +917,5 @@ class TestEventEdit(DjangoTestCase):
         self._login()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(msg1.text in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(msg1.text in response_content)

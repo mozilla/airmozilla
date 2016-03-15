@@ -4,6 +4,7 @@ from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 
 from airmozilla.main.views import is_contributor
 from airmozilla.main.models import UserProfile
@@ -22,7 +23,7 @@ class TestUsersAndGroups(ManageTestCase):
     def test_user_edit(self):
         """Add superuser and staff status via the user edit form."""
         user = User.objects.create_user('no', 'no@no.com', 'no')
-        url = reverse('manage:user_edit', kwargs={'id': user.id})
+        url = reverse('manage:user_edit', args=(user.id,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('no@no.com' in response.content)
@@ -112,6 +113,12 @@ class TestUsersAndGroups(ManageTestCase):
         self._delete_test(group, 'manage:group_remove', 'manage:groups')
 
     def test_users_data(self):
+        # Because the default user, created from the fixtures,
+        # was created without a last_login.
+        User.objects.filter(last_login__isnull=True).update(
+            last_login=timezone.now()
+        )
+        assert self.user.last_login
         url = reverse('manage:users_data')
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -149,6 +156,12 @@ class TestUsersAndGroups(ManageTestCase):
         eq_(same_user['groups'], [testgroup.name])
 
     def test_users_data_contributor(self):
+        # Because the default user, created from the fixtures,
+        # was created without a last_login.
+        User.objects.filter(last_login__isnull=True).update(
+            last_login=timezone.now()
+        )
+
         user, = User.objects.filter(username='fake')
         UserProfile.objects.create(
             user=user,

@@ -93,7 +93,8 @@ class TestPages(DjangoTestCase):
         response = self.client.get('/')
         eq_(response.status_code, 200)
         start_url = reverse('suggest:start')
-        ok_(start_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(start_url in response_content)
 
     def test_unauthorized(self):
         """ Client with no log in - should be rejected. """
@@ -806,14 +807,15 @@ class TestPages(DjangoTestCase):
             in response.content
         )
         # there should also be links to edit things
-        ok_(reverse('suggest:title', args=(event.pk,)) in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(reverse('suggest:title', args=(event.pk,)) in response_content)
         ok_(reverse('suggest:description', args=(event.pk,))
-            in response.content)
-        ok_(reverse('suggest:details', args=(event.pk,)) in response.content)
+            in response_content)
+        ok_(reverse('suggest:details', args=(event.pk,)) in response_content)
         ok_(reverse('suggest:placeholder', args=(event.pk,))
-            in response.content)
+            in response_content)
         # the event is not submitted yet
-        ok_('Submit for review' in response.content)
+        ok_('Submit for review' in response_content)
 
     def test_summary_with_discussion(self):
         event = self._make_suggested_event()
@@ -838,7 +840,8 @@ class TestPages(DjangoTestCase):
 
         # and there should be a link to change the discussion
         discussion_url = reverse('suggest:discussion', args=(event.pk,))
-        ok_(discussion_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(discussion_url in response_content)
 
         discussion.enabled = False
         discussion.save()
@@ -869,7 +872,8 @@ class TestPages(DjangoTestCase):
         ok_('Accepted!' in response.content)
         ok_('Submit for review' not in response.content)
         real_url = reverse('main:event', args=(real.slug,))
-        ok_(real_url not in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(real_url not in response_content)
 
         # now schedule the real event
         real.status = Event.STATUS_SCHEDULED
@@ -879,7 +883,8 @@ class TestPages(DjangoTestCase):
         ok_('Accepted!' in response.content)
         ok_('accepted and scheduled' in response.content)
         ok_('Submit for review' not in response.content)
-        ok_(real_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(real_url in response_content)
 
         # suppose we change the start time
         real.start_time += datetime.timedelta(hours=1)

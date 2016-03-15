@@ -7,7 +7,6 @@ from nose.tools import eq_, ok_
 
 from django.conf import settings
 from django.core.cache import cache
-from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import DjangoTestCase
@@ -21,11 +20,6 @@ class HeadResponse(object):
 
 
 class TestUploads(DjangoTestCase):
-
-    def _login(self):
-        user = User.objects.create_user('richard', password='secret')
-        assert self.client.login(username='richard', password='secret')
-        return user
 
     def test_home(self):
         url = reverse('uploads:home')

@@ -12,7 +12,7 @@ from jsonview.decorators import json_view
 
 from airmozilla.manage.utils import filename_to_notes
 from airmozilla.base.utils import dot_dict
-from airmozilla.main.helpers import thumbnail
+from airmozilla.main.templatetags.jinja_helpers import thumbnail
 from airmozilla.main.models import Event, Picture
 from airmozilla.manage import forms
 

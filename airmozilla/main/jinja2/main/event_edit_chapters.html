@@ -1,0 +1,105 @@
+{% extends "main/event.html" %}
+{% block page_title %}
+Editing Chapters for "{{ event.title }}" | Air Mozilla
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'edit_chapters' %}
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'edit_chapters' %}
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block content_main %}
+  <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
+    <h3 class="section-title">Editing Chapters
+      "<a href="{{ url('main:event', event.slug) }}" title="Go back to viewing the event">{{ event.title }}</a>"</h3>
+    <p><a href="{{ url('main:event', event.slug) }}">&laquo; Go back to event</a></p>
+
+
+    {% if video %}
+      <div class="entry-content" data-event-status="{{ event.status }}">
+      {{ video|safe }}
+      </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+      <p class="adding">
+        <button type="button" class="play">
+          Play
+        </button>
+        <button type="button" class="seek" data-seek="-5" title="Jump 5 seconds back" style="display:none">
+          -5s
+        </button>
+        <button type="button" class="seek" data-seek="-20" title="Jump 20 seconds back" style="display:none">
+          -20s
+        </button>
+        <button type="button" class="pause" style="display:none">
+          Pause
+        </button>
+        At:
+        <b class="timestamp"></b>
+        Text:
+        <input type="text" name="text" placeholder="Chapter text" maxlength="300">
+        <button type="submit" name="submit">
+          Save
+         </button>
+        <button type="button" name="cancel" class="cancel">
+          Cancel
+         </button>
+        <button type="button" name="delete" class="delete">
+          Delete
+         </button>
+         <br>
+         <span class="saving">
+             <img src="{{ static('img/ajax-loader.gif') }}" width="24" height="24" style="vertical-align:middle">
+             Saving saving saving...
+         </span>
+      </p>
+    </form>
+
+    <div class="failed alert alert-danger">
+      <h4>Server Error</h4>
+      <p>
+        Sorry. An unexpected error happened trying to save you submission.
+        Try re-freshing the page and trying again.
+      </p>
+    </div>
+
+    <div class="errored alert alert-danger">
+      <h4>Validtion Error</h4>
+      <p>
+        There was a problem with what you entered:
+      </p>
+      <dl></dl>
+    </div>
+
+    <p class="loading-chapters">
+      <img src="{{ static('img/ajax-loader.gif') }}" width="24" height="24" style="vertical-align:middle">
+      Loading existing chapters
+    </p>
+    <table class="chapters">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Time</th>
+          <th class="text">Text</th>
+          <th>Creator</th>
+          <th>Added/Edited</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+  </article>
+
+{% endblock %}

@@ -2,7 +2,7 @@ import re
 
 from django.conf import settings
 
-from jingo import Template
+from django.template import engines
 
 from airmozilla.main.models import URLMatch, URLTransform
 
@@ -23,12 +23,14 @@ def run(url, dry=False):
                 if _context is None:
                     _context = create_context()
                 # the `replace_with` string might have variables in it
-                replace_with_template = Template(transform.replace_with)
+                replace_with_template = engines['backend'].from_string(
+                    transform.replace_with
+                )
                 replace_with = replace_with_template.render(_context)
                 # if this is a `dry` run we don't want to accidentally
                 # reveal a real password
                 if dry:
-                    from airmozilla.manage.helpers import (
+                    from airmozilla.manage.templatetags.jinja_helpers import (
                         scrub_transform_passwords
                     )
                     replace_with = scrub_transform_passwords(replace_with)

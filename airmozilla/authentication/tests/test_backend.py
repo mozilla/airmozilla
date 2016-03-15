@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 from nose.tools import eq_
 
@@ -22,7 +23,10 @@ class TestBackend(TestCase):
 
     def test_getuser_known(self):
         backend = AirmozillaBrowserIDBackend()
-        user = User.objects.create(username='richard')
+        user = User.objects.create(
+            username='richard',
+            last_login=timezone.now(),
+        )
         eq_(backend.get_user(user.id), user)
         # a second time and it should be coming from the cache
         eq_(backend.get_user(user.id), user)
@@ -35,7 +39,10 @@ class TestBackend(TestCase):
 
     def test_getuser_deleted(self):
         backend = AirmozillaBrowserIDBackend()
-        user = User.objects.create(username='richard')
+        user = User.objects.create(
+            username='richard',
+            last_login=timezone.now(),
+        )
         eq_(backend.get_user(user.id), user)
         # twice
         eq_(backend.get_user(user.id), user)

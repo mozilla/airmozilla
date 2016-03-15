@@ -1,0 +1,104 @@
+{% extends 'search/home.html' %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  {% javascript 'savedsearches' %}
+{% endblock %}
+
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'savedsearches' %}
+{% endblock %}
+
+
+{% block content_tag %}
+  ng-app="savedsearches"
+  ng-controller="SavedSearchesController"
+  data-edit-url="{{ url('search:savedsearch', 0) }}"
+  data-data-url="{{ url('search:savedsearches_data') }}"
+  data-delete-url="{{ url('search:delete_savedsearch', 0) }}"
+{% endblock %}
+
+{% block sidebar %} {# deliberately empty #}
+{% endblock %}
+
+{% block body_class %} {# deliberately empty #}
+{% endblock %}
+
+{% block content_main %}
+<h2>Saved Searches</h2>
+
+<p ng-if="loading">Loading</p>
+{% csrf_token %}
+<table class="savedsearches" ng-if="!loading && !failed" ng-cloak>
+  <thead>
+    <tr>
+      <th>
+        Name
+      </th>
+      <th class="events">
+        # Events
+      </th>
+      <th class="links">
+        Links
+      </th>
+      <th class="buttons">
+
+      </th>
+    </tr>
+  </thead>
+  {% raw %}
+  <tbody>
+    <tr ng-repeat="savedsearch in savedsearches track by savedsearch.id">
+      <td title="{{ savedsearch.summary }}">
+        <a ng-if="savedsearch.name"
+          href="{{ url('search:savedsearch', savedsearch.id) }}">{{ savedsearch.name }}</a>
+        <a ng-if="!savedsearch.name"
+          href="{{ url('search:savedsearch', savedsearch.id) }}"><i>{{ savedsearch.summary }}</i></a>
+      </td>
+      <td class="events" ng-class="{loading: savedsearch._count === undefined}">
+        <span ng-if="savedsearch._count !== undefined">{{ savedsearch._count }}</span>
+      </td>
+      <td class="links">
+        <a href="{{ url('search:home') }}?ss={{ savedsearch.id }}">Browse</a>
+        &nbsp;
+        <a href="{{ url('feed') }}?ss={{ savedsearch.id }}">Feed</a>
+        &nbsp;
+        <a href="{{ url('ical') }}?ss={{ savedsearch.id }}">iCal</a>
+      </td>
+      <td class="buttons">
+        <span ng-if="savedsearch._confirmDelete">Sure?</span>
+        <button class="confirm" name="confirm"
+          ng-click="savedsearch._confirmDelete=true"
+          ng-if="!savedsearch._confirmDelete">Delete</button>
+        <button class="delete" name="delete"
+          ng-click="deleteSavedSearch(savedsearch)"
+          ng-if="savedsearch._confirmDelete">Yes</button>
+        <button class="cancel" name="cancel"
+          ng-click="savedsearch._confirmDelete=false"
+          ng-if="savedsearch._confirmDelete">Cancel</button>
+
+      </td>
+    </tr>
+  </tbody>
+  {% endraw %}
+</table>
+
+
+<form action="{{ url('search:new_savedsearch')}}">
+  <button>Create a new Saved Search</button>
+</form>
+
+
+<div ng-if="failed" ng-cloak>
+  <div class="alert alert-danger">
+    <p>
+      Failed to load your Saved Searches. See Web Console or refresh the page.
+    </p>
+  </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='locations' -%}
+
+{% block manage_title %}
+  Locations
+{% endblock %}
+
+{% block manage_content %}
+  <div>Note: You cannot create new events with inactive locations.</div>
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Region(s)</th>
+        <th>Time zone</th>
+        <th style="width:200px">Events/Suggested events</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for location in locations %}
+      <tr>
+        <td>
+          {{ location.name }}
+          {% if not location.is_active %}
+          <span class="label label-default" title="Inactive location">Inactive</span>
+          {% endif %}
+        </td>
+        <td>{% for region in location.regions.all() %}
+            {{ region.name }}{% if not loop.last %}, {% endif %}
+            {% endfor %}</td>
+        <td>{{ location.timezone }}</td>
+        <td>
+          <span title="Events associated with this location">
+            {{ associated_events[location.id] }}
+          </span>
+          /
+          <span title="Suggested events associated with this location">
+            {{ associated_suggested_events[location.id] }}
+          </span>
+        </td>
+        <td>
+          <a class="btn btn-default btn-sm" href="{{ url('manage:location_edit', location.id) }}">
+            <i class="glyphicon glyphicon-edit"></i>
+            Edit
+          </a>
+          {% if associated_events[location.id] or associated_suggested_events[location.id] %}
+          {% else %}
+            <form method="post" class="confirm"
+                  action="{{ url('manage:location_remove', location.id) }}">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-sm" type="submit">
+                <i class="glyphicon glyphicon-trash"></i>
+                Delete
+              </button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p>
+    <a class="btn btn-primary" href="{{ url('manage:location_new') }}">
+      <i class="glyphicon glyphicon-plus-sign"></i>
+      New location
+    </a>
+  </p>
+{% endblock %}

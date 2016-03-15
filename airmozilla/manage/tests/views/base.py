@@ -2,6 +2,7 @@ from nose.tools import ok_
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -10,7 +11,13 @@ class ManageTestCase(DjangoTestCase):
 
     def setUp(self):
         super(ManageTestCase, self).setUp()
-        self.user = User.objects.create_superuser('fake', 'fake@f.com', 'fake')
+        self.user = User.objects.create_superuser(
+            'fake',
+            'fake@f.com',
+            'fake',
+            last_login=timezone.now()
+        )
+        assert self.user.last_login
         assert self.client.login(username='fake', password='fake')
 
     def _delete_test(self, obj, remove_view, redirect_view):

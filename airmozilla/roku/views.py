@@ -1,4 +1,4 @@
-from django.contrib.sites.models import RequestSite
+from django.contrib.sites.requests import RequestSite
 from django.shortcuts import render
 from django.conf import settings
 from django.db.models import Q

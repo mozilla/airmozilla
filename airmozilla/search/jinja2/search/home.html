@@ -1,0 +1,144 @@
+{% extends 'main/main_base.html' %}
+{% set front_page = 0 %}
+
+{% block extra_head %}
+{{ super() }}
+{% stylesheet 'search' %}
+{% endblock %}
+
+{% block body_class %}with-sidebar{% endblock %}
+
+{% block sidebar_inner %}
+{% include "main/_sidebar_inner.html" %}
+{% endblock %}
+
+{% block content_main %}
+
+  {% if search_error %}
+    <p><strong>Search Error</strong> {{ search_error }}</p>
+  {% endif %}
+
+  {% if possible_tags %}
+    <p class="possible-tags"><strong>Search by tags:</strong>
+      {% for tag in possible_tags %}
+        <a href="{{ url('search:home') }}?q={{ tag._query_string | urlencode }}" class="tag">{{ tag._query_string }}</a>{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+  {% endif %}
+  {% if possible_channels %}
+    <p class="possible-channels"><strong>Search by channels:</strong>
+      {% for channel in possible_channels %}
+        <a href="{{ url('search:home') }}?q={{ channel._query_string | urlencode }}" class="channel">{{ channel._query_string }}</a>{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+  {% endif %}
+
+  {% if events_found %}
+    <p>
+    {% if events_found == 1 %}
+      <strong>1</strong> event found
+    {% else %}
+      <strong>{{ events_found }}</strong> events found
+    {% endif %}
+    </p>
+  {% endif %}
+
+  {% for event in events_paged %}
+    {% set href = url('main:event', slug=event.slug) %}
+    <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry">
+      <header class="entry-header">
+        <!-- rank title: {{ event.rank_title }} -->
+        <!-- rank desc: {{ event.rank_desc }} -->
+        <h2 class="entry-title">
+          <a href="{{ href }}">
+            {% if event.rank_title %}
+            <!-- yes, rank_title was -->
+            {{ event.title_highlit | safe }}
+            {% else %}
+            <!-- no, rank_title was {{ rank_title }} -->
+            {{ event.title }}
+            {% endif %}
+          </a>
+        </h2>
+        {% include "main/_event_privacy.html" %}
+        {% if event.is_upcoming() %}
+        <h5 class="entry-upcoming">
+        Upcoming event
+        </h5>
+        {% endif %}
+      </header>
+      <div class="entry-summary">
+        <p>
+          <span class="event-date">{{ event.start_time | js_date }}</span>
+          <span class="event-channels">
+            {% for channel in channels[event] %}
+                <a title="Click to go to the {{ channel.name }} channel" href="{{ url('main:home_channels',channel.slug) }}">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
+            {% endfor %}
+          </span>
+        </p>
+
+        <a href="{{ href }}">{{ show_thumbnail(event) }}</a>
+        <p class="desc">
+          <!-- rank title: {{ event.rank_title }}
+               rank desc: {{ event.rank_desc }}
+               rank transcript: {{ event.rank_transcript }} -->
+          {% if event.rank_desc %}
+            {{ event.desc_highlit | safe_html }}
+          {% elif event.rank_transcript %}
+            <span class="transcript-note">(found by transcript)</span>
+            <span class="transcript">{{ event.transcript_highlit | safe }}</span>
+
+          {% else %}
+            {{ short_desc(event) }}
+          {% endif %}
+
+          <a class="go" href="{{ href }}">{{ _('See more') }}</a>
+        </p>
+        {{ star_tag(event.id) }}
+      </div>
+    </article>
+  {% else %}
+    {% if q or tags %}
+      <h4>Nothing found</h4>
+    {% endif %}
+  {% endfor %}
+
+  {% if next_page_url or prev_page_url %}
+  <nav class="nav-paging">
+    <ul role="navigation">
+      {% if next_page_url %}
+        <li class="next">
+          <a href="{{ next_page_url }}">
+            {{ _('Next page') }}
+          </a>
+        </li>
+      {% endif %}
+      {% if prev_page_url %}
+        <li class="prev">
+          <a href="{{ prev_page_url }}">
+            {{ _('Previous page') }}
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% if search_form and not search_form.errors %}
+  <div class="savesearch-create-form">
+    {% if request.user.is_active %}
+    <form action="{{ url('search:savesearch') }}" method="post">
+      <input type="hidden" name="q" value="{{ search_form.q.value() }}">
+      {% csrf_token %}
+      <button>Save this search</button>
+    </form>
+    {% else %}
+    <p>
+      <b>Tip!</b>
+      If you sign in you can save this search.
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+{% endblock %}

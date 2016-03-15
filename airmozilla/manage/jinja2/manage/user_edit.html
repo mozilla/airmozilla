@@ -1,0 +1,16 @@
+{% extends 'manage/users.html' %}
+
+{% block manage_title %}
+  Editing user {{ user_.email }}
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+  {% include "manage/_default_form.html" %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'user_edit' %}
+{% endblock %}

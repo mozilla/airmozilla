@@ -904,9 +904,10 @@ class TestPages(DjangoTestCase):
         url_all = self._calendar_url('contributors')
         url_lon = self._calendar_url('contributors', london.pk)
         url_mv = self._calendar_url('contributors', event1.location.pk)
-        ok_(url_all in response.content)
-        ok_(url_lon in response.content)
-        ok_(url_mv in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(url_all in response_content)
+        ok_(url_lon in response_content)
+        ok_(url_mv in response_content)
 
         # now log in as an employee
         User.objects.create_user(
@@ -919,9 +920,10 @@ class TestPages(DjangoTestCase):
         url_all = self._calendar_url('company')
         url_lon = self._calendar_url('company', london.pk)
         url_mv = self._calendar_url('company', event1.location.pk)
-        ok_(url_all in response.content)
-        ok_(url_lon in response.content)
-        ok_(url_mv in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(url_all in response_content)
+        ok_(url_lon in response_content)
+        ok_(url_mv in response_content)
 
     def test_calendars_page_locations_disappear(self):
         london = Location.objects.create(
@@ -1128,7 +1130,8 @@ class TestPages(DjangoTestCase):
         event.save()
         response = self.client.get(url)
         ok_(
-            'Google <a href="http://google.com">http://google.com</a>' in
+            'Google <a href="http://google.com" rel="nofollow">'
+            'http://google.com</a>' in
             response.content
         )
 
@@ -1139,8 +1142,10 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
 
         ok_(
-            'Google <a href="http://google.com">http://google.com</a><br>'
-            'Yahii <a href="http://yahii.com">http://yahii.com</a>'
+            'Google <a href="http://google.com" rel="nofollow">'
+            'http://google.com</a><br />'
+            'Yahii <a href="http://yahii.com" rel="nofollow"'
+            '>http://yahii.com</a>'
             in response.content
         )
 
@@ -1212,8 +1217,9 @@ class TestPages(DjangoTestCase):
         assert not event.is_live()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Chapters' in response.content)
-        ok_(edit_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_('Chapters' in response_content)
+        ok_(edit_url in response_content)
 
     @mock.patch('airmozilla.manage.vidly.urllib2.urlopen')
     def test_event_with_vidly_token_urlerror(self, p_urlopen):
@@ -2241,7 +2247,7 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         head = response.content.split('</head>')[0]
         ok_('<meta property="og:title" content="%s">' % event.title in head)
-        from airmozilla.main.helpers import short_desc
+        from airmozilla.main.templatetags.jinja_helpers import short_desc
         ok_(
             '<meta property="og:description" content="%s">' % short_desc(event)
             in head
@@ -2844,7 +2850,8 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         # but it doesn't appear because it has no pictures
-        ok_(edit_url not in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(edit_url not in response_content)
 
         with open(self.main_image) as fp:
             picture = Picture.objects.create(
@@ -2862,14 +2869,16 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         # but it doesn't appear because it has no pictures
-        ok_(edit_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(edit_url in response_content)
 
         event.picture = picture2
         event.save()
         # now it shouldn't be offered because it already has a picture
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(edit_url not in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(edit_url not in response_content)
 
     def test_unpicked_pictures_contributor(self):
         event = Event.objects.get(title='Test event')
@@ -2895,21 +2904,24 @@ class TestPages(DjangoTestCase):
         )
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(edit_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(edit_url in response_content)
 
         # and it should continue to be offered if the event is...
         event.privacy = Event.PRIVACY_CONTRIBUTORS
         event.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(edit_url in response.content)
+        response_content = response.content.decode('utf-8')
+        ok_(edit_url in response_content)
 
         # but not if it's only company
         event.privacy = Event.PRIVACY_COMPANY
         event.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(edit_url not in response.content)  # note the not
+        response_content = response.content.decode('utf-8')
+        ok_(edit_url not in response_content)  # note the not
 
     def test_hd_download_links(self):
         event = Event.objects.get(title='Test event')

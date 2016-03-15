@@ -15,7 +15,8 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ImproperlyConfigured
-from django.contrib.sites.models import RequestSite, Site
+from django.contrib.sites.requests import RequestSite
+from django.contrib.sites.models import Site
 from django.core.mail.backends.filebased import EmailBackend
 from django.forms.utils import ErrorList
 from django.contrib.staticfiles.storage import staticfiles_storage

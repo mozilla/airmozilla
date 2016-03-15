@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     'django.contrib.flatpages',  # this can be deleted later
     'cronjobs',
     'raven.contrib.django.raven_compat',
+    'django_jinja',
     'django_nose',  # deliberately making this the last one
 )
 
@@ -102,14 +103,6 @@ PASSWORD_HASHERS = ('django.contrib.auth.hashers.UnsaltedMD5PasswordHasher',)
 # which uses CookieStorage by default so sessions are better
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
-# Because Jinja2 is the default template loader, add any non-Jinja templated
-# apps here:
-JINGO_EXCLUDE_APPS = [
-    'admin',
-    'registration',
-    'bootstrapform',
-    'browserid',
-]
 
 # Note that this is different when running tests.
 # You know in case you're debugging tests.
@@ -134,13 +127,8 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL_FAILURE = '/login-failure/'
 
-TEMPLATE_LOADERS = (
-    'jingo.Loader',
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
 
-TEMPLATE_CONTEXT_PROCESSORS = (
+_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.debug',
     'django.core.context_processors.media',
@@ -161,21 +149,51 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'airmozilla.starred.context_processors.stars',
 )
 
+TEMPLATES = [
+    {
+        'BACKEND': 'django_jinja.backend.Jinja2',
+        'APP_DIRS': True,
+        'OPTIONS': {
+            # Use jinja2/ for jinja templates
+            'app_dirname': 'jinja2',
+            # Don't figure out which template loader to use based on
+            # file extension
+            'match_extension': '',
+            # 'newstyle_gettext': True,
+            'context_processors': _CONTEXT_PROCESSORS,
+            'debug': False,
+            'undefined': 'jinja2.Undefined',
+            'extensions': [
+                'jinja2.ext.do',
+                'jinja2.ext.loopcontrols',
+                'jinja2.ext.with_',
+                'jinja2.ext.i18n',  # needed to avoid errors in django_jinja
+                'jinja2.ext.autoescape',
+                'django_jinja.builtins.extensions.CsrfExtension',
+                'django_jinja.builtins.extensions.StaticFilesExtension',
+                'django_jinja.builtins.extensions.DjangoFiltersExtension',
+                'pipeline.templatetags.ext.PipelineExtension',
+            ],
+            'globals': {
+                'browserid_info': 'django_browserid.helpers.browserid_info',
+                'browserid_login': 'django_browserid.helpers.browserid_login',
+                'browserid_logout': 'django_browserid.helpers.browserid_logout'
+            }
+        }
+    },
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],  # what does this do?!
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'debug': False,
+            'context_processors': _CONTEXT_PROCESSORS,
+        }
+    },
+]
+
 # Always generate a CSRF token for anonymous users.
 ANON_ALWAYS = True
-
-
-def JINJA_CONFIG():
-    config = {
-        'extensions': [
-            'jinja2.ext.do',
-            'jinja2.ext.with_',
-            'jinja2.ext.loopcontrols',
-            'pipeline.templatetags.ext.PipelineExtension',
-        ],
-        'finalize': lambda x: x if x is not None else '',
-    }
-    return config
 
 
 # Remove localization middleware

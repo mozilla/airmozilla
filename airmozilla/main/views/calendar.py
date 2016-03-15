@@ -15,7 +15,7 @@ from slugify import slugify
 from jsonview.decorators import json_view
 
 from airmozilla.base.utils import get_base_url
-from airmozilla.main.helpers import short_desc
+from airmozilla.main.templatetags.jinja_helpers import short_desc
 from airmozilla.main.models import (
     Event,
     get_profile_safely,
