@@ -1,6 +1,5 @@
 import json
 from pprint import pprint
-from optparse import make_option
 from urlparse import urlparse
 
 import requests
@@ -14,26 +13,25 @@ from airmozilla.subtitles.models import AmaraVideo
 
 class Command(BaseCommand):  # pragma: no cover
 
-    option_list = BaseCommand.option_list + (
-        make_option(
+    def add_arguments(self, parser):
+        parser.add_argument('slug-or-url-or-id', nargs='+')
+        parser.add_argument(
             '--post',
             action='store_true',
             dest='post',
             default=False,
             help='Upload/Post video if not already there'
-        ),
-    )
+        )
 
-    args = 'slug-or-url-or-id [slug-or-url-or-id, ...]'
-
-    def handle(self, *args, **options):
-        if not args:
-            raise CommandError(self.args)
+    def handle(self, **options):
+        identifiers = options['slug-or-url-or-id']
+        if not identifiers:
+            raise CommandError('slug-or-url-or-id')
 
         verbosity = int(options['verbosity'])
         verbose = verbosity > 1
 
-        for arg in args:
+        for arg in identifiers:
             if arg.isdigit():
                 event = Event.objects.get(pk=arg)
             else:
