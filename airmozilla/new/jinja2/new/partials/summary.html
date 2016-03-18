@@ -159,7 +159,6 @@
 
 <form ng-submit="publish()" method="post" class="submission"
       ng-if="!loading && !publishingError && event.status == 'initiated'">
-  {% csrf_token %}
   <h3>Is it ready?</h3>
 
   <button type="submit" class="btn btn-primary submit" name="submit"

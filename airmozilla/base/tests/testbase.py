@@ -3,6 +3,7 @@ import shutil
 import json
 import logging
 
+import mock
 from nose.plugins.skip import SkipTest
 from selenium import webdriver
 
@@ -27,12 +28,16 @@ class DjangoTestCase(TestCase):
         self._upload_media(self.main_image)
         self.created_static_files = []
 
+        self.fanout_patcher = mock.patch('airmozilla.base.utils.fanout')
+        self.fanout = self.fanout_patcher.start()
+
     def tearDown(self):
         assert os.path.basename(settings.MEDIA_ROOT).startswith('test')
         if os.path.isdir(settings.MEDIA_ROOT):
             shutil.rmtree(settings.MEDIA_ROOT)
         for file_path in self.created_static_files:
             os.remove(file_path)
+        self.fanout_patcher.stop()
         super(DjangoTestCase, self).tearDown()
 
     def _create_static_file(self, name, content):

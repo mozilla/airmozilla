@@ -567,6 +567,12 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/savedsearches.min.js',
     },
+    'fanout': {
+        'source_filenames': (
+            'js/fanout.js',
+        ),
+        'output_filename': 'js/fanout.min.js',
+    },
 }
 
 # This is sanity checks, primarily for developers. It checks that

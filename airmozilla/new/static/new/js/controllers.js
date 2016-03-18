@@ -218,10 +218,10 @@ angular.module('new.controllers', ['new.services'])
 )
 
 .controller('UploadController',
-    ['$scope', '$state', '$interval',
+    ['$scope', '$state',
      'statusService', 'eventService', 'uploadService',
     function(
-        $scope, $state, $interval,
+        $scope, $state,
         statusService, eventService, uploadService
     ) {
         setDocumentTitle('Upload a file');
@@ -265,10 +265,10 @@ angular.module('new.controllers', ['new.services'])
 ])
 
 .controller('YouTubeController',
-    ['$scope', '$state', '$interval', '$sce',
+    ['$scope', '$state', '$sce',
      'statusService', 'eventService', 'youtubeService',
     function(
-        $scope, $state, $interval, $sce,
+        $scope, $state, $sce,
         statusService, eventService, youtubeService
     ) {
         setDocumentTitle('Share a YouTube™ Video');
@@ -928,7 +928,18 @@ angular.module('new.controllers', ['new.services'])
             .error(console.error.bind(console));
         };
         displayAvailableScreencaptures(); // first load
-        reloadPromise = $interval(displayAvailableScreencaptures, 3 * 1000);
+
+        var reloadInterval = 3; // seconds
+        if (typeof window.Fanout !== 'undefined') {
+            window.Fanout.subscribe('/event-pictures-' + id, function(data) {
+                $scope.$apply(displayAvailableScreencaptures);
+            });
+            reloadInterval = 60;
+        }
+        reloadPromise = $interval(
+            displayAvailableScreencaptures,
+            reloadInterval * 1000
+        );
 
         $scope.pickThumbnail = function(thumbnail) {
             // unpick the other, if there was one
@@ -965,10 +976,10 @@ angular.module('new.controllers', ['new.services'])
 ])
 
 .controller('SummaryController',
-    ['$scope', '$stateParams', '$http', '$state', '$sce', '$timeout',
+    ['$scope', '$stateParams', '$http', '$state', '$sce', '$interval',
      'statusService', 'eventService',
     function(
-        $scope, $stateParams, $http, $state, $sce, $timeout,
+        $scope, $stateParams, $http, $state, $sce, $interval,
         statusService, eventService
     ) {
         setDocumentTitle('Summary');
@@ -993,17 +1004,16 @@ angular.module('new.controllers', ['new.services'])
             return moment().add(seconds, 'seconds').fromNow(true);
         };
 
+        var reloadInterval = 5; // seconds
+        var reloadPromise = null;
+
         function fetchVideo() {
             $http.get(videoUrl)
             .success(function(response) {
                 $scope.video = response;
                 if (response.finished) {
                     showIframe();
-                } else {
-                    $timeout(function() {
-                        fetchVideo();
-                        // console.log('Rechecking if video is there now');
-                    }, 5 * 1000);
+                    $interval.cancel(reloadPromise);
                 }
             })
             .error(console.error.bind(console))
@@ -1021,7 +1031,14 @@ angular.module('new.controllers', ['new.services'])
             $scope.pictures = response.pictures;
             if ($scope.event.upload) {
                 $scope.loadingVideo = true;
-                fetchVideo();
+                if (typeof window.Fanout !== 'undefined') {
+                    window.Fanout.subscribe('/event-vidlysubmissions-' + id, function() {
+                        $scope.$apply(fetchVideo);
+                    });
+                    // much less frequently if Fanout is working
+                    reloadInterval = 60;
+                }
+                reloadPromise = $interval(fetchVideo, reloadInterval * 1000);
             } else if ($scope.event.youtube_id) {
                 $scope.event.youtubeSrc = $sce.trustAsResourceUrl(
                     'https://www.youtube-nocookie.com/embed/' +
