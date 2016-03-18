@@ -146,6 +146,7 @@ _CONTEXT_PROCESSORS = (
     'airmozilla.main.context_processors.browserid',
     'airmozilla.main.context_processors.faux_i18n',
     'airmozilla.main.context_processors.autocompeter',
+    'airmozilla.main.context_processors.fanout',
     'airmozilla.starred.context_processors.stars',
 )
 
@@ -396,3 +397,6 @@ YOUTUBE_API_KEY = None
 PIPELINE_YUGLIFY_BINARY = path('node_modules/.bin/yuglify')
 
 POPCORN_EDITOR_CDN_URL = "//d2edlhmcxlovf.cloudfront.net"
+
+# Fanout.io account defaults for a realm.
+FANOUT_REALM_ID = FANOUT_REALM_KEY = None

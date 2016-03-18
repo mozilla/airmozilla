@@ -467,11 +467,18 @@ class EventView(View):
                     context['pin_form'] = forms.PinForm()
         try:
             context['discussion'] = Discussion.objects.get(event=event)
+            # The name of the channel we publish to fanout on when there's
+            # changes to this events comments.
+            context['subscription_channel_comments'] = 'comments-{}'.format(
+                event.id
+            )
         except Discussion.DoesNotExist:
             context['discussion'] = {'enabled': False}
 
         if event.recruitmentmessage and event.recruitmentmessage.active:
             context['recruitmentmessage'] = event.recruitmentmessage
+
+        context['subscription_channel_status'] = 'status-{}'.format(event.id)
 
         cache_key = 'event_survey_id_%s' % event.id
         context['survey_id'] = cache.get(cache_key, -1)

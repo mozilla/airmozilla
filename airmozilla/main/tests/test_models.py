@@ -4,7 +4,6 @@ import datetime
 
 from django.contrib.auth.models import Group, User
 from django.utils import timezone
-from django.utils.timezone import utc
 from django.core.files import File
 
 from nose.tools import ok_, eq_
@@ -33,8 +32,47 @@ Upload = Upload  # shut up pyflakes
 
 class EventTests(DjangoTestCase):
 
+    def test_send_fanout_on_status_change(self):
+        eq_(len(self.fanout.mock_calls), 0)
+        event = Event.objects.create(
+            status=Event.STATUS_INITIATED,
+            start_time=timezone.now(),
+        )
+        eq_(len(self.fanout.mock_calls), 0)
+        event.status = Event.STATUS_SCHEDULED
+        event.save()
+        eq_(len(self.fanout.mock_calls), 1)
+        self.fanout.publish.assert_called_with(
+            'status-{}'.format(event.id),
+            {'status': Event.STATUS_SCHEDULED}
+        )
+
+        # saving it again without changing anything should not trigger
+        event.save()
+        eq_(len(self.fanout.mock_calls), 1)
+
+    def test_send_fanout_on_vidlysubmission_change(self):
+        event = Event.objects.create(
+            status=Event.STATUS_INITIATED,
+            start_time=timezone.now(),
+        )
+        vidly_submission = VidlySubmission.objects.create(
+            event=event,
+            url='https://s3.example/file.mov',
+        )
+        eq_(len(self.fanout.mock_calls), 0)
+        vidly_submission.tag = 'abc123'
+        vidly_submission.save()
+        eq_(len(self.fanout.mock_calls), 1)
+        self.fanout.publish.assert_called_with(
+            'event-vidlysubmissions-{}'.format(event.id),
+            {'id': vidly_submission.id}
+        )
+
     def test_location_time(self):
-        date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
+        date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(
+            tzinfo=timezone.utc
+        )
         mountain_view = Location.objects.create(
             name='Mountain View',
             timezone='US/Pacific',
@@ -58,7 +96,9 @@ class EventTests(DjangoTestCase):
         # this test does not benefit from the standard fixtures
         Event.objects.all().delete()
 
-        date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
+        date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(
+            tzinfo=timezone.utc
+        )
         mountain_view = Location.objects.create(
             name='Mountain View',
             timezone='US/Pacific',

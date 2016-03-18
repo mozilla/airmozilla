@@ -1,5 +1,3 @@
-var RELOAD_INTERVAL = 10;  // seconds
-
 var Comments = (function() {
 
     var previous_latest_comment = null;
@@ -232,9 +230,25 @@ var Comments = (function() {
                     }
                 });
             }
+            var RELOAD_INTERVAL = 5;  // seconds
+
+            if (typeof window.Fanout !== 'undefined') {
+                Fanout.subscribe('/' + container.data('subscription-channel-comments'), function(data) {
+                    // Supposedly the comments have changed.
+                    // For security, let's not trust the data but just take it
+                    // as a hint that it's worth doing an AJAX query
+                    // now.
+                    Comments.load(container);
+                });
+                // If Fanout doesn't work for some reason even though it
+                // was made available, still use the regular old
+                // interval. Just not as frequently.
+                RELOAD_INTERVAL = 60 * 5;
+            }
             setInterval(function() {
                 Comments.reload_loop(container);
-            }, 5 * 1000);
+            }, RELOAD_INTERVAL * 1000);
+
         });
 
 
@@ -272,7 +286,7 @@ var Comments = (function() {
                 Comments.load(container);
                 setTimeout(function() {
                     $('.submission-success', $form).fadeOut(600);
-                }, RELOAD_INTERVAL * 1000);
+                }, 10 * 1000);
             });
             req.always(function() {
                 $('button[type="submit"]').removeProp('disabled');

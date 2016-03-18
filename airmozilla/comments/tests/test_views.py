@@ -100,6 +100,8 @@ class TestComments(DjangoTestCase):
         })
         eq_(response.status_code, 400)
 
+        assert not self.fanout.mock_calls
+
         # enable discussion
         discussion = self._create_discussion(event)
         jay = User.objects.create(username='jay', email='jay@mozilla.com')
@@ -137,6 +139,11 @@ class TestComments(DjangoTestCase):
         structure = json.loads(response.content)
         ok_('No comments posted' not in structure['html'])
         ok_('Bla bla' in structure['html'])
+
+        self.fanout.publish.assert_called_with(
+            'comments-{}'.format(event.id),
+            True
+        )
 
         comment = Comment.objects.get(comment='Bla bla')
         ok_(comment)

@@ -420,3 +420,9 @@ def autocompeter(request):
         'autocompeter_groups': ','.join(groups),
         'autocompeter_url': url,
     }
+
+
+def fanout(request):
+    return {
+        'FANOUT_REALM_ID': settings.FANOUT_REALM_ID,
+    }

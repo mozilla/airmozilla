@@ -95,3 +95,8 @@ YOUTUBE_API_KEY = 'doesnthavetobesomethingreal'
 
 # Make sure pipeline is enabled so it does not collectstatic on every test
 PIPELINE_ENABLED = True
+
+# Make sure it's not real values so it can never actually work, if
+# the tests don't correctly mock fanout.
+FANOUT_REALM_ID = 'abc123'
+FANOUT_REALM_KEY = 'xyz987'

@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.utils.encoding import smart_text
 
-from airmozilla.base.utils import unique_slugify, roughly
+from airmozilla.base.utils import unique_slugify, roughly, send_fanout
 from airmozilla.main.fields import EnvironmentField
 from airmozilla.manage.utils import filename_to_notes
 from airmozilla.manage.vidly import get_video_redirect_info
@@ -411,6 +411,17 @@ class Event(models.Model):
 
     def __unicode__(self):
         return self.title
+
+    def __init__(self, *args, **kwargs):
+        super(Event, self).__init__(*args, **kwargs)
+        self._original_status = self.status
+
+    def save(self, *args, **kwargs):
+        if self._original_status != self.status and self.id:
+            channel = 'status-{}'.format(self.id)
+            send_fanout(channel, {'status': self.status})
+        super(Event, self).save(*args, **kwargs)
+        self._original_status = self.status
 
     def is_upcoming(self):
         return (self.archive_time is None and
@@ -839,6 +850,13 @@ class VidlySubmission(models.Model):
 
 
 @receiver(models.signals.post_save, sender=VidlySubmission)
+def notify_fanout_event_vidly_submissions(sender, instance, *args, **kwargs):
+    if instance.event_id and not kwargs.get('created'):
+        channel = 'event-vidlysubmissions-{}'.format(instance.event_id)
+        send_fanout(channel, {'id': instance.id})
+
+
+@receiver(models.signals.post_save, sender=VidlySubmission)
 def invalidate_vidly_tokenization(sender, instance, **kwargs):
     if instance.tag:
         cache_key = 'vidly_tokenize:%s' % instance.tag
@@ -989,6 +1007,13 @@ class Picture(models.Model):
 
     def __repr__(self):
         return "<%s: %r>" % (self.__class__.__name__, self.notes)
+
+
+@receiver(models.signals.post_save, sender=Picture)
+def notify_fanout_event_pictures(sender, instance, *args, **kwargs):
+    if instance.event_id:
+        channel = 'event-pictures-{}'.format(instance.event_id)
+        send_fanout(channel, {'id': instance.id})
 
 
 @receiver(models.signals.pre_save, sender=Picture)

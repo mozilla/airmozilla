@@ -1,6 +1,7 @@
 <div id="comments"
      data-url="{{ url('comments:event_data', event.pk) }}"
-     data-reload-url="{{ url('comments:event_data_latest', event.pk) }}">
+     data-reload-url="{{ url('comments:event_data_latest', event.pk) }}"
+     data-subscription-channel-comments="{{ subscription_channel_comments }}">
   <h3>Comments</h3>
   <p class="loading">Loading comments. Please wait&hellip;</p>
   <div class="comments-outer"></div>

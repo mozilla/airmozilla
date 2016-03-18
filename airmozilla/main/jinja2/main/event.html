@@ -42,7 +42,10 @@
     </div>
     {% endif %}
 
-    <div class="entry-content" data-event-status="{{ event.status }}">
+    <div class="entry-content"
+      data-event-status="{{ event.status }}"
+      data-subscription-channel-status="{{ subscription_channel_status }}"
+      >
       {% if event.is_pending() %}
         <p class="pending">
           Event is currently in a pending state meaning it will soon be made available.

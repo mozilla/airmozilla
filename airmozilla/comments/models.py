@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 
 from airmozilla.main.models import Event, SuggestedEvent
+from airmozilla.base.utils import send_fanout
 
 
 class Comment(models.Model):
@@ -41,10 +42,13 @@ def invalidate_latest_comment_cache(sender, instance, **kwargs):
     [cache.delete(x) for x in cache_keys]
 
 
-# class CommentVotes(models.Model):
-#     comment = models.ForeignKey(Comment)
-#     vote = models.IntegerField(default=1)
-#     created = models.DateTimeField(auto_now_add=True)
+@receiver(models.signals.post_save, sender=Comment)
+def notify_fanout(sender, instance, **kwargs):
+    event = instance.event
+    # This channel must match `subscription_channel_comments` set in the
+    # view class for holding the comments container.
+    channel = 'comments-{}'.format(event.id)
+    send_fanout(channel, True)
 
 
 class Discussion(models.Model):

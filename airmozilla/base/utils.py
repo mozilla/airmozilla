@@ -7,6 +7,7 @@ import os
 import urlparse
 import random
 
+import fanout
 import pytz
 import requests
 from slugify import slugify
@@ -36,6 +37,20 @@ STOPWORDS = (
     "wants was we were what when where which while who whom why "
     "will with would yet you your".split()
 )
+
+
+def send_fanout(channel, data):
+    if settings.FANOUT_REALM_ID and settings.FANOUT_REALM_KEY:
+        fanout.realm = settings.FANOUT_REALM_ID
+        fanout.key = settings.FANOUT_REALM_KEY
+        assert not channel.startswith('/')  # only in JavaScript
+        fanout.publish(channel, data)
+    else:
+        import warnings
+        warnings.warn(
+            'FANOUT_REALM_ID and FANOUT_REALM_KEY not set so Fanout '
+            'subscription message not published.'
+        )
 
 
 def roughly(number, variance_percentage=20):
