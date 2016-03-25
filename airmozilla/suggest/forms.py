@@ -12,7 +12,8 @@ from airmozilla.main.models import (
     Event,
     Tag,
     Channel,
-    SuggestedEventComment
+    SuggestedEventComment,
+    SuggestedCuratedGroup,
 )
 from airmozilla.comments.models import SuggestedDiscussion
 from airmozilla.main.forms import TagsModelMultipleChoiceField
@@ -80,11 +81,30 @@ class DescriptionForm(BaseModelForm):
         )
 
 
+class CuratedGroupsChoiceField(forms.MultipleChoiceField):
+    """The purpose of this overridden field is so that we can create
+    SuggestedCuratedGroup objects if need be.
+    """
+
+    def clean(self, value):
+        if self.event.id:
+            for name in value:
+                SuggestedCuratedGroup.objects.get_or_create(
+                    event=self.event,
+                    name=name
+                )
+        return value
+
+
 class DetailsForm(BaseModelForm):
 
     tags = TagsModelMultipleChoiceField(
         Tag.objects.all(),
         required=False,
+    )
+    curated_groups = CuratedGroupsChoiceField(
+        required=False,
+        help_text='',
     )
 
     enable_discussion = forms.BooleanField(required=False)
@@ -97,6 +117,7 @@ class DetailsForm(BaseModelForm):
             'start_time',
             'estimated_duration',
             'privacy',
+            'curated_groups',
             'tags',
             'channels',
             'additional_links',
@@ -113,7 +134,11 @@ class DetailsForm(BaseModelForm):
 
     def __init__(self, *args, **kwargs):
         no_tag_choices = kwargs.pop('no_tag_choices', None)
+        curated_groups_choices = kwargs.pop('curated_groups_choices', [])
         super(DetailsForm, self).__init__(*args, **kwargs)
+
+        self.fields['curated_groups'].event = self.instance
+        self.fields['curated_groups'].choices = curated_groups_choices
 
         if no_tag_choices:
             self.fields['tags'].queryset = self.instance.tags.all()
@@ -186,6 +211,21 @@ class DetailsForm(BaseModelForm):
         if not channels:
             return Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG)
         return channels
+
+    def clean(self):
+        cleaned_data = super(DetailsForm, self).clean()
+        if (
+            'privacy' in cleaned_data and
+            cleaned_data['privacy'] == SuggestedEvent.PRIVACY_SOME_CONTRIBUTORS
+        ):
+            # If you selected "Some Contributors" you *have* to have
+            # selected at least one curated group.
+            if not cleaned_data['curated_groups']:
+                raise forms.ValidationError(
+                    '"Some Contributors" privacy but no Curated Groups '
+                    'selected.'
+                )
+        return cleaned_data
 
 
 class EmailsMultipleChoiceField(forms.MultipleChoiceField):

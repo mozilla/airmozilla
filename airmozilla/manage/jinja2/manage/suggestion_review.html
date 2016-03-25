@@ -73,7 +73,15 @@
       </tr>
       <tr>
         <td>Privacy</td>
-        <td>{{ event.get_privacy_display() }}</td>
+        <td>
+          {{ event.get_privacy_display() }}<br />
+          {% if curated_groups %}
+          <b>Curated Group{{ curated_groups.count() | pluralize }}:</b>
+            {% for group in curated_groups %}
+              <i>{{ group.name }}</i>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          {% endif %}
+        </td>
       </tr>
       <tr>
         <td>Additional links</td>

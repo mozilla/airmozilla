@@ -860,7 +860,7 @@ class TestEvents(ManageTestCase):
 
         def mocked_get(url, **options):
             if '/v2/groups/' in url and 'name=badasses' in url:
-                return Response(json.dumps({
+                return Response({
                     "count": 1,
                     "results": [
                         {
@@ -872,7 +872,7 @@ class TestEvents(ManageTestCase):
                             "next": "should not be necessary",
                         }
                     ]
-                }))
+                })
             raise NotImplementedError(url)
         rget.side_effect = mocked_get
 

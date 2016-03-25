@@ -92,6 +92,9 @@ urlpatterns = patterns(
         reports.executive_summary,
         name='executive_summary'),
     url(r'^all-tags/$', pages.all_tags, name='all_tags'),
+    url(r'^curated-groups-autocomplete/$',
+        misc.curated_groups_autocomplete,
+        name='curated_groups_autocomplete'),
     url(r'^(?P<slug>[-\w]+)/$', pages.EventView.as_view(),
         name='event'),
     url(r'^(?P<slug>[-\w]+)/video/$', pages.EventVideoView.as_view(),
@@ -122,5 +125,4 @@ urlpatterns = patterns(
     url(r'^crossdomain.xml$',
         misc.crossdomain_xml,
         name='crossdomain_xml'),
-
 )

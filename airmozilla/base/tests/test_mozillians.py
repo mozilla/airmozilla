@@ -1,5 +1,3 @@
-import json
-
 from django.conf import settings
 from django.test import TestCase
 from django.core.cache import cache
@@ -11,248 +9,225 @@ from airmozilla.base import mozillians
 from airmozilla.base.tests.testbase import Response
 
 
-VOUCHED_FOR_USERS = """
-{
-  "count": 1,
-  "next": null,
-  "results": [
-    {
-      "username": "peterbe",
-      "_url": "https://muzillians.fake/api/v2/users/99999/",
-      "is_vouched": true
-    }
-  ],
-  "previous": null
+VOUCHED_FOR_USERS = {
+    "count": 1,
+    "next": None,
+    "results": [
+        {
+            "username": "peterbe",
+            "_url": "https://muzillians.fake/api/v2/users/99999/",
+            "is_vouched": True
+        }
+    ],
+    "previous": None,
 }
-"""
 
-NO_USERS = """
-{
-  "count": 0,
-  "next": null,
-  "results": [],
-  "previous": null
+NO_USERS = {
+    "count": 0,
+    "next": None,
+    "results": [],
+    "previous": None,
 }
-"""
 
-VOUCHED_FOR = """
-{
-  "photo": {
-    "300x300": "https://muzillians.fake/media/uplo...1caee0.jpg",
-    "150x150": "https://muzillians.fake/media/uplo...5636261.jpg",
-    "500x500": "https://muzillians.fake/media/uplo...6465a73.jpg",
-    "value": "https://muzillians.fake/media/uploa...71caee0.jpg",
-    "privacy": "Public"
-  },
-  "date_mozillian": {
-    "value": null,
-    "privacy": "Mozillians"
-  },
-  "full_name": {
-    "value": "Peter Bengtsson",
-    "privacy": "Public"
-  },
-  "title": {
-    "value": "",
-    "privacy": "Mozillians"
-  },
-  "external_accounts": [],
-  "alternate_emails": [],
-  "email": {
-    "value": "peterbe@mozilla.com",
-    "privacy": "Mozillians"
-  },
-  "username": "peterbe",
-  "is_public": true,
-  "url": "https://muzillians.fake/en-US/u/peterbe/",
-  "country": {
-    "code": "us",
-    "value": "United States",
-    "privacy": "Public"
-  },
-  "websites": [
-    {
-      "website": "http://www.peterbe.com/",
-      "privacy": "Public"
-    }
-  ],
-  "_url": "https://muzillians.fake/api/v2/users/441/",
-  "story_link": {
-    "value": "",
-    "privacy": "Mozillians"
-  },
-  "ircname": {
-    "value": "peterbe",
-    "privacy": "Public"
-  },
-  "is_vouched": true
-}
-"""
-
-NOT_VOUCHED_FOR = """
-{
-  "photo": {
-    "300x300": "https://muzillians.fake/media/uplo...1caee0.jpg",
-    "150x150": "https://muzillians.fake/media/uplo...5636261.jpg",
-    "500x500": "https://muzillians.fake/media/uplo...6465a73.jpg",
-    "value": "https://muzillians.fake/media/uploa...71caee0.jpg",
-    "privacy": "Public"
-  },
-  "date_mozillian": {
-    "value": null,
-    "privacy": "Mozillians"
-  },
-  "full_name": {
-    "value": "Peter Bengtsson",
-    "privacy": "Private"
-  },
-  "title": {
-    "value": "",
-    "privacy": "Mozillians"
-  },
-  "alternate_emails": [],
-  "email": {
-    "value": "peterbe@mozilla.com",
-    "privacy": "Mozillians"
-  },
-  "username": "tmickel",
-  "bio": {
-    "html": "<p>Web developer at Mozilla</p>",
-    "value": "Web developer at Mozilla",
-    "privacy": "Public"
-  },
-  "is_public": true,
-  "url": "https://muzillians.fake/en-US/u/peterbe/",
-  "websites": [
-    {
-      "website": "http://www.peterbe.com/",
-      "privacy": "Public"
-    }
-  ],
-  "_url": "https://muzillians.fake/api/v2/users/441/",
-  "story_link": {
-    "value": "",
-    "privacy": "Mozillians"
-  },
-  "ircname": {
-    "value": "peterbe",
-    "privacy": "Public"
-  },
-  "is_vouched": false
-}
-"""
-
-VOUCHED_FOR_NO_USERNAME = """
-{
-  "meta": {
-    "previous": null,
-    "total_count": 1,
-    "offset": 0,
-    "limit": 20,
-    "next": null
-  },
-  "objects": [
-    {
-      "website": "",
-      "bio": "",
-      "resource_uri": "/api/v1/users/2429/",
-      "last_updated": "2012-11-06T14:41:47",
-      "groups": [
-        "ugly tuna"
-      ],
-      "city": "Casino",
-      "skills": [],
-      "country": "Albania",
-      "region": "Bush",
-      "id": "2429",
-      "languages": [],
-      "allows_mozilla_sites": true,
-      "photo": "http://www.gravatar.com/avatar/0409b497734934400822bb33...",
-      "is_vouched": true,
-      "email": "peterbe@gmail.com",
-      "ircname": "",
-      "allows_community_sites": true
-      }
-  ]
-}
-"""
-
-NOT_VOUCHED_FOR_USERS = """
-{
-  "count": 1,
-  "next": null,
-  "results": [
-    {
-      "username": "tmickel@mit.edu",
-      "_url": "https://muzillians.fake/api/v2/users/00000/",
-      "is_vouched": false
-    }
-  ],
-  "previous": null
-}
-"""
-
-NO_VOUCHED_FOR = """
-{
-  "meta": {
-    "previous": null,
-    "total_count": 0,
-    "offset": 0,
-    "limit": 20,
-    "next": null
-  },
-  "objects": []
-}
-"""
-
-
-GROUPS1 = """
-{
-  "count": 3,
-  "previous": null,
-  "results": [
-    {
-      "url": "https://muzillians.fake/en-US/group/9090909/",
-      "_url": "https://muzillians.fake/api/v2/groups/909090/",
-      "id": 12426,
-      "member_count": 3,
-      "name": "GROUP NUMBER 1"
+VOUCHED_FOR = {
+    "photo": {
+        "300x300": "https://muzillians.fake/media/uplo...1caee0.jpg",
+        "150x150": "https://muzillians.fake/media/uplo...5636261.jpg",
+        "500x500": "https://muzillians.fake/media/uplo...6465a73.jpg",
+        "value": "https://muzillians.fake/media/uploa...71caee0.jpg",
+        "privacy": "Public"
     },
-    {
-      "url": "https://muzillians.fake/en-US/group/2009-intern/",
-      "_url": "https://muzillians.fake/api/v2/groups/08080808/",
-      "id": 196,
-      "member_count": 7,
-      "name": "GROUP NUMBER 2"
-    }
-  ],
-  "next": "https://muzillians.fake/api/v2/groups/?api-key=xxxkey&page=2"
+    "date_mozillian": {
+        "value": None,
+        "privacy": "Mozillians"
+    },
+    "full_name": {
+        "value": "Peter Bengtsson",
+        "privacy": "Public"
+    },
+    "title": {
+        "value": "",
+        "privacy": "Mozillians"
+    },
+    "external_accounts": [],
+    "alternate_emails": [],
+    "email": {
+        "value": "peterbe@mozilla.com",
+        "privacy": "Mozillians"
+    },
+    "username": "peterbe",
+    "is_public": True,
+    "url": "https://muzillians.fake/en-US/u/peterbe/",
+    "country": {
+        "code": "us",
+        "value": "United States",
+        "privacy": "Public"
+    },
+    "websites": [
+        {
+            "website": "http://www.peterbe.com/",
+            "privacy": "Public"
+        }
+    ],
+    "_url": "https://muzillians.fake/api/v2/users/441/",
+    "story_link": {
+        "value": "",
+        "privacy": "Mozillians"
+    },
+    "ircname": {
+        "value": "peterbe",
+        "privacy": "Public"
+    },
+    "is_vouched": True
 }
-"""
 
-GROUPS2 = """
-{
-  "count": 3,
-  "previous": "https://muzillians.fake/api/v2/groups/?api-key=xxxkey",
-  "results": [
-    {
-      "url": "https://muzillians.fake/en-US/group/2013summitassembly/",
-      "_url": "https://muzillians.fake/api/v2/groups/02020202/",
-      "id": 2002020,
-      "member_count": 53,
-      "name": "GROUP NUMBER 3"
-    }
-  ],
-  "next": null
+NOT_VOUCHED_FOR = {
+    "photo": {
+        "300x300": "https://muzillians.fake/media/uplo...1caee0.jpg",
+        "150x150": "https://muzillians.fake/media/uplo...5636261.jpg",
+        "500x500": "https://muzillians.fake/media/uplo...6465a73.jpg",
+        "value": "https://muzillians.fake/media/uploa...71caee0.jpg",
+        "privacy": "Public"
+    },
+    "date_mozillian": {
+        "value": None,
+        "privacy": "Mozillians"
+    },
+    "full_name": {
+        "value": "Peter Bengtsson",
+        "privacy": "Private"
+    },
+    "title": {
+        "value": "",
+        "privacy": "Mozillians"
+    },
+    "alternate_emails": [],
+    "email": {
+        "value": "peterbe@mozilla.com",
+        "privacy": "Mozillians"
+    },
+    "username": "tmickel",
+    "bio": {
+        "html": "<p>Web developer at Mozilla</p>",
+        "value": "Web developer at Mozilla",
+        "privacy": "Public"
+    },
+    "is_public": True,
+    "url": "https://muzillians.fake/en-US/u/peterbe/",
+    "websites": [
+        {
+            "website": "http://www.peterbe.com/",
+            "privacy": "Public"
+        }
+    ],
+    "_url": "https://muzillians.fake/api/v2/users/441/",
+    "story_link": {
+        "value": "",
+        "privacy": "Mozillians"
+    },
+    "ircname": {
+        "value": "peterbe",
+        "privacy": "Public"
+    },
+    "is_vouched": False,
 }
-"""
 
-assert json.loads(VOUCHED_FOR_USERS)
-assert json.loads(VOUCHED_FOR)
-assert json.loads(NOT_VOUCHED_FOR_USERS)
-assert json.loads(NO_VOUCHED_FOR)
-assert json.loads(GROUPS1)
-assert json.loads(GROUPS2)
+VOUCHED_FOR_NO_USERNAME = {
+    "meta": {
+        "previous": None,
+        "total_count": 1,
+        "offset": 0,
+        "limit": 20,
+        "next": None,
+    },
+    "objects": [
+        {
+            "website": "",
+            "bio": "",
+            "resource_uri": "/api/v1/users/2429/",
+            "last_updated": "2012-11-06T14:41:47",
+            "groups": [
+                "ugly tuna"
+            ],
+            "city": "Casino",
+            "skills": [],
+            "country": "Albania",
+            "region": "Bush",
+            "id": "2429",
+            "languages": [],
+            "allows_mozilla_sites": True,
+            "photo": "http://www.gravatar.com/avatar/0409b49773493422bb33...",
+            "is_vouched": True,
+            "email": "peterbe@gmail.com",
+            "ircname": "",
+            "allows_community_sites": True
+        }
+    ]
+}
+
+NOT_VOUCHED_FOR_USERS = {
+    "count": 1,
+    "next": None,
+    "results": [
+        {
+            "username": "tmickel@mit.edu",
+            "_url": "https://muzillians.fake/api/v2/users/00000/",
+            "is_vouched": False,
+        }
+    ],
+    "previous": None,
+}
+
+
+NO_VOUCHED_FOR = {
+    "meta": {
+        "previous": None,
+        "total_count": 0,
+        "offset": 0,
+        "limit": 20,
+        "next": None,
+    },
+    "objects": []
+}
+
+
+GROUPS1 = {
+    "count": 3,
+    "previous": None,
+    "results": [
+        {
+            "url": "https://muzillians.fake/en-US/group/9090909/",
+            "_url": "https://muzillians.fake/api/v2/groups/909090/",
+            "id": 12426,
+            "member_count": 3,
+            "name": "GROUP NUMBER 1"
+        },
+        {
+            "url": "https://muzillians.fake/en-US/group/2009-intern/",
+            "_url": "https://muzillians.fake/api/v2/groups/08080808/",
+            "id": 196,
+            "member_count": 7,
+            "name": "GROUP NUMBER 2"
+        }
+    ],
+    "next": "https://muzillians.fake/api/v2/groups/?api-key=xxxkey&page=2"
+}
+
+
+GROUPS2 = {
+    "count": 3,
+    "previous": "https://muzillians.fake/api/v2/groups/?api-key=xxxkey",
+    "results": [
+        {
+            "url": "https://muzillians.fake/en-US/group/2013summitassembly/",
+            "_url": "https://muzillians.fake/api/v2/groups/02020202/",
+            "id": 2002020,
+            "member_count": 53,
+            "name": "GROUP NUMBER 3"
+        }
+    ],
+    "next": None
+}
 
 
 class TestMozillians(TestCase):

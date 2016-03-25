@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 import os
 import datetime
@@ -19,6 +21,7 @@ from django.utils.encoding import smart_text
 from airmozilla.main.models import (
     SuggestedEvent,
     SuggestedEventComment,
+    SuggestedCuratedGroup,
     Event,
     Location,
     Channel,
@@ -444,6 +447,54 @@ class TestPages(DjangoTestCase):
             sorted(['bar', 'buzz'])
         )
 
+    def test_details_with_curated_groups(self):
+        event = SuggestedEvent.objects.create(
+            user=self.user,
+            title='Cool Title',
+            slug='cool-title',
+            description='Some long description',
+            short_description=''
+        )
+        url = reverse('suggest:details', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        mv = Location.objects.get(name='Mountain View')
+        channel = Channel.objects.create(
+            name='Security',
+            slug='security'
+        )
+        tag1 = Tag.objects.create(
+            name='foo'
+        )
+        tag2 = Tag.objects.create(
+            name='bar'
+        )
+
+        data = {
+            'start_time': '2021-01-01 12:00:00',
+            'estimated_duration': str(60 * 60 * 2),
+            'timezone': 'US/Pacific',
+            'location': mv.pk,
+            'privacy': SuggestedEvent.PRIVACY_SOME_CONTRIBUTORS,
+            'tags': [tag1.name, tag2.name],
+            'channels': channel.pk,
+            'additional_links': 'http://www.peterbe.com\n',
+            'call_info': 'vidyo room',
+        }
+
+        response = self.client.post(url, data)
+        eq_(response.status_code, 200)
+        ok_('privacy but no Curated Groups selected' in response.content)
+        data['curated_groups'] = ['Group111']
+        response = self.client.post(url, data)
+        eq_(response.status_code, 302)
+
+        ok_(SuggestedCuratedGroup.objects.filter(
+            event=event,
+            name='Group111'
+        ))
+
     def test_details_discussion_stays_disabled(self):
         event = SuggestedEvent.objects.create(
             user=self.user,
@@ -849,6 +900,38 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Enabled' not in response.content)
         ok_('Not enabled' in response.content)
+
+    def test_summary_with_curated_groups(self):
+        event = self._make_suggested_event()
+        url = reverse('suggest:summary', args=(event.pk,))
+        event.privacy = SuggestedEvent.PRIVACY_SOME_CONTRIBUTORS
+        event.save()
+        SuggestedCuratedGroup.objects.create(
+            event=event,
+            name='Group111',
+            url='https://muzillians.fake/group/111',
+        )
+        SuggestedCuratedGroup.objects.create(
+            event=event,
+            name='Group222',
+            url='https://muzillians.fake/group/222',
+        )
+
+        discussion = SuggestedDiscussion.objects.create(
+            enabled=True,
+            moderate_all=True,
+            notify_all=True,
+            event=event
+        )
+        bob = User.objects.create(email='bob@mozilla.com')
+        discussion.moderators.add(self.user)
+        discussion.moderators.add(bob)
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Some Contributors' in response.content)
+        ok_('Group111' in response.content)
+        ok_('Group222' in response.content)
 
     def test_summary_after_event_approved(self):
         event = self._make_suggested_event()

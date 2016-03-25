@@ -28,8 +28,7 @@ $(function() {
     $('#id_curated_groups').select2({
         placeholder: "Search for a Mozillians group",
         ajax: {
-            // url: $('#id_emails').data('autocomplete-url'),
-            url: '/manage/curated-groups-autocomplete/',
+            url: '/curated-groups-autocomplete/',
             dataType: 'json',
             delay: 250,
             data: function(params) {

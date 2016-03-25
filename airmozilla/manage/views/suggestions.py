@@ -10,8 +10,10 @@ from django.core.urlresolvers import reverse
 from airmozilla.main.models import (
     Event,
     Template,
+    CuratedGroup,
     SuggestedEvent,
     SuggestedEventComment,
+    SuggestedCuratedGroup,
     LocationDefaultEnvironment,
     Approval,
 )
@@ -120,6 +122,12 @@ def suggestion_review(request, id):
                     'estimated_duration': event.estimated_duration,
                     'topics': [x.pk for x in event.topics.all()],
                 }
+                curated_groups = SuggestedCuratedGroup.objects.none()
+                if event.privacy == SuggestedEvent.PRIVACY_SOME_CONTRIBUTORS:
+                    dict_event['privacy'] = Event.PRIVACY_CONTRIBUTORS
+                    curated_groups = SuggestedCuratedGroup.objects.filter(
+                        event=event
+                    )
                 real_event_form = forms.EventRequestForm(
                     data=dict_event,
                 )
@@ -150,10 +158,21 @@ def suggestion_review(request, id):
                             )
                         except LocationDefaultEnvironment.DoesNotExist:
                             pass
+                    # If they selected "Some Contributors", set the
+                    # privacy to "Contributors" and copy the
+                    # curated groups.
                     real.save()
+
                     [real.tags.add(x) for x in event.tags.all()]
                     [real.channels.add(x) for x in event.channels.all()]
                     [real.topics.add(x) for x in event.topics.all()]
+                    for curated_group in curated_groups:
+                        CuratedGroup.objects.create(
+                            event=real,
+                            name=curated_group.name,
+                            url=curated_group.url
+                        )
+
                     event.accepted = real
                     event.save()
 
@@ -234,6 +253,12 @@ def suggestion_review(request, id):
     for each in SuggestedDiscussion.objects.filter(event=event):
         discussion = each
 
+    curated_groups = SuggestedCuratedGroup.objects.none()
+    if event.privacy == SuggestedEvent.PRIVACY_SOME_CONTRIBUTORS:
+        curated_groups = SuggestedCuratedGroup.objects.filter(
+            event=event
+        ).order_by('name')
+
     context = {
         'event': event,
         'form': form,
@@ -241,5 +266,6 @@ def suggestion_review(request, id):
         'comment_form': comment_form,
         'comments': comments,
         'discussion': discussion,
+        'curated_groups': curated_groups,
     }
     return render(request, 'manage/suggestion_review.html', context)
