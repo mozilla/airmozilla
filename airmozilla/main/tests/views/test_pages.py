@@ -1,9 +1,9 @@
+import copy
 import datetime
 import httplib
 import json
 import urllib2
 import urllib
-import copy
 import os
 import re
 
@@ -2996,26 +2996,26 @@ class TestPages(DjangoTestCase):
                 return Response(VOUCHED_FOR)
 
             if '/users/88888' in url:
-                result = json.loads(VOUCHED_FOR)
+                result = copy.deepcopy(VOUCHED_FOR)
                 result['username'] = 'nophoto'
                 result['photo']['privacy'] = 'Mozillians'
                 result['url'] = result['url'].replace('peterbe', 'nophoto')
-                return Response(json.dumps(result))
+                return Response(result)
 
             if '?group=air+mozilla+contributors' in url:
                 # we need to deconstruct the VOUCHED_FOR_USERS fixture
                 # and put it together with some dummy data
-                result = json.loads(VOUCHED_FOR_USERS)
+                result = copy.deepcopy(VOUCHED_FOR_USERS)
                 results = result['results']
                 assert len(results) == 1
                 assert results[0]['username'] == 'peterbe'  # know thy fixtures
-                cp = copy.copy(results[0])  # deep copy
+                cp = copy.deepcopy(results[0])  # deep copy
                 cp['username'] = 'nophoto'
                 cp['_url'] = cp['_url'].replace('/99999', '/88888')
                 results.append(cp)
 
                 assert len(results) == 2
-                return Response(json.dumps(result))
+                return Response(result)
 
             raise NotImplementedError(url)
 

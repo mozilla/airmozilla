@@ -1,6 +1,11 @@
 from django import http
 from django.conf import settings
 from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+
+from jsonview.decorators import json_view
+
+from airmozilla.base import mozillians
 
 
 def debugger__(request):  # pragma: no cover
@@ -50,3 +55,36 @@ def crossdomain_xml(request):
     )
     response['Access-Control-Allow-Origin'] = '*'
     return response
+
+
+@login_required
+@json_view
+def curated_groups_autocomplete(request):
+    if 'q' not in request.GET:
+        return http.HttpResponseBadRequest('q')
+    q = request.GET.get('q', '').strip()
+    if not q:
+        return {'groups': []}
+
+    all_ = mozillians.get_all_groups(name=q)
+    ids = [x['id'] for x in all_]
+    all_.extend([
+        x for x in mozillians.get_all_groups(name_search=q)
+        if x['id'] not in ids
+    ])
+
+    def describe_group(group):
+        if group['member_count'] == 1:
+            return '%s (1 member)' % (group['name'],)
+        else:
+            return (
+                '%s (%s members)' % (group['name'], group['member_count'])
+            )
+
+    groups = [
+        (x['name'], describe_group(x))
+        for x in all_
+    ]
+    # naively sort by how good the match is
+    groups.sort(key=lambda x: x[0].lower().find(q.lower()))
+    return {'groups': groups}

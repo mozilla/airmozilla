@@ -1,6 +1,5 @@
 import logging
 import urllib
-import json
 
 import requests
 
@@ -36,7 +35,7 @@ def _fetch_users(email=None, group=None, is_username=False, **options):
     if resp.status_code != 200:
         url = url.replace(settings.MOZILLIANS_API_KEY, 'xxxscrubbedxxx')
         raise BadStatusCodeError('%s: on: %s' % (resp.status_code, url))
-    return json.loads(resp.content)
+    return resp.json()
 
 
 def _fetch_user(url):
@@ -48,7 +47,7 @@ def _fetch_user(url):
     if resp.status_code != 200:
         url = url.replace(settings.MOZILLIANS_API_KEY, 'xxxscrubbedxxx')
         raise BadStatusCodeError('%s: on: %s' % (resp.status_code, url))
-    return json.loads(resp.content)
+    return resp.json()
 
 
 def is_vouched(email):
@@ -81,7 +80,7 @@ def in_group(email, group):
     return not not content['results']
 
 
-def _fetch_groups(order_by='name', url=None, name=None):
+def _fetch_groups(order_by='name', url=None, name=None, name_search=None):
     if not getattr(settings, 'MOZILLIANS_API_KEY', None):  # pragma no cover
         logging.warning("'MOZILLIANS_API_KEY' not set up.")
         return False
@@ -93,20 +92,26 @@ def _fetch_groups(order_by='name', url=None, name=None):
         }
         if name:
             data['name'] = name
+        if name_search:
+            data['name__icontains'] = name_search
         url += '?' + urllib.urlencode(data)
 
     resp = requests.get(url)
     if resp.status_code != 200:
         url = url.replace(settings.MOZILLIANS_API_KEY, 'xxxscrubbedxxx')
         raise BadStatusCodeError('%s: on: %s' % (resp.status_code, url))
-    return json.loads(resp.content)
+    return resp.json()
 
 
-def get_all_groups(name_search=None):
+def get_all_groups(name=None, name_search=None):
     all_groups = []
     next_url = None
     while True:
-        found = _fetch_groups(name=name_search, url=next_url)
+        found = _fetch_groups(
+            name=name,
+            name_search=name_search,
+            url=next_url,
+        )
         all_groups.extend(found['results'])
         if len(all_groups) >= found['count']:
             break

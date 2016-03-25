@@ -674,8 +674,23 @@ class SuggestedEvent(models.Model):
     # XXX this can be migrated away
     popcorn_url = models.URLField(null=True, blank=True)
 
-    privacy = models.CharField(max_length=40, choices=Event.PRIVACY_CHOICES,
-                               default=Event.PRIVACY_PUBLIC)
+    # This list is very similar to that of Event, but we add an additional
+    # one called "Some Contributors"
+
+    PRIVACY_SOME_CONTRIBUTORS = 'some_contributors'
+
+    PRIVACY_CHOICES = (
+        Event.PRIVACY_CHOICES[0],
+        Event.PRIVACY_CHOICES[1],
+        (PRIVACY_SOME_CONTRIBUTORS, 'Some Contributors'),
+        Event.PRIVACY_CHOICES[2],
+    )
+
+    privacy = models.CharField(
+        max_length=40,
+        choices=PRIVACY_CHOICES,
+        default=Event.PRIVACY_PUBLIC
+    )
     featured = models.BooleanField(default=False)
     created = models.DateTimeField(default=_get_now)
     modified = models.DateTimeField(auto_now=True)
@@ -722,6 +737,13 @@ class SuggestedEvent(models.Model):
     def location_time(self):
         tz = pytz.timezone(self.location.timezone)
         return tz.normalize(self.start_time)
+
+
+class SuggestedCuratedGroup(models.Model):
+    event = models.ForeignKey(SuggestedEvent)
+    name = models.CharField(max_length=200)
+    url = models.URLField(null=True)
+    created = models.DateTimeField(default=_get_now)
 
 
 class SuggestedEventComment(models.Model):

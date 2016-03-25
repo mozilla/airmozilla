@@ -14,7 +14,9 @@ from airmozilla.main.models import (
     Tag,
     SuggestedEvent,
     Location,
+    CuratedGroup,
     SuggestedEventComment,
+    SuggestedCuratedGroup,
     Template,
     LocationDefaultEnvironment,
     Topic,
@@ -181,6 +183,7 @@ class TestSuggestions(ManageTestCase):
         ok_(location.name in response.content)
         ok_(event.get_privacy_display() in response.content)
         ok_('vidyo room' in response.content)
+        ok_('Curated Group' not in response.content)
         # Expect there to be a "Approve" and "Bounce back" button
         # on the page.
         ok_(
@@ -230,6 +233,61 @@ class TestSuggestions(ManageTestCase):
             'Bounce back' in response.content
         ))
         ok_(reverse('manage:event_edit', args=(real.id,)) in response.content)
+
+    def test_approve_suggested_with_curated_groups(self):
+        bob = User.objects.create_user('bob', email='bob@mozilla.com')
+        location = Location.objects.get(id=1)
+        now = timezone.now()
+        tomorrow = now + datetime.timedelta(days=1)
+        tag1 = Tag.objects.create(name='TAG1')
+        tag2 = Tag.objects.create(name='TAG2')
+        channel = Channel.objects.create(name='CHANNEL')
+
+        # create a suggested event that has everything filled in
+        event = SuggestedEvent.objects.create(
+            user=bob,
+            title='TITLE' * 10,
+            slug='SLUG',
+            short_description='SHORT DESCRIPTION',
+            description='DESCRIPTION',
+            start_time=tomorrow,
+            location=location,
+            placeholder_img=self.placeholder,
+            privacy=SuggestedEvent.PRIVACY_SOME_CONTRIBUTORS,
+            additional_links='ADDITIONAL LINKS',
+            remote_presenters='RICHARD & ZANDR',
+            submitted=now,
+            first_submitted=now,
+            call_info='vidyo room',
+        )
+        event.tags.add(tag1)
+        event.tags.add(tag2)
+        event.channels.add(channel)
+
+        SuggestedCuratedGroup.objects.create(
+            event=event,
+            name='Group111',
+            url='https://muzillians.fake/group/111'
+        )
+
+        url = reverse('manage:suggestion_review', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Curated Group' in response.content)
+        ok_('Group111' in response.content)
+
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+
+        # re-load it
+        event = SuggestedEvent.objects.get(pk=event.pk)
+        real = event.accepted
+        assert real
+        eq_(real.privacy, Event.PRIVACY_CONTRIBUTORS)
+        ok_(CuratedGroup.objects.filter(
+            event=real,
+            name='Group111'
+        ))
 
     def test_approve_suggested_event_with_default_template_environment(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')

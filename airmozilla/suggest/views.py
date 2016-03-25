@@ -22,6 +22,7 @@ from airmozilla.main.models import (
     Event,
     Channel,
     SuggestedEventComment,
+    SuggestedCuratedGroup,
 )
 from airmozilla.comments.models import SuggestedDiscussion
 from airmozilla.base.utils import tz_apply
@@ -144,6 +145,10 @@ def details(request, id):
     except SuggestedDiscussion.DoesNotExist:
         discussion = None
 
+    curated_groups = (
+        SuggestedCuratedGroup.objects.filter(event=event).order_by('created')
+    )
+
     if request.method == 'POST':
         form = forms.DetailsForm(request.POST, instance=event)
         if form.is_valid():
@@ -204,11 +209,19 @@ def details(request, id):
             )
         initial = {
             'enable_discussion': not (event and not discussion),
+            'curated_groups': curated_groups.values_list(
+                'name',
+                flat=True
+            )
         }
+        curated_groups_choices = [
+            (x, x) for x in initial['curated_groups']
+        ]
         form = forms.DetailsForm(
             instance=event,
             initial=initial,
             no_tag_choices=True,
+            curated_groups_choices=curated_groups_choices,
         )
 
     data = {'form': form, 'event': event}
@@ -394,11 +407,20 @@ def summary(request, id):
     for each in SuggestedDiscussion.objects.filter(event=event):
         discussion = each
 
+    curated_groups = SuggestedCuratedGroup.objects.none()
+    # It only matters if the privacy
+    # is SuggestedEvent.PRIVACY_SOME_CONTRIBUTORS.
+    if event.privacy == SuggestedEvent.PRIVACY_SOME_CONTRIBUTORS:
+        curated_groups = SuggestedCuratedGroup.objects.filter(
+            event=event
+        ).order_by('name')
+
     context = {
         'event': event,
         'comment_form': comment_form,
         'comments': comments,
         'discussion': discussion,
+        'curated_groups': curated_groups,
     }
     return render(request, 'suggest/summary.html', context)
 

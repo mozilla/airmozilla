@@ -112,13 +112,21 @@ class EventRequestForm(BaseModelForm):
         exclude = ('featured', 'status', 'archive_time', 'slug')
         # Fields specified to enforce order
         fields = (
-            'title', 'placeholder_img', 'picture',
+            'title',
+            'placeholder_img',
+            'picture',
             'description',
-            'short_description', 'location', 'start_time',
+            'short_description',
+            'location',
+            'start_time',
             'estimated_duration',
-            'channels', 'tags', 'call_info',
+            'channels',
+            'tags',
+            'call_info',
             'remote_presenters',
-            'additional_links', 'privacy', 'popcorn_url'
+            'additional_links',
+            'privacy',
+            'popcorn_url',
         )
 
     def __init__(self, *args, **kwargs):
@@ -214,15 +222,27 @@ class EventEditForm(EventRequestForm):
         exclude = ('archive_time',)
         # Fields specified to enforce order
         fields = (
-            'title', 'slug', 'status', 'privacy', 'curated_groups',
-            'featured', 'template',
-            'template_environment', 'placeholder_img', 'picture',
+            'title',
+            'slug',
+            'status',
+            'privacy',
+            'curated_groups',
+            'featured',
+            'template',
+            'template_environment',
+            'placeholder_img',
+            'picture',
             'location',
-            'description', 'short_description', 'start_time',
+            'description',
+            'short_description',
+            'start_time',
             'estimated_duration',
             'archive_time',
-            'channels', 'tags',
-            'call_info', 'additional_links', 'remote_presenters',
+            'channels',
+            'tags',
+            'call_info',
+            'additional_links',
+            'remote_presenters',
             'approvals',
             'popcorn_url',
             'pin',

@@ -3,9 +3,6 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.db import transaction
 
-from jsonview.decorators import json_view
-
-from airmozilla.base import mozillians
 from airmozilla.manage import forms
 
 from .decorators import (
@@ -68,30 +65,3 @@ def group_remove(request, id):
         group.delete()
         messages.info(request, 'Group "%s" removed.' % group.name)
     return redirect('manage:groups')
-
-
-@permission_required('main.change_event')
-@json_view
-def curated_groups_autocomplete(request):
-    q = request.GET.get('q', '').strip()
-    if not q:
-        return {'groups': []}
-
-    all = mozillians.get_all_groups_cached()
-
-    def describe_group(group):
-        if group['member_count'] == 1:
-            return '%s (1 member)' % (group['name'],)
-        else:
-            return (
-                '%s (%s members)' % (group['name'], group['member_count'])
-            )
-
-    groups = [
-        (x['name'], describe_group(x))
-        for x in all
-        if q.lower() in x['name'].lower()
-    ]
-    # naively sort by how good the match is
-    groups.sort(key=lambda x: x[0].lower().find(q.lower()))
-    return {'groups': groups}

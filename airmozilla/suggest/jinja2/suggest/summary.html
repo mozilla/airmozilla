@@ -149,8 +149,17 @@ Event summary | {{ super() }}
     </tr>
     <tr>
       <th>Privacy</th>
-      <td>{{ event.get_privacy_display() }}</td>
+      <td>
+        {{ event.get_privacy_display() }}<br />
+        {% if curated_groups %}
+        <b>Mozillians Group{{ curated_groups.count() | pluralize }}:</b>
+          {% for group in curated_groups %}
+            <i>{{ group.name }}</i>{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        {% endif %}
+      </td>
     </tr>
+
     <tr>
       <th>Tags</th>
       <td>{% for tag in event.tags.all() %}
