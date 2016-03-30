@@ -681,7 +681,7 @@ class SuggestedEvent(models.Model):
 
     PRIVACY_CHOICES = (
         Event.PRIVACY_CHOICES[0],
-        Event.PRIVACY_CHOICES[1],
+        (Event.PRIVACY_CHOICES[1][0], 'All Contributors'),
         (PRIVACY_SOME_CONTRIBUTORS, 'Some Contributors'),
         Event.PRIVACY_CHOICES[2],
     )
