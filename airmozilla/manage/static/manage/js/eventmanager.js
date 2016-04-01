@@ -41,7 +41,6 @@ function EventManagerController($scope, $http, $interval) {
     $scope.currentPage = 0;
     $scope.sorting = 'modified';
     $scope.sorting_reverse = true;
-    $scope.reading_from_cache = false;
 
     $scope.$watch('sorting', function(value) {
         if (value === 'modified') {
@@ -321,7 +320,6 @@ function EventManagerController($scope, $http, $interval) {
               $scope.load_error = null;
               localStorage.setItem('eventmanager', JSON.stringify(data));
               $scope.events = data.events;
-              $scope.reading_from_cache = false;
               $scope.max_modified = data.max_modified;
               // every 10 seconds, look for for changed events
               $interval(lookForModifiedEvents, 10 * 1000);
@@ -347,15 +345,17 @@ function EventManagerController($scope, $http, $interval) {
               $scope.first_loading = false;
           });
     }
-    var data = JSON.parse(localStorage.getItem('eventmanager') || '{}');
-    if (data && data.urls && data.events) {
-        $scope.reading_from_cache = true;
-        $scope.first_loading = false;
-        $scope.urls = data.urls;
-        $scope.events = data.events;
-        loadAll();
-    } else {
-        loadSome();
-    }
+    loadSome();
+
+    // A legacy fix. We used to store ALL cached events in localStorage
+    // under the key `eventmanager`. This is often a HUGE JSON string.
+    // We're no longer depending on that and we can remove it now.
+    // This whole code segment can be deleted around the end of 2016.
+    setTimeout(function() {
+        // Reason for using setTimeout instead of angular $timeout is
+        // because, this will never modify the scope.
+        localStorage.removeItem('eventmanager');
+    }, 5000);
+    // -end legacy fixup.
 
 }]);

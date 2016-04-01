@@ -39,9 +39,6 @@
   </p>
   <p ng-if="second_loading && !first_loading" class="second-loading">
     <img src="{{ static('img/spinner.gif') }}">
-    <span ng-if="reading_from_cache" class="blinking">
-        Currently using cached data.
-    </span>
     <span class="blinking">Loading all remaining events...</span>
   </p>
 
