@@ -321,8 +321,15 @@ function EventManagerController($scope, $http, $interval) {
               localStorage.setItem('eventmanager', JSON.stringify(data));
               $scope.events = data.events;
               $scope.max_modified = data.max_modified;
+              var reloadInterval = 10; // seconds
+              if (typeof window.Fanout !== 'undefined') {
+                  window.Fanout.subscribe('/events', function(data) {
+                      $scope.$apply(lookForModifiedEvents);
+                  });
+                  reloadInterval = 60;
+              }
               // every 10 seconds, look for for changed events
-              $interval(lookForModifiedEvents, 10 * 1000);
+              $interval(lookForModifiedEvents, reloadInterval * 1000);
           }).error(function(data, status) {
               console.log(data, status);
               $scope.load_error = 'Failed to fetch ALL events (' + status + ')';

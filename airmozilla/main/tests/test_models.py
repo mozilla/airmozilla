@@ -33,23 +33,26 @@ Upload = Upload  # shut up pyflakes
 class EventTests(DjangoTestCase):
 
     def test_send_fanout_on_status_change(self):
+        """Remember, every time an event is changed, we send out two
+        publishing events on fanout. One called "events" and one
+        called "event-XX" (where XX is the event ID).
+        """
         eq_(len(self.fanout.mock_calls), 0)
         event = Event.objects.create(
             status=Event.STATUS_INITIATED,
             start_time=timezone.now(),
         )
-        eq_(len(self.fanout.mock_calls), 0)
+        eq_(len(self.fanout.mock_calls), 2)
         event.status = Event.STATUS_SCHEDULED
         event.save()
-        eq_(len(self.fanout.mock_calls), 1)
+        eq_(len(self.fanout.mock_calls), 4)
         self.fanout.publish.assert_called_with(
-            'status-{}'.format(event.id),
-            {'status': Event.STATUS_SCHEDULED}
+            'event-{}'.format(event.id), True
         )
 
         # saving it again without changing anything should not trigger
         event.save()
-        eq_(len(self.fanout.mock_calls), 1)
+        eq_(len(self.fanout.mock_calls), 6)
 
     def test_send_fanout_on_vidlysubmission_change(self):
         event = Event.objects.create(
@@ -60,13 +63,13 @@ class EventTests(DjangoTestCase):
             event=event,
             url='https://s3.example/file.mov',
         )
-        eq_(len(self.fanout.mock_calls), 0)
+        eq_(len(self.fanout.mock_calls), 2)  # for the create
         vidly_submission.tag = 'abc123'
         vidly_submission.save()
-        eq_(len(self.fanout.mock_calls), 1)
+        eq_(len(self.fanout.mock_calls), 3)
         self.fanout.publish.assert_called_with(
             'event-vidlysubmissions-{}'.format(event.id),
-            {'id': vidly_submission.id}
+            True
         )
 
     def test_location_time(self):
