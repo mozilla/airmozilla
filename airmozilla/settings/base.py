@@ -34,7 +34,6 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
-    'commonware.response.cookies',
     'session_csrf',
 
     # Application base, containing global templates.
@@ -204,10 +203,12 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'session_csrf.CsrfMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'commonware.middleware.FrameOptionsHeader',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'airmozilla.manage.middleware.CacheBustingMiddleware',
     'airmozilla.staticpages.middleware.StaticPageFallbackMiddleware',
 )
+
+X_FRAME_OPTIONS = 'DENY'
 
 # Enable timezone support for Django TZ-aware datetime objects
 # Times stored in the db as UTC; forms/templates as Pacific time
