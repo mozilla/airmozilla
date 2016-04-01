@@ -3,6 +3,8 @@ import hashlib
 import os
 import unicodedata
 
+import pytz
+
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.core.cache import cache
@@ -12,13 +14,12 @@ from django.utils import timezone
 from django.db.models import Q
 from django.utils.encoding import smart_text
 
+from sorl.thumbnail import ImageField
+
 from airmozilla.base.utils import unique_slugify, roughly, send_fanout
 from airmozilla.main.fields import EnvironmentField
 from airmozilla.manage.utils import filename_to_notes
 from airmozilla.manage.vidly import get_video_redirect_info
-
-import pytz
-from sorl.thumbnail import ImageField
 
 
 def _get_now():
@@ -412,17 +413,6 @@ class Event(models.Model):
     def __unicode__(self):
         return self.title
 
-    def __init__(self, *args, **kwargs):
-        super(Event, self).__init__(*args, **kwargs)
-        self._original_status = self.status
-
-    def save(self, *args, **kwargs):
-        if self._original_status != self.status and self.id:
-            channel = 'status-{}'.format(self.id)
-            send_fanout(channel, {'status': self.status})
-        super(Event, self).save(*args, **kwargs)
-        self._original_status = self.status
-
     def is_upcoming(self):
         return (self.archive_time is None and
                 self.start_time > _get_live_time())
@@ -511,6 +501,14 @@ def most_recent_event():
         for event in Event.objects.all().order_by('-modified')[:1]:
             cache.set(cache_key, event, 60 * 60)
     return event
+
+
+@receiver(models.signals.post_save, sender=Event)
+def notify_fanout_event(sender, instance, **kwargs):
+    if not kwargs['raw']:
+        # any event has changed
+        send_fanout('events', True)
+        send_fanout('event-{}'.format(instance.id), True)
 
 
 @receiver(models.signals.post_save, sender=Event)
@@ -875,7 +873,7 @@ class VidlySubmission(models.Model):
 def notify_fanout_event_vidly_submissions(sender, instance, *args, **kwargs):
     if instance.event_id and not kwargs.get('created'):
         channel = 'event-vidlysubmissions-{}'.format(instance.event_id)
-        send_fanout(channel, {'id': instance.id})
+        send_fanout(channel, True)
 
 
 @receiver(models.signals.post_save, sender=VidlySubmission)

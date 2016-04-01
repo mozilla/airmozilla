@@ -44,6 +44,10 @@ def send_fanout(channel, data):
         fanout.realm = settings.FANOUT_REALM_ID
         fanout.key = settings.FANOUT_REALM_KEY
         assert not channel.startswith('/')  # only in JavaScript
+        # If you ever get TypeError around this, it's probably because
+        # you're running a unittest where the fanout lib hasn't
+        # been mocked. If so it'll most likely struggle to accept
+        # the test-bogus value for settings.FANOUT_REALM_KEY
         fanout.publish(channel, data)
     else:
         import warnings

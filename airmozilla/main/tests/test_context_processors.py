@@ -118,7 +118,7 @@ class TestAutocompeter(TestCase):
             eq_(result['autocompeter_url'], 'http://autocompeter.dev/v1')
 
 
-class TestNavBar(TestCase):
+class TestNavBar(DjangoTestCase):
 
     def test_anonymous(self):
         request = RequestFactory().get('/')
