@@ -410,7 +410,7 @@ var AbrController = function (_EventHandler) {
 
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(AbrController).call(this, hls, _events2.default.FRAG_LOADING, _events2.default.FRAG_LOAD_PROGRESS, _events2.default.FRAG_LOADED, _events2.default.ERROR));
 
-    _this.lastfetchlevel = 0;
+    _this.lastLoadedFragLevel = 0;
     _this._autoLevelCapping = -1;
     _this._nextAutoLevel = -1;
     _this.hls = hls;
@@ -439,7 +439,6 @@ var AbrController = function (_EventHandler) {
       // and leading to wrong bw estimation
       if (stats.aborted === undefined && data.frag.loadCounter === 1) {
         this.lastfetchduration = (performance.now() - stats.trequest) / 1000;
-        this.lastfetchlevel = data.frag.level;
         this.lastbw = stats.loaded * 8 / this.lastfetchduration;
         //console.log(`fetchDuration:${this.lastfetchduration},bw:${(this.lastbw/1000).toFixed(0)}/${stats.aborted}`);
       }
@@ -507,9 +506,13 @@ var AbrController = function (_EventHandler) {
     }
   }, {
     key: 'onFragLoaded',
-    value: function onFragLoaded() {
+    value: function onFragLoaded(data) {
       // stop monitoring bw once frag loaded
       this.clearTimer();
+      // store level id after successful fragment load
+      this.lastLoadedFragLevel = data.frag.level;
+      // reset forced auto level value so that next level will be selected
+      this._nextAutoLevel = -1;
     }
   }, {
     key: 'onError',
@@ -560,13 +563,9 @@ var AbrController = function (_EventHandler) {
         maxAutoLevel = this._autoLevelCapping;
       }
 
+      // in case next auto level has been forced, return it straight-away (but capped)
       if (this._nextAutoLevel !== -1) {
-        var nextLevel = Math.min(this._nextAutoLevel, maxAutoLevel);
-        if (nextLevel === this.lastfetchlevel) {
-          this._nextAutoLevel = -1;
-        } else {
-          return nextLevel;
-        }
+        return Math.min(this._nextAutoLevel, maxAutoLevel);
       }
 
       // follow algorithm captured from stagefright :
@@ -576,7 +575,7 @@ var AbrController = function (_EventHandler) {
         // consider only 80% of the available bandwidth, but if we are switching up,
         // be even more conservative (70%) to avoid overestimating and immediately
         // switching back.
-        if (i <= this.lastfetchlevel) {
+        if (i <= this.lastLoadedFragLevel) {
           adjustedbw = 0.8 * lastbw;
         } else {
           adjustedbw = 0.7 * lastbw;
@@ -2513,12 +2512,16 @@ var StreamController = function (_EventHandler) {
             if (playheadMoving || !expectedPlaying) {
               // playhead moving or media not playing
               jumpThreshold = 0;
+              this.seekHoleNudgeDuration = 0;
             } else {
               // playhead not moving AND media expected to play
               if (!this.stalled) {
+                this.seekHoleNudgeDuration = 0;
                 _logger.logger.log('playback seems stuck @' + currentTime);
                 this.hls.trigger(_events2.default.ERROR, { type: _errors.ErrorTypes.MEDIA_ERROR, details: _errors.ErrorDetails.BUFFER_STALLED_ERROR, fatal: false });
                 this.stalled = true;
+              } else {
+                this.seekHoleNudgeDuration += this.config.seekHoleNudgeDuration;
               }
             }
             // if we are below threshold, try to jump if next buffer range is close
@@ -2529,8 +2532,8 @@ var StreamController = function (_EventHandler) {
               if (nextBufferStart && delta < this.config.maxSeekHole && delta > 0 && !media.seeking) {
                 // next buffer is close ! adjust currentTime to nextBufferStart
                 // this will ensure effective video decoding
-                _logger.logger.log('adjust currentTime from ' + media.currentTime + ' to next buffered @ ' + nextBufferStart);
-                media.currentTime = nextBufferStart;
+                _logger.logger.log('adjust currentTime from ' + media.currentTime + ' to next buffered @ ' + nextBufferStart + ' + nudge ' + this.seekHoleNudgeDuration);
+                media.currentTime = nextBufferStart + this.seekHoleNudgeDuration;
                 this.hls.trigger(_events2.default.ERROR, { type: _errors.ErrorTypes.MEDIA_ERROR, details: _errors.ErrorDetails.BUFFER_SEEK_OVER_HOLE, fatal: false });
               }
             }
@@ -5658,6 +5661,7 @@ var Hls = function () {
           maxBufferSize: 60 * 1000 * 1000,
           maxBufferHole: 0.5,
           maxSeekHole: 2,
+          seekHoleNudgeDuration: 0.01,
           maxFragLookUpTolerance: 0.2,
           liveSyncDurationCount: 3,
           liveMaxLatencyDurationCount: Infinity,
@@ -7089,13 +7093,15 @@ var MP4Remuxer = function () {
       if (!this.ISGenerated) {
         this.generateIS(audioTrack, videoTrack, timeOffset);
       }
-      //logger.log('nb AVC samples:' + videoTrack.samples.length);
-      if (videoTrack.samples.length) {
-        this.remuxVideo(videoTrack, timeOffset, contiguous);
-      }
-      //logger.log('nb AAC samples:' + audioTrack.samples.length);
-      if (audioTrack.samples.length) {
-        this.remuxAudio(audioTrack, timeOffset, contiguous);
+      if (this.ISGenerated) {
+        //logger.log('nb AVC samples:' + videoTrack.samples.length);
+        if (videoTrack.samples.length) {
+          this.remuxVideo(videoTrack, timeOffset, contiguous);
+        }
+        //logger.log('nb AAC samples:' + audioTrack.samples.length);
+        if (audioTrack.samples.length) {
+          this.remuxAudio(audioTrack, timeOffset, contiguous);
+        }
       }
       //logger.log('nb ID3 samples:' + audioTrack.samples.length);
       if (id3Track.samples.length) {
@@ -7173,143 +7179,156 @@ var MP4Remuxer = function () {
         }
       }
 
-      if (!Object.keys(tracks)) {
-        observer.trigger(_events2.default.ERROR, { type: _errors.ErrorTypes.MEDIA_ERROR, details: _errors.ErrorDetails.FRAG_PARSING_ERROR, fatal: false, reason: 'no audio/video samples found' });
-      } else {
+      if (Object.keys(tracks).length) {
         observer.trigger(_events2.default.FRAG_PARSING_INIT_SEGMENT, data);
         this.ISGenerated = true;
         if (computePTSDTS) {
           this._initPTS = initPTS;
           this._initDTS = initDTS;
         }
+      } else {
+        observer.trigger(_events2.default.ERROR, { type: _errors.ErrorTypes.MEDIA_ERROR, details: _errors.ErrorDetails.FRAG_PARSING_ERROR, fatal: false, reason: 'no audio/video samples found' });
       }
     }
   }, {
     key: 'remuxVideo',
     value: function remuxVideo(track, timeOffset, contiguous) {
-      var offset = 8,
+      var view,
+          offset = 8,
           pesTimeScale = this.PES_TIMESCALE,
           pes2mp4ScaleFactor = this.PES2MP4SCALEFACTOR,
-          mp4SampleDuration,
+          avcSample,
+          mp4Sample,
+          mp4SampleLength,
+          unit,
           mdat,
           moof,
           firstPTS,
           firstDTS,
-          lastPTS,
           lastDTS,
-          inputSamples = track.samples,
-          outputSamples = [];
-
-      // PTS is coded on 33bits, and can loop from -2^32 to 2^32
-      // PTSNormalize will make PTS/DTS value monotonic, we use last known DTS value as reference value
-      var nextAvcDts = undefined;
-      if (contiguous) {
-        // if parsed fragment is contiguous with last one, let's use last DTS value as reference
-        nextAvcDts = this.nextAvcDts;
-      } else {
-        // if not contiguous, let's use target timeOffset
-        nextAvcDts = timeOffset * pesTimeScale;
-      }
-
-      // compute first DTS and last DTS, normalize them against reference value
-      var sample = inputSamples[0];
-      firstDTS = Math.max(this._PTSNormalize(sample.dts, nextAvcDts) - this._initDTS, 0);
-      firstPTS = Math.max(this._PTSNormalize(sample.pts, nextAvcDts) - this._initDTS, 0);
-
-      // check timestamp continuity accross consecutive fragments (this is to remove inter-fragment gap/hole)
-      var delta = Math.round((firstDTS - nextAvcDts) / 90);
-      // if fragment are contiguous, or delta less than 600ms, ensure there is no overlap/hole between fragments
-      if (contiguous || Math.abs(delta) < 600) {
-        if (delta) {
-          if (delta > 1) {
-            _logger.logger.log('AVC:' + delta + ' ms hole between fragments detected,filling it');
-          } else if (delta < -1) {
-            _logger.logger.log('AVC:' + -delta + ' ms overlapping between fragments detected');
-          }
-          // remove hole/gap : set DTS to next expected DTS
-          firstDTS = inputSamples[0].dts = nextAvcDts;
-          // offset PTS as well, ensure that PTS is smaller or equal than new DTS
-          firstPTS = inputSamples[0].pts = Math.max(firstPTS - delta, nextAvcDts);
-          _logger.logger.log('Video/PTS/DTS adjusted: ' + firstPTS + '/' + firstDTS + ',delta:' + delta);
-        }
-      }
-
-      // sample duration (as expected by trun MP4 boxes), should be the delta between sample DTS
-      // let's signal the same sample duration for all samples
-      // set this constant duration as being the avg delta between consecutive DTS.
-      sample = inputSamples[inputSamples.length - 1];
-      lastDTS = Math.max(this._PTSNormalize(sample.dts, nextAvcDts) - this._initDTS, 0);
-      mp4SampleDuration = Math.round((lastDTS - firstDTS) / (pes2mp4ScaleFactor * (inputSamples.length - 1)));
-
-      // normalize all PTS/DTS now ...
-      for (var i = 0; i < inputSamples.length; i++) {
-        var _sample = inputSamples[i];
-        // sample DTS is computed using a constant decoding offset (mp4SampleDuration) between samples
-        _sample.dts = firstDTS + i * pes2mp4ScaleFactor * mp4SampleDuration;
-        // we normalize PTS against nextAvcDts, we also substract initDTS (some streams don't start @ PTS O)
-        // and we ensure that computed value is greater or equal than sample DTS
-        _sample.pts = Math.max(this._PTSNormalize(_sample.pts, nextAvcDts) - this._initDTS, _sample.dts);
-      }
-      lastPTS = inputSamples[inputSamples.length - 1].pts;
-
+          pts,
+          dts,
+          ptsnorm,
+          dtsnorm,
+          flags,
+          samples = [];
       /* concatenate the video data and construct the mdat in place
         (need 8 more bytes to fill length and mpdat type) */
       mdat = new Uint8Array(track.len + 4 * track.nbNalu + 8);
-      var view = new DataView(mdat.buffer);
+      view = new DataView(mdat.buffer);
       view.setUint32(0, mdat.byteLength);
       mdat.set(_mp4Generator2.default.types.mdat, 4);
-      while (inputSamples.length) {
-        var avcSample = inputSamples.shift(),
-            mp4SampleLength = 0;
+      while (track.samples.length) {
+        avcSample = track.samples.shift();
+        mp4SampleLength = 0;
         // convert NALU bitstream to MP4 format (prepend NALU with size field)
         while (avcSample.units.units.length) {
-          var unit = avcSample.units.units.shift();
+          unit = avcSample.units.units.shift();
           view.setUint32(offset, unit.data.byteLength);
           offset += 4;
           mdat.set(unit.data, offset);
           offset += unit.data.byteLength;
           mp4SampleLength += 4 + unit.data.byteLength;
         }
+        pts = avcSample.pts - this._initDTS;
+        dts = avcSample.dts - this._initDTS;
+        // ensure DTS is not bigger than PTS
+        dts = Math.min(pts, dts);
+        //logger.log(`Video/PTS/DTS:${Math.round(pts/90)}/${Math.round(dts/90)}`);
+        // if not first AVC sample of video track, normalize PTS/DTS with previous sample value
+        // and ensure that sample duration is positive
+        if (lastDTS !== undefined) {
+          ptsnorm = this._PTSNormalize(pts, lastDTS);
+          dtsnorm = this._PTSNormalize(dts, lastDTS);
+          var sampleDuration = (dtsnorm - lastDTS) / pes2mp4ScaleFactor;
+          if (sampleDuration <= 0) {
+            _logger.logger.log('invalid sample duration at PTS/DTS: ' + avcSample.pts + '/' + avcSample.dts + ':' + sampleDuration);
+            sampleDuration = 1;
+          }
+          mp4Sample.duration = sampleDuration;
+        } else {
+          var nextAvcDts = undefined,
+              delta = undefined;
+          if (contiguous) {
+            nextAvcDts = this.nextAvcDts;
+          } else {
+            nextAvcDts = timeOffset * pesTimeScale;
+          }
+          // first AVC sample of video track, normalize PTS/DTS
+          ptsnorm = this._PTSNormalize(pts, nextAvcDts);
+          dtsnorm = this._PTSNormalize(dts, nextAvcDts);
+          delta = Math.round((dtsnorm - nextAvcDts) / 90);
+          // if fragment are contiguous, or delta less than 600ms, ensure there is no overlap/hole between fragments
+          if (contiguous || Math.abs(delta) < 600) {
+            if (delta) {
+              if (delta > 1) {
+                _logger.logger.log('AVC:' + delta + ' ms hole between fragments detected,filling it');
+              } else if (delta < -1) {
+                _logger.logger.log('AVC:' + -delta + ' ms overlapping between fragments detected');
+              }
+              // set DTS to next DTS
+              dtsnorm = nextAvcDts;
+              // offset PTS as well, ensure that PTS is smaller or equal than new DTS
+              ptsnorm = Math.max(ptsnorm - delta, dtsnorm);
+              _logger.logger.log('Video/PTS/DTS adjusted: ' + ptsnorm + '/' + dtsnorm + ',delta:' + delta);
+            }
+          }
+          // remember first PTS of our avcSamples, ensure value is positive
+          firstPTS = Math.max(0, ptsnorm);
+          firstDTS = Math.max(0, dtsnorm);
+        }
         //console.log('PTS/DTS/initDTS/normPTS/normDTS/relative PTS : ${avcSample.pts}/${avcSample.dts}/${this._initDTS}/${ptsnorm}/${dtsnorm}/${(avcSample.pts/4294967296).toFixed(3)}');
-        outputSamples.push({
+        mp4Sample = {
           size: mp4SampleLength,
-          // constant duration
-          duration: mp4SampleDuration,
-          // set composition time offset as a multiple of sample duration
-          cts: Math.max(0, mp4SampleDuration * Math.round((avcSample.pts - avcSample.dts) / (pes2mp4ScaleFactor * mp4SampleDuration))),
+          duration: 0,
+          cts: (ptsnorm - dtsnorm) / pes2mp4ScaleFactor,
           flags: {
             isLeading: 0,
             isDependedOn: 0,
             hasRedundancy: 0,
-            degradPrio: 0,
-            dependsOn: avcSample.key ? 2 : 1,
-            isNonSync: avcSample.key ? 0 : 1
+            degradPrio: 0
           }
-        });
+        };
+        flags = mp4Sample.flags;
+        if (avcSample.key === true) {
+          // the current sample is a key frame
+          flags.dependsOn = 2;
+          flags.isNonSync = 0;
+        } else {
+          flags.dependsOn = 1;
+          flags.isNonSync = 1;
+        }
+        samples.push(mp4Sample);
+        lastDTS = dtsnorm;
       }
-      // next AVC sample DTS should be equal to last sample DTS + last sample duration (in PES timescale)
-      this.nextAvcDts = lastDTS + mp4SampleDuration * pes2mp4ScaleFactor;
+      var lastSampleDuration = 0;
+      if (samples.length >= 2) {
+        lastSampleDuration = samples[samples.length - 2].duration;
+        mp4Sample.duration = lastSampleDuration;
+      }
+      // next AVC sample DTS should be equal to last sample DTS + last sample duration
+      this.nextAvcDts = dtsnorm + lastSampleDuration * pes2mp4ScaleFactor;
       track.len = 0;
       track.nbNalu = 0;
-      if (outputSamples.length && navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
-        var flags = outputSamples[0].flags;
+      if (samples.length && navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
+        flags = samples[0].flags;
         // chrome workaround, mark first sample as being a Random Access Point to avoid sourcebuffer append issue
         // https://code.google.com/p/chromium/issues/detail?id=229412
         flags.dependsOn = 2;
         flags.isNonSync = 0;
       }
-      track.samples = outputSamples;
+      track.samples = samples;
       moof = _mp4Generator2.default.moof(track.sequenceNumber++, firstDTS / pes2mp4ScaleFactor, track);
       track.samples = [];
       this.observer.trigger(_events2.default.FRAG_PARSING_DATA, {
         data1: moof,
         data2: mdat,
         startPTS: firstPTS / pesTimeScale,
-        endPTS: (lastPTS + pes2mp4ScaleFactor * mp4SampleDuration) / pesTimeScale,
+        endPTS: (ptsnorm + pes2mp4ScaleFactor * lastSampleDuration) / pesTimeScale,
         startDTS: firstDTS / pesTimeScale,
         endDTS: this.nextAvcDts / pesTimeScale,
         type: 'video',
-        nb: outputSamples.length
+        nb: samples.length
       });
     }
   }, {
@@ -7356,7 +7375,7 @@ var MP4Remuxer = function () {
           mp4Sample.duration = (dtsnorm - lastDTS) / pes2mp4ScaleFactor;
           if (Math.abs(mp4Sample.duration - expectedSampleDuration) > expectedSampleDuration / 10) {
             // more than 10% diff between sample duration and expectedSampleDuration .... lets log that
-            _logger.logger.trace('invalid AAC sample duration at PTS ' + Math.round(pts / 90) + ',should be 1024,found :' + Math.round(mp4Sample.duration * track.audiosamplerate / track.timescale));
+            _logger.logger.log('invalid AAC sample duration at PTS ' + Math.round(pts / 90) + ',should be 1024,found :' + Math.round(mp4Sample.duration * track.audiosamplerate / track.timescale));
           }
           // always adjust sample duration to avoid av sync issue
           mp4Sample.duration = expectedSampleDuration;
