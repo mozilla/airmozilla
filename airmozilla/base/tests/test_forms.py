@@ -40,6 +40,7 @@ class TestGallerySelect(DjangoTestCase):
         ok_('data-picture-id="%s"' % pic1.id in html)
         ok_('Other notes' not in html)  # belongs to an event
         ok_('Inactive notes' not in html)  # not active
+        ok_('value="None"' not in html)
 
     def test_render_with_event(self):
         event = Event.objects.get(title='Test event')
@@ -71,6 +72,8 @@ class TestGallerySelect(DjangoTestCase):
         # one of them should have a class "selected"
         ok_('class="selected' in html)
         ok_('Inactive notes' not in html)
+        ok_('value="{}"'.format(pic2.id) in html)
+        ok_('value="None"' not in html)
 
     def test_render_with_event_picture_inactive(self):
         event = Event.objects.get(title='Test event')
@@ -89,3 +92,5 @@ class TestGallerySelect(DjangoTestCase):
         ok_('Inactive notes' in html)
         html = instance.render('picture', picture.id, None)
         ok_('Inactive notes' in html)
+        ok_('value="{}"'.format(picture.id) in html)
+        ok_('value="None"' not in html)

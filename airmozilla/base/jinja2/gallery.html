@@ -1,5 +1,6 @@
 <div class="picture_gallery">
-  <input id="id_{{ name }}" type="hidden" name="{{ name }}" value="{{ current_id }}" />
+
+  <input id="id_{{ name }}" type="hidden" name="{{ name }}" value="{% if current_id %}{{ current_id }}{% endif %}" />
   {% for pic in pictures %}
   <div data-picture-id="{{ pic.id }}"
        class="{% if pic.selected %}selected {% endif %}picture"
