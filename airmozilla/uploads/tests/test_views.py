@@ -43,7 +43,7 @@ class TestUploads(DjangoTestCase):
 
     def test_sign(self):
         url = reverse('uploads:sign')
-        user = self._login()
+        self._login()
 
         response = self.client.get(url)
         eq_(response.status_code, 400)
@@ -59,7 +59,6 @@ class TestUploads(DjangoTestCase):
         s3_url = structure['url']
         now = datetime.datetime.utcnow()
         ok_(now.strftime('%Y/%m/%d') in s3_url)
-        ok_(str(user.pk) in s3_url)
         ok_('.flv' in s3_url)
 
         signed_request = structure['signed_request']
