@@ -13,6 +13,7 @@ from django.utils.timezone import utc, make_naive
 from django.db import transaction
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.views.decorators.cache import never_cache
 
 from slugify import slugify
 from jsonview.decorators import json_view
@@ -112,6 +113,7 @@ def title(request, id):
     return render(request, 'suggest/title.html', data)
 
 
+@never_cache
 @login_required
 @transaction.atomic
 def description(request, id):
@@ -133,6 +135,7 @@ def description(request, id):
     return render(request, 'suggest/description.html', data)
 
 
+@never_cache
 @login_required
 @transaction.atomic
 def details(request, id):
@@ -228,6 +231,7 @@ def details(request, id):
     return render(request, 'suggest/details.html', data)
 
 
+@never_cache
 @login_required
 @transaction.atomic
 def discussion(request, id):
@@ -299,6 +303,7 @@ def autocomplete_emails(request):
     return {'emails': emails}
 
 
+@never_cache
 @login_required
 @transaction.atomic
 def placeholder(request, id):
@@ -331,6 +336,7 @@ def placeholder(request, id):
     return render(request, 'suggest/placeholder.html', data)
 
 
+@never_cache
 @login_required
 @transaction.atomic
 def summary(request, id):
