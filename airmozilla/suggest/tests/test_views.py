@@ -290,6 +290,8 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:placeholder', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('no-cache' in response['Cache-Control'])
+        ok_('max-age=0' in response['Cache-Control'])
 
         data = {'picture': picture.id}
         response = self.client.post(url, data)
@@ -359,6 +361,8 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:description', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('no-cache' in response['Cache-Control'])
+        ok_('max-age=0' in response['Cache-Control'])
 
         data = {
             'description': 'This is my cool description ',
@@ -393,6 +397,8 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:details', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('no-cache' in response['Cache-Control'])
+        ok_('max-age=0' in response['Cache-Control'])
 
         mv = Location.objects.get(name='Mountain View')
         channel = Channel.objects.create(
@@ -723,6 +729,8 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:discussion', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('no-cache' in response['Cache-Control'])
+        ok_('max-age=0' in response['Cache-Control'])
 
         data = {
             'enabled': True,
@@ -837,6 +845,8 @@ class TestPages(DjangoTestCase):
         url = reverse('suggest:summary', args=(event.pk,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('no-cache' in response['Cache-Control'])
+        ok_('max-age=0' in response['Cache-Control'])
 
         ok_('Location' in response.content)
         ok_('Start time' in response.content)
@@ -884,6 +894,8 @@ class TestPages(DjangoTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        ok_('no-cache' in response['Cache-Control'])
+        ok_('max-age=0' in response['Cache-Control'])
         content = smart_text(response.content)
         ok_('Enabled' in content)
         ok_(self.user.email in content)
