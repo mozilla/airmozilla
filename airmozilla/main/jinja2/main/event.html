@@ -337,6 +337,33 @@
         </div>
       {% endif %}
 
+      {% if user.is_superuser %}
+        <div class="tab">
+          <input type="radio" id="tab-debug" name="tab-group-1">
+          <label for="tab-debug">Debug</label>
+          <div class="content">
+            <p>
+              {% if event.template %}
+                <b>Video Template:</b>
+                <a href="{{ url('manage:template_edit', event.template.id) }}">{{ event.template.name }}</a>
+              {% else %}
+                <i>No video template</i>
+              {% endif %}
+            </p>
+            <p>
+              <b>Template Environment:</b>
+              {% if event.template_environment %}
+                {% for key in event.template_environment %}
+                {{ key }}: <code>{{ event.template_environment[key] }}</code>{% if not loop.last %}, {% endif %}
+                {% endfor %}
+              {% else %}
+                <i>none</i>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
     </div>
 
       {% if not pending %}
