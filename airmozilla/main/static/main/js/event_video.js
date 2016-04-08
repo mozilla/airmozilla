@@ -7,13 +7,22 @@ window.onload = function() {
             if (typeof jwplayer === 'function' && jwplayer(playerid).getState()) {
                 var player = jwplayer(playerid);
                 clearInterval(waiter);
-                player.seek(position);
-                // update this windows location hash every second
-                var updater = setInterval(function() {
-                    if (window.opener) {
-                        window.opener.popup_position = player.getPosition();
+                player.on('ready', function(setupTime) {
+                    if (position > 0) {
+                        player.seek(position);
                     }
-                }, 1000);
+                    // update this windows location hash every second
+                    if (window.opener) {
+                        var updater = setInterval(function() {
+                            if (player.getState() === 'complete') {
+                                window.opener.popup_position = 0;
+                            } else {
+                                window.opener.popup_position = player.getPosition();
+                            }
+                        }, 500);
+                    }
+                });
+
             } else {
                 attempts++;
                 if (attempts > 100) {

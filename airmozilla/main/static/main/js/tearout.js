@@ -44,13 +44,17 @@ $(function() {
         features += ',height=' + player_height;
         if (jwplayer_player !== null && jwplayer_player.getPosition()) {
             var position = jwplayer_player.getPosition();
-            if (position > 1) {
-                // go back 1 second
-                position--;
+            if (jwplayer_player.getState() === 'playing') {
+                jwplayer_player.pause();
             }
-            jwplayer_player.pause();
+
             // set the global variable so the pop-up window can reach it
-            popup_position = position;
+            if (jwplayer_player.getState() === 'complete') {
+                popup_position = 0;
+            } else {
+                popup_position = position;
+            }
+
         }
 
         popup = window.open(video_url, video_url, features);
@@ -94,7 +98,7 @@ $(function() {
                     if (iframe.length) {
                         iframe_clone.insertBefore($('.tearout'));
                     } else if (jwplayer_container.length) {
-                        if (popup_position) {
+                        if (popup_position > 0) {
                             jwplayer_player.seek(popup_position);
                         }
                         jwplayer_container.show();
