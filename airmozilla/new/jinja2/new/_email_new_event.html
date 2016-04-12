@@ -2,7 +2,11 @@
 
 {% block content %}
 <p>
+  {% if event.template and event.template.name == 'YouTube' %}
+  <b>Your video has been embedded and made available.</b>
+  {% else %}
   <b>Your video has been transcoded and made available.</b>
+  {% endif %}
 </p>
 
 <h3>
