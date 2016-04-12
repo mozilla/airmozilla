@@ -247,8 +247,8 @@ pyasn1-modules==0.0.8 \
     --hash=sha256:163d3c689a8f0690c1ec88799b29a34b06f9401e298a4565a2e4fa400445a69c \
     --hash=sha256:da2590c2493f26a51f8de53e2805c2eb7112c3b44ec35060e6ea397b92dd1732 \
     --hash=sha256:9ff468a0a40a745b046527f173c763e01a774c1ef60d23b7eb90484620a65d9e
-oauth2client==1.5.1 \
-    --hash=sha256:3fda797ddc4c125bce2ca644606be09cbf1f6de82d7d11e084dc0bc98db4fb3e
+oauth2client==2.0.1 \
+    --hash=sha256:351def3df312364f0c5e38a682c8d8a70a36d884cf40bd0084a67d7b8f7ed7ac
 uritemplate==0.6 \
     --hash=sha256:a30e230aeb7ebedbcb5da9999a17fa8a30e512e6d5b06f73d47c6e03c8e357fd
 django-pipeline==1.5.4 \
@@ -257,8 +257,9 @@ django-pipeline==1.5.4 \
 futures==3.0.5 \
     --hash=sha256:f7f16b6bf9653a918a03f1f2c2d62aac0cd64b1bc088e93ea279517f6b61120b \
     --hash=sha256:0542525145d5afc984c88f914a0c85c77527f65946617edb5274f72406f981df
-rsa==3.3 \
-    --hash=sha256:928fdb62edfff5c9860f932f76aea7c94bfbcd3f0e7acf6dd64ccd19a597e9c7
+rsa==3.4.2 \
+    --hash=sha256:43f682fea81c452c98d09fc316aae12de6d30c4b5c84226642cf8f8fd1c93abd \
+    --hash=sha256:25df4e10c263fb88b5ace923dd84bf9aa7f5019687b5e55382ffcdb8bede9db5
 MarkupSafe==0.23 \
     --hash=sha256:a4ec1aff59b95a14b45eb2e23761a0179e98319da5a7eb76b56ea8cdc7b871c3
 pytest==2.9.0 \
