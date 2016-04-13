@@ -230,25 +230,28 @@ var Comments = (function() {
                     }
                 });
             }
-            var RELOAD_INTERVAL = 5;  // seconds
 
-            if (typeof window.Fanout !== 'undefined') {
-                Fanout.subscribe('/' + container.data('subscription-channel-comments'), function(data) {
-                    // Supposedly the comments have changed.
-                    // For security, let's not trust the data but just take it
-                    // as a hint that it's worth doing an AJAX query
-                    // now.
-                    Comments.load(container);
-                });
-                // If Fanout doesn't work for some reason even though it
-                // was made available, still use the regular old
-                // interval. Just not as frequently.
-                RELOAD_INTERVAL = 60 * 5;
-            }
-            setInterval(function() {
-                Comments.reload_loop(container);
-            }, RELOAD_INTERVAL * 1000);
+            // The whole comment change checking thing can wait a bit.
+            setTimeout(function() {
+                var RELOAD_INTERVAL = 5;  // seconds
 
+                if (typeof window.Fanout !== 'undefined') {
+                    Fanout.subscribe('/' + container.data('subscription-channel-comments'), function(data) {
+                        // Supposedly the comments have changed.
+                        // For security, let's not trust the data but just take it
+                        // as a hint that it's worth doing an AJAX query
+                        // now.
+                        Comments.load(container);
+                    });
+                    // If Fanout doesn't work for some reason even though it
+                    // was made available, still use the regular old
+                    // interval. Just not as frequently.
+                    RELOAD_INTERVAL = 60 * 5;
+                }
+                setInterval(function() {
+                    Comments.reload_loop(container);
+                }, RELOAD_INTERVAL * 1000);
+            }, 3 * 1000);
         });
 
 

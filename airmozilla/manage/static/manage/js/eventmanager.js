@@ -26,8 +26,8 @@ app.filter('startFrom', function() {
 
 
 app.controller('EventManagerController',
-['$scope', '$http', '$interval',
-function EventManagerController($scope, $http, $interval) {
+['$scope', '$http', '$interval', '$timeout',
+function EventManagerController($scope, $http, $interval, $timeout) {
     'use strict';
 
     $scope.first_loading = true;
@@ -321,15 +321,21 @@ function EventManagerController($scope, $http, $interval) {
               localStorage.setItem('eventmanager', JSON.stringify(data));
               $scope.events = data.events;
               $scope.max_modified = data.max_modified;
-              var reloadInterval = 10; // seconds
-              if (typeof window.Fanout !== 'undefined') {
-                  window.Fanout.subscribe('/events', function(data) {
-                      $scope.$apply(lookForModifiedEvents);
-                  });
-                  reloadInterval = 60;
-              }
-              // every 10 seconds, look for for changed events
-              $interval(lookForModifiedEvents, reloadInterval * 1000);
+
+              // This update looking for modified events doesn't need
+              // to be initialized immediately. It can wait a little bit.
+              $timeout(function() {
+                  var reloadInterval = 10; // seconds
+                  if (typeof window.Fanout !== 'undefined') {
+                      window.Fanout.subscribe('/events', function(data) {
+                          $scope.$apply(lookForModifiedEvents);
+                      });
+                      reloadInterval = 60;
+                  }
+                  // every 10 seconds, look for for changed events
+                  $interval(lookForModifiedEvents, reloadInterval * 1000);
+              }, 2 * 1000);
+
           }).error(function(data, status) {
               console.log(data, status);
               $scope.load_error = 'Failed to fetch ALL events (' + status + ')';
