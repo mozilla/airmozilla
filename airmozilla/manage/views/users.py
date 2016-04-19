@@ -95,8 +95,9 @@ def _get_all_users():
         item = {
             'id': user.id,
             'email': user.email,
-            'last_login': user.last_login.isoformat(),
         }
+        if user.last_login:
+            item['last_login'] = user.last_login.isoformat()
         # The reason we only add these if they're true is because we want
         # to minimize the amount of JSON we return. It works because in
         # javascript, doing `if (thing.something)` works equally if it
