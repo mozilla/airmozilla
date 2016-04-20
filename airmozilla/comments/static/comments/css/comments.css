@@ -36,6 +36,7 @@
     color: #666;
 }
 #comments img.avatar {
+    float: left;
     margin-right: 5px;
     border: 2px solid #2D373B;
     border-radius: 3px;
