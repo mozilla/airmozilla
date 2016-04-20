@@ -100,7 +100,7 @@ p.pending {
 
 .tabs {
     position: relative;
-    min-height: 200px;
+    min-height: 260px;
     clear: both;
     margin: 25px 0;
 }
@@ -153,4 +153,16 @@ p.pending {
 
 .tab .content.extra-long {
     overflow-y: scroll;
+}
+
+
+ul.chapters li {
+    list-style: none;
+    margin-bottom: 7px;
+}
+ul.chapters li img.thumbnail {
+    vertical-align: middle;
+}
+ul.chapters li a.chapter-text {
+    margin-left: 5px;
 }

@@ -63,6 +63,8 @@ def show_duration(duration, include_seconds=False):
             out.append('%d seconds' % seconds)
         elif seconds:
             out.append('1 second')
+        else:
+            out.append('0 seconds')
     return ' '.join(out)
 
 

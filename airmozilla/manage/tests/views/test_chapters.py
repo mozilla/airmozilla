@@ -81,6 +81,8 @@ class TestEventChapters(ManageTestCase):
         chapter = Chapter.objects.get(id=chapter.id)
         eq_(chapter.text, 'Other Text')
         eq_(chapter.timestamp, 60 * 60 + 60 + 1)
+        ok_(not chapter.image)
+
         response_fail = self.client.post(url, {
             'text': 'Web Developer',
             'timestamp': ''

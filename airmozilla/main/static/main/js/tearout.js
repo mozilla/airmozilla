@@ -12,9 +12,9 @@ $(function() {
 
     $('.tearout').on('click', 'a.open', function(event) {
         event.preventDefault();
-        var iframe = $('.entry-content iframe');
-        var player_wrapper = $('.entry-content #player_wrapper');
-        var jwplayer_container = $('.entry-content div.jwplayer');
+        var iframe = $('.event-content iframe');
+        var player_wrapper = $('.event-content #player_wrapper');
+        var jwplayer_container = $('.event-content div.jwplayer');
 
         var video_url = location.href + 'video/?embedded=false&autoplay=true';
         var video_name = '_blank';

@@ -425,12 +425,10 @@ class EventView(View):
             'curated_groups': CuratedGroup.get_names(event),
         })
 
-        context['chapters'] = []
-        for chapter in Chapter.objects.filter(event=event, is_active=True):
-            context['chapters'].append({
-                'timestamp': chapter.timestamp,
-                'text': chapter.text,
-            })
+        context['chapters'] = Chapter.objects.filter(
+            event=event,
+            is_active=True,
+        )
 
         vidly_tag, vidly_hd = self.get_vidly_information(event, tag)
         if vidly_tag:

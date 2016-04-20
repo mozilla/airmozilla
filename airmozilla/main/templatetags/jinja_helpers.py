@@ -166,6 +166,7 @@ def show_thumbnail(
     image=None,
     url_prefix='',
     live=False,
+    klass='wp-post-image'
 ):
     alt = alt or event.title
     if not image:
@@ -176,12 +177,13 @@ def show_thumbnail(
         data = ' data-eventid="%s"' % event.id
     html = (
         '<img src="%(url)s" width="%(width)s" height="%(height)s" '
-        'alt="%(alt)s"%(data)s class="wp-post-image">' % {
+        'alt="%(alt)s"%(data)s class="%(klass)s">' % {
             'data': data,
             'url': urlparse.urljoin(url_prefix, thumb.url),
             'width': thumb.width,
             'height': thumb.height,
             'alt': escape(alt),
+            'klass': klass,
         }
     )
     return mark_safe(html)

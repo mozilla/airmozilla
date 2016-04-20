@@ -16,6 +16,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.main.views.pages import EventView, get_video_tagged
 from airmozilla.main.templatetags.jinja_helpers import js_date
+from airmozilla.main import tasks
 
 
 class EventEditView(EventView):
@@ -375,6 +376,7 @@ class EventEditChaptersView(EventEditView):
         }
         return render(request, self.template_name, context)
 
+    @transaction.atomic
     def post(self, request, slug):
         event = self.get_event(slug, request)
         if not self.can_view_event(event, request):
@@ -409,5 +411,6 @@ class EventEditChaptersView(EventEditView):
                     text=form.cleaned_data['text'],
                     user=request.user,
                 )
+            tasks.create_chapterimages.delay(chapter.id)
             return http.JsonResponse({'ok': True})
         return http.JsonResponse({'errors': form.errors})

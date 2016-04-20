@@ -42,7 +42,7 @@
     </div>
     {% endif %}
 
-    <div class="entry-content"
+    <div class="event-content"
       data-event-status="{{ event.status }}"
       data-subscription-channel-status="{{ subscription_channel_status }}"
       >
@@ -158,11 +158,25 @@
           <label for="tab-chapters">Chapters</label>
           <div class="content chapters extra-long">
             {% if chapters %}
-            <ul>
+            <ul class="chapters">
               {% for chapter in chapters %}
               <li>
-                <a href="#@{{ show_duration_compact(chapter.timestamp) }}" data-ts="{{ chapter.timestamp }}" title="{{ show_duration(chapter.timestamp, include_seconds=True) }}">
-                  {{ chapter.text }}
+                {% if chapter.image %}
+                  <a xxxstyle="vertical-align:middle"
+                    href="#@{{ show_duration_compact(chapter.timestamp) }}"
+                    data-ts="{{ chapter.timestamp }}"
+                    title="{{ chapter.text }}">
+                    {{ show_thumbnail(None, image=chapter.image, geometry='64x36', alt=chapter.text, klass='thumbnail') }}
+                  </a>
+                {% else %}
+                  <small>At {{ show_duration(chapter.timestamp, include_seconds=True) }}</small>
+                {% endif %}
+                <a
+                  class="chapter-text"
+                  href="#@{{ show_duration_compact(chapter.timestamp) }}"
+                  data-ts="{{ chapter.timestamp }}"
+                  title="{{ show_duration(chapter.timestamp, include_seconds=True) }}">
+                  <span>{{ chapter.text }}</span>
                 </a>
               </li>
               {% endfor %}

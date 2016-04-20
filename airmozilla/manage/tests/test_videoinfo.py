@@ -1126,6 +1126,106 @@ class TestVideoinfo(DjangoTestCase):
         event_temp_dir = os.path.join(temp_dir, directory_name)
         ok_(not os.path.isdir(event_temp_dir))
 
+    @mock.patch('airmozilla.manage.vidly.logging')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_screencapture_at_timestamp_with_callback(
+        self, mock_popen, rhead, p_urllib2, p_log
+    ):
+        """This test is effectively the same as test_fetch_screencapture()
+        but with `import_immediately=True` set.
+        """
+        def mocked_urlopen(request):
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>xxx999</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        p_urllib2.urlopen = mocked_urlopen
+
+        def mocked_head(url, **options):
+            return Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        sample_jpg = self.sample_jpg
+        sample_jpg2 = self.sample_jpg2
+
+        def mocked_popen(command, **kwargs):
+            url = command[4]
+            ffmpeged_urls.append(url)
+            destination = command[-1]
+            assert os.path.isdir(os.path.dirname(destination))
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if 'xyz123' in url:
+                        # Let's create two jpeg's in that directory
+                        if '01.jpg' in destination:
+                            shutil.copyfile(sample_jpg, destination)
+                        else:
+                            shutil.copyfile(sample_jpg2, destination)
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        event = Event.objects.get(title='Test event')
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.duration = 1157
+        event.template = template
+        event.save()
+
+        # Make sure it has a HD VidlySubmission
+        VidlySubmission.objects.create(
+            event=event,
+            url='https://s3.com/asomething.mov',
+            tag='xyz123',
+            hd=True,
+        )
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+
+        def callback(filepath):
+            ok_(os.path.isfile(filepath))
+            return filepath.endswith('3.jpg')
+
+        created = videoinfo.fetch_screencapture(
+            event,
+            timestamp=3,
+            callback=callback
+        )
+        eq_(created, 1)
+        eq_(len(ffmpeged_urls), 1)
+
+        created = videoinfo.fetch_screencapture(
+            event,
+            timestamp=2,  # callback will return False for this
+            callback=callback
+        )
+        eq_(created, 0)
+        eq_(len(ffmpeged_urls), 2)
+
     def test_import_screencaptures_empty(self):
         """it should be possible to run this at any time, even if
         the dedicated temp directory does not exist yet. """

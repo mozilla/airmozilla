@@ -90,6 +90,10 @@ def _upload_path_event_placeholder(instance, filename):
     return _upload_path_tagged('event-placeholder', instance, filename)
 
 
+def _upload_path_chapters(instance, filename):
+    return _upload_path_tagged('chapters', instance, filename)
+
+
 class Channel(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=100, unique=True,
@@ -1047,6 +1051,12 @@ class Chapter(models.Model):
     event = models.ForeignKey(Event)
     timestamp = models.PositiveIntegerField()
     text = models.TextField()
+
+    image = models.ImageField(
+        upload_to=_upload_path_chapters,
+        null=True,
+        blank=True,
+    )
 
     user = models.ForeignKey(User)
     is_active = models.BooleanField(default=True)

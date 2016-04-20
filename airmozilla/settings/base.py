@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     'airmozilla.staticpages',
     'airmozilla.new',
     'airmozilla.popcorn',
+    'airmozilla.chapters',
 
     'djcelery',
     'kombu.transport.django',

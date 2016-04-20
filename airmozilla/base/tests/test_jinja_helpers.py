@@ -111,34 +111,40 @@ class TestDuration(DjangoTestCase):
 
     def test_show_duration_long_format(self):
         result = show_duration(60 * 60)
-        eq_(result, "1 hour")
+        eq_(result, '1 hour')
 
         result = show_duration(60)
-        eq_(result, "1 minute")
+        eq_(result, '1 minute')
 
         result = show_duration(2 * 60 * 60 + 10 * 60)
-        eq_(result, "2 hours 10 minutes")
+        eq_(result, '2 hours 10 minutes')
 
         result = show_duration(1 * 60 * 60 + 1 * 60)
-        eq_(result, "1 hour 1 minute")
+        eq_(result, '1 hour 1 minute')
 
         result = show_duration(1 * 60 * 60 + 1 * 60 + 1)
-        eq_(result, "1 hour 1 minute")
+        eq_(result, '1 hour 1 minute')
 
         result = show_duration(2 * 60 * 60 + 2 * 60)
-        eq_(result, "2 hours 2 minutes")
+        eq_(result, '2 hours 2 minutes')
 
         result = show_duration(1 * 60 * 60 + 1 * 60 + 1, include_seconds=True)
-        eq_(result, "1 hour 1 minute 1 second")
+        eq_(result, '1 hour 1 minute 1 second')
 
         result = show_duration(1 * 60 * 60 + 1 * 60 + 2, include_seconds=True)
-        eq_(result, "1 hour 1 minute 2 seconds")
+        eq_(result, '1 hour 1 minute 2 seconds')
 
         result = show_duration(49)
-        eq_(result, "49 seconds")
+        eq_(result, '49 seconds')
 
         result = show_duration(66.61)
         eq_(result, '1 minute')
 
         result = show_duration(66.61, include_seconds=True)
         eq_(result, '1 minute 6 seconds')
+
+        result = show_duration(0, include_seconds=True)
+        eq_(result, '0 seconds')
+
+        result = show_duration(0)
+        eq_(result, '0 seconds')

@@ -160,6 +160,7 @@ def fetch_screencapture(
     event, save=False, save_locally=False, verbose=False, use_https=True,
     import_=True, import_if_possible=False, video_url=None,
     set_first_available=False, import_immediately=False,
+    timestamp=None, callback=None,
 ):
     """return number of files that were successfully created or None"""
     assert event.duration, "no duration"
@@ -232,9 +233,8 @@ def fetch_screencapture(
         output_template = os.path.join(save_dir, 'screencap-%02d.jpg')
         all_out = []
         all_err = []
-        while seconds < event.duration:
-            number += 1
-            output = output_template % number
+
+        def extract_frame(seconds, save_name):
             command = [
                 ffmpeg_location,
                 '-ss',
@@ -243,25 +243,46 @@ def fetch_screencapture(
                 video_url,
                 '-vframes',
                 '1',
-                output,
+                save_name,
             ]
             if verbose:  # pragma: no cover
                 print ' '.join(command)
             out, err = wrap_subprocess(command)
             all_out.append(out)
             all_err.append(err)
-            seconds += incr
+
+        if timestamp is not None:  # it might be exactly 0
+            extract_frame(timestamp, output_template % timestamp)
+            if callback:
+                created = _callback_files(
+                    callback,
+                    _get_files(save_dir),
+                    delete_opened_files=True,
+                )
+            else:
+                raise NotImplementedError
             if import_immediately:
                 created += _import_files(
                     event,
                     _get_files(save_dir),
-                    set_first_available=set_first_available,
                     delete_opened_files=True,
                 )
-                # If 'set_first_available' was true, it should have at
-                # that point set the picture for that first one.
-                if created:
-                    set_first_available = False
+        else:
+            while seconds < event.duration:
+                number += 1
+                extract_frame(seconds, output_template % number)
+                seconds += incr
+                if import_immediately:
+                    created += _import_files(
+                        event,
+                        _get_files(save_dir),
+                        set_first_available=set_first_available,
+                        delete_opened_files=True,
+                    )
+                    # If 'set_first_available' was true, it should have at
+                    # that point set the picture for that first one.
+                    if created:
+                        set_first_available = False
         t1 = time.time()
 
         files = _get_files(save_dir)
@@ -404,6 +425,16 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
         filepath = None
 
     return video_url, filepath
+
+
+def _callback_files(callback, files, delete_opened_files=False):
+    created = 0
+    for filepath in reversed(sorted(files)):
+        if callback(filepath):
+            created += 1
+        if delete_opened_files:
+            os.remove(filepath)
+    return created
 
 
 def _import_files(

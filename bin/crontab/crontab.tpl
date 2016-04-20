@@ -63,5 +63,8 @@ HOME=/tmp
 # Every hour, at 5min past
 5 * * * * {{ cron }} keep_all_mozillians_group_cache_hot 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
+# Every 30 minutes
+*/30 * * * * {{ cron }} create_chapterimages 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+
 
 MAILTO=root

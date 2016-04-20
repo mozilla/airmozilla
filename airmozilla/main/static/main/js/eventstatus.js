@@ -1,5 +1,5 @@
 $(function () {
-    var container = $('.entry-content');
+    var container = $('.event-content');
 
     function checkStatus() {
         return $.get(location.pathname + 'status/')
