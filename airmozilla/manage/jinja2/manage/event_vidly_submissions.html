@@ -129,6 +129,9 @@
 
   {% include "manage/_paginate.html" %}
 
+  <a href="{{ url('manage:vidly_media') }}?{{ query_string(request, event=event.slug) }}"
+    class="btn btn-default">Find in list of all Vid.ly submissions</a>
+
 <p>
   <a href="..">&larr; Return to event</a>
 </p>

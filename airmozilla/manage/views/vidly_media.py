@@ -36,6 +36,7 @@ def vidly_media(request):
             .values_list('event_id', flat=True))
     )
 
+    q_event = request.GET.get('event', '')
     status = request.GET.get('status')
     repeated = request.GET.get('repeated') == 'event'
     repeats = {}
@@ -72,6 +73,11 @@ def vidly_media(request):
         )
         events = Event.objects.filter(id__in=repeats.keys())
 
+    if q_event:
+        events = events.filter(
+            Q(title__icontains=q_event) | Q(slug__iexact=q_event)
+        )
+
     def get_repeats(event):
         return repeats[event.id]
 
@@ -91,6 +97,7 @@ def vidly_media(request):
         'repeated': repeated,
         'get_repeats': get_repeats,
         'submissions': submissions,
+        'event': q_event,
     }
     return render(request, 'manage/vidly_media.html', context)
 

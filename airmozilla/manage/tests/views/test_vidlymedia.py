@@ -205,6 +205,35 @@ class TestVidlyMedia(ManageTestCase):
         ok_(vidly_submissions_url in response.content)
 
     @mock.patch('urllib2.urlopen')
+    def test_vidly_media_by_event(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_MEDIALIST_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        event.template = Template.objects.create(
+            name='Vid.ly Something',
+            content='<iframe>'
+        )
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        url = reverse('manage:vidly_media')
+        response = self.client.get(url, {'event': 'Nothing'})
+        eq_(response.status_code, 200)
+        ok_(event.title not in response.content)
+
+        response = self.client.get(url, {'event': 'test'})
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+        response = self.client.get(url, {'event': event.slug})
+        eq_(response.status_code, 200)
+        ok_(event.title in response.content)
+
+    @mock.patch('urllib2.urlopen')
     def test_vidly_media_with_status(self, p_urlopen):
 
         def mocked_urlopen(request):

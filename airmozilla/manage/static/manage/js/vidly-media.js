@@ -123,4 +123,10 @@ $(function() {
         $('form.resubmit').hide();
         return false;
     });
+
+    $('button.reset').click(function() {
+        $('#id_event').val('');
+        $('#id_status').val('');
+        location.href = location.pathname;
+    });
 });
