@@ -329,7 +329,7 @@ PIPELINE_JS = {
     },
     'dashboard_graphs': {
         'source_filenames': (
-            'manage/metricsgraphics/metricsgraphics.js',
+            'manage/metricsgraphics/metricsgraphics.min.js',
             'manage/js/dashboard_graphs.js',
         ),
         'output_filename': 'js/dashboard-graphs.min.js',

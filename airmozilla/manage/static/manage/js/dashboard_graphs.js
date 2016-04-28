@@ -14,16 +14,11 @@ function($scope, $http) {
             title: title,
             description: description,
             data: data,
-            // width: 800,
             full_width: true,
             height: 250,
             right: 40,
-            // missing_is_hidden: true,
-            xax_start_at_min: true,
             target: target,
-            // show_secondary_x_label: false,
             legend: legends,
-            // legend_target: '.legend'
         });
     }
 
