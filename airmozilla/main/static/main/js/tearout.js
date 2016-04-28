@@ -1,6 +1,6 @@
 // This global variable is available so the popup window can access
-// (and write to) `windown.opener.popup_position`.
-var popup_position = 0;
+// (and write to) `window.opener.popup_position`.
+window.popup_position = 0;
 
 $(function() {
     var iframe_clone = null;
