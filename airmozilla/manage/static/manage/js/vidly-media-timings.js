@@ -6,15 +6,13 @@ $(function() {
             data: data.points,
             least_squares: true,
             chart_type: 'point',
-            // width: 800,
             full_width: true,
             height: 600,
-            // right: 0,
             left: 110,
             bottom: 50,
             x_label: "Video duration",
             y_label: "Time to finish",
-            xax_start_at_min: true,
+            axes_not_compact: true,
             target: '#plot',
 
             yax_format: function(f) {
@@ -22,8 +20,6 @@ $(function() {
             },
             xax_format: function(f) {
                 return moment.duration(f, 'seconds').humanize();
-                // var pf = d3.formatPrefix(f);
-                // return Math.round(pf.scale(f)) + pf.symbol;
             },
             x_accessor: 'x',
             y_accessor: 'y',
@@ -31,6 +27,7 @@ $(function() {
         });
 
         $('.summary .slope').text(data.slope.toFixed(2));
+        document.title = 'Slope: ' + data.slope.toFixed(2);
         var examples = [60 * 2, 60 * 10, 60 * 30, 60 * 60 * 2];
         var $container = $('.summary .examples');
         $.each(examples, function(i, t) {
