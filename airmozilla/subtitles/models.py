@@ -34,3 +34,15 @@ def copy_transcript_as_text(sender, instance, **kwargs):
         text.append(block['text'])
     instance.event.transcript = '\n'.join(text)
     instance.event.save()
+
+
+class AmaraCallback(models.Model):
+    payload = JSONField()
+    amara_video = models.ForeignKey(AmaraVideo, null=True)
+    api_url = models.URLField()
+    video_id = models.CharField(max_length=100)
+    team = models.CharField(max_length=300, null=True)
+    project = models.CharField(max_length=300, blank=True, null=True)
+    language_code = models.CharField(max_length=100, null=True)
+
+    created = models.DateTimeField(auto_now_add=True)

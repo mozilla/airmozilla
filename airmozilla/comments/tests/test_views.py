@@ -4,13 +4,12 @@ import re
 import uuid
 
 import mock
+from nose.tools import eq_, ok_
 
 from django.core.cache import cache
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.urlresolvers import reverse
-
-from nose.tools import eq_, ok_
 
 from airmozilla.main.models import Event
 from airmozilla.base.tests.testbase import Response, DjangoTestCase

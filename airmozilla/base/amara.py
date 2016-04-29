@@ -59,7 +59,7 @@ def upload_video(event):
                 Q(slug=event) | Q(title=event)
             )
 
-    video_url = videoinfo.get_video_url(
+    video_url, _ = videoinfo.get_video_url(
         event,
         True,
         False,

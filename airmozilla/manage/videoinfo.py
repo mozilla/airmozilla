@@ -382,7 +382,7 @@ def get_video_url(event, use_https, save_locally, verbose=False):
         video_url = 'https://www.youtube.com/watch?v={}'.format(
             event.template_environment['id']
         )
-        return video_url
+        return video_url, None
     else:
         raise AssertionError("Not valid template")
 
