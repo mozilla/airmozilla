@@ -402,3 +402,9 @@ POPCORN_EDITOR_CDN_URL = "//d2edlhmcxlovf.cloudfront.net"
 
 # Fanout.io account defaults for a realm.
 FANOUT_REALM_ID = FANOUT_REALM_KEY = None
+
+
+AMARA_TEAM = 'mozilla'
+AMARA_PROJECT = 'airmozilla'
+AMARA_USERNAME = ''
+AMARA_API_KEY = ''

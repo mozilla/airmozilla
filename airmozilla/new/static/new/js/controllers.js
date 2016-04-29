@@ -245,8 +245,6 @@ angular.module('new.controllers', ['new.services'])
             }
             $scope.fileError = null;
             var file = $scope.dataFile;
-
-            // commented out temporarily so I don't have to upload movie files every time!!!!!!
             if (acceptedFiles.indexOf(file.type) === -1) {
                 $scope.fileError = 'Not a recognized file type (' +
                     file.type + ')';
