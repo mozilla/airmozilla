@@ -85,7 +85,7 @@ def fetch_duration(
         assert not save_locally
     else:
         # The 'filepath' is only not None if 'save_locally' is true
-        video_url, filepath = _get_video_url(
+        video_url, filepath = get_video_url(
             event,
             use_https,
             save_locally,
@@ -178,7 +178,7 @@ def fetch_screencapture(
     if video_url:
         assert not save_locally
     else:
-        video_url, filepath = _get_video_url(
+        video_url, filepath = get_video_url(
             event,
             use_https,
             save_locally,
@@ -346,7 +346,7 @@ def _get_files(directory):
     return filenames
 
 
-def _get_video_url(event, use_https, save_locally, verbose=False):
+def get_video_url(event, use_https, save_locally, verbose=False):
     if event.template and 'Vid.ly' in event.template.name:
         assert event.template_environment.get('tag'), "No Vid.ly tag value"
 
@@ -377,6 +377,12 @@ def _get_video_url(event, use_https, save_locally, verbose=False):
     elif event.template and 'Ogg Video' in event.template.name:
         assert event.template_environment.get('url'), "No Ogg Video url value"
         video_url = event.template_environment['url']
+    elif event.template and 'YouTube' in event.template.name:
+        assert event.template_environment.get('id'), "No YouTube ID value"
+        video_url = 'https://www.youtube.com/watch?v={}'.format(
+            event.template_environment['id']
+        )
+        return video_url
     else:
         raise AssertionError("Not valid template")
 

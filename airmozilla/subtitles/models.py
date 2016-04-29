@@ -11,12 +11,13 @@ class AmaraVideo(models.Model):
     video_url = models.URLField()
     video_id = models.CharField(max_length=100)
     transcript = JSONField(null=True)
+    upload_info = JSONField(null=True)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
     def url(self):
-        return 'http://www.amara.org/videos/%s/' % self.video_id
+        return 'https://www.amara.org/videos/%s/' % self.video_id
 
 
 @receiver(models.signals.post_save, sender=AmaraVideo)

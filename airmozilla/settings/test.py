@@ -100,3 +100,9 @@ PIPELINE_ENABLED = True
 # the tests don't correctly mock fanout.
 FANOUT_REALM_ID = 'abc123'
 FANOUT_REALM_KEY = 'xyz987'
+
+
+AMARA_USERNAME = 'amara'
+AMARA_API_KEY = 'super-secret-key'
+AMARA_TEAM = 'muzilla'
+AMARA_PROJECT = 'airmuzilla'
