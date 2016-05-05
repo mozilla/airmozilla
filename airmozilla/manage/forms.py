@@ -594,6 +594,10 @@ class SurveyNewForm(BaseModelForm):
 class LocationEditForm(BaseModelForm):
     timezone = forms.ChoiceField(choices=TIMEZONE_CHOICES)
 
+    class Meta:
+        model = Location
+        fields = ('name', 'timezone', 'is_active', 'regions', 'prep_time')
+
     def __init__(self, *args, **kwargs):
         super(LocationEditForm, self).__init__(*args, **kwargs)
         if 'instance' in kwargs:
@@ -601,10 +605,6 @@ class LocationEditForm(BaseModelForm):
         else:
             initial = settings.TIME_ZONE
         self.initial['timezone'] = initial
-
-    class Meta:
-        model = Location
-        fields = ('name', 'timezone', 'is_active', 'regions')
 
 
 class LocationDefaultEnvironmentForm(BaseModelForm):

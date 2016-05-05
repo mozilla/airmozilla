@@ -225,6 +225,17 @@ class Location(models.Model):
     is_active = models.BooleanField(default=True)
     regions = models.ManyToManyField(Region, blank=True)
 
+    # A number of seconds, that when generating the iCal for event
+    # assignments we pad the start time based on this.
+    prep_time = models.PositiveIntegerField(
+        default=30 * 60,
+        help_text=(
+            'A number of seconds, that when generating the iCal for '
+            'event assignments we pad the start time based on this. '
+            'Default is 30 minutes (1800 seconds).'
+        )
+    )
+
     class Meta:
         ordering = ['name']
 

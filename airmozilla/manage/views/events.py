@@ -1681,13 +1681,19 @@ def event_assignments_ical(request):
 
     for assignment in assignments:
         event = assignment.event
+
+        # Default is 30 minutes if the event's location doesn't have
+        # a particular prep_time set.
+        prep_time = 30 * 60
+        if event.location:
+            prep_time = event.location.prep_time
         vevent = cal.add('vevent')
         vevent.add('summary').value = "[AirMo crew] %s" % event.title
 
         # Adjusted start times for Event Assignment iCal feeds
         # to allow staff sufficient time for event set-up.
         vevent.add('dtstart').value = (
-            event.start_time - datetime.timedelta(minutes=30)
+            event.start_time - datetime.timedelta(seconds=prep_time)
         )
         vevent.add('dtend').value = (
             event.start_time + datetime.timedelta(

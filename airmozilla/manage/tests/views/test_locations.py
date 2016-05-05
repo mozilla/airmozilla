@@ -45,11 +45,13 @@ class TestLocations(ManageTestCase):
         eq_(response.status_code, 200)
         response_ok = self.client.post(url, {
             'name': 'testing',
-            'timezone': 'US/Pacific'
+            'timezone': 'US/Pacific',
+            'prep_time': 5 * 60,
         })
         self.assertRedirects(response_ok, reverse('manage:locations'))
         location = Location.objects.get(name='testing')
         eq_(location.timezone, 'US/Pacific')
+        eq_(location.prep_time, 5 * 60)
         response_fail = self.client.post(url)
         eq_(response_fail.status_code, 200)
 
@@ -78,14 +80,23 @@ class TestLocations(ManageTestCase):
         eq_(response.status_code, 200)
         response_ok = self.client.post(url, {
             'name': 'eastern',
-            'timezone': 'US/Eastern'
+            'timezone': 'US/Eastern',
+            'prep_time': 5 * 60,
         })
         self.assertRedirects(response_ok, reverse('manage:locations'))
         location = Location.objects.get(id=1)
         eq_(location.timezone, 'US/Eastern')
         response_fail = self.client.post(url, {
             'name': 'eastern',
-            'timezone': 'notatimezone'
+            'timezone': 'notatimezone',
+            'prep_time': 5 * 60,
+        })
+        eq_(response_fail.status_code, 200)
+
+        response_fail = self.client.post(url, {
+            'name': 'eastern',
+            'timezone': 'US/Eastern',
+            'prep_time': 'not a number',
         })
         eq_(response_fail.status_code, 200)
 

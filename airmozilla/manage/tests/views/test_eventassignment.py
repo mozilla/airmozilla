@@ -102,6 +102,8 @@ class TestEventAssignment(ManageTestCase):
         tomorrow = now + datetime.timedelta(days=1)
         event.start_time = tomorrow
         event.save()
+        event.location.prep_time = 45 * 60
+        event.location.save()
         clarissa = User.objects.create(
             username='clarissa',
             email='csorensen@muzilla.com',
@@ -117,7 +119,7 @@ class TestEventAssignment(ManageTestCase):
         ok_(start_time_fmt not in response.content)
         padded_start_time_fmt = (
             event.start_time -
-            datetime.timedelta(minutes=30)
+            datetime.timedelta(minutes=45)
         ).strftime('%Y%m%dT%H%M%S')
         ok_(padded_start_time_fmt in response.content)
         ok_('text/calendar' in response['Content-Type'])
