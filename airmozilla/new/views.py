@@ -930,10 +930,11 @@ def youtube_create(request):
         File(img_temp)
     )
     for tag in data['tags']:
-        try:
-            event.tags.add(Tag.objects.get(name__iexact=tag))
-        except Tag.DoesNotExist:
-            event.tags.add(Tag.objects.create(name=tag))
+        for this_tag in Tag.objects.filter(name__iexact=tag):
+            break
+        else:
+            this_tag = Tag.objects.create(name=tag)
+        event.tags.add(this_tag)
 
     # first get the parent of all YouTube channels
     youtube_parent, __ = Channel.objects.get_or_create(
