@@ -36,6 +36,7 @@ from airmozilla.main.models import (
     EventLiveHits,
     Chapter,
 )
+from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.search.models import SavedSearch
 from airmozilla.surveys.models import Survey, Question, next_question_order
 from airmozilla.staticpages.models import StaticPage
@@ -3261,6 +3262,27 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_(survey_url not in response.content)
+
+    def test_render_event_with_subtitles(self):
+        event = Event.objects.get(title='Test event')
+
+        AmaraVideo.objects.create(
+            event=event,
+            video_id='123',
+            video_url='http://example.com/file.mp4',
+            transcript={
+                'subtitles': [
+                    {'start': 1100, 'end': 2220, 'text': 'HI'},
+                ]
+            }
+        )
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Transcript' in response.content)
+        ok_(
+            '<p data-start="1100" data-end="2220">HI</p>' in response.content
+        )
 
     def test_see_live_unapproved_events(self):
         event = Event.objects.get(title='Test event')

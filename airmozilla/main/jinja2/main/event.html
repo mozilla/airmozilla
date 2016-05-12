@@ -263,6 +263,16 @@
         </div>
       {% endif %}
 
+      {% if amara_video and amara_video.transcript %}
+        <div class="tab">
+          <input type="radio" id="tab-transcript" name="tab-group-1">
+          <label for="tab-transcript">Transcript</label>
+          <div class="content extra-long transcript">
+            {{ render_transcript(amara_video.transcript) }}
+          </div>
+        </div>
+      {% endif %}
+
       {% if not pending and video and event.is_public() and not event.needs_approval() %}
         <div class="tab">
           <input type="radio" id="tab-embed" name="tab-group-1">

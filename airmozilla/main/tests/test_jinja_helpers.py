@@ -27,6 +27,7 @@ from airmozilla.main.templatetags.jinja_helpers import (
     make_absolute,
     show_thumbnail,
     show_lazyr_thumbnail,
+    render_transcript,
 )
 
 
@@ -244,3 +245,33 @@ class TestMakeAbsolute(DjangoTestCase):
         context['request'].is_secure = lambda: True
         result = make_absolute(context, '//some.cdn.com/foo.js')
         eq_(result, 'https://some.cdn.com/foo.js')
+
+
+class TestRenderTranscript(DjangoTestCase):
+
+    def test_render_transcript(self):
+        transcript = {
+            'subtitles': [
+                {'start': 1, 'end': 2, 'text': 'Hi'},
+            ]
+        }
+        html = render_transcript(transcript)
+        ok_('data-start="1"' in html)
+        ok_('data-end="2"' in html)
+        ok_('>Hi<' in html)
+
+        transcript = {
+            'subtitles': [
+                {'start': 3, 'end': 4, 'text': '<script>alert'},
+            ]
+        }
+        html = render_transcript(transcript)
+        ok_('>&lt;script&gt;alert</p>' in html)
+
+        transcript = {
+            'subtitles': [
+                {'start': 10, 'end': 11, 'text': 'one<br>two'},
+            ]
+        }
+        html = render_transcript(transcript)
+        ok_('>one two</p>' in html)

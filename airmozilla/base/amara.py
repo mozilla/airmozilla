@@ -11,9 +11,6 @@ from airmozilla.main.templatetags.jinja_helpers import thumbnail
 from airmozilla.base.utils import build_absolute_url
 
 
-BASE_URL = 'https://amara.org'
-
-
 class UploadError(Exception):
     def __init__(self, status_code, error):
         self.status_code = status_code
@@ -39,13 +36,37 @@ def _get_headers(**extra):
 
 def get_videos():
     return requests.get(
-        BASE_URL + '/api/videos/',
+        settings.AMARA_BASE_URL + '/api/videos/',
         params={
             'team': settings.AMARA_TEAM,
             'project': settings.AMARA_PROJECT,
         },
         headers=_get_headers()
     ).json()
+
+
+def get_subtitles(video_id, format='json', language='en'):
+    path = '/api/videos/{}/languages/{}/subtitles/'.format(
+        video_id,
+        language,
+    )
+    return requests.get(
+        settings.AMARA_BASE_URL + path,
+        params={
+            'format': format,
+        },
+        headers=_get_headers()
+    ).json()
+
+
+def download_subtitles(video_id):
+    amara_video = AmaraVideo.objects.get(video_id=video_id)
+    subtitles = get_subtitles(
+        amara_video.video_id,
+        format='json'
+    )
+    amara_video.transcript = subtitles
+    amara_video.save()
 
 
 def upload_video(event):
@@ -81,7 +102,7 @@ def upload_video(event):
     }
 
     response = requests.post(
-        BASE_URL + '/api/videos/',
+        settings.AMARA_BASE_URL + '/api/videos/',
         data=data,
         headers=_get_headers()
     )

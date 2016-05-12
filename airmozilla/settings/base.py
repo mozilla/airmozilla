@@ -292,9 +292,18 @@ BROWSERID_REQUEST_ARGS = {'siteName': 'Air Mozilla'}
 S3_UPLOAD_BUCKET = 'air-mozilla-uploads'
 
 # See http://amara.org/en/profiles/account/
+# (THESE MIGHT BE OBSOLETE!)
 AMARA_BASE_URL = 'https://www.amara.org/api2/partners'
 AMARA_API_USERNAME = ''
 AMARA_API_KEY = ''
+
+# The new settings
+AMARA_BASE_URL = 'https://amara.org'
+AMARA_TEAM = 'mozilla'
+AMARA_PROJECT = 'airmozilla'
+AMARA_USERNAME = ''
+AMARA_API_KEY = ''
+
 
 SCRAPE_CREDENTIALS = {
     # ('username', 'password'): ['intranet.mozilla.org'],
@@ -402,9 +411,3 @@ POPCORN_EDITOR_CDN_URL = "//d2edlhmcxlovf.cloudfront.net"
 
 # Fanout.io account defaults for a realm.
 FANOUT_REALM_ID = FANOUT_REALM_KEY = None
-
-
-AMARA_TEAM = 'mozilla'
-AMARA_PROJECT = 'airmozilla'
-AMARA_USERNAME = ''
-AMARA_API_KEY = ''

@@ -276,6 +276,7 @@ PIPELINE_JS = {
             'main/js/livehits.js',
             'main/js/related-content.js',
             'main/js/share.js',
+            'main/js/transcript.js',
         ),
         'output_filename': 'js/event.min.js',
     },

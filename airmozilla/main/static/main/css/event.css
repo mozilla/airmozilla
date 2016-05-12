@@ -166,3 +166,20 @@ ul.chapters li img.thumbnail {
 ul.chapters li a.chapter-text {
     margin-left: 5px;
 }
+
+.transcript p {
+    font-size: 90%;
+    margin-bottom: 0.5em;
+    line-height: normal;
+    opacity: 0.7 !important;
+}
+.transcript p.active {
+    font-weight: bold;
+    opacity: 1 !important;
+}
+.transcript p.active:after {
+    content: '”';
+}
+.transcript p.active:before {
+    content: '“';
+}

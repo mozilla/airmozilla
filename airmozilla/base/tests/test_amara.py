@@ -5,6 +5,7 @@ from django.core.files import File
 from django.conf import settings
 
 from airmozilla.main.models import Event, Picture, Template
+from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.base.tests.testbase import DjangoTestCase, Response
 from airmozilla.base import amara
 
@@ -16,10 +17,10 @@ class TestAmara(DjangoTestCase):
 
         def mocked_get(url, params, headers):
 
-            ok_(headers['X-api-key'], settings.AMARA_API_KEY)
-            ok_(headers['X-api-username'], settings.AMARA_USERNAME)
-            ok_(params['project'], settings.AMARA_PROJECT)
-            ok_(params['team'], settings.AMARA_TEAM)
+            eq_(headers['X-api-key'], settings.AMARA_API_KEY)
+            eq_(headers['X-api-username'], settings.AMARA_USERNAME)
+            eq_(params['project'], settings.AMARA_PROJECT)
+            eq_(params['team'], settings.AMARA_TEAM)
 
             return Response({
                 'meta': {
@@ -117,3 +118,33 @@ class TestAmara(DjangoTestCase):
         rpost.side_effect = mocked_post
 
         assert_raises(amara.UploadError, amara.upload_video, event)
+
+    @mock.patch('requests.get')
+    def test_download_subtitles(self, rget):
+
+        def mocked_get(url, params, headers):
+            assert '/XYZ123/' in url
+            eq_(params['format'], 'json')
+            eq_(headers['X-api-key'], settings.AMARA_API_KEY)
+            eq_(headers['X-api-username'], settings.AMARA_USERNAME)
+            return Response({
+                'language': 'en',
+                'subtitles': [
+                    {'end': 2, 'start': 1, 'text': 'Hi'},
+                ]
+            })
+
+        rget.side_effect = mocked_get
+        event = Event.objects.get(title='Test event')
+        amara_video = AmaraVideo.objects.create(
+            event=event,
+            video_id='XYZ123',
+            video_url='https://example.com/file.mp4',
+        )
+
+        amara.download_subtitles('XYZ123')
+        amara_video = AmaraVideo.objects.get(id=amara_video.id)
+        assert amara_video.transcript
+        eq_(amara_video.transcript['subtitles'], [
+            {'end': 2, 'start': 1, 'text': 'Hi'},
+        ])

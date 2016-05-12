@@ -15,6 +15,7 @@ from django.contrib.sites.requests import RequestSite
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django.core.cache import cache
+from django.template import engines
 
 from django_jinja import library
 from sorl.thumbnail import get_thumbnail
@@ -248,3 +249,19 @@ def get_default_placeholder_thumb_url(geometry, crop):
             url = thumb.url
             break
     return url
+
+
+@library.global_function
+def render_transcript(transcript):
+    html = []
+    template = engines['backend'].from_string(
+        '<p data-start="{{ start }}" data-end="{{ end }}">{{ text }}</p>'
+    )
+    for segment in transcript['subtitles']:
+        context = {
+            'start': segment['start'],
+            'end': segment['end'],
+            'text': segment['text'].replace('<br>', ' '),
+        }
+        html.append(template.render(context))
+    return mark_safe('\n'.join(html))
