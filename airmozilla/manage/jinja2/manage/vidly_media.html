@@ -154,7 +154,11 @@
               </span>
             </span>
             {% elif submission.finished %}
-            <span class="finished" title="Time it took to finish transcoding">
+            <span class="finished"
+              {% if submission.event.duration %}
+              title="Estimate to finish WAS {{ submission.estimated_finished_duration | formatduration }}"
+              {% endif %}
+              >
               {{ submission.finished_duration | formatduration }}
               <span title="Event duration">
                 ({{ submission.event.duration | formatduration }})

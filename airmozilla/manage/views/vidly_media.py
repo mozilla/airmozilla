@@ -338,8 +338,9 @@ def vidly_media_timings(request):
 @superuser_required
 @json_view
 def vidly_media_timings_data(request):
-    points = VidlySubmission.get_points(100)
-    slope = VidlySubmission.get_least_square_slope(points=points)
+    points = VidlySubmission.get_recent_points(100)
+    slope = VidlySubmission.get_general_least_square_slope(points=points)
+
     context = {
         'points': points,
         'slope': slope,

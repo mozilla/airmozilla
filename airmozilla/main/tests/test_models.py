@@ -475,31 +475,33 @@ class CuratedGroupsTest(DjangoTestCase):
 class VidlySubmissionTests(DjangoTestCase):
 
     def test_get_least_square_slope(self):
-        eq_(VidlySubmission.get_least_square_slope(), None)
+        # eq_(VidlySubmission.get_least_square_slope(), None)
 
         event = Event.objects.get(title='Test event')
         event.duration = 300
         event.save()
 
         now = timezone.now()
-        VidlySubmission.objects.create(
+        vidly_submission = VidlySubmission.objects.create(
             event=event,
             submission_time=now,
             finished=now + datetime.timedelta(seconds=event.duration * 2.1)
         )
+        eq_(vidly_submission.get_least_square_slope(), None)
         other_event = Event.objects.create(
             duration=450,
             slug='other',
             start_time=event.start_time,
         )
-        VidlySubmission.objects.create(
+        second_vidly_submission = VidlySubmission.objects.create(
             event=other_event,
             submission_time=now,
             finished=now + datetime.timedelta(
                 seconds=other_event.duration * 1.9
             )
         )
-        eq_(VidlySubmission.get_least_square_slope(), 1.5)
+        eq_(vidly_submission.get_least_square_slope(), 1.5)
+        eq_(second_vidly_submission.get_least_square_slope(), 1.5)
 
 
 class VidlyMediaTests(DjangoTestCase):

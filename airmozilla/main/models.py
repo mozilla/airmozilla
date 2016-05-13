@@ -833,8 +833,17 @@ class VidlySubmission(models.Model):
     def errored_duration(self):
         return (self.errored - self.submission_time).seconds
 
+    @property
+    def estimated_finished_duration(self):
+        assert self.event.duration
+        slope = self.get_least_square_slope()
+        # The video is, say, 1000 seconds, and the slop is, say,
+        # 1.80. That means, it's expected to finish in 1000 * 1.8 seconds.
+        return self.event.duration * slope
+
     @classmethod
-    def get_points(cls, slice=50):
+    def get_recent_points(cls, slice=50):
+        """return recent points by date"""
         points = []
         submissions = cls.objects.filter(
             finished__isnull=False,
@@ -848,13 +857,57 @@ class VidlySubmission(models.Model):
             })
         return points
 
+    def get_points(self, cutoff=datetime.timedelta(days=365), slice=10):
+        """return points around a particular vidly submission.
+        This way, the results are based on similar event durations.
+
+        Note how the slice is, by default, much smaller in this case.
+        """
+        assert self.event.duration
+        points = []
+        then = timezone.now() - cutoff
+        submissions = self.__class__.objects.filter(
+            finished__isnull=False,
+            event__duration__gt=0,
+            submission_time__gte=then,
+        ).select_related(
+            'event'
+        ).extra(
+            select={
+                'duration_similarity': 'abs(%s - duration)',
+            },
+            select_params=[self.event.duration],
+        )
+        for submission in submissions.order_by('duration_similarity')[:slice]:
+            points.append({
+                'x': submission.event.duration,
+                'y': submission.finished_duration
+            })
+
+        return points
+
     @classmethod
-    def get_least_square_slope(cls, points=None, slice=50):
+    def get_general_least_square_slope(cls, points=None, slice=50):
         if points is None:
-            points = cls.get_points(slice=slice)
+            points = cls.get_recent_points(slice=slice)
+        if not points:
+            return None
+        return cls._least_square_slope(points)
+
+    def get_least_square_slope(
+        self,
+        points=None,
+        cutoff=datetime.timedelta(days=365)
+    ):
+        if points is None:
+            points = self.get_points(cutoff=cutoff)
         if not points:
             return None
 
+        return self._least_square_slope(points)
+
+    @staticmethod
+    def _least_square_slope(points):
         # See https://www.easycalculation.com/analytical/learn-least-\
         # square-regression.php
         sum_x = sum(1. * e['x'] for e in points)
@@ -869,8 +922,8 @@ class VidlySubmission(models.Model):
 
     def get_estimated_time_left(self):
         if self.event.duration:
-            points = self.__class__.get_points()
-            least_square_slope = self.__class__.get_least_square_slope(
+            points = self.get_points()
+            least_square_slope = self.get_least_square_slope(
                 points=points
             )
             if least_square_slope:
