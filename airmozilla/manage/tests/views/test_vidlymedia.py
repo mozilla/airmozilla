@@ -717,6 +717,7 @@ class TestVidlyMedia(ManageTestCase):
         data = json.loads(response.content)
         eq_(data['points'], [])
         eq_(data['slope'], None)
+        eq_(data['intercept'], None)
 
         event = Event.objects.get(title='Test event')
         event.duration = 60

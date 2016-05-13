@@ -156,7 +156,7 @@
             {% elif submission.finished %}
             <span class="finished"
               {% if submission.event.duration %}
-              title="Estimate to finish WAS {{ submission.estimated_finished_duration | formatduration }}"
+              title="Estimate to finish *was* {{ submission.estimated_finished_duration | formatduration }}"
               {% endif %}
               >
               {{ submission.finished_duration | formatduration }}

@@ -835,11 +835,23 @@ class VidlySubmission(models.Model):
 
     @property
     def estimated_finished_duration(self):
+        """return the number of seconds we estimate it would take
+        to go from submission to finished."""
+
         assert self.event.duration
-        slope = self.get_least_square_slope()
-        # The video is, say, 1000 seconds, and the slop is, say,
-        # 1.80. That means, it's expected to finish in 1000 * 1.8 seconds.
-        return self.event.duration * slope
+        slope_and_intercept = self.get_least_square_slope()
+        if slope_and_intercept is None:
+            # Sometimes there simply are no good other points to compare
+            # against. That's because this particular one might be
+            # such an outlier. If that's the case fall back on the
+            # default plucked from the number of our production
+            # air.mozilla.org as of May 2016
+            slope = 2.09
+            intercept = 0.0
+        else:
+            slope, intercept = slope_and_intercept
+
+        return slope * self.event.duration + intercept
 
     @classmethod
     def get_recent_points(cls, slice=50):
@@ -857,7 +869,7 @@ class VidlySubmission(models.Model):
             })
         return points
 
-    def get_points(self, cutoff=datetime.timedelta(days=365), slice=10):
+    def get_points(self, cutoff=datetime.timedelta(days=365), slice=50):
         """return points around a particular vidly submission.
         This way, the results are based on similar event durations.
 
@@ -870,14 +882,33 @@ class VidlySubmission(models.Model):
             finished__isnull=False,
             event__duration__gt=0,
             submission_time__gte=then,
+        ).exclude(
+            id=self.id,
         ).select_related(
             'event'
         ).extra(
             select={
                 'duration_similarity': 'abs(%s - duration)',
             },
-            select_params=[self.event.duration],
+            select_params=[
+                self.event.duration,
+            ],
         )
+        if self.finished:
+            submissions = submissions.extra(
+                # To avoid crazy outliers, we filter out those that took
+                # longer than 200% more or less than 50%.
+                where=[
+                    (
+                        "100.0 * extract ('epoch' from (finished - "
+                        "submission_time)) / %s < 200 AND "
+                        "100.0 * extract ('epoch' from (finished - "
+                        "submission_time)) / %s > 50"
+                    )
+                ],
+                params=[self.finished_duration, self.finished_duration],
+            )
+
         for submission in submissions.order_by('duration_similarity')[:slice]:
             points.append({
                 'x': submission.event.duration,
@@ -887,7 +918,7 @@ class VidlySubmission(models.Model):
         return points
 
     @classmethod
-    def get_general_least_square_slope(cls, points=None, slice=50):
+    def get_general_least_square_slope(cls, points=None, slice=30):
         if points is None:
             points = cls.get_recent_points(slice=slice)
         if not points:
@@ -908,33 +939,33 @@ class VidlySubmission(models.Model):
 
     @staticmethod
     def _least_square_slope(points):
-        # See https://www.easycalculation.com/analytical/learn-least-\
-        # square-regression.php
+        # See http://hotmath.com/hotmath_help/topics/line-of-best-fit.html
         sum_x = sum(1. * e['x'] for e in points)
         sum_y = sum(1. * e['y'] for e in points)
         sum_xy = sum(1. * e['x'] * e['y'] for e in points)
         sum_xx = sum((1. * e['x']) ** 2 for e in points)
         N = len(points)
+
         try:
-            return (N * sum_xy - sum_x * sum_y) / (N * sum_xx - sum_x ** 2)
+            m = (N * sum_xy - sum_x * sum_y) / (N * sum_xx - sum_x ** 2)
+            mean_y = sum_y / N
+            mean_x = sum_x / N
+            intercept = mean_y - m * mean_x
+            return m, intercept
         except ZeroDivisionError:
             return None
 
     def get_estimated_time_left(self):
         if self.event.duration:
             points = self.get_points()
-            least_square_slope = self.get_least_square_slope(
+            slope_and_intercept = self.get_least_square_slope(
                 points=points
             )
-            if least_square_slope:
-                # we estimate that it
-                min_y = min(point['y'] for point in points)
+            if slope_and_intercept:
+                slope, intercept = slope_and_intercept
+                estimated_time = self.event.duration * slope + intercept
                 time_gone = (timezone.now() - self.submission_time).seconds
-                return int(
-                    self.event.duration * least_square_slope -
-                    time_gone +
-                    min_y
-                )
+                return int(estimated_time - time_gone)
 
 
 @receiver(models.signals.post_save, sender=VidlySubmission)

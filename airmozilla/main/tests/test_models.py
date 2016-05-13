@@ -475,8 +475,6 @@ class CuratedGroupsTest(DjangoTestCase):
 class VidlySubmissionTests(DjangoTestCase):
 
     def test_get_least_square_slope(self):
-        # eq_(VidlySubmission.get_least_square_slope(), None)
-
         event = Event.objects.get(title='Test event')
         event.duration = 300
         event.save()
@@ -500,8 +498,22 @@ class VidlySubmissionTests(DjangoTestCase):
                 seconds=other_event.duration * 1.9
             )
         )
-        eq_(vidly_submission.get_least_square_slope(), 1.5)
-        eq_(second_vidly_submission.get_least_square_slope(), 1.5)
+        # too few points
+        eq_(vidly_submission.get_least_square_slope(), None)
+        eq_(second_vidly_submission.get_least_square_slope(), None)
+
+        VidlySubmission.objects.create(
+            event=other_event,
+            submission_time=now,
+            finished=now + datetime.timedelta(
+                seconds=other_event.duration * 2.0
+            )
+        )
+        eq_(vidly_submission.get_least_square_slope(), None)
+        # Now we have enough points to make a graph!
+        slope, intercept = second_vidly_submission.get_least_square_slope()
+        eq_(slope, 1.8)
+        eq_(intercept, 90.0)
 
 
 class VidlyMediaTests(DjangoTestCase):

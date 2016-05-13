@@ -27,11 +27,12 @@ $(function() {
         });
 
         $('.summary .slope').text(data.slope.toFixed(2));
-        document.title = 'Slope: ' + data.slope.toFixed(2);
+        $('.summary .intercept').text(data.intercept.toFixed(2));
+        document.title = 'Y = ' + data.slope.toFixed(2) + '×T + ' + data.intercept.toFixed(2);
         var examples = [60 * 2, 60 * 10, 60 * 30, 60 * 60 * 2];
         var $container = $('.summary .examples');
         $.each(examples, function(i, t) {
-            var time = moment.duration(t * data.slope, 'seconds').humanize();
+            var time = moment.duration(t * data.slope + data.intercept, 'seconds').humanize();
             var duration = moment.duration(t, 'seconds').humanize();
             $('<li>')
                 .html(

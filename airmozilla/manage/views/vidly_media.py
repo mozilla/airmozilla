@@ -339,10 +339,18 @@ def vidly_media_timings(request):
 @json_view
 def vidly_media_timings_data(request):
     points = VidlySubmission.get_recent_points(100)
-    slope = VidlySubmission.get_general_least_square_slope(points=points)
-
+    slope_and_intercept = VidlySubmission.get_general_least_square_slope(
+        points=points
+    )
+    if slope_and_intercept is None:
+        # This is the bootstrapping case when you don't have enough data.
+        # It only applies if you have an empty database.
+        slope, intercept = None, None
+    else:
+        slope, intercept = slope_and_intercept
     context = {
         'points': points,
         'slope': slope,
+        'intercept': intercept,
     }
     return context
