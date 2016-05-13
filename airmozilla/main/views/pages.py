@@ -534,6 +534,16 @@ class EventView(View):
         return render(request, 'main/event_requires_pin.html', context)
 
 
+class EventByIDView(EventView):
+
+    def get(self, request, id):
+        event = get_object_or_404(Event, id=id)
+        if not self.can_view_event(event, request):
+            return self.cant_view_event(event, request)
+
+        return redirect('main:event', event.slug)
+
+
 def get_video_tagged(event, request, autoplay=False, tag=None):
 
     def poster_url(geometry='896x504', crop='center'):

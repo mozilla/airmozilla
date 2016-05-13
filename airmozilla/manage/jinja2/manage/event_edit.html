@@ -4,6 +4,7 @@
 {% block manage_title %}
   {% if event.slug %}
     Editing event "<a href="{{ url('main:event', event.slug) }}">{{ event.title }}</a>"
+    <small><a href="{{ url('main:event_by_id_redirect', event.id) }}">Permalink by ID</a></small>
   {% else %}
     Editing event "{{ event.title }}"
   {% endif %}

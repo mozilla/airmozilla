@@ -3284,6 +3284,27 @@ class TestPages(DjangoTestCase):
             '<p data-start="1100" data-end="2220">HI</p>' in response.content
         )
 
+    def test_view_event_id(self):
+        url = reverse('main:event_by_id_redirect', args=(9999999,))
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('main:event_by_id_redirect', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        real_url = reverse('main:event', args=(event.slug,))
+        ok_(response['Location'].endswith(real_url))
+
+        event.privacy = Event.PRIVACY_COMPANY
+        event.save()
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('main:login') + '?next=%s' % real_url
+        )
+
     def test_see_live_unapproved_events(self):
         event = Event.objects.get(title='Test event')
         assert event in Event.objects.live()
