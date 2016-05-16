@@ -491,6 +491,7 @@ PIPELINE_JS = {
     },
     'vidly_media_timings': {
         'source_filenames': (
+            'js/libs/humanize-duration.js',
             'manage/js/vidly-media-timings.js',
         ),
         'output_filename': 'js/vidly-media-timings.min.js',

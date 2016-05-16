@@ -1,4 +1,35 @@
 $(function() {
+    var shortEnglishHumanizer = humanizeDuration.humanizer({
+        language: 'shortEn',
+        languages: {
+            shortEn: {
+                y: function() {
+                    return 'y';
+                },
+                mo: function() {
+                    return 'mo';
+                },
+                w: function() {
+                    return 'w';
+                },
+                d: function() {
+                    return 'd';
+                },
+                h: function() {
+                    return 'h';
+                },
+                m: function() {
+                    return 'm';
+                },
+                s: function() {
+                    return 's';
+                },
+                ms: function() {
+                    return 'ms';
+                },
+            }
+        }
+    });
     d3.json(location.pathname + 'data/', function(data) {
         MG.data_graphic({
             title: "Correlation of video duration and Vid.ly transcoding time",
@@ -14,7 +45,16 @@ $(function() {
             y_label: "Time to finish",
             axes_not_compact: true,
             target: '#plot',
-
+            show_tooltips: false,
+            mouseover: function(d, i) {
+                // custom format the rollover text, show days
+                var p = data.points[i];
+                var text = 'A ' + shortEnglishHumanizer(p.x * 1000) +  ' ';
+                text += 'long video took ';
+                text += shortEnglishHumanizer(p.y * 1000) +  ' ';
+                text += 'to transcode';
+                d3.select('#plot svg .mg-active-datapoint').text(text);
+            },
             yax_format: function(f) {
                 return moment.duration(f, 'seconds').humanize();
             },
