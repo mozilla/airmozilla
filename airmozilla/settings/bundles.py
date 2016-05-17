@@ -61,6 +61,7 @@ PIPELINE_CSS = {
             'comments/css/comments.css',
             'surveys/css/survey.css',
             'main/css/event.css',
+            'main/css/processing.css',
         ),
         'output_filename': 'css/event.min.css',
     },
@@ -277,6 +278,7 @@ PIPELINE_JS = {
             'main/js/related-content.js',
             'main/js/share.js',
             'main/js/transcript.js',
+            'main/js/processing.js',
         ),
         'output_filename': 'js/event.min.js',
     },
@@ -491,10 +493,15 @@ PIPELINE_JS = {
     },
     'vidly_media_timings': {
         'source_filenames': (
-            'js/libs/humanize-duration.js',
             'manage/js/vidly-media-timings.js',
         ),
         'output_filename': 'js/vidly-media-timings.min.js',
+    },
+    'humanize_duration': {
+        'source_filenames': (
+            'js/libs/humanize-duration.js',
+        ),
+        'output_filename': 'js/humanize-duration.min.js',
     },
     'vidly_media': {
         'source_filenames': (

@@ -31,6 +31,7 @@
 {% block site_js %}
 {{ super() }}
 {% javascript 'event' %}
+{% javascript 'humanize_duration' %}
 {% endblock %}
 
 {% block content_main %}
@@ -49,22 +50,32 @@
       {% if event.is_pending() %}
         <p class="pending">
           Event is currently in a pending state meaning it will soon be made available.
-          <br>
-          {% if estimated_time_left %}
-            {% include "main/_show_estimated_time_left.html" %}
-          {% endif %}
         </p>
       {% elif event.is_processing() %}
-        <div class="warning">
-          <p>
-            This video is currently being transcoded; that will take some time.
-            Feel free to check again on its status after a while.
-          </p>
+        <div class="processing"
           {% if estimated_time_left %}
-          <p>
-            {% include "main/_show_estimated_time_left.html" %}
-          </p>
+             data-time-left="{{ estimated_time_left }}"
+             data-time-run="{{ time_run }}"
           {% endif %}
+             >
+          <p>
+            <b>This video is currently being transcoded.</b>
+          </p>
+
+          {% if estimated_time_left %}
+            <p class="time-overdue" style="display:none">
+              Transcoding seems to take longer than expected. Sorry.<br />
+              If something went wrong, the AV team will have been informed.
+            </p>
+            <p class="time-left" style="display:none">
+              Estimated time until this video has finished transcoding: <b></b>
+            </p>
+            <div class="progress-bar" style="display:none">
+              <progress value="0" max="100" title=""></progress>
+              <span class="progress-value">0%</span>
+            </div>
+          {% endif %}
+          </p>
         </div>
       {% else %}
         {% if video %}

@@ -15,6 +15,7 @@ from django.db.models import Count, Q, F
 from django.db import transaction
 from django.core.urlresolvers import reverse
 from django.template import engines
+from django.utils import timezone
 
 from jsonview.decorators import json_view
 
@@ -339,7 +340,7 @@ class EventView(View):
             Event.STATUS_SCHEDULED,
             Event.STATUS_PENDING,
             Event.STATUS_PROCESSING,
-            )
+        )
         if event.status not in ok_statuses:
             if not request.user.is_superuser:
                 self.template_name = 'main/event_not_scheduled.html'
@@ -440,6 +441,8 @@ class EventView(View):
         # people to view it but it'll say that the video isn't ready yet.
         # But we'll also try to include an estimate of how long we think
         # it will take until it's ready to be viewed.
+        context['estimated_time_left'] = None
+        context['time_run'] = None
         if (
             (event.is_processing() or event.is_pending()) and
             event.duration and
@@ -450,9 +453,14 @@ class EventView(View):
                 .filter(event=event, tag=event.template_environment.get('tag'))
                 .order_by('-submission_time')
             )
-            for vidly_submission in vidly_submissions:
+            for vidly_submission in vidly_submissions[:1]:
                 context['estimated_time_left'] = (
                     vidly_submission.get_estimated_time_left()
+                )
+                context['time_run'] = (
+                    (
+                        timezone.now() - vidly_submission.submission_time
+                    ).seconds
                 )
 
         if event.pin:
