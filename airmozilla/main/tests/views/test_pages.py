@@ -61,6 +61,11 @@ class TestPages(DjangoTestCase):
         event.archive_time = None
         event.save()
 
+        self.fanout.publish.assert_called_with(
+            'event-{}'.format(event.id),
+            True
+        )
+
         self.main_channel = Channel.objects.get(
             slug=settings.DEFAULT_CHANNEL_SLUG
         )

@@ -485,7 +485,7 @@ class EventView(View):
         if event.recruitmentmessage and event.recruitmentmessage.active:
             context['recruitmentmessage'] = event.recruitmentmessage
 
-        context['subscription_channel_status'] = 'status-{}'.format(event.id)
+        context['subscription_channel_status'] = 'event-{}'.format(event.id)
 
         amara_videos = AmaraVideo.objects.filter(
             event=event,
@@ -1046,12 +1046,9 @@ def event_livehits(request, id):
 @never_cache
 @json_view
 def event_status(request, slug):
-    cache_key = 'event_status_{0}'.format(hashlib.md5(slug).hexdigest())
-    status = cache.get(cache_key)
-    if status is None:
-        status = get_object_or_404(Event, slug=slug).status
-        cache.set(cache_key, status, 60 * 60)
-    return {'status': status}
+    for values in Event.objects.filter(slug=slug).values('status'):
+        return {'status': values['status']}
+    raise http.Http404(slug)
 
 
 @json_view
