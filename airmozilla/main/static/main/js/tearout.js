@@ -3,18 +3,23 @@
 window.popup_position = 0;
 
 $(function() {
+    'use strict';
+
     var iframe_clone = null;
     var popup = null;
     var placeholder = null;
 
     var player_width = null, player_height = null;
     var jwplayer_player = null;
+    var clappr_player = null;
+    var clappr_wrapper = null;
 
     $('.tearout').on('click', 'a.open', function(event) {
         event.preventDefault();
         var iframe = $('.event-content iframe');
         var player_wrapper = $('.event-content #player_wrapper');
         var jwplayer_container = $('.event-content div.jwplayer');
+        clappr_wrapper = $('.event-content #player');
 
         var video_url = location.href + 'video/?embedded=false&autoplay=true';
         var video_name = '_blank';
@@ -24,6 +29,11 @@ $(function() {
                 // probably a vid.ly iframe
                 player_width = parseInt(iframe.attr('width'), 10);
                 player_height = parseInt(iframe.attr('height'), 10);
+            } else if (clappr_wrapper.length) {
+                // probably a live event using Clappr
+                player_width = parseInt(clappr_wrapper.css('width'), 10);
+                player_height = parseInt(clappr_wrapper.css('height'), 10);
+                clappr_player = window.player;
             } else if (player_wrapper.length) {
                 // probably a live event using jwplayer
                 player_width = parseInt(player_wrapper.css('width'), 10);
@@ -54,7 +64,8 @@ $(function() {
             } else {
                 popup_position = position;
             }
-
+        } else if (clappr_player !== null && clappr_player.isPlaying()) {
+            clappr_player.stop();
         }
 
         popup = window.open(video_url, video_url, features);
@@ -76,6 +87,8 @@ $(function() {
                 iframe_clone = iframe.detach();
             } else if (jwplayer_container.length) {
                 jwplayer_container.hide();
+            } else if (clappr_wrapper.length) {
+                clappr_wrapper = clappr_wrapper.detach();
             } else {
                 player_wrapper = player_wrapper.detach();
             }
@@ -102,7 +115,11 @@ $(function() {
                             jwplayer_player.seek(popup_position);
                         }
                         jwplayer_container.show();
-
+                    } else if (clappr_wrapper.length) {
+                        clappr_wrapper.insertBefore($('.tearout'));
+                        if (!clappr_player.isPlaying()) {
+                            clappr_player.play();
+                        }
                     } else {
                         player_wrapper.insertBefore($('.tearout'));
                     }
