@@ -17,7 +17,8 @@ Editing Chapters for "{{ event.title }}" | Air Mozilla
 {% block sidebar %}{% endblock %}
 
 {% block content_main %}
-  <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">
+  <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments"
+    data-subscription-channel-pictures="event-pictures-{{ event.id }}">
     <h3 class="section-title">Editing Chapters
       "<a href="{{ url('main:event', event.slug) }}" title="Go back to viewing the event">{{ event.title }}</a>"</h3>
     <p><a href="{{ url('main:event', event.slug) }}">&laquo; Go back to event</a></p>
@@ -99,6 +100,20 @@ Editing Chapters for "{{ event.title }}" | Air Mozilla
       <tbody>
       </tbody>
     </table>
+
+
+    <div id="timenails" style="display:none">
+      <h4>Pick time by timeframe thumbnail</h4>
+      <p class="loading-more-timenails" style="display:none">
+        <img src="{{ static('img/ajax-loader.gif') }}" width="24" height="24" style="vertical-align:middle">
+        Loading remaining <span class="missing"></span> thumbnails...
+      </p>
+
+      <div class="timenails">
+
+      </div>
+
+    </div>
 
   </article>
 

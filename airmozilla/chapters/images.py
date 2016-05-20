@@ -37,7 +37,7 @@ def create_chapterimages(chapter, verbose=False):
 
     fetch_screencapture(
         chapter.event,
-        timestamp=chapter.timestamp,
+        timestamps=[chapter.timestamp],
         import_=True,
         import_immediately=True,
         verbose=verbose,

@@ -1,29 +1,99 @@
 /*global $, setupJSTime */
-$(function() {
+
+var Timenails = (function() {
     'use strict';
 
-    function formatSeconds(s) {
-        // for example, if s===70 we return "1m10s"
-        if (!s) {
-            return '0s';
-        }
-        var hours = Math.floor(s / 3600);
-        var seconds = s % 3600;
-        var minutes = Math.floor(seconds / 60);
-        seconds = seconds % 60;
-        var out = [];
-        if (hours) {
-            out.push(hours + 'h');
-        }
-        if (hours || minutes) {
-            out.push(minutes + 'm');
-        }
-        if (hours || minutes || seconds) {
-            out.push(seconds + 's');
-        }
-        return out.join('');
-    }
+    var parent = $('#timenails');
 
+    var timenails = {};
+
+    var renderTimenails = function() {
+        var innerContainer = $('.timenails', parent);
+        $('a', innerContainer).remove();
+
+        $.each(timenails, function(at, picture) {
+            $('<a>')
+            .attr('href', picture.url)
+            .attr('title', 'At ' + formatSeconds(at))
+            .addClass('timenail')
+            .on('click', function(event) {
+                event.preventDefault();
+                callback(parseInt(at, 10));
+            })
+            .append(
+                $('<img>')
+                .attr('alt', formatSeconds(at))
+                .attr('src', picture.url)
+            )
+            .appendTo(innerContainer);
+        });
+        if (!parent.is(':visible')) {
+            // delay slightly to make sure the thumbnails have loaded.
+            setTimeout(function() {
+                parent.fadeIn(400);
+            }, 2000);
+        }
+    };
+
+    var fetchThumbnails = function() {
+        $.getJSON('thumbnails')
+        .done(function(response) {
+            if (response.missing) {
+                // recurse soon
+                setTimeout(fetchThumbnails, 10 * 1000);
+                $('.loading-more-timenails .missing', parent)
+                .text(response.missing);
+                $('.loading-more-timenails', parent).show();
+            } else {
+                $('.loading-more-timenails', parent).hide();
+            }
+            $.each(response.pictures, function(i, picture) {
+                timenails[picture.at] = picture.thumbnail;
+            });
+            renderTimenails();
+        })
+        .fail(function() {
+            console.error.apply(console, arguments);
+        });
+    };
+
+    var callback = null;
+
+    return {
+        setup: function(cb) {
+            callback = cb;
+            fetchThumbnails();
+        }
+    };
+
+})();
+
+
+function formatSeconds(s) {
+    // for example, if s===70 we return "1m10s"
+    if (!s) {
+        return '0s';
+    }
+    var hours = Math.floor(s / 3600);
+    var seconds = s % 3600;
+    var minutes = Math.floor(seconds / 60);
+    seconds = seconds % 60;
+    var out = [];
+    if (hours) {
+        out.push(hours + 'h');
+    }
+    if (hours || minutes) {
+        out.push(minutes + 'm');
+    }
+    if (hours || minutes || seconds) {
+        out.push(seconds + 's');
+    }
+    return out.join('');
+}
+
+
+$(function() {
+    'use strict';
 
     function formatUser(user) {
         if (user.first_name) {
@@ -41,7 +111,7 @@ $(function() {
         return $('<span>').attr('title', name).text(short);
     }
 
-    function render(chapters) {
+    function renderChapters(chapters) {
         var table = $('table.chapters');
         $('tbody tr', table).remove();
         $.each(chapters, function(i, chapter) {
@@ -74,10 +144,10 @@ $(function() {
         timestampDisplay.text(formatSeconds(time));
     }
 
-    function fetch() {
+    function fetchChapters() {
         return $.getJSON(location.pathname, {'all': true})
         .then(function(response) {
-            render(response.chapters);
+            renderChapters(response.chapters);
             $('.loading-chapters').hide();
             $('table.chapters').show();
         })
@@ -89,7 +159,7 @@ $(function() {
         });
     }
     // on load
-    fetch();
+    fetchChapters();
 
     var jwplayer_player = null;
     var playing = false;
@@ -123,14 +193,36 @@ $(function() {
                 $('button.cancel').show();
                 $('form input[name="text"]').focus();
             });
+            jwplayer_player.on('seek', function(event) {
+                console.log("Seeked", event);
+                if (!playing) {
+                    // If the state is supposed to be that it's not playing
+                    // then force it to pause after the seek.
+                    pauseJWPlayer();
+                }
+
+            });
             clearInterval(waiter);
         } else {
             attempts++;
-            if (attempts > 4) {
+            if (attempts > 6) {
                 clearInterval(waiter);
+                console.error('Unable to load jwplayer');
             }
         }
-    }, 1000);
+    }, 500);
+
+    var pauseJWPlayer = function() {
+        // repeatedly try to pause until the state changes.
+        var repeat = setInterval(function() {
+            if (jwplayer_player.getState() === 'paused') {
+                clearInterval(repeat);
+            } else {
+                // console.log('Still playing?', jwplayer_player.getState());
+                jwplayer_player.pause();
+            }
+        }, 100);
+    };
 
     $('form .adding').on('click', 'button.play', function() {
         jwplayer_player.play();
@@ -182,7 +274,7 @@ $(function() {
             $.post(location.pathname, data)
             .then(function(response) {
                 $('input[name="text"]', $form).val('');
-                fetch();
+                fetchChapters();
                 $('button.cancel, button.delete').hide();
             })
             .fail(function() {
@@ -236,7 +328,7 @@ $(function() {
                 $('.errored').show();
             } else {
                 $text.val('');
-                fetch();
+                fetchChapters();
                 $('button.cancel, button.delete').hide();
             }
         })
@@ -251,4 +343,22 @@ $(function() {
         return false;
     });
 
+    Timenails.setup(function(at) {
+        // Was there already a chapter at this timestamp?
+        console.log("AT", at);
+        var wasEdit = false;
+        $('button.edit').each(function(i, button) {
+            if ($(this).data('timestamp') === at) {
+                $(this).click();
+                wasEdit = true;
+            }
+        });
+        console.log('wasEdit', wasEdit);
+        if (!wasEdit) {
+            playing = false;
+            updateCurrentTime(at);
+            jwplayer_player.seek(at);
+            $('input[name="text"]', $form).focus();
+        }
+    });
 });

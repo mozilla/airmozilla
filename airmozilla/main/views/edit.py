@@ -4,8 +4,7 @@ from django import http
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
 from django.utils.cache import add_never_cache_headers
-
-from sorl.thumbnail import get_thumbnail
+from django.core.cache import cache
 
 from airmozilla.main import forms
 from airmozilla.main.models import (
@@ -13,9 +12,10 @@ from airmozilla.main.models import (
     Tag,
     Channel,
     Chapter,
+    Picture,
 )
 from airmozilla.main.views.pages import EventView, get_video_tagged
-from airmozilla.main.templatetags.jinja_helpers import js_date
+from airmozilla.main.templatetags.jinja_helpers import js_date, thumbnail
 from airmozilla.main import tasks
 
 
@@ -54,7 +54,7 @@ class EventEditView(EventView):
             else:
                 file = event.placeholder_img
             data['thumbnail_url'] = (
-                get_thumbnail(
+                thumbnail(
                     file,
                     '121x68',
                     crop='center'
@@ -414,3 +414,80 @@ class EventEditChaptersView(EventEditView):
             tasks.create_chapterimages.delay(chapter.id)
             return http.JsonResponse({'ok': True})
         return http.JsonResponse({'errors': form.errors})
+
+
+class EventChaptersThumbnailsView(EventEditChaptersView):
+
+    def get(self, request, slug):
+        event = self.get_event(slug, request)
+        if not self.can_view_event(event, request):
+            return self.cant_view_event(event, request)
+        if not self.can_edit_event(event, request):
+            return self.cant_edit_event(event, request)
+
+        assert event.duration
+
+        # We have to avoid making too many thumbnails.
+        # For a really long video you have to accept that there's going
+        # to me bigger intervals between.
+        #
+        # For a video that is more than 1h30 we make it 60 sec.
+        # That means a...
+        # ... 1h45m will have 105 thumbnails.
+        # ... 1h will have 80 thumbnails.
+        # ... 30m will have 60 thumbnails
+        # ...
+        #
+        # These numbers should ideally be done as a function
+        # rather than a list of if-elif statements. Something
+        # for the future.
+
+        if event.duration > 60 * 60 + 60 * 30:
+            incr = 60  # every minute
+        elif event.duration > 60 * 60:
+            incr = 45
+        elif event.duration > 30 * 60:
+            incr = 30
+        elif event.duration > 60:
+            incr = 10
+        else:
+            incr = 5
+
+        at = 0
+        pictures = []
+        missing = []
+        fetch = []
+        base_qs = Picture.objects.filter(event=event)
+
+        while (at + incr) < event.duration:
+            at += incr
+            qs = base_qs.filter(timestamp=at)
+            for picture in qs.order_by('-modified')[:1]:
+                thumb = thumbnail(
+                    picture.file, '160x90', crop='center'
+                )
+                pictures.append({
+                    'at': picture.timestamp,
+                    'thumbnail': {
+                        'url': thumb.url,
+                        'width': thumb.width,
+                        'height': thumb.height,
+                    }
+                })
+                break
+            else:
+                missing.append(at)
+                lock = 'lock-{}-{}'.format(event.id, at)
+                if not cache.get(lock):
+                    fetch.append(at)
+                    cache.set(lock, True, 60 * 10)
+
+        if fetch:
+            # FIXME We might want to bucketize this up if the list
+            # is long.
+            tasks.create_timestamp_pictures.delay(event.id, fetch)
+
+        return http.JsonResponse({
+            'pictures': pictures,
+            'missing': len(missing),
+        })

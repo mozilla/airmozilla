@@ -160,7 +160,7 @@ def fetch_screencapture(
     event, save=False, save_locally=False, verbose=False, use_https=True,
     import_=True, import_if_possible=False, video_url=None,
     set_first_available=False, import_immediately=False,
-    timestamp=None, callback=None,
+    timestamps=None, callback=None,
 ):
     """return number of files that were successfully created or None"""
     assert event.duration, "no duration"
@@ -251,22 +251,25 @@ def fetch_screencapture(
             all_out.append(out)
             all_err.append(err)
 
-        if timestamp is not None:  # it might be exactly 0
-            extract_frame(timestamp, output_template % timestamp)
-            if callback:
-                created = _callback_files(
-                    callback,
-                    _get_files(save_dir),
-                    delete_opened_files=True,
-                )
-            else:
-                raise NotImplementedError
-            if import_immediately:
-                created += _import_files(
-                    event,
-                    _get_files(save_dir),
-                    delete_opened_files=True,
-                )
+        if timestamps is not None:
+            for timestamp in timestamps:
+                extract_frame(timestamp, output_template % timestamp)
+                if callback:
+                    created = _callback_files(
+                        callback,
+                        _get_files(save_dir),
+                        delete_opened_files=True,
+                    )
+                # else:
+                #     raise NotImplementedError
+                if import_immediately:
+                    created += _import_files(
+                        event,
+                        _get_files(save_dir),
+                        delete_opened_files=True,
+                        timestamp=timestamp,
+                    )
+
         else:
             while seconds < event.duration:
                 number += 1
@@ -279,7 +282,7 @@ def fetch_screencapture(
                         set_first_available=set_first_available,
                         delete_opened_files=True,
                     )
-                    # If 'set_first_available' was true, it should have at
+                    # If 'set_first_available' *was* true, it should have at
                     # that point set the picture for that first one.
                     if created:
                         set_first_available = False
@@ -447,7 +450,8 @@ def _import_files(
     event,
     files,
     set_first_available=False,
-    delete_opened_files=False
+    delete_opened_files=False,
+    timestamp=None,
 ):
     created = 0
     # We sort and reverse by name so that the first instance
@@ -456,11 +460,21 @@ def _import_files(
     # (which is sorted by ('event', '-created')) they appear in
     # correct chronological order.
     for i, filepath in enumerate(reversed(sorted(files))):
+        if timestamp is not None:
+            notes = 'Screencap at {}'.format(timestamp)
+            # Delete any previous Pictures at this timestamp
+            Picture.objects.filter(
+                event=event,
+                timestamp=timestamp,
+            ).delete()
+        else:
+            notes = 'Screencap %d' % (len(files) - i,)
         with open(filepath) as fp:
             picture = Picture.objects.create(
                 file=File(fp),
-                notes="Screencap %d" % (len(files) - i,),
+                notes=notes,
                 event=event,
+                timestamp=timestamp,
             )
             created += 1
             if set_first_available:

@@ -38,6 +38,9 @@ class GallerySelect(forms.widgets.Widget):
         pictures = []
         qs = Picture.objects.all()
         if self.event:
+            qs = qs.exclude(
+                timestamp__isnull=False
+            )
             qs = qs.filter(
                 Q(event__isnull=True) |
                 Q(event=self.event)

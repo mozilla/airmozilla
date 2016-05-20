@@ -46,3 +46,12 @@ form .timestamp {
 form .adding {
     display: none;
 }
+
+
+#timenails {
+    margin-top: 50px;
+}
+#timenails .timenails img {
+    width: 105px;
+    margin-right: 6px;
+}

@@ -1115,7 +1115,7 @@ class Picture(models.Model):
     )
     event = models.ForeignKey(Event, null=True, related_name='picture_event')
 
-    # suggested_event = models.ForeignKey(SuggestedEvent, null=True)
+    timestamp = models.PositiveIntegerField(null=True, blank=True)
     default_placeholder = models.BooleanField(default=False)
     notes = models.CharField(max_length=100, blank=True)
     is_active = models.BooleanField(default=True)

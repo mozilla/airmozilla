@@ -1,5 +1,8 @@
+import os
 import json
+import shutil
 
+import mock
 from nose.tools import eq_, ok_
 
 from django.core.urlresolvers import reverse
@@ -7,11 +10,14 @@ from django.core.urlresolvers import reverse
 from airmozilla.main.models import (
     Event,
     Chapter,
+    Picture,
+    Template,
 )
-from airmozilla.base.tests.testbase import DjangoTestCase
+from airmozilla.base.tests.testbase import DjangoTestCase, Response
 
 
 class TestEventEditChapters(DjangoTestCase):
+    sample_jpg = 'airmozilla/manage/tests/presenting.jpg'
 
     def test_view(self):
         url = reverse('main:event_edit_chapters', args=('xxx',))
@@ -128,3 +134,85 @@ class TestEventEditChapters(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_(json.loads(response.content)['ok'])
         ok_(not Chapter.objects.filter(event=event, is_active=True).exists())
+
+    @mock.patch('requests.head')
+    @mock.patch('subprocess.Popen')
+    def test_fetch_thumbnails(self, mock_popen, rhead):
+
+        def mocked_head(url, **options):
+            return Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        sample_jpg = self.sample_jpg
+
+        def mocked_popen(command, **kwargs):
+            url = command[4]
+            ffmpeged_urls.append(url)
+            destination = command[-1]
+            assert os.path.isdir(os.path.dirname(destination))
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if 'xyz123' in url:
+                        shutil.copyfile(sample_jpg, destination)
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
+        url = reverse('main:event_chapters_thumbnails', args=('xxx',))
+        response = self.client.get(url)
+        eq_(response.status_code, 404)
+
+        event = Event.objects.get(title='Test event')
+        event.duration = 35
+        event.privacy = Event.PRIVACY_COMPANY
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+        url = reverse('main:event_chapters_thumbnails', args=(event.slug,))
+        response = self.client.get(url)
+        # because it's not a public event
+        eq_(response.status_code, 302)
+
+        # make it public again
+        event.privacy = Event.PRIVACY_PUBLIC
+        event.save()
+        response = self.client.get(url)
+        # because you're not signed in
+        eq_(response.status_code, 302)
+
+        self._login()
+        response = self.client.get(url)
+        # finally!
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content), {'pictures': [], 'missing': 6})
+        qs = Picture.objects.filter(
+            event=event,
+            timestamp__isnull=False
+        )
+        eq_(qs.count(), 6)
+        timestamps = [x.timestamp for x in qs.order_by('timestamp')]
+        eq_(timestamps, [5, 10, 15, 20, 25, 30])
+
+        # call it again
+        response = self.client.get(url)
+        # finally!
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        eq_(struct['missing'], 0)
+        eq_(len(struct['pictures']), 6)

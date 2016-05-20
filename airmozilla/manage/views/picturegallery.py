@@ -108,6 +108,9 @@ def _get_all_pictures(event=None):
     )
     qs = Picture.objects.all()
     if event:
+        qs = qs.exclude(
+            timestamp__isnull=False
+        )
         qs = qs.filter(
             Q(event__isnull=True) |
             Q(event=event)

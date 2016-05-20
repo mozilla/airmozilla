@@ -1212,7 +1212,7 @@ class TestVideoinfo(DjangoTestCase):
 
         created = videoinfo.fetch_screencapture(
             event,
-            timestamp=3,
+            timestamps=[3],
             callback=callback
         )
         eq_(created, 1)
@@ -1220,7 +1220,7 @@ class TestVideoinfo(DjangoTestCase):
 
         created = videoinfo.fetch_screencapture(
             event,
-            timestamp=2,  # callback will return False for this
+            timestamps=[2],  # callback will return False for this
             callback=callback
         )
         eq_(created, 0)
