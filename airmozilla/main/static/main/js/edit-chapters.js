@@ -194,7 +194,6 @@ $(function() {
                 $('form input[name="text"]').focus();
             });
             jwplayer_player.on('seek', function(event) {
-                console.log("Seeked", event);
                 if (!playing) {
                     // If the state is supposed to be that it's not playing
                     // then force it to pause after the seek.
@@ -218,7 +217,6 @@ $(function() {
             if (jwplayer_player.getState() === 'paused') {
                 clearInterval(repeat);
             } else {
-                // console.log('Still playing?', jwplayer_player.getState());
                 jwplayer_player.pause();
             }
         }, 100);
@@ -345,7 +343,6 @@ $(function() {
 
     Timenails.setup(function(at) {
         // Was there already a chapter at this timestamp?
-        console.log("AT", at);
         var wasEdit = false;
         $('button.edit').each(function(i, button) {
             if ($(this).data('timestamp') === at) {
@@ -353,7 +350,6 @@ $(function() {
                 wasEdit = true;
             }
         });
-        console.log('wasEdit', wasEdit);
         if (!wasEdit) {
             playing = false;
             updateCurrentTime(at);
