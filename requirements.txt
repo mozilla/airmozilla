@@ -235,8 +235,8 @@ pytest==2.9.0 \
 py==1.4.31 \
     --hash=sha256:4a3e4f3000c123835ac39cab5ccc510642153bc47bc1f13e2bbb53039540ae69 \
     --hash=sha256:a6501963c725fc2554dabfece8ae9a8fb5e149c0ac0a42fd2b02c5c1c57fc114
-django-jinja==2.1.2 \
-    --hash=sha256:fc2b6a65201b27711e800eb2e1262ff42a32f027bd2267e34121f1bd2bd6b933
+django-jinja==2.1.3 \
+    --hash=sha256:64446ae1de3593136042147cb16ba9a3aa4449370d9c26c1ec9b7553b2d1c809
 fanout==1.2.0 \
     --hash=sha256:5751f88442da01126c51fdae5235f295b0190ef1d43adcb66a57af556dcacbbd
 pubcontrol==2.2.7 \
