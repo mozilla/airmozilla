@@ -89,9 +89,9 @@ httplib2==0.9.2 \
     --hash=sha256:fe187f315336c3daa6616d09f327a6e6560b082fce59723f77336329fdcbfc36
 oauth2==1.5.211 \
     --hash=sha256:82a38f674da1fa496c0fc4df714cbb058540bed72a30c50a2e344b0d984c4d21
-raven==5.13.0 \
-    --hash=sha256:9ae274da5de5f7fb66df57096f9e005199a7e5539b8122f9dbee830abe48517a \
-    --hash=sha256:c63a65419017b64461453d9bc2ccd3cc125a4240cf7f225f88b5caf91eb7c3f2
+raven==5.18.0 \
+    --hash=sha256:2ef837d53b9a6ebd54da8088eee9032a05bb3ec27a7a5caf3dce6c98e1092811 \
+    --hash=sha256:5d2890bef22297e0d784a84b113a27aa3bfd86b660c541bc09e035a0b5f730a4
 oauthlib==1.0.3 \
     --hash=sha256:ef4bfe4663ca3b97a995860c0173b967ebd98033d02f38c9e1b2cbb6c191d9ad
 awesome-slugify==1.6.5 \
