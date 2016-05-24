@@ -106,8 +106,8 @@ twython==3.3.0 \
     --hash=sha256:afe23e8a718500eb49d2e42375b2c251b58bf13a6f572d9e586fbeaeda18cf37
 Unidecode==0.04.19 \
     --hash=sha256:51477646a9169469e37e791b13ae65fcc75b7f7f570d0d3e514d077805c02e1e
-vobject==0.9.1 \
-    --hash=sha256:ff25fd924227c4ef9369cfd731e486ccae988a9bc32d1e4417cfa7dcb2959fb3
+vobject==0.9.2 \
+    --hash=sha256:8b310c21a4d58e13aeb7e60fd846a1748e1c9c3374f3e2acc96f728c3ae5d6e1
 BeautifulSoup==3.2.1 \
     --hash=sha256:6a8cb4401111e011b579c8c52a51cdab970041cc543814bbd9577a4529fe1cdb
 django-cronjobs==0.2.3 \
