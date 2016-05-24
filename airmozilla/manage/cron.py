@@ -13,6 +13,7 @@ from . import videoinfo
 from . import vidly_synchronization
 from . import autocompeter
 from . import related
+from . import vidly_submissions
 
 
 @cronjobs.register
@@ -118,3 +119,9 @@ def related_content_reindex():
 @capture
 def related_content_index():
     related.index()
+
+
+@cronjobs.register
+@capture
+def failed_vidly_submissions():
+    vidly_submissions.resubmit_failures(verbose=True)
