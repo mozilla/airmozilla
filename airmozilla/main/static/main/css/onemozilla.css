@@ -537,7 +537,7 @@ px      68    160    252    344    436    528    620    712    */
 
 }
 
-/*  @Mobile @Layout: 320px.
+/*  @Mobile @Layout: >320px.
     Gutters: 24px.
     Outer margins: 34px.
     Inherits styles from: Default Layout.
@@ -546,8 +546,8 @@ cols    1     2      3
 px      68    160    252    */
 
 @media only screen and (max-width: 767px) {
-  #page { padding-bottom: 24px; }
-  .wrap { width: 252px; padding: 0 34px; }
+  #page { padding-bottom: 10px; }
+  .wrap { width: 350px; padding: 0 10px; }
   .with-sidebar .main { width: 100%; }
   .with-sidebar .sub { width: 100%; }
   #content-main { float: none; margin-bottom: 48px; }
@@ -633,4 +633,14 @@ px      68    160    252    344    436    */
   #content-sub .sidebar { float: left; width: 205px; }
   #content-sub .sidebar.second { float: right; }
 
+}
+
+/*  @Mobile @Layout: <=320px.
+    Gutters: 10px.
+    Outer margins: 34px.
+    Inherits styles from: Default Layout.
+*/
+@media only screen and (max-width: 320px) {
+  #page { padding-bottom: 24px; }
+  .wrap { width: 300px; padding: 0 10px; }
 }

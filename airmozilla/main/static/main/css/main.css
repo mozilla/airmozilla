@@ -512,11 +512,11 @@ px      68    160    252    */
   .main-feature { padding: 240px 12px 12px; margin: 0 -12px 48px -12px; }
   .main-feature .feature-type { left: 12px; }
   .main-feature .entry-title { font-size: 24px; }
-  .main-feature .entry-summary { position: static; padding: 0 24px 0 0; }
+  /*.main-feature .entry-summary { position: static; padding: 0 24px 0 0; }*/
   .main-feature .entry-summary .wp-post-image { left: 12px; top: 60px; border: 0; margin: 0; }
 
-  .entry-summary { padding-left: 0; position: static; min-height: 92px; }
-  .entry-summary .wp-post-image { position: static; float: left; margin: 0 12px .5em 0; }
+  /*.entry-summary { padding-left: 0; position: static; min-height: 92px; }*/
+  /*.entry-summary .wp-post-image { position: static; float: left; margin: 0 12px .5em 0; }*/
 
   #content-sub { margin-left: -24px; margin-right: -24px; }
 
