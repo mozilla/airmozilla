@@ -47,12 +47,15 @@ class TestRoku(DjangoTestCase):
         event.save()
         assert not event.archive_time
         assert event in Event.objects.live()
-        edgecast_hls = Template.objects.create(
+        hls_template = Template.objects.create(
             content='something {{ file }}',
-            name='EdgeCast hls'
+            name='Clappr Hls'
         )
-        event.template = edgecast_hls
-        event.template_environment = {'file': 'abc123'}
+        event.template = hls_template
+        event.template_environment = {
+            'Akamai_ID': 'abc123',
+            'Venue': 'Hell',
+        }
         event.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)

@@ -56,7 +56,7 @@
 			<!-- not 'hls' {{ media_info.format }} -->
 		{% endif %}
 	{% else %}
-		<!-- lacking media_info -->
+		<!-- lacking media_info ({{ event.slug }}) -->
 	{% endif %}
 	{% endfor %}
 
