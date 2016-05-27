@@ -352,6 +352,7 @@ angular.module('new.controllers', ['new.services'])
         setDocumentTitle('Record a video');
         var $appContainer = angular.element('#content');
         staticService($appContainer.data('recordrtc-url'));
+        staticService($appContainer.data('adapter-url'));
         staticService($appContainer.data('humanizeduration-url'));
 
         $scope.silhouetteURL = $appContainer.data('silhouette-url');
@@ -426,7 +427,7 @@ angular.module('new.controllers', ['new.services'])
         };
 
         function getUserMedia(config) {
-            if (navigator.mediaDevices) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 return navigator.mediaDevices.getUserMedia(config);
             } else {
                 var p = new Promise(function(resolve, reject) {
@@ -570,7 +571,10 @@ angular.module('new.controllers', ['new.services'])
                 }
             })
             .catch(function(error) {
-                $scope.getUserMediaError = error;
+                console.error(error);
+                $scope.$apply(function() {
+                    $scope.getUserMediaError = error;
+                });
             });
 
         };

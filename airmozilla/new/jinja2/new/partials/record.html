@@ -15,7 +15,13 @@
       ng-click="startCamera()">Start Camera</button>
     <div ng-if="getUserMediaError" class="alert alert-danger">
       <p>
-        Sorry, it seems your device is not able to start <code>getUserMedia</code>.
+        Sorry, it seems your device is not able to start a web camera.
+      </p>
+      <p>
+        <b>Error:</b>
+        {% raw %}
+        <code>{{ ::getUserMediaError }}</code>
+        {% endraw %}
       </p>
     </div>
   </div>
