@@ -58,6 +58,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
+from airmozilla.main.tasks import create_all_timestamp_pictures
 from airmozilla.manage import forms
 from airmozilla.manage.tweeter import send_tweet
 from airmozilla.manage import vidly
@@ -1387,7 +1388,10 @@ def event_fetch_duration(request, id):
 @json_view
 def event_fetch_screencaptures(request, id):
     event = get_object_or_404(Event, id=id)
-    pictures = Picture.objects.filter(event=event).count()
+    pictures = Picture.objects.filter(
+        event=event,
+        timestamp__isnull=True,
+    ).count()
     if not pictures and event.duration and event.upload:
         pictures = videoinfo.fetch_screencapture(
             event,
@@ -1395,6 +1399,7 @@ def event_fetch_screencaptures(request, id):
             save=True,
             verbose=settings.DEBUG,
         )
+        create_all_timestamp_pictures.delay(event.id)
 
     return {'pictures': pictures}
 

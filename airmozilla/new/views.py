@@ -45,6 +45,7 @@ from airmozilla.main.models import (
     get_profile_safely,
     Tag,
 )
+from airmozilla.main.tasks import create_all_timestamp_pictures
 from airmozilla.comments.models import Discussion
 from airmozilla.uploads.models import Upload
 from airmozilla.manage import videoinfo
@@ -308,6 +309,9 @@ def event_archive(request, event):
             hd=True,
             submission_error=error or None
         )
+        # https://bugzilla.mozilla.org/show_bug.cgi?id=1275907
+        # print "Event.STATUS", repr(event.status)
+
         default_template = Template.objects.get(default_archive_template=True)
         # Do an in place edit in case this started before the fetch_duration
         # has started.
@@ -315,6 +319,8 @@ def event_archive(request, event):
             template=default_template,
             template_environment={'tag': tag}
         )
+
+        create_all_timestamp_pictures.delay(event.id)
 
     return {
         'tag': vidly_submission.tag,

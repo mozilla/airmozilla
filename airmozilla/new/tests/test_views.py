@@ -361,10 +361,49 @@ class TestNew(DjangoTestCase):
         event = Event.objects.get(id=event.id)
         eq_(event.slug, 'olen-smalter-i-asen')
 
+    @mock.patch('subprocess.Popen')
     @mock.patch('airmozilla.manage.vidly.urllib2')
-    def test_archive(self, p_urllib2):
+    def test_archive(self, p_urllib2, mock_popen):
 
         self._create_default_archive_template()
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+            url = destination = None
+            if command[1] == '-i':
+                # doing a fetch info
+                url = command[2]
+            elif command[1] == '-ss':
+                # screen capturing
+                destination = command[-1]
+                assert os.path.isdir(os.path.dirname(destination))
+            else:
+                raise NotImplementedError(command)
+
+            ffmpeged_urls.append(url)
+
+            sample_jpg = self.sample_jpg
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if url is not None:
+                        if url == 'https://s3.com/foo.webm':
+                            err = """
+                Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
+                            """
+                        else:
+                            raise NotImplementedError(url)
+                    elif destination is not None:
+                        shutil.copyfile(sample_jpg, destination)
+                    else:
+                        raise NotImplementedError()
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
 
         def mocked_urlopen(request):
             return StringIO("""
@@ -401,6 +440,9 @@ class TestNew(DjangoTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         event = self._create_event(file_url)
+        assert event.upload
+        event.duration = 60
+        event.save()
 
         url = reverse('new:archive', args=(event.id,))
         response = self.post_json(url)
@@ -427,10 +469,51 @@ class TestNew(DjangoTestCase):
         eq_(VidlySubmission.objects.filter(event=event).count(), 1)
         eq_(len(addmedia_requests), 1)
 
+        ok_(Picture.objects.filter(event=event, timestamp__isnull=False))
+
+    @mock.patch('subprocess.Popen')
     @mock.patch('airmozilla.manage.vidly.urllib2')
-    def test_archive_with_s3_url(self, p_urllib2):
+    def test_archive_with_s3_url(self, p_urllib2, mock_popen):
 
         self._create_default_archive_template()
+
+        ffmpeged_urls = []
+
+        def mocked_popen(command, **kwargs):
+            url = destination = None
+            if command[1] == '-i':
+                # doing a fetch info
+                url = command[2]
+            elif command[1] == '-ss':
+                # screen capturing
+                destination = command[-1]
+                assert os.path.isdir(os.path.dirname(destination))
+            else:
+                raise NotImplementedError(command)
+
+            ffmpeged_urls.append(url)
+
+            sample_jpg = self.sample_jpg
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if url is not None:
+                        if url == 'https://s3.com/foo.webm':
+                            err = """
+                Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
+                            """
+                        else:
+                            raise NotImplementedError(url)
+                    elif destination is not None:
+                        shutil.copyfile(sample_jpg, destination)
+                    else:
+                        raise NotImplementedError()
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
 
         def mocked_urlopen(request):
             return StringIO("""
@@ -467,6 +550,8 @@ class TestNew(DjangoTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         event = self._create_event(file_url)
+        event.duration = 60
+        event.save()
 
         url = reverse('new:archive', args=(event.id,))
         response = self.post_json(url)
@@ -493,6 +578,8 @@ class TestNew(DjangoTestCase):
             'error': None,
         })
         eq_(len(addmedia_requests), 1)
+
+        ok_(Picture.objects.filter(event=event, timestamp__isnull=False))
 
     def test_archive_pending_event(self):
         event = self._create_event()
@@ -538,7 +625,7 @@ class TestNew(DjangoTestCase):
                 def communicate(self):
                     out = err = ''
                     if url is not None:
-                        if 'abc123' in url:
+                        if url == 'https://s3.com/foo.webm':
                             err = """
                 Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
                             """
@@ -707,7 +794,7 @@ class TestNew(DjangoTestCase):
                 def communicate(self):
                     out = err = ''
                     if url is not None:
-                        if 'abc123' in url:
+                        if url == 'https://s3.com/foo.webm':
                             err = """
                 Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
                             """

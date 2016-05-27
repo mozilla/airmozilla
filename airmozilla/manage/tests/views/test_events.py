@@ -2644,7 +2644,12 @@ class TestEvents(ManageTestCase):
             'pictures': settings.SCREENCAPTURES_NO_PICTURES
         })
         assert Picture.objects.filter(event=event).count()
-        eq_(len(ffmpeged_urls), settings.SCREENCAPTURES_NO_PICTURES)
+        ok_(len(ffmpeged_urls) >= settings.SCREENCAPTURES_NO_PICTURES)
+        pictures = Picture.objects.filter(event=event)
+        eq_(
+             pictures.filter(timestamp__isnull=True).count(),
+             settings.SCREENCAPTURES_NO_PICTURES
+        )
 
         # hit it a second time
         response = self.client.post(url)
@@ -2652,7 +2657,12 @@ class TestEvents(ManageTestCase):
         eq_(json.loads(response.content), {
             'pictures': settings.SCREENCAPTURES_NO_PICTURES
         })
-        eq_(len(ffmpeged_urls), settings.SCREENCAPTURES_NO_PICTURES)
+        ok_(len(ffmpeged_urls) >= settings.SCREENCAPTURES_NO_PICTURES)
+        pictures = Picture.objects.filter(event=event)
+        eq_(
+             pictures.filter(timestamp__isnull=True).count(),
+             settings.SCREENCAPTURES_NO_PICTURES
+        )
 
     @mock.patch('subprocess.Popen')
     @mock.patch('requests.head')

@@ -269,7 +269,6 @@ def fetch_screencapture(
                         delete_opened_files=True,
                         timestamp=timestamp,
                     )
-
         else:
             while seconds < event.duration:
                 number += 1
@@ -350,7 +349,9 @@ def _get_files(directory):
 
 
 def get_video_url(event, use_https, save_locally, verbose=False):
-    if event.template and 'Vid.ly' in event.template.name:
+    if event.upload:
+        return event.upload.url, None
+    elif event.template and 'Vid.ly' in event.template.name:
         assert event.template_environment.get('tag'), "No Vid.ly tag value"
 
         token_protected = event.privacy != Event.PRIVACY_PUBLIC

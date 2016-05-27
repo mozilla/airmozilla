@@ -10,7 +10,7 @@ from django.core.cache import cache
 
 from airmozilla.base.tests.testbase import DjangoTestCase, Response
 from airmozilla.main.models import Picture, Event, Template
-from airmozilla.main import pictures
+from airmozilla.base import pictures
 
 
 class TestPictures(DjangoTestCase):

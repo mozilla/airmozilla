@@ -13,6 +13,7 @@ from airmozilla.main.models import (
     Picture,
     Template,
 )
+from airmozilla.uploads.models import Upload
 from airmozilla.base.tests.testbase import DjangoTestCase, Response
 
 
@@ -74,7 +75,32 @@ class TestEventEditChapters(DjangoTestCase):
             'email': user.email,
         })
 
-    def test_add_chapter(self):
+    @mock.patch('subprocess.Popen')
+    def test_add_chapter(self, mock_popen):
+
+        ffmpeged_urls = []
+
+        sample_jpg = self.sample_jpg
+
+        def mocked_popen(command, **kwargs):
+            url = command[4]
+            ffmpeged_urls.append(url)
+            destination = command[-1]
+            assert os.path.isdir(os.path.dirname(destination))
+
+            class Inner:
+                def communicate(self):
+                    out = err = ''
+                    if url == 'https://aws.com/file.mov':
+                        shutil.copyfile(sample_jpg, destination)
+                    else:
+                        raise NotImplementedError(url)
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
+
         url = reverse('main:event_edit_chapters', args=('xxx',))
         data = {
             'timestamp': 70,
@@ -84,6 +110,12 @@ class TestEventEditChapters(DjangoTestCase):
         eq_(response.status_code, 404)
 
         event = Event.objects.get(title='Test event')
+        event.upload = Upload.objects.create(
+            user=event.creator,
+            url='https://aws.com/file.mov',
+            size=1234,
+            mime_type='video/quicktime',
+        )
         event.privacy = Event.PRIVACY_COMPANY
         event.save()
         url = reverse('main:event_edit_chapters', args=(event.slug,))

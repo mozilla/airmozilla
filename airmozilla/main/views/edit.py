@@ -16,6 +16,7 @@ from airmozilla.main.models import (
 )
 from airmozilla.main.views.pages import EventView, get_video_tagged
 from airmozilla.main.templatetags.jinja_helpers import js_date, thumbnail
+from airmozilla.base.pictures import get_timenail_timestamps
 from airmozilla.main import tasks
 
 
@@ -425,42 +426,12 @@ class EventChaptersThumbnailsView(EventEditChaptersView):
         if not self.can_edit_event(event, request):
             return self.cant_edit_event(event, request)
 
-        assert event.duration
-
-        # We have to avoid making too many thumbnails.
-        # For a really long video you have to accept that there's going
-        # to me bigger intervals between.
-        #
-        # For a video that is more than 1h30 we make it 60 sec.
-        # That means a...
-        # ... 1h45m will have 105 thumbnails.
-        # ... 1h will have 80 thumbnails.
-        # ... 30m will have 60 thumbnails
-        # ...
-        #
-        # These numbers should ideally be done as a function
-        # rather than a list of if-elif statements. Something
-        # for the future.
-
-        if event.duration > 60 * 60 + 60 * 30:
-            incr = 60  # every minute
-        elif event.duration > 60 * 60:
-            incr = 45
-        elif event.duration > 30 * 60:
-            incr = 30
-        elif event.duration > 60:
-            incr = 10
-        else:
-            incr = 5
-
-        at = 0
         pictures = []
         missing = []
         fetch = []
         base_qs = Picture.objects.filter(event=event)
 
-        while (at + incr) < event.duration:
-            at += incr
+        for at in get_timenail_timestamps(event):
             qs = base_qs.filter(timestamp=at)
             for picture in qs.order_by('-modified')[:1]:
                 thumb = thumbnail(
@@ -483,9 +454,10 @@ class EventChaptersThumbnailsView(EventEditChaptersView):
                     cache.set(lock, True, 60 * 10)
 
         if fetch:
-            # FIXME We might want to bucketize this up if the list
-            # is long.
-            tasks.create_timestamp_pictures.delay(event.id, fetch)
+            # break it up so that we only ask for 10 at a time
+            fetches = [fetch[i:i + 10] for i in range(0, len(fetch), 10)]
+            for group in fetches:
+                tasks.create_timestamp_pictures.delay(event.id, group)
 
         return http.JsonResponse({
             'pictures': pictures,
