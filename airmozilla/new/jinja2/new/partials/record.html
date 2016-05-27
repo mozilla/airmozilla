@@ -9,7 +9,15 @@
       camera and microphone. <br>
       You need to click <b>Share Selected Devices</b>.
     </p>
-    <button type="button" ng-click="startCamera()">Start Camera</button>
+    <button
+      type="button"
+      ng-if="!getUserMediaError"
+      ng-click="startCamera()">Start Camera</button>
+    <div ng-if="getUserMediaError" class="alert alert-danger">
+      <p>
+        Sorry, it seems your device is not able to start <code>getUserMedia</code>.
+      </p>
+    </div>
   </div>
 
   <div ng-if="enableScreenCapture">

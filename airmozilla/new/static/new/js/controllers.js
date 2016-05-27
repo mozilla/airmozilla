@@ -426,7 +426,14 @@ angular.module('new.controllers', ['new.services'])
         };
 
         function getUserMedia(config) {
-            return navigator.mediaDevices.getUserMedia(config);
+            if (navigator.mediaDevices) {
+                return navigator.mediaDevices.getUserMedia(config);
+            } else {
+                var p = new Promise(function(resolve, reject) {
+                    reject('navigator.mediaDevices not supported');
+                });
+                return p;
+            }
         }
 
         var nextFaceMessage = null;
@@ -511,6 +518,8 @@ angular.module('new.controllers', ['new.services'])
             }
         }
 
+        $scope.getUserMediaError = null;
+
         $scope.startCamera = function() {
             var conf = {
                 audio: true,
@@ -561,9 +570,7 @@ angular.module('new.controllers', ['new.services'])
                 }
             })
             .catch(function(error) {
-                // XXX this needs better error handling that is user-friendly
-                console.warn('Unable to get the getUserMedia stream');
-                console.error(error);
+                $scope.getUserMediaError = error;
             });
 
         };
