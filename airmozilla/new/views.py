@@ -309,15 +309,13 @@ def event_archive(request, event):
             hd=True,
             submission_error=error or None
         )
-        # https://bugzilla.mozilla.org/show_bug.cgi?id=1275907
-        # print "Event.STATUS", repr(event.status)
 
         default_template = Template.objects.get(default_archive_template=True)
         # Do an in place edit in case this started before the fetch_duration
         # has started.
         Event.objects.filter(id=event.id).update(
             template=default_template,
-            template_environment={'tag': tag}
+            template_environment={'tag': tag},
         )
 
         create_all_timestamp_pictures.delay(event.id)
@@ -667,7 +665,7 @@ def event_publish(request, event):
                     event.archive_time = timezone.now()
             else:
                 # vidly hasn't finished processing it yet
-                event.status = Event.STATUS_PENDING
+                event.status = Event.STATUS_PROCESSING
         event.save()
 
         if not event.picture and not event.placeholder_img:

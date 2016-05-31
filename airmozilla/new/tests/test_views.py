@@ -1511,7 +1511,7 @@ class TestNew(DjangoTestCase):
 
         event = Event.objects.get(id=event.id)
         eq_(event.picture, default_picture)
-        eq_(event.status, Event.STATUS_PENDING)
+        eq_(event.status, Event.STATUS_PROCESSING)
 
         sent_email = mail.outbox[-1]
         ok_('Approval requested' in sent_email.subject)
