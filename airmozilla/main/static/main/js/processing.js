@@ -185,8 +185,8 @@ $(function() {
     updateTimeLeft();
     var interval = setInterval(updateTimeLeft, 1000);
 
-    // update every 30 seconds
-    var timenailsInterval = setInterval(updateTimenails, 30 * 1000);
+    // update every 60 seconds
+    var timenailsInterval = setInterval(updateTimenails, 60 * 1000);
     // but start showing it with a slight delay
     setTimeout(updateTimenails, 3 * 1000);
 
