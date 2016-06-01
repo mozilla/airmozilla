@@ -1043,6 +1043,42 @@ def event_livehits(request, id):
     return {'hits': total_hits}
 
 
+@json_view
+def event_processing_timenails(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+    if not event.duration:
+        return {'pictures': []}
+    form = forms.ProcessingTimenailsForm(request.GET)
+    if not form.is_valid():
+        return http.HttpResponseBadRequest(form.errors)
+    percentage = min(100.0, form.cleaned_data['percent'] or 100.0)
+    max_ = form.cleaned_data['max']
+    point = event.duration * percentage / 100.0
+    pictures = Picture.objects.filter(
+        event=event,
+        timestamp__isnull=False,
+        timestamp__lte=point,
+    )
+    pictures_ = []
+    for picture in pictures.order_by('-timestamp')[:max_]:
+        # NOTE! This code is the same as used
+        # in then EventChaptersThumbnailsView.get view.
+        thumb = thumbnail(
+            picture.file, '160x90', crop='center'
+        )
+        pictures_.append({
+            'id': picture.id,
+            'timestamp': picture.timestamp,
+            'thumbnail': {
+                'url': thumb.url,
+                'width': thumb.width,
+                'height': thumb.height,
+            },
+        })
+    pictures_.reverse()
+    return {'pictures': pictures_}
+
+
 @never_cache
 @json_view
 def event_status(request, slug):

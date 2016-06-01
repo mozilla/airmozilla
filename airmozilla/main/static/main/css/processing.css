@@ -9,7 +9,7 @@
 }
 
 .processing p:first-child {
-    padding-top: 200px;
+    padding-top: 150px;
 }
 
 
@@ -62,4 +62,16 @@
 }
 .progress-bar .progress-size {
     font-size: 80%;
+}
+
+.progress-timenails {
+    text-align: left;
+    margin: 50px;
+}
+.progress-timenails .timenail {
+    position: absolute;
+    border: 2px solid rgb(222, 222, 222);
+    border-radius: 1px;
+    width: 160px;
+    display: none;
 }

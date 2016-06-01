@@ -54,6 +54,7 @@
       {% elif event.is_processing() %}
         <div class="processing"
           {% if estimated_time_left %}
+             data-url-timenails="{{ url('main:event_processing_timenails', event.slug) }}"
              data-time-left="{{ estimated_time_left }}"
              data-time-run="{{ time_run }}"
           {% endif %}
@@ -74,8 +75,10 @@
               <progress value="0" max="100" title=""></progress>
               <span class="progress-value">0%</span>
             </div>
+            <div class="progress-timenails" style="display:none">
+
+            </div>
           {% endif %}
-          </p>
         </div>
       {% else %}
         {% if video %}

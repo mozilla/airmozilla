@@ -3391,3 +3391,49 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         thumbnail_urls = json.loads(response.content)['thumbnails']
         eq_(len(thumbnail_urls), 4)
+
+    def test_event_processing_timenails(self):
+        event = Event.objects.get(title='Test event')
+        assert not event.duration
+        url = reverse('main:event_processing_timenails', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        eq_(json.loads(response.content)['pictures'], [])
+
+        event.duration = 500
+        event.save()
+
+        # bad input
+        response = self.client.get(url, {'percent': 'xxx'})
+        eq_(response.status_code, 400)
+        response = self.client.get(url, {'max': 'xxx'})
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {'max': '10', 'percent': '76.5'})
+        eq_(response.status_code, 200)
+        # but there are no pictures :)
+        eq_(json.loads(response.content)['pictures'], [])
+
+        with open(self.main_image) as fp:
+            for i in range(0, 500, 30):
+                Picture.objects.create(
+                    timestamp=i,
+                    event=event,
+                    file=File(fp)
+                )
+
+        # try again
+        response = self.client.get(url, {'max': '10', 'percent': '76.5'})
+        eq_(response.status_code, 200)
+        pictures = json.loads(response.content)['pictures']
+        eq_(len(pictures), 10)
+        timestamps = [x['timestamp'] for x in pictures]
+        eq_(timestamps, [90, 120, 150, 180, 210, 240, 270, 300, 330, 360])
+
+        # try again, just 1
+        response = self.client.get(url, {'max': '1', 'percent': '84.5'})
+        eq_(response.status_code, 200)
+        pictures = json.loads(response.content)['pictures']
+        eq_(len(pictures), 1)
+        timestamps = [x['timestamp'] for x in pictures]
+        eq_(timestamps, [420])

@@ -177,6 +177,11 @@ class ThumbnailsForm(BaseForm):
     height = forms.IntegerField()
 
 
+class ProcessingTimenailsForm(BaseForm):
+    percent = forms.FloatField(required=False)
+    max = forms.IntegerField(required=False)
+
+
 class EventEditTagsForm(BaseModelForm):
 
     event_id = forms.CharField(widget=forms.HiddenInput())
