@@ -313,11 +313,12 @@ def prepare_vidly_video_url(url):
     Hopefully this will make the transcoding faster.
     """
     if 's3.amazonaws.com' in url:
-        if '?' in url:
-            url += '&'
-        else:
-            url += '?'
-        url += 'nocopy'
+        if 'nocopy' not in url:
+            if '?' in url:
+                url += '&'
+            else:
+                url += '?'
+            url += 'nocopy'
     return url
 
 

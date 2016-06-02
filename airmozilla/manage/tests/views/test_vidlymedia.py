@@ -623,6 +623,7 @@ class TestVidlyMedia(ManageTestCase):
 
         event = Event.objects.get(pk=event.pk)
         eq_(event.template_environment['tag'], '8oxv6x')
+        eq_(event.status, Event.STATUS_PROCESSING)
 
     @mock.patch('urllib2.urlopen')
     def test_vidly_media_resubmit_with_error(self, p_urlopen):

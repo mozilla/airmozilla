@@ -283,6 +283,7 @@ def vidly_media_resubmit(request):
         )
         vidly.delete_media(old_tag)
         event.template_environment['tag'] = shortcode
+        event.status = Event.STATUS_PROCESSING
         event.save()
 
         cache_key = 'vidly-query-%s' % old_tag
