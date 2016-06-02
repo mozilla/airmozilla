@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.db import transaction
 from django.core.urlresolvers import reverse
 
+from jsonview.decorators import json_view
+
 from airmozilla.main.models import (
     Event,
     Template,
@@ -27,21 +29,45 @@ from .decorators import staff_required, permission_required
 @staff_required
 @permission_required('main.add_event')
 def suggestions(request):
+    return render(request, 'manage/suggestions.html')
+
+
+@staff_required
+@permission_required('main.add_event')
+@json_view
+def suggestions_data(request):
     context = {}
-    events = (
+    qs = (
         SuggestedEvent.objects
         .filter(accepted=None)
         .exclude(first_submitted=None)
         .order_by('submitted')
     )
-    context['include_old'] = request.GET.get('include_old')
-    if not context['include_old']:
-        now = timezone.now()
-        then = now - datetime.timedelta(days=30)
-        events = events.filter(first_submitted__gte=then)
+    now = timezone.now()
+    then = now - datetime.timedelta(days=30)
 
+    events = []
+    for event in qs:
+        events.append({
+            'id': event.id,
+            'title': event.title,
+            'start_time': event.start_time.isoformat(),
+            'location': event.location and event.location.name or None,
+            'user': {
+                'email': event.user.email,
+            },
+            'first_submitted': event.first_submitted.isoformat(),
+            'status': event.get_status_display(),
+            'submitted': event.submitted,
+            'old': event.first_submitted < then,
+        })
     context['events'] = events
-    return render(request, 'manage/suggestions.html', context)
+    context['urls'] = {
+        'manage:suggestion_review': reverse(
+            'manage:suggestion_review', args=('0',)
+        ),
+    }
+    return context
 
 
 @staff_required

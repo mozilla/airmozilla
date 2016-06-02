@@ -462,8 +462,8 @@ PIPELINE_JS = {
     },
     'suggestions': {
         'source_filenames': (
-            'manage/js/jquery-ui-1.10.1.highlight.min.js',
-            'manage/js/suggestions.js',
+            # 'manage/js/jquery-ui-1.10.1.highlight.min.js',
+            'manage/js/suggestionsmanager.js',
         ),
         'output_filename': 'js/suggestions.min.js',
     },

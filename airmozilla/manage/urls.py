@@ -207,6 +207,8 @@ urlpatterns = patterns(
     url(r'^pages/remove/(?P<id>\d+)/$', staticpages.staticpage_remove,
         name='staticpage_remove'),
     url(r'^suggestions/$', suggestions.suggestions, name='suggestions'),
+    url(r'^suggestions/data/$', suggestions.suggestions_data,
+        name='suggestions_data'),
     url(r'^suggestions/(?P<id>\d+)/$', suggestions.suggestion_review,
         name='suggestion_review'),
     url(r'^vidly/$', vidly_media.vidly_media,

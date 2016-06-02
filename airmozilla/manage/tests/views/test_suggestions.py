@@ -1,3 +1,4 @@
+import json
 import datetime
 import os
 
@@ -38,6 +39,11 @@ class TestSuggestions(ManageTestCase):
         self._upload_media(self.placeholder_path)
 
     def test_suggestions_page(self):
+        url = reverse('manage:suggestions')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+    def test_suggestions_data(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
         now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
@@ -68,7 +74,7 @@ class TestSuggestions(ManageTestCase):
             first_submitted=now - datetime.timedelta(days=1),
         )
 
-        url = reverse('manage:suggestions')
+        url = reverse('manage:suggestions_data')
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('TITLE1' in response.content)
@@ -78,13 +84,12 @@ class TestSuggestions(ManageTestCase):
         event2.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('TITLE1' in response.content)
-        ok_('TITLE2' not in response.content)
-
-        response = self.client.get(url, {'include_old': 1})
-        eq_(response.status_code, 200)
-        ok_('TITLE1' in response.content)
-        ok_('TITLE2' in response.content)
+        struct = json.loads(response.content)
+        event_2, event_1 = struct['events']
+        eq_(event_2['title'], 'TITLE2')
+        ok_(event_2['old'])
+        eq_(event_1['title'], 'TITLE1')
+        ok_(not event_1['old'])
 
     def test_suggestions_page_states(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
@@ -104,10 +109,11 @@ class TestSuggestions(ManageTestCase):
             submitted=now,
             first_submitted=now
         )
-        url = reverse('manage:suggestions')
+        url = reverse('manage:suggestions_data')
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('Submitted' in response.content)
+        struct = json.loads(response.content)
+        eq_(struct['events'][0]['status'], 'Created')
 
         event.submitted += datetime.timedelta(days=1)
         event.status = SuggestedEvent.STATUS_RESUBMITTED
@@ -115,8 +121,8 @@ class TestSuggestions(ManageTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('TITLE' in response.content)
-        ok_('Resubmitted' in response.content)
+        struct = json.loads(response.content)
+        eq_(struct['events'][0]['status'], 'Resubmitted')
 
         event.review_comments = "Not good"
         event.submitted = None
@@ -125,9 +131,8 @@ class TestSuggestions(ManageTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('TITLE' in response.content)
-        ok_('Resubmitted' not in response.content)
-        ok_('Bounced' in response.content)
+        struct = json.loads(response.content)
+        eq_(struct['events'][0]['status'], 'Bounced back')
 
         event.submitted = now + datetime.timedelta(seconds=10)
         event.status = SuggestedEvent.STATUS_RESUBMITTED
@@ -135,10 +140,8 @@ class TestSuggestions(ManageTestCase):
 
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('TITLE' in response.content)
-        ok_('First submission' not in response.content)
-        ok_('Resubmitted' in response.content)
-        ok_('Bounced' not in response.content)
+        struct = json.loads(response.content)
+        eq_(struct['events'][0]['status'], 'Resubmitted')
 
     def test_approve_suggested_event_basic(self):
         bob = User.objects.create_user('bob', email='bob@mozilla.com')
@@ -607,12 +610,12 @@ class TestSuggestions(ManageTestCase):
         event.tags.add(tag2)
         event.channels.add(channel)
 
-        url = reverse('manage:suggestions')
+        url = reverse('manage:suggestions_data')
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_(event.title in response.content)
+        struct = json.loads(response.content)
+        eq_(struct['events'][0]['title'], event.title)
         event_url = reverse('manage:suggestion_review', args=(event.pk,))
-        ok_(event_url in response.content)
 
         response = self.client.get(event_url)
         eq_(response.status_code, 200)

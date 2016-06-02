@@ -5,70 +5,181 @@
   Submitted suggested events
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  <style type="text/css">
+  .loading {
+      margin: 200px auto;
+      width: 50%;
+  }
+  input[name="title"],
+  input[name="location"] {
+      /*width: 250px;*/
+      width: 100%;
+  }
+  th a {
+      cursor: pointer;
+  }
+  </style>
+{% endblock %}
 {% block site_js %}
   {{ super() }}
+  <script src="{{ static('angular/angular.min.js') }}"></script>
+  <script src="{{ static('angular/angular-moment.min.js') }}"></script>
   {% javascript 'suggestions' %}
 {% endblock %}
 
 
-
 {% block manage_content %}
+<div ng-app="suggestionsmanagerApp" ng-controller="SuggestionsManagerController">
 
+  {% raw %}
+  <div ng-show="loading" class="loading pulsating">
+      <h3>Loading all requests...</h3>
+  </div>
 
-  <p>
-    {% if include_old %}
-    <a href="{{ url('manage:suggestions') }}">Only show recent submissions</a>
-    {% else %}
-    <a href="{{ url('manage:suggestions') }}?include_old=1">Include old submissions</a>
-    {% endif %}
+  <p ng-show="!loading && search_old === 'active'" ng-cloak>
+    Note! There are <b>{{ count_old }} old</b> submissions.
   </p>
 
-  {% if events %}
-  <table class="table table-striped">
+  <table class="table table-striped table-bordered" ng-show="!loading" ng-cloak>
     <thead>
       <tr>
-        <th>Event title</th>
-        <th>Start time</th>
-        <th>Location</th>
-        <th>Creator</th>
-        <th>Submitted</th>
-        <th>State</th>
-        <th></th>
+        <th>
+          <a ng-click="setSorting('title')">Event title</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='title' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='title' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th style="width: 160px">
+          <a ng-click="setSorting('start_time')">Start time</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='start_time' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='start_time' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th>
+          <a ng-click="setSorting('location')">Location</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='location' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='location' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th>
+          <a ng-click="setSorting('creator')">Creator</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='creator' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='creator' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th style="width: 160px">
+          <a ng-click="setSorting('submitted')">Submitted</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='submitted' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='submitted' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th>
+          <a ng-click="setSorting('state')">State</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='state' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='state' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th>
+          <a ng-click="setSorting('old')">Old</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='old' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='old' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
+        <th style="width: 100px" title="Items found">
+          # {{ filtered_items.length }}
+        </th>
+      </tr>
+      <tr>
+        <th><input type="text" name="title" ng-model="search_title" placeholder="Search by title"></th>
+        <th>&nbsp;</th>
+        <th><input type="text" name="location" ng-model="search_location" placeholder="Search by location"></th>
+        <th><input type="text" name="creator" ng-model="search_creator" placeholder="Search by creator"></th>
+        <th>&nbsp;</th>
+        <th>
+          <select name="status" ng-model="search_status">
+            <option value="">All</option>
+            <option>Submitted</option>
+            <option>Resubmitted</option>
+            <option>Retracted</option>
+          </select>
+        </th>
+        <th>
+          <select name="old" ng-model="search_old">
+            <option value="">Both</option>
+            <option value="active">Active</option>
+            <option value="old">Old</option>
+          </select>
+        </th>
+        <th>
+          <a href="#" class="btn btn-default btn-xs btn-primary"
+            ng-if="hasFilter()"
+            ng-click="clearFilter()">Clear filter</a>
+        </th>
       </tr>
     </thead>
     <tbody>
-      {% for event in events %}
-      <tr data-id="{{ event.pk }}">
+      <tr ng-repeat="event in filtered_items = (events | filter:filterBySearch) | orderBy:sorting:sorting_reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
         <td>{{ event.title }}</td>
-        <td>{{ event.start_time|js_date }}</td>
+        <td>
+          <time class="timeago" title="{{ formatDate(event.start_time) }}">
+            <span am-time-ago="event.start_time"></span>
+          </time>
+        </td>
         <td>{{ event.location }}</td>
         <td>{{ event.user.email }}</td>
-        <td>{{ event.first_submitted|js_date }}</td>
         <td>
-            {{ event.get_status_display() }}
+          <time class="timeago" title="{{ formatDate(event.first_submitted) }}">
+            <span am-time-ago="event.first_submitted"></span>
+          </time>
         </td>
         <td>
-          {% if event.submitted %}
-          <a class="btn btn-primary"
+            {{ event.status }}
+        </td>
+        <td>
+          <span ng-show="event.old">Yes</span>
+          <span ng-show="!event.old">No</span>
+        </td>
+        <td>
+          <a class="btn btn-primary" ng-if="event.submitted"
              href="{{ url('manage:suggestion_review', event.id) }}">
             <i class="glyphicon glyphicon-wrench"></i>
             Review
           </a>
-          {% else %}
-          <a class="btn btn-primary"
+          <a class="btn btn-primary" ng-if="!event.submitted"
              href="{{ url('manage:suggestion_review', event.id) }}">
             View
           </a>
-          {% endif %}
         </td>
       </tr>
-      {% endfor %}
     </tbody>
   </table>
-  {% endif %}
+  {% endraw %}
 
-  {% if not events %}
-    <p>No suggested events are waiting!</p>
-  {% endif %}
+  {% include "manage/_angular_pagesize.html" %}
+  {% include "manage/_angular_paginate.html" %}
 
+</div>
 {% endblock %}
