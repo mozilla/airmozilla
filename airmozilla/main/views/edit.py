@@ -1,5 +1,7 @@
 import json
 
+from PIL import Image
+
 from django import http
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
@@ -18,6 +20,7 @@ from airmozilla.main.views.pages import EventView, get_video_tagged
 from airmozilla.main.templatetags.jinja_helpers import js_date, thumbnail
 from airmozilla.base.pictures import get_timenail_timestamps
 from airmozilla.main import tasks
+from airmozilla.main.utils import FuzzyImageCompare
 
 
 class EventEditView(EventView):
@@ -431,19 +434,32 @@ class EventChaptersThumbnailsView(EventEditChaptersView):
         fetch = []
         base_qs = Picture.objects.filter(event=event)
 
+        prev = None
         for at in get_timenail_timestamps(event):
             qs = base_qs.filter(timestamp=at)
             for picture in qs.order_by('-modified')[:1]:
                 thumb = thumbnail(
                     picture.file, '160x90', crop='center'
                 )
+                similarity = None
+                # Only do this for superusers, FOR NOW
+                if request.user.is_superuser:
+                    img = Image.open(picture.file)
+                    if prev is not None:
+                        cmp = FuzzyImageCompare(prev, img)
+                        similarity = cmp.similarity()
+                    prev = img
+                # if similarity is not None and similarity >= 60:
+                #     print "SKIP"
+                #     break
                 pictures.append({
                     'at': picture.timestamp,
                     'thumbnail': {
                         'url': thumb.url,
                         'width': thumb.width,
                         'height': thumb.height,
-                    }
+                    },
+                    'similarity': similarity
                 })
                 break
             else:

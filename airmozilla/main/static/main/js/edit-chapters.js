@@ -12,19 +12,31 @@ var Timenails = (function() {
         $('a', innerContainer).remove();
 
         $.each(timenails, function(at, picture) {
+            var title = 'At ' + formatSeconds(at);
+            var similaritySpan = null;
+            if (picture.similarity) {
+                title += ' (Similarity: ' +
+                 Math.round(picture.similarity, 2) + '%)';
+                similaritySpan = $('<span>')
+                .addClass('similarity')
+                .text(Math.round(picture.similarity, 2) + '%');
+            }
+
             $('<a>')
-            .attr('href', picture.url)
-            .attr('title', 'At ' + formatSeconds(at))
+            .attr('href', picture.thumbnail.url)
+            .attr('title', title)
             .addClass('timenail')
             .on('click', function(event) {
                 event.preventDefault();
                 callback(parseInt(at, 10));
             })
+
             .append(
                 $('<img>')
                 .attr('alt', formatSeconds(at))
-                .attr('src', picture.url)
+                .attr('src', picture.thumbnail.url)
             )
+            .append(similaritySpan)
             .appendTo(innerContainer);
         });
         if (!parent.is(':visible')) {
@@ -48,7 +60,7 @@ var Timenails = (function() {
                 $('.loading-more-timenails', parent).hide();
             }
             $.each(response.pictures, function(i, picture) {
-                timenails[picture.at] = picture.thumbnail;
+                timenails[picture.at] = picture;
             });
             renderTimenails();
         })

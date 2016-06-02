@@ -55,3 +55,17 @@ form .adding {
     width: 105px;
     margin-right: 6px;
 }
+
+#timenails a.timenail {
+    position: relative;
+}
+#timenails a.timenail .similarity {
+    position: absolute;
+    top: -9px;
+    right: 8px;
+    color: black;
+    background-color: white;
+    opacity: 0.7;
+    border-radius: 3px;
+    font-family: sans-serif;
+}
