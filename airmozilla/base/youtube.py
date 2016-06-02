@@ -29,6 +29,8 @@ def extract_metadata_by_url(url):
         if url.startswith('https://youtu.be/'):
             video_id = url.split('https://youtu.be/')[1].split('/')[0]
             video_id = video_id.split('?')[0]
+        elif len(url) == 11:
+            video_id = url
         else:
             raise ValueError(url)
     return extract_metadata_by_id(video_id)
