@@ -13,24 +13,22 @@ var Timenails = (function() {
 
         $.each(timenails, function(at, picture) {
             var title = 'At ' + formatSeconds(at);
-            var similaritySpan = null;
-            if (picture.similarity) {
-                title += ' (Similarity: ' +
-                 Math.round(picture.similarity, 2) + '%)';
-                similaritySpan = $('<span>')
-                .addClass('similarity')
-                .text(Math.round(picture.similarity, 2) + '%');
-            }
+            title += ' (Similarity: ' +
+            Math.round(picture.similarity, 2) + '%)';
+            var similaritySpan = $('<span>')
+            .addClass('similarity')
+            .text(Math.round(picture.similarity, 2) + '%')
+            .hide();
 
             $('<a>')
             .attr('href', picture.thumbnail.url)
             .attr('title', title)
             .addClass('timenail')
+            .data('similarity', picture.similarity)
             .on('click', function(event) {
                 event.preventDefault();
                 callback(parseInt(at, 10));
             })
-
             .append(
                 $('<img>')
                 .attr('alt', formatSeconds(at))
@@ -43,7 +41,7 @@ var Timenails = (function() {
             // delay slightly to make sure the thumbnails have loaded.
             setTimeout(function() {
                 parent.fadeIn(400);
-            }, 2000);
+            }, 1000);
         }
     };
 
@@ -52,12 +50,13 @@ var Timenails = (function() {
         .done(function(response) {
             if (response.missing) {
                 // recurse soon
-                setTimeout(fetchThumbnails, 10 * 1000);
+                setTimeout(fetchThumbnails, 60 * 1000);
                 $('.loading-more-timenails .missing', parent)
                 .text(response.missing);
                 $('.loading-more-timenails', parent).show();
             } else {
                 $('.loading-more-timenails', parent).hide();
+                $('p.similarity', parent).show();
             }
             $.each(response.pictures, function(i, picture) {
                 timenails[picture.at] = picture;
@@ -71,10 +70,39 @@ var Timenails = (function() {
 
     var callback = null;
 
+    var filterTimenails = function(min) {
+        $('.timenails a', parent).each(function() {
+            var element = $(this);
+            if (element.data('similarity') === null || element.data('similarity') >= min) {
+                element.show();
+            } else {
+                element.hide();
+            }
+        });
+    };
+
     return {
         setup: function(cb) {
             callback = cb;
             fetchThumbnails();
+
+            // var rangeThrottle = null;
+            var hideSimilarityNumber = null;
+            var range = parseInt($('input[type="range"]', parent).val(), 10);
+            filterTimenails(range);
+            $('.similarity span').text(range + '%');
+            $('input[type="range"]', parent).on('input', function(event) {
+                $('.timenails span.similarity').show();
+                range = parseInt($(this).val());
+                $('.similarity span').text(range + '%');
+                filterTimenails(range);
+                if (hideSimilarityNumber) {
+                    clearTimeout(hideSimilarityNumber);
+                }
+                hideSimilarityNumber = setTimeout(function() {
+                    $('.timenails span.similarity').fadeOut(400);
+                }, 2000);
+            });
         }
     };
 

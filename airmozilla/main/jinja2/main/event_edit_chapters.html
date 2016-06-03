@@ -103,7 +103,13 @@ Editing Chapters for "{{ event.title }}" | Air Mozilla
 
 
     <div id="timenails" style="display:none">
+      <p style="display:none" class="similarity">
+        <input type="range" name="similarity" min="0" max="100" value="66">
+        <span></span>
+      </p>
+
       <h4>Pick time by timeframe thumbnail</h4>
+
       <p class="loading-more-timenails" style="display:none">
         <img src="{{ static('img/ajax-loader.gif') }}" width="24" height="24" style="vertical-align:middle">
         Loading remaining <span class="missing"></span> thumbnails...
@@ -112,6 +118,7 @@ Editing Chapters for "{{ event.title }}" | Air Mozilla
       <div class="timenails">
 
       </div>
+
 
     </div>
 

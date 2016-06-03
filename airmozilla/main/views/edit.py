@@ -442,16 +442,11 @@ class EventChaptersThumbnailsView(EventEditChaptersView):
                     picture.file, '160x90', crop='center'
                 )
                 similarity = None
-                # Only do this for superusers, FOR NOW
-                if request.user.is_superuser:
-                    img = Image.open(picture.file)
-                    if prev is not None:
-                        cmp = FuzzyImageCompare(prev, img)
-                        similarity = cmp.similarity()
-                    prev = img
-                # if similarity is not None and similarity >= 60:
-                #     print "SKIP"
-                #     break
+                img = Image.open(picture.file)
+                if prev is not None:
+                    cmp = FuzzyImageCompare(prev, img)
+                    similarity = cmp.similarity()
+                prev = img
                 pictures.append({
                     'at': picture.timestamp,
                     'thumbnail': {
