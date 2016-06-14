@@ -405,7 +405,11 @@ BASE_PASSWORD_HASHERS = HMAC_KEYS = []
 YOUTUBE_API_KEY = None
 
 # You have to run `npm install` for this to be installed in `./node_modules`
-PIPELINE_YUGLIFY_BINARY = path('node_modules/.bin/yuglify')
+PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.uglifyjs.UglifyJSCompressor'
+PIPELINE_UGLIFYJS_BINARY = path('node_modules/.bin/uglifyjs')
+PIPELINE_UGLIFYJS_ARGUMENTS = '--mangle'
+PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.cssmin.CSSMinCompressor'
+PIPELINE_CSSMIN_BINARY = path('node_modules/.bin/cssmin')
 
 POPCORN_EDITOR_CDN_URL = "//d2edlhmcxlovf.cloudfront.net"
 
