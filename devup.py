@@ -288,13 +288,13 @@ def install_python_dependencies(repo_root, virtualenv_name):
         "dependencies. Let's hope it works. If not, you might\n"
         "have to attempt this manually. The command we're going"
         " to use is:\n"
-        'pip install -r %s/requirements.txt' % (
+        'pip install --require-hashes -r %s/requirements.txt' % (
             repo_root,
         )
     )
 
     _process_streamed(
-        '%s/bin/pip install -r %s/requirements.txt' % (
+        '%s/bin/pip install --require-hashes -r %s/requirements.txt' % (
             virtualenv_name,
             repo_root
         )
@@ -312,7 +312,13 @@ def install_node_dependencies(repo_root):
         "npm install"
     )
     _process_streamed(
+        'pushd %s' % repo_root
+    )
+    _process_streamed(
         'npm install'
+    )
+    _process_streamed(
+        'popd'
     )
     print "Great! Node dependencies installed."
     _proceed()
