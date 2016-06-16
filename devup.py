@@ -264,7 +264,9 @@ def create_virtualenv(repo_root):
         print "These are the commands you need to run:"
         print
         print "\tmkvirtualenv airmozilla"
-        print "\tpip install -r %s/requirements.txt" % repo_root
+        print (
+            "\tpip install --require-hashes -r %s/requirements.txt" % repo_root
+        )
         print
         print "You can do that once the other things are set up"
         return
