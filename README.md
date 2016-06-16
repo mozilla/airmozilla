@@ -126,7 +126,7 @@ the `ENGINE` setting with `django.db.backends.mysql`.
 
 For local development, make sure the following lines are uncommented:
 ```
-DEBUG = TEMPLATE_DEBUG = True
+DEBUG = True
 ```
 Since Air Mozilla uses a lot of AJAX calls, it may not be useful for errors to
 show up in the browser when they happen. It may be more useful to have all
@@ -196,7 +196,6 @@ at all without having certain security settings, it's considered a bug.
 The very first thing to run are these commands:
 
 ```
-./manage.py syncdb
 ./manage.py migrate
 ```
 The `syncdb` command will ask you to set up a first default superuser. Make
@@ -586,7 +585,6 @@ This app requires a working install of PIL with libjpeg and libpng.
 First run
 -----------------------
 ```
-./manage.py syncdb
 ./manage.py migrate
 ```
 
