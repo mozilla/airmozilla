@@ -436,7 +436,10 @@ def vidly_media_webhook(request):
                 # Awesome!
                 # This event now has a fully working transcoded piece of
                 # media.
-                if event.status == Event.STATUS_PENDING:
+                if (
+                    event.status == Event.STATUS_PENDING or
+                    event.status == Event.STATUS_PROCESSING
+                ):
                     event.status = Event.STATUS_SCHEDULED
                 event.archive_time = timezone.now()
                 event.save()
