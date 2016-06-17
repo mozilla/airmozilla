@@ -183,3 +183,18 @@ ul.chapters li a.chapter-text {
 .transcript p.active:before {
     content: '“';
 }
+
+
+@media screen and (min-width: 1300px) {
+    /* If you have a really large screen estate, and the video
+       is available in HD, why not make it bigger by default. */
+    .wrap.hd {
+        width: 1280px;
+    }
+    /* 192 = (1280 - 896) / 2 */
+    .wrap.hd #masthead,
+    .wrap.hd .event-extras {
+        width: 896px;
+        margin-left: 192px;
+    }
+}
