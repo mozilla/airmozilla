@@ -51,8 +51,7 @@ def welcome():
     This guide will help you get a working dev environment on your
     laptop so you can work on Air Mozilla code.
 
-    What this guide simply does is automate the documented steps in
-    the README at
+    This guide automates the steps documented in the README at
     https://github.com/mozilla/airmozilla/#how-to-get-it-running-locally-from-scratch
 
     """
@@ -71,9 +70,8 @@ def check_python_version():
         You have Python %s installed and running this guide.
         It needs to be Python 2.7.
 
-        Either go and install one of those and try again or if you already
-        actually have it installed, try to start this guide with it
-        differently.
+        Either go and install Python 2.7 and try again. If you already
+        actually have it installed, try to start this guide with Python 2.7.
         """ % sys.version.split()[0])
 
 
@@ -125,7 +123,7 @@ def check_git():
         _error("""
         It appears you do not have git installed.
 
-        Depending on your system you have to install that yourself.
+        Depending on your system you may have to install that yourself.
         """)
 
 
@@ -154,7 +152,7 @@ def check_psql():
         _error("""
         Unable to get a version of `psql`.
 
-        PostgreSQL appear to be be installed! It's needed.
+        PostgreSQL appears not to be installed! It's needed.
         """)
 
 
@@ -206,7 +204,7 @@ def _norm_path(path):
 
 def git_clone():
     print "Going to git clone the whole project"
-    print "Where do you want to clone the project too?"
+    print "Where do you want to clone the project to?"
     _here = _norm_path('.')
     print "Default is the current directory"
     destination = raw_input('Path [%s/airmozilla]: ' % _here)
@@ -230,7 +228,7 @@ def git_clone():
         ]
     )
     print ""
-    print "Yay! All the code has been clone. Now let's configure things"
+    print "Yay! All the code has been cloned. Now let's configure things"
     _proceed()
     return destination
 
@@ -403,7 +401,7 @@ def create_local_settings(repo_root, database_name):
 
 
 def about_first_migration(repo_root, venv_path):
-    print """Now you should have a virtualenv and all things installed.
+    print """Now you should have a virtualenv and everything installed.
 
     The next thing to do is to run the first migrations. Go into the
     project:
@@ -458,7 +456,7 @@ def run():
 
     about_first_migration(repo_root, venv_path)
 
-    print "ALL IS DONE!"
+    print "ALL DONE!"
     print "Good luck hacking. See you in #airmozilla-dev"
     print
     return 0
