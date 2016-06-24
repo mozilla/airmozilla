@@ -434,7 +434,7 @@ class EventView(View):
 
         # By default, we want to hint in the DOM that this is an HD
         # video.
-        context['hd'] = True
+        context['hd'] = event.is_scheduled() and not event.is_upcoming()
 
         vidly_tag, vidly_hd = self.get_vidly_information(event, tag)
         if vidly_tag:
