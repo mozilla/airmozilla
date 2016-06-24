@@ -107,3 +107,7 @@ AMARA_USERNAME = 'amara'
 AMARA_API_KEY = 'super-secret-key'
 AMARA_TEAM = 'muzilla'
 AMARA_PROJECT = 'airmuzilla'
+
+# We mock all testing that involves running ffmpeg.
+# If a test is poorly mocked, it should actually fail to run.
+FFMPEG_LOCATION = '/dont/ever/actually/run/ffmpeg'

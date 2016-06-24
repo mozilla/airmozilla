@@ -982,11 +982,57 @@ class TestEvents(ManageTestCase):
         response_content = response.content.decode('utf-8')
         ok_(edit_url in response_content)
 
+    @mock.patch('subprocess.Popen')
+    @mock.patch('requests.head')
     @mock.patch('airmozilla.manage.vidly.urllib2')
-    def test_vidly_url_to_shortcode(self, p_urllib2):
+    def test_vidly_url_to_shortcode(
+        self,
+        p_urllib2,
+        rhead,
+        mock_popen,
+    ):
         event = Event.objects.get(title='Test event')
         assert event.privacy == Event.PRIVACY_PUBLIC
         url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
+
+        def mocked_head(url, **options):
+            return Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        sample_image = self.placeholder
+
+        def mocked_popen(command, **kwargs):
+            url = destination = None
+            if command[1] == '-ss':
+                destination = command[-1]
+            else:
+                url = command[2]
+
+            ffmpeged_urls.append(url)
+
+            class Inner:
+                def communicate(self):
+
+                    out = err = ''
+                    if url == 'https://www.com/file.mov':
+                        err = """
+            Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
+                        """
+                    elif destination is not None:
+                        shutil.copyfile(sample_image, destination)
+                    else:
+                        raise NotImplementedError((url, destination))
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
 
         def mocked_urlopen(request):
             return StringIO("""
@@ -997,7 +1043,7 @@ class TestEvents(ManageTestCase):
               <BatchID>47520</BatchID>
               <Success>
                 <MediaShortLink>
-                  <SourceFile>http://www.com/file.flv</SourceFile>
+                  <SourceFile>http://www.com/file.mov</SourceFile>
                   <ShortLink>8oxv6x</ShortLink>
                   <MediaID>13969839</MediaID>
                   <QRCode>http://vid.ly/8oxv6x/qrcodeimg</QRCode>
@@ -1013,7 +1059,8 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 405)
 
         response = self.client.post(url, {
-            'url': 'not a url'
+            'url': 'not a url',
+            'hd': True
         })
         eq_(response.status_code, 400)
 
@@ -1027,12 +1074,12 @@ class TestEvents(ManageTestCase):
             replace_with='https://'
         )
         response = self.client.post(url, {
-            'url': 'http://www.com/'
+            'url': 'http://www.com/file.mov'
         })
         eq_(response.status_code, 200)
         content = json.loads(response.content)
         eq_(content['shortcode'], '8oxv6x')
-        eq_(content['url'], 'https://www.com/')
+        eq_(content['url'], 'https://www.com/file.mov')
 
         arguments = list(p_urllib2.Request.mock_calls[0])[1]
         # the first argument is the URL
@@ -1042,18 +1089,75 @@ class TestEvents(ManageTestCase):
         xml = data['xml'][0]
         ok_('<HD>YES</HD>' not in xml)
         ok_('<HD>NO</HD>' in xml)
-        ok_('<SourceFile>https://www.com/</SourceFile>' in xml)
+        ok_('<SourceFile>https://www.com/file.mov</SourceFile>' in xml)
+
+        pictures = Picture.objects.filter(event=event)
+        # all the gallery pictures created
+        eq_(
+            pictures.filter(timestamp__isnull=True).count(),
+            settings.SCREENCAPTURES_NO_PICTURES
+        )
+        # and all the timenails too
+        ok_(
+            pictures.filter(timestamp__isnull=False).exists(),
+        )
 
         # re-fetch it
         match = URLMatch.objects.get(pk=match.pk)
         eq_(match.use_count, 1)
 
+    @mock.patch('subprocess.Popen')
+    @mock.patch('requests.head')
     @mock.patch('airmozilla.manage.vidly.urllib2')
-    def test_vidly_url_to_shortcode_with_forced_protection(self, p_urllib2):
+    def test_vidly_url_to_shortcode_with_forced_protection(
+        self,
+        p_urllib2,
+        rhead,
+        mock_popen,
+    ):
         event = Event.objects.get(title='Test event')
         event.privacy = Event.PRIVACY_COMPANY
         event.save()
         url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
+
+        def mocked_head(url, **options):
+            return Response(
+                '',
+                200
+            )
+
+        rhead.side_effect = mocked_head
+
+        ffmpeged_urls = []
+
+        sample_image = self.placeholder
+
+        def mocked_popen(command, **kwargs):
+            url = destination = None
+            if command[1] == '-ss':
+                destination = command[-1]
+            else:
+                url = command[2]
+
+            ffmpeged_urls.append(url)
+
+            class Inner:
+                def communicate(self):
+
+                    out = err = ''
+                    if url == 'http://www.com/file.mov':
+                        err = """
+            Duration: 00:19:17.47, start: 0.000000, bitrate: 1076 kb/s
+                        """
+                    elif destination is not None:
+                        shutil.copyfile(sample_image, destination)
+                    else:
+                        raise NotImplementedError((url, destination))
+                    return out, err
+
+            return Inner()
+
+        mock_popen.side_effect = mocked_popen
 
         def mocked_urlopen(request):
             return StringIO("""
@@ -1064,7 +1168,7 @@ class TestEvents(ManageTestCase):
               <BatchID>47520</BatchID>
               <Success>
                 <MediaShortLink>
-                  <SourceFile>http://www.com/file.flv</SourceFile>
+                  <SourceFile>http://www.com/file.mov</SourceFile>
                   <ShortLink>8oxv6x</ShortLink>
                   <MediaID>13969839</MediaID>
                   <QRCode>http://vid.ly/8oxv6x/qrcodeimg</QRCode>
@@ -1077,7 +1181,7 @@ class TestEvents(ManageTestCase):
         p_urllib2.urlopen = mocked_urlopen
 
         response = self.client.post(url, {
-            'url': 'http://www.com/'
+            'url': 'http://www.com/file.mov'
         })
         eq_(response.status_code, 200)
         content = json.loads(response.content)
@@ -1086,49 +1190,6 @@ class TestEvents(ManageTestCase):
         submission, = VidlySubmission.objects.all()
         ok_(submission.token_protection)
         ok_(not submission.hd)
-
-    @mock.patch('airmozilla.manage.vidly.urllib2')
-    def test_vidly_url_to_shortcode_with_hd(self, p_urllib2):
-        event = Event.objects.get(title='Test event')
-        url = reverse('manage:vidly_url_to_shortcode', args=(event.pk,))
-
-        def mocked_urlopen(request):
-            return StringIO("""
-            <?xml version="1.0"?>
-            <Response>
-              <Message>All medias have been added.</Message>
-              <MessageCode>2.1</MessageCode>
-              <BatchID>47520</BatchID>
-              <Success>
-                <MediaShortLink>
-                  <SourceFile>http://www.com/file.flv</SourceFile>
-                  <ShortLink>8oxv6x</ShortLink>
-                  <MediaID>13969839</MediaID>
-                  <QRCode>http://vid.ly/8oxv6x/qrcodeimg</QRCode>
-                  <HtmlEmbed>code code</HtmlEmbed>
-                  <EmailEmbed>more code code</EmailEmbed>
-                </MediaShortLink>
-              </Success>
-            </Response>
-            """)
-        p_urllib2.urlopen = mocked_urlopen
-
-        response = self.client.post(url, {
-            'url': 'http://www.com/',
-            'hd': True,
-        })
-        eq_(response.status_code, 200)
-        content = json.loads(response.content)
-        eq_(content['shortcode'], '8oxv6x')
-
-        arguments = list(p_urllib2.Request.mock_calls[0])[1]
-        # the first argument is the URL
-        ok_('vid.ly' in arguments[0])
-        # the second argument is querystring containing the XML used
-        data = cgi.parse_qs(arguments[1])
-        xml = data['xml'][0]
-        ok_('<HD>YES</HD>' in xml)
-        ok_('<HD>NO</HD>' not in xml)
 
     def test_events_autocomplete(self):
         event = Event.objects.get(title='Test event')
@@ -2713,3 +2774,12 @@ class TestEvents(ManageTestCase):
         response = self.client.post(url, {'duration': ''})
         eq_(response.status_code, 302)
         eq_(Event.objects.get(id=event.id).duration, 60 * 5 + 20)
+
+    # def test_change_upload(self):
+    #     """An event has been successfully archived, but someone decides
+    #     to upload a different video, submit that to vid.ly and re-archive
+    #     it.
+    #
+    #     What should happen is that the event should now NOT be archived.
+    #     """
+    #

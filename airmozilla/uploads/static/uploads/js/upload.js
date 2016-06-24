@@ -10,8 +10,13 @@ $(function() {
     var save_url = form.data('save_url');
 
     $('button.start', form).click(function() {
-        if (!$('#file').val()) return false;
-        if (in_progress) return false;  // double-click?
+        if (!$('#file').val()) {
+            return false;
+        }
+        if (in_progress) {
+            // double-click?
+            return false;
+        }
         progress.show();
         in_progress = true;
         $('.pre-progress', form).hide();
@@ -68,7 +73,6 @@ $(function() {
                             $('#status').text('Unable to save the upload.');
                         }).always(function() {
                         });
-                      //$('#status').html('Size ' + result.size_human);
                   }).fail(function() {
                       $('#status').text('Unable to verify size');
                   }).always(function() {

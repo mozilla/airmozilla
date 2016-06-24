@@ -20,6 +20,19 @@
 
 
 {% block manage_content %}
+
+{% if chapters.exists() %}
+<div class="alert alert-hidden alert-warning alert-dismissible" role="alert">
+  <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  <p>
+    <b>BE VERY CAREFUL!</b><br>
+    This event has {{ chapters.count() }} chapter{{ chapters.count() | pluralize }} already.<br />
+    If you change the video, <a href="{{ url('main:event_edit_chapters', event.slug) }}">all the chapters</a> might become corrupted.
+  </p>
+</div>
+{% endif %}
+
+
   <input type="hidden" name="event_edit_url" value="{{ url('manage:event_edit', event.pk) }}">
   <form id="upload"
         method="post"
@@ -34,6 +47,8 @@
         data-event-fetch-screencaptures-url="{{ url('manage:event_fetch_screencaptures', event.pk) }}"
         data-event-archive-details='{{ json_print(event_archive_details) }}'>
     {% csrf_token %}
+
+
 
     <div class="pre-progress">
       <p>Select the large file you want to upload. Click the "Browse..." button to start.</p>

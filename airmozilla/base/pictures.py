@@ -1,7 +1,7 @@
 from airmozilla.manage.videoinfo import fetch_screencapture
 
 
-def create_all_timestamp_pictures(event, verbose=False):
+def create_all_timestamp_pictures(event, verbose=False, video_url=None):
     assert event.duration
     timestamps = get_timenail_timestamps(event)
     groups = [timestamps[i:i + 10] for i in range(0, len(timestamps), 10)]
@@ -10,16 +10,23 @@ def create_all_timestamp_pictures(event, verbose=False):
             event,
             group,
             verbose=verbose,
+            video_url=video_url,
         )
 
 
-def create_timestamp_pictures(event, timestamps, verbose=False):
+def create_timestamp_pictures(
+    event,
+    timestamps,
+    verbose=False,
+    video_url=None
+):
     fetch_screencapture(
         event,
         timestamps=timestamps,
         import_=True,
         import_immediately=True,
         verbose=verbose,
+        video_url=video_url,
     )
 
 

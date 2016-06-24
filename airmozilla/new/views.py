@@ -445,6 +445,7 @@ def vidly_media_webhook(request):
                 event.save()
 
                 # More awesome! We can start processing the transcoded media.
+                # XXX move this to a background task.
                 if not event.duration:
                     videoinfo.fetch_duration(
                         event,

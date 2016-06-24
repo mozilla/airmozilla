@@ -58,7 +58,7 @@ function postSaveHook(response) {
                     console.log('Successfully fetched event duration');
                     $.post(form.data('event-fetch-screencaptures-url'), post_data)
                     .success(function(response) {
-                        console.log('Successfully fetched event duration');
+                        console.log('Successfully fetched screencaptures');
                     })
                     .fail(function() {
                         console.warn('Unable fetch event screen captures');

@@ -22,14 +22,15 @@ def auto_archive(verbose=False):
                 archive_time__isnull=True,
                 template__name__contains='Vid.ly')
     )
-    any = False
+    archived = 0
     for event in events:
-        archive(event, swallow_email_exceptions=True, verbose=verbose)
-        any = True
+        archived += int(archive(
+            event, swallow_email_exceptions=True, verbose=verbose
+        ))
 
     if verbose:  # pragma: no cover
-        if any:
-            print "No processing or pending events."
+        if archived:
+            print "{} events archived.".format(archived)
         else:
             print "No events to archive."
 
@@ -130,6 +131,7 @@ def archive(event, swallow_email_exceptions=False, verbose=False):
         for submission in submissions:
             submission.finished = timezone.now()
             submission.save()
+        return True
 
 
 def build_absolute_url(uri):

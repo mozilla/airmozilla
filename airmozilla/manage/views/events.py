@@ -58,7 +58,10 @@ from airmozilla.main.models import (
 )
 from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.main.views import is_contributor
-from airmozilla.main.tasks import create_all_timestamp_pictures
+from airmozilla.main.tasks import (
+    create_all_timestamp_pictures,
+    create_all_event_pictures,
+)
 from airmozilla.manage import forms
 from airmozilla.manage.tweeter import send_tweet
 from airmozilla.manage import vidly
@@ -863,6 +866,8 @@ def event_upload(request, id):
             'template': template.id,
             'shortcode_key_name': template_var,
         })
+
+    context['chapters'] = Chapter.objects.filter(event=event)
 
     request.session['active_event'] = event.pk
     return render(request, 'manage/event_upload.html', context)
@@ -1820,6 +1825,24 @@ def vidly_url_to_shortcode(request, id):
         )
         url_scrubbed = scrub_transform_passwords(url)
         if shortcode:
+            event.archive_time = None
+            event.status = Event.STATUS_PROCESSING
+            event.save()
+            # If a new URL has been successfully submitted,
+            # let's trigger rebuilding everything around this.
+            event_pictures = Picture.objects.filter(event=event)
+            if event.picture:
+                event_pictures = event_pictures.exclude(id=event.picture.id)
+            event_pictures.delete()
+            videoinfo.fetch_duration(
+                event,
+                video_url=url,
+                save=True,
+                verbose=settings.DEBUG
+            )
+            create_all_event_pictures.delay(event.id, video_url=url)
+            create_all_timestamp_pictures.delay(event.id, video_url=url)
+
             return {'shortcode': shortcode, 'url': url_scrubbed}
         else:
             return http.HttpResponseBadRequest(error)
