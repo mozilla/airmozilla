@@ -40,7 +40,7 @@
   that is at least 1280px wide.
   Note that HD videos (in Vid.ly for example) are 1280x720.
 #}
-{% block wrap_class %}{% if vidly_hd %}hd{% endif %}{% endblock %}
+{% block wrap_class %}{% if hd %}hd{% endif %}{% endblock %}
 
 {% block content_main %}
   <article id="event-{{ event.id }}" class="post type-post status-publish format-standard hentry no-author no-comments">

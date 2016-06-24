@@ -193,6 +193,7 @@ ul.chapters li a.chapter-text {
     }
     /* 192 = (1280 - 896) / 2 */
     .wrap.hd #masthead,
+    .wrap.hd #content-sub,
     .wrap.hd .event-extras {
         width: 896px;
         margin-left: 192px;

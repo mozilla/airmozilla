@@ -432,10 +432,16 @@ class EventView(View):
             is_active=True,
         )
 
+        # By default, we want to hint in the DOM that this is an HD
+        # video.
+        context['hd'] = True
+
         vidly_tag, vidly_hd = self.get_vidly_information(event, tag)
         if vidly_tag:
             context['vidly_tag'] = vidly_tag
             context['vidly_hd'] = vidly_hd
+            if not vidly_hd:
+                context['hd'] = False
 
         # If the event is in the processing state (or pending), we welcome
         # people to view it but it'll say that the video isn't ready yet.
