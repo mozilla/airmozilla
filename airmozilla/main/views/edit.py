@@ -345,6 +345,14 @@ class EventRevisionView(EventView):
 class EventEditChaptersView(EventEditView):
     template_name = 'main/event_edit_chapters.html'
 
+    def can_edit_event(self, event, request):
+        return (
+            super(EventEditChaptersView, self).can_edit_event(
+                event, request
+            ) and
+            event.is_scheduled()
+        )
+
     def get(self, request, slug):
         event = self.get_event(slug, request)
         if not self.can_view_event(event, request):

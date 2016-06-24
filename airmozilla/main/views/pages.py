@@ -383,7 +383,7 @@ class EventView(View):
                 hits = total_hits
 
             # if the event has a template is not upcoming
-            if not event.is_live():
+            if not event.is_live() and event.is_scheduled():
                 # ...and is not live, then
                 if request.user.is_active:
                     can_edit_chapters = True

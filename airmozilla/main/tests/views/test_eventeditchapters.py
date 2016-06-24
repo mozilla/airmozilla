@@ -248,3 +248,42 @@ class TestEventEditChapters(DjangoTestCase):
         struct = json.loads(response.content)
         eq_(struct['missing'], 0)
         eq_(len(struct['pictures']), 6)
+
+    def test_no_chapter_edit_unless_scheduled(self):
+        event = Event.objects.get(title='Test event')
+        assert event.is_scheduled()
+        # Set a template so it can have chapters
+        template = Template.objects.create(
+            name='Vid.ly Something',
+            content="{{ tag }}"
+        )
+        event.template = template
+        event.template_environment = {'tag': 'xyz123'}
+        event.save()
+        # And we need to log in
+        self._login()
+
+        url = reverse('main:event_edit_chapters', args=(event.slug,))
+        view_url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(view_url)
+        eq_(response.status_code, 200)
+        ok_('Edit chapters' in response.content.decode('utf-8'))
+        ok_(url in response.content.decode('utf-8'))
+        # And we can now even open it and start editing the chapters
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # However, if the event is no longer scheduled, you should not
+        # be able to edit chapters.
+        event.status = Event.STATUS_PROCESSING
+        event.save()
+
+        # but if the event is processing,
+        response = self.client.get(view_url)
+        eq_(response.status_code, 200)
+        ok_('Edit chapters' not in response.content.decode('utf-8'))
+        ok_(url not in response.content.decode('utf-8'))
+
+        response = self.client.get(url)
+        eq_(response.status_code, 302)
+        ok_(response['Location'].endswith(view_url))
