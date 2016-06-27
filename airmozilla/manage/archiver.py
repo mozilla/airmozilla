@@ -24,9 +24,11 @@ def auto_archive(verbose=False):
     )
     archived = 0
     for event in events:
-        archived += int(archive(
+        count = archive(
             event, swallow_email_exceptions=True, verbose=verbose
-        ))
+        )
+        if count:  # this avoids TypeError on `int(None)`
+            archived += int(count)
 
     if verbose:  # pragma: no cover
         if archived:
