@@ -284,6 +284,7 @@ def events_data(request):
     grouped_pictures = (
         Picture.objects
         .filter(event__in=qs)
+        .filter(timestamp__isnull=True)
         .values('event')
         .annotate(Count('event'))
     )
