@@ -34,6 +34,9 @@ def resubmit(clone):
         tag=shortcode,
         submission_error=error
     )
+    if not event.template_environment:
+        event.template_environment = {}
+    event.template_environment['tag'] = shortcode
     event.status = Event.STATUS_PROCESSING
     event.save()
     return error
@@ -51,7 +54,9 @@ def resubmit_failures(max_attempts=1, verbose=False):
     resubmitted = []
     for shortcode in failed:
         try:
-            submission = VidlySubmission.objects.get(tag=shortcode)
+            submission = VidlySubmission.objects.exclude(
+                event__status=Event.STATUS_REMOVED,
+            ).get(tag=shortcode)
         except VidlySubmission.DoesNotExist:
             # If we have no record of submissions with that shortcode,
             # it's probably a piece of video on Vid.ly that came from
@@ -78,12 +83,12 @@ def resubmit_failures(max_attempts=1, verbose=False):
         non_failures = VidlySubmission.objects.filter(
             event=submission.event,
             errored__isnull=True,
-            submission_time__gt=submission.errored,
+            submission_time__gt=submission.submission_time,
         )
         if non_failures.exists():
             if verbose:  # pragma: no cover
                 print (
-                    "Found at least one submission more recent that succeeded."
+                    "Found at least one non-failure submission more recent."
                 )
             continue
 
