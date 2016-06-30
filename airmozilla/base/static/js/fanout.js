@@ -25,7 +25,16 @@ window.Fanout = (function() {
         subscribe: function(channel, cb) {
             loadJS(function() {
                 if (_client === null) {
-                    _client = new Faye.Client(config.data('client-url'));
+                    _client = new Faye.Client(config.data('client-url'), {
+                        // What this means is that we're opting to have
+                        // Fanout *start* with fancy-pants WebSocket and
+                        // if that doesn't work it **falls back** on other
+                        // options, such as long-polling.
+                        // The default behaviour is that it starts with
+                        // long-polling and tries to "upgrade" itself
+                        // to WebSocket.
+                        transportMode: 'fallback'
+                    });
                 }
                 _client.subscribe(channel, function(data) {
                     if (_locks[channel]) {
