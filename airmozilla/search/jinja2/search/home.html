@@ -33,15 +33,45 @@
     </p>
   {% endif %}
 
-  {% if events_found %}
+  {% if events_found or found_channels_count %}
     <p>
-    {% if events_found == 1 %}
-      <strong>1</strong> event found
-    {% else %}
-      <strong>{{ events_found }}</strong> events found
-    {% endif %}
+      {% if events_found %}
+        <strong>{{ events_found }}</strong>
+        event{{ events_found | pluralize }} found.
+      {% endif %}
+      {% if found_channels_count %}
+        <strong>{{ found_channels_count }}</strong>
+        channel{{ found_channels_count | pluralize }} found.
+      {% endif %}
     </p>
   {% endif %}
+
+  {% for channel in found_channels %}
+    {% set href = url('main:home_channels', channel.slug) %}
+    <article id="channel-{{ channel.id }}">
+      <header class="entry-header">
+        <h2 class="entry-title">
+          <a href="{{ href }}" title="{{ channel.name }}">
+            {% if channel.rank_name %}
+              {{ channel.name_highlit | safe }}
+            {% else %}
+              {{ channel.name }}
+            {% endif %}
+          </a> (Channel)
+        </h2>
+        <h5 class="entry-upcoming">
+          {% if channel._event_count and channel._subchannel_count %}
+            {{ channel._subchannel_count }} sub-channel{{ channel._subchannel_count | pluralize }},
+            {{ channel._event_count }} archived event{{ channel._event_count | pluralize }}
+          {% elif channel._event_count %}
+            {{ channel._event_count }} archived event{{ channel._event_count | pluralize }}</p>
+          {% elif channel._subchannel_count %}
+            {{ channel._subchannel_count }} sub-channel{{ channel._subchannel_count | pluralize }}
+          {% endif %}
+        </h5>
+      </header>
+    </artlcle>
+  {% endfor %}
 
   {% for event in events_paged %}
     {% set href = url('main:event', slug=event.slug) %}
@@ -72,7 +102,7 @@
           <span class="event-date">{{ event.start_time | js_date }}</span>
           <span class="event-channels">
             {% for channel in channels[event] %}
-                <a title="Click to go to the {{ channel.name }} channel" href="{{ url('main:home_channels',channel.slug) }}">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
+                <a title="Click to go to the {{ channel.name }} channel" href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
             {% endfor %}
           </span>
         </p>
@@ -99,7 +129,11 @@
     </article>
   {% else %}
     {% if q or tags %}
+      {% if found_channels_count %}
+      <h4>No events found</h4>
+      {% else %}
       <h4>Nothing found</h4>
+      {% endif %}
     {% endif %}
   {% endfor %}
 

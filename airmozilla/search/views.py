@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django import http
 from django.db.utils import DatabaseError
 from django.db import transaction
+from django.db.models import Count
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
@@ -34,7 +35,9 @@ def home(request):
         'tags': None,
         'possible_tags': None,
         'channels': None,
-        'possible_channels': None
+        'possible_channels': None,
+        'found_channels': [],
+        'found_channels_count': 0,
     }
 
     if request.GET.get('q'):
@@ -154,6 +157,11 @@ def home(request):
                 sort=request.GET.get('sort'),
                 fuzzy=True
             )
+
+        found_channels = _find_channels(context['q'])
+        context['found_channels'] = found_channels  # it's a list
+        context['found_channels_count'] = len(found_channels)
+
     elif request.GET.get('ss'):
         savedsearch = get_object_or_404(
             SavedSearch,
@@ -242,6 +250,65 @@ def home(request):
 
     context['form'] = form
     return render(request, 'search/home.html', context)
+
+
+def _find_channels(q):
+    search_escaped = utils.make_or_query(q)
+    sql = """
+    to_tsvector('english', name) @@ plainto_tsquery('english', %s)
+    OR
+    slug ILIKE %s
+    """
+    channels_qs = Channel.objects.all().extra(
+        where=[sql],
+        params=[
+            search_escaped,
+            search_escaped,
+        ],
+        select={
+            'name_highlit': (
+                "ts_headline('english', name, "
+                "plainto_tsquery('english', %s))"
+            ),
+            'rank_name': (
+                "ts_rank_cd(to_tsvector('english', name), "
+                "plainto_tsquery('english', %s))"
+            ),
+        },
+        select_params=[
+            search_escaped,
+            search_escaped,
+        ]
+    )
+    # make a dict of parental counts
+    subchannel_counts = {}
+    qs = (
+        Channel.objects
+        .filter(parent__isnull=False)
+        .values('parent_id')
+        .order_by()  # necessary because the model has a default ordering
+        .annotate(Count('parent'))
+    )
+    for each in qs:
+        subchannel_counts[each['parent_id']] = each['parent__count']
+
+    # make a dict of events counts by channel
+    event_counts = {}
+    qs = (
+        Event.channels.through.objects.filter(channel__in=channels_qs)
+        .values('channel_id')
+        .annotate(Count('channel'))
+    )
+    for each in qs:
+        event_counts[each['channel_id']] = each['channel__count']
+
+    channels = []
+    for channel in channels_qs[:5]:
+        channel._event_count = event_counts.get(channel.id, 0)
+        channel._subchannel_count = subchannel_counts.get(channel.id, 0)
+        channels.append(channel)
+
+    return channels
 
 
 def _search(qs, q, **options):

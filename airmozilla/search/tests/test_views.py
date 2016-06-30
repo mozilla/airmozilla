@@ -603,13 +603,16 @@ class TestSearch(DjangoTestCase):
     def test_search_and_suggest_channels(self):
         url = reverse('search:home')
         event = Event.objects.get(title='Test event')
-        channel = Channel.objects.create(name='Grow Mozilla')
+        channel = Channel.objects.create(
+            name='Grow Mozilla',
+            slug='grow-mozilla',
+        )
         event.channels.add(channel)
 
         response = self.client.get(url, {'q': 'grow mozilla'})
         eq_(response.status_code, 200)
         # because neither title or description contains this
-        ok_('Nothing found' in response.content)
+        ok_('No events found' in response.content)
         channel_search_url = (
             url + '?q=%s' % urllib.quote_plus('channel: Grow Mozilla')
         )
@@ -623,6 +626,24 @@ class TestSearch(DjangoTestCase):
         response = self.client.get(url, {'q': 'rusty'})
         eq_(response.status_code, 200)
         ok_(channel_search_url not in response.content)
+
+    def test_search_and_find_channels(self):
+        url = reverse('search:home')
+        event = Event.objects.get(title='Test event')
+        channel = Channel.objects.create(
+            name='Grow Mozilla',
+            slug='grow-mozilla',
+        )
+        event.channels.add(channel)
+        response = self.client.get(url, {'q': 'growing'})
+        eq_(response.status_code, 200)
+        # No events found
+        ok_('No events found' in response.content)
+        # but the channel should be found
+        url = reverse('main:home_channels', args=(channel.slug,))
+        ok_(url in response.content)
+        # the title "Grow Mozilla" will be highlighted
+        ok_('<b>Grow</b> Mozilla' in response.content)
 
     def test_logged_search(self):
         url = reverse('search:home')
