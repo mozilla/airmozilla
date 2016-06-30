@@ -12,7 +12,8 @@
         "model": "main.channel",
         "fields": {
             "name": "Main",
-            "slug": "main"
+            "slug": "main",
+            "modified": "2012-06-21T20:00:00Z"
         }
     },
 

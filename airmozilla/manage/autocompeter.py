@@ -2,17 +2,18 @@ import datetime
 import json
 import time
 import sys
+from collections import defaultdict
 from pprint import pprint
 
 import requests
 
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 
-from airmozilla.main.models import Event, EventHitStats, Approval
+from airmozilla.main.models import Event, EventHitStats, Approval, Channel
 
 
 def _get_url():
@@ -43,7 +44,6 @@ def update(
             headers={
                 'Auth-Key': settings.AUTOCOMPETER_KEY,
             },
-            verify=not settings.DEBUG
         )
         t1 = time.time()
         if verbose:  # pragma: no cover
@@ -100,6 +100,7 @@ def update(
     ).values_list('event_id', flat=True)
 
     documents = []
+    popularities = []
     for event in events:
         url = reverse('main:event', args=(event.slug,))
         title = event.title
@@ -116,6 +117,8 @@ def update(
         else:
             group = event.privacy
 
+        popularities.append(popularity)
+
         if title_counts[title] > 1:
             title = '%s %s' % (title, event.start_time.strftime('%d %b %Y'))
         documents.append({
@@ -123,6 +126,38 @@ def update(
             'url': url,
             'popularity': popularity,
             'group': group,
+        })
+
+    # Let's now also send all channels, that have a sub-channel or >=1
+    # events within.
+    channels_sub_count = defaultdict(int)
+    for each in Event.channels.through.objects.all():
+        channels_sub_count[each.channel_id] += 1
+    for channel in Channel.objects.filter(never_show=False):
+        if channel.parent_id:
+            channels_sub_count[channel.parent_id] += 1
+
+    channels = Channel.objects.exclude(
+        Q(never_show=True) | Q(slug=settings.DEFAULT_CHANNEL_SLUG)
+    ).filter(
+        id__in=channels_sub_count
+    )
+    if not all:
+        # The autocompeter_update cron job runs every 10 minutes
+        then = timezone.now() - datetime.timedelta(minutes=10)
+        channels = channels.filter(modified__gt=then)
+
+    if popularities:
+        average_popularity = 1.0 * sum(popularities) / len(popularities)
+    else:
+        average_popularity = 1
+    for channel in channels:
+        average_popularity
+        documents.append({
+            'title': u'{} (Channel)'.format(channel.name),
+            'url': reverse('main:home_channels', args=(channel.slug,)),
+            'popularity': average_popularity,
+            'group': '',
         })
 
     if verbose:  # pragma: no cover
@@ -140,7 +175,6 @@ def update(
         headers={
             'Auth-Key': settings.AUTOCOMPETER_KEY,
         },
-        verify=not settings.DEBUG
     )
     t1 = time.time()
     assert response.status_code == 201, response.status_code
@@ -158,7 +192,6 @@ def stats():
         headers={
             'Auth-Key': settings.AUTOCOMPETER_KEY,
         },
-        verify=not settings.DEBUG
     )
     assert response.status_code == 200, response.status_code
     return response.json()
@@ -172,7 +205,6 @@ def test(term, domain=None):
             'd': domain or settings.AUTOCOMPETER_DOMAIN,
             'q': term,
         },
-        verify=not settings.DEBUG
     )
     assert response.status_code == 200, response.status_code
     return response.json()

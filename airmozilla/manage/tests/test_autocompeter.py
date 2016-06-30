@@ -10,7 +10,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 
 from airmozilla.base.tests.testbase import Response
-from airmozilla.main.models import Event, EventHitStats, Approval
+from airmozilla.main.models import Event, EventHitStats, Approval, Channel
 from airmozilla.manage import autocompeter
 from airmozilla.base.tests.testbase import DjangoTestCase
 
@@ -50,7 +50,7 @@ class TestAutocompeter(DjangoTestCase):
 
         # In the posted data should be a thing called 'documents'
         # which is a list of every document.
-        assert len(posts[0]['documents']) == 1
+        assert len(posts[0]['documents']) == 1, len(posts[0]['documents'])
         document = posts[0]['documents'][0]
         eq_(document['url'], reverse('main:event', args=(event.slug,)))
         eq_(document['title'], event.title)
@@ -191,10 +191,27 @@ class TestAutocompeter(DjangoTestCase):
 
         autocompeter.update(all=True)
 
-        assert len(posts[0]['documents']) == 1
+        main_channel, = Channel.objects.all()
+        assert main_channel.slug == settings.DEFAULT_CHANNEL_SLUG
+        channel = Channel.objects.create(
+            name='Food',
+            slug='food'
+        )
+
+        assert len(posts[0]['documents']) == 1, len(posts[0]['documents'])
         document = posts[0]['documents'][0]
         eq_(document['title'], 'Test event')
         eq_(document['popularity'], 0)
+
+        event = Event.objects.get(title='Test event')
+        event.channels.add(channel)
+
+        autocompeter.update(all=True)
+        assert len(posts[1]['documents']) == 2, len(posts[0]['documents'])
+        document = posts[1]['documents'][1]
+        eq_(document['title'], 'Food (Channel)')
+        eq_(document['url'], reverse('main:home_channels', args=('food',)))
+        eq_(document['popularity'], 0.0)
 
     @mock.patch('requests.post')
     def test_basic_update_all_with_popularity(self, rpost):

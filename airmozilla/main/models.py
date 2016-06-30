@@ -103,6 +103,7 @@ class Channel(models.Model):
     parent = models.ForeignKey('self', name='parent', null=True)
     description = models.TextField()
     created = models.DateTimeField(default=_get_now)
+    modified = models.DateTimeField(auto_now=True)
     reverse_order = models.BooleanField(default=False)
     exclude_from_trending = models.BooleanField(default=False)
     always_show = models.BooleanField(default=False, help_text="""
