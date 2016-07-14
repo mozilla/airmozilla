@@ -73,6 +73,25 @@ class TestChannels(ManageTestCase):
         eq_(response.status_code, 302)
         channel = Channel.objects.get(slug='different')
 
+    def test_channel_edit_undo_parent(self):
+        daddy = Channel.objects.create(name='Daddy', slug='daddy')
+        channel = Channel.objects.get(slug='testing')
+        channel.parent = daddy
+        channel.save()
+        response = self.client.post(
+            reverse('manage:channel_edit', args=(channel.pk,)),
+            {
+                'name': 'Different',
+                'slug': 'different',
+                'description': '<p>Other things</p>',
+                'feed_size': 10,
+                'parent': '',
+            }
+        )
+        eq_(response.status_code, 302)
+        channel = Channel.objects.get(slug='different')
+        ok_(not channel.parent)
+
     def test_channel_edit_visibility_clash(self):
         channel = Channel.objects.get(slug='testing')
         response = self.client.get(

@@ -51,6 +51,9 @@ def channel_edit(request, id):
         form = forms.ChannelForm(request.POST, request.FILES, instance=channel)
         if form.is_valid():
             channel = form.save()
+            if channel.parent and not form.cleaned_data['parent']:
+                channel.parent = None
+                channel.save()
             messages.info(request, 'Channel "%s" saved.' % channel.name)
             return redirect('manage:channels')
     else:
