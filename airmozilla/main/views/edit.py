@@ -442,6 +442,12 @@ class EventChaptersThumbnailsView(EventEditChaptersView):
         fetch = []
         base_qs = Picture.objects.filter(event=event)
 
+        def make_similarity_cache_key(picture1, picture2):
+            if picture2:
+                modify_times = picture1.modified.strftime('%f')
+                modify_times += picture2.modified.strftime('%f')
+                return 'similarity:' + modify_times
+
         prev = None
         for at in get_timenail_timestamps(event):
             qs = base_qs.filter(timestamp=at)
@@ -452,12 +458,29 @@ class EventChaptersThumbnailsView(EventEditChaptersView):
                     '105x59',
                     crop='center',
                 )
-                similarity = None
-                img = Image.open(picture.file)
-                if prev is not None:
-                    cmp = FuzzyImageCompare(prev, img)
-                    similarity = cmp.similarity()
-                prev = img
+                similarity = -1
+                similarity_cache_key = make_similarity_cache_key(
+                    picture,
+                    prev,
+                )
+                if similarity_cache_key:
+                    similarity = cache.get(similarity_cache_key, -1)
+
+                # still here?
+                if similarity == -1:
+                    similarity = None
+                    if prev is not None:
+                        cmp = FuzzyImageCompare(
+                            Image.open(prev.file),
+                            Image.open(picture.file),
+                        )
+                        similarity = cmp.similarity()
+                        cache.set(
+                            similarity_cache_key,
+                            similarity,
+                            60 * 60 * 24 * 7  # 7 days
+                        )
+                prev = picture
                 pictures.append({
                     'at': picture.timestamp,
                     'thumbnail': {

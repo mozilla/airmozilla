@@ -45,6 +45,14 @@ var Timenails = (function() {
         }
     };
 
+    var startFetchingThumbnails = function() {
+        $('#loading-timenails').show(400);
+    };
+
+    var stopFetchingThumbnails = function() {
+        $('#loading-timenails').hide();
+    };
+
     var fetchThumbnails = function() {
         $.getJSON('thumbnails')
         .done(function(response) {
@@ -61,6 +69,7 @@ var Timenails = (function() {
             $.each(response.pictures, function(i, picture) {
                 timenails[picture.at] = picture;
             });
+            stopFetchingThumbnails();
             renderTimenails();
         })
         .fail(function() {
@@ -84,6 +93,7 @@ var Timenails = (function() {
     return {
         setup: function(cb) {
             callback = cb;
+            startFetchingThumbnails();
             fetchThumbnails();
 
             // var rangeThrottle = null;
