@@ -447,7 +447,10 @@ class EventChaptersThumbnailsView(EventEditChaptersView):
             qs = base_qs.filter(timestamp=at)
             for picture in qs.order_by('-modified')[:1]:
                 thumb = thumbnail(
-                    picture.file, '160x90', crop='center'
+                    picture.file,
+                    # size shown with width set in CSS
+                    '105x59',
+                    crop='center',
                 )
                 similarity = None
                 img = Image.open(picture.file)
