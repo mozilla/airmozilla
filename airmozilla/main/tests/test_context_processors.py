@@ -177,7 +177,23 @@ class TestNavBar(DjangoTestCase):
         )
         data = nav_bar(request)['nav_bar']()
         all_sub_items = [x[-1] for x in data['items']]
-        # urls = [x[1] for x in data['items']]
+        sub_items = all_sub_items[-1]
+        urls = [x[1] for x in sub_items]
+        ok_(reverse('manage:dashboard') in urls)
+
+    def test_signed_in_staff_with_change_event_permission(self):
+        user = User.objects.create(
+            username='richard',
+            is_staff=True,
+            is_superuser=True,
+        )
+        assert user.has_perm('manage:change_event')
+
+        request = RequestFactory().get('/')
+        request.user = user
+
+        data = nav_bar(request)['nav_bar']()
+        all_sub_items = [x[-1] for x in data['items']]
         sub_items = all_sub_items[-1]
         urls = [x[1] for x in sub_items]
         ok_(reverse('manage:events') in urls)

@@ -1,13 +1,16 @@
 import collections
 
+from django import http
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.core.cache import cache
+from django.contrib import auth
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.db import transaction
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.views.decorators.http import require_POST
 
 from jsonview.decorators import json_view
 
@@ -17,6 +20,7 @@ from airmozilla.manage import forms
 
 from .decorators import (
     staff_required,
+    superuser_required,
     permission_required,
     cancel_redirect
 )
@@ -134,3 +138,19 @@ def user_edit(request, id):
         form = forms.UserEditForm(instance=user)
     return render(request, 'manage/user_edit.html',
                   {'form': form, 'user_': user})
+
+
+@superuser_required
+@require_POST
+def signinas(request):
+    assert request.user.is_superuser
+    if not (request.POST.get('id') and request.POST.get('email')):
+        return http.HttpResponseBadRequest('missing id and email')
+    user = User.objects.get(
+        id=request.POST['id'],
+        email=request.POST['email']
+    )
+    user.backend = 'django.contrib.auth.backends.ModelBackend'
+    request.user = user
+    auth.login(request, user)
+    return redirect('/')

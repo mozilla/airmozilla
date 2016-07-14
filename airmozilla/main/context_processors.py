@@ -81,9 +81,16 @@ def nav_bar(request):
                 new_sub_items,
             ))
             if request.user.is_staff:
+                management_url = reverse('manage:dashboard')
+                # For convenience, if you have the permission to
+                # change events we can instead directly link to the
+                # events page, because that's most likely the reason
+                # the user goes into management anyway.
+                if request.user.has_perm('manage:change_event'):
+                    management_url = reverse('manage:events')
                 user_sub_items.append((
                     'Management',
-                    reverse('manage:events'),
+                    management_url,
                     '',
                     '',
                 ))

@@ -174,3 +174,22 @@ class TestUsersAndGroups(ManageTestCase):
         struct = json.loads(response.content)
         row = [x for x in struct['users'] if x['email'] == user.email][0]
         ok_(row['is_contributor'])
+
+    def test_signinas(self):
+        url = reverse('manage:signinas')
+        response = self.client.get(url)
+        eq_(response.status_code, 405)
+
+        assert self.user.is_superuser
+        response = self.client.post(url)
+        eq_(response.status_code, 400)
+
+        rich = User.objects.create_user('richy', 'richy@example.com', 'secret')
+        response = self.client.post(url, {
+            'id': rich.id,
+            'email': rich.email,
+        })
+        eq_(response.status_code, 302)
+
+        response = self.client.get('/')
+        ok_('richy' in response.content)

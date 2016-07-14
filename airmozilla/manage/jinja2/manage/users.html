@@ -36,7 +36,13 @@
 
 
 {% block manage_content %}
-<div ng-app="usermanagerApp" ng-controller="UserManagerController">
+<div
+  id="usermanagerApp"
+  ng-app="usermanagerApp"
+  ng-controller="UserManagerController"
+  data-is-superuser="{{ user.is_superuser }}"
+  data-signinas-url="{{ url('manage:signinas') }}">
+  {% csrf_token %}
 
     {% raw %}
     <div ng-show="loading" class="loading pulsating">
@@ -66,7 +72,7 @@
              ng-click="toggleSortingReverse()">▲</a>
         </th>
         <th style="width: 100px">Staff?</th>
-        <th style="width: 100px" title="Users found">
+        <th style="width: 120px" title="Users found">
           {{ filtered_items.length }}
         </th>
     </tr>
@@ -114,10 +120,15 @@
                 <span ng-show="u.is_staff">Yes</span>
                 <span ng-show="!u.is_staff">No</span>
             </td>
-            <td><a href="{{ url('manage:user_edit', u.id) }}" class="btn btn-default btn-sm">
+            <td>
+              <a href="{{ url('manage:user_edit', u.id) }}" class="btn btn-default btn-sm">
                 <i class="glyphicon glyphicon-edit"></i>
                 Edit
-                </a>
+              </a>
+              <a href="#" ng-if="is_superuser" ng-click="signInAs(u)" class="btn btn-default btn-sm"
+                 title="As a superuser you can sign in as this user">
+                <i class="glyphicon glyphicon-lock"></i>
+              </a>
             </td>
         </tr>
     </tbody>

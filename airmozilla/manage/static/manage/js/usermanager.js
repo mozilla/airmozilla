@@ -31,6 +31,27 @@ app.controller('UserManagerController',
 function UserManagerController($scope, $http) {
     'use strict';
 
+    var $appContainer = angular.element('#usermanagerApp');
+    var signinasURL = $appContainer.data('signinas-url');
+    $scope.is_superuser = $appContainer.data('is-superuser');
+
+
+    $scope.signInAs = function(user) {
+        var data = {id: user.id, email: user.email};
+        data.csrfmiddlewaretoken = angular.element(
+            'input[name="csrfmiddlewaretoken"]'
+        ).val();
+        $.post(signinasURL, data)
+        .success(function() {
+            document.location = '/';
+        })
+        .error(function() {
+            console.error.apply(console, arguments);
+            console.warning('Unable to sign in as ' + user.email);
+        });
+        return false;
+    };
+
     $scope.sorting = 'last_login';
     $scope.$watch('sorting', function(value) {
         if (value === 'last_login') {
