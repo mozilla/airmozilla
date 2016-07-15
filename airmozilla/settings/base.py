@@ -261,7 +261,7 @@ MOZILLIANS_API_BASE = 'https://mozillians.org'
 
 # API base URL
 VIDLY_BASE_URL = 'https://vid.ly'
-VIDLY_API_URL = 'http://m.vid.ly/api/'
+VIDLY_API_URL = 'https://m.vid.ly/api/'
 
 # Name of the default Channel
 DEFAULT_CHANNEL_SLUG = 'main'
