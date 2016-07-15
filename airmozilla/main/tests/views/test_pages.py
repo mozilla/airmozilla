@@ -1362,12 +1362,17 @@ class TestPages(DjangoTestCase):
         response = self.client.get(reverse('main:channels'))
         eq_(response.status_code, 200)
         ok_('Main' not in response.content)
-        ok_('Culture &amp; Context' in response.content)
-        ok_('Sub-Culture &amp; Subtle-Context' not in response.content)
+        ok_('Culture &amp; Context</a></h3>' in response.content)
+        ok_(
+            'Sub-Culture &amp; Subtle-Context</a></h3>'
+            not in response.content
+        )
 
         channel_url = reverse('main:home_channels', args=(channel.slug,))
         ok_(channel_url in response.content)
         ok_('1 sub-channel' in response.content)
+        # there as a listed sub-channel
+        ok_('Sub-Culture &amp; Subtle-Context</a>' in response.content)
 
         # visiting that channel, there should be a link to the sub channel
         response = self.client.get(channel_url)

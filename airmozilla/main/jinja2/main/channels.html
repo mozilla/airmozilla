@@ -22,7 +22,7 @@ p.feed { float: right; }
 {% block content_main %}
   <h2 class="section-title">Channels</h2>
   <div class="channels">
-  {% for channel, event_count, subchannel_count in channels %}
+  {% for channel, event_count, subchannel_count, subchannels in channels %}
     <p class="feed">
       <a href="{{ url('main:channel_feed', channel.slug, feed_privacy) }}">Feed</a>,
       <a href="{{ url('main:itunes_feed', channel.slug) }}"
@@ -31,13 +31,22 @@ p.feed { float: right; }
          title="Calendar specifically for {{ channel.name }} with privacy {{ calendar_privacy }}">iCal</a>
     </p>
     <h3><a href="{{ url('main:home_channels', channel.slug) }}">{{ channel.name }}</a></h3>
-    {% if event_count and subchannel_count %}
-    <p>{{ subchannel_count }} sub-channel{{ subchannel_count|pluralize }}, {{ event_count }} archived event{{ event_count|pluralize }}</p>
-    {% elif event_count %}
-    <p>{{ event_count }} archived event{{ event_count|pluralize }}</p>
-    {% elif subchannel_count %}
-    <p>{{ subchannel_count }} sub-channel{{ subchannel_count|pluralize }}</p>
-    {% endif %}
+    <p>
+      {% if event_count and subchannel_count %}
+        {{ subchannel_count }} sub-channel{{ subchannel_count|pluralize }}, {{ event_count }} archived event{{ event_count|pluralize }}
+      {% elif event_count %}
+        {{ event_count }} archived event{{ event_count|pluralize }}
+      {% elif subchannel_count %}
+        {{ subchannel_count }} sub-channel{{ subchannel_count|pluralize }}
+      {% endif %}
+
+      {% for subchannel in subchannels %}
+        <br />
+        <a href="{{ url('main:home_channels', subchannel.slug) }}"
+           title="{{ subchannel.name }} is a sub-channel of {{ channel.name }}"
+        >{{ subchannel.name }}</a>
+      {% endfor %}
+    </p>
   {% endfor %}
   </div>
 {% endblock %}

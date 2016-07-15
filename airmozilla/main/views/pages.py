@@ -896,6 +896,14 @@ def channels(request):
     elif privacy_exclude:
         events = events.exclude(**privacy_exclude)
 
+    children_channels = Channel.objects.filter(
+        parent__parent__isnull=True,
+        parent__isnull=False,
+    )
+    parents = collections.defaultdict(list)
+    for channel in children_channels:
+        parents[channel.parent_id].append(channel)
+
     channels_qs = (
         Channel.objects
         .filter(parent__isnull=True)
@@ -927,8 +935,14 @@ def channels(request):
     for channel in channels_qs:
         event_count = event_counts.get(channel.id, 0)
         subchannel_count = subchannel_counts.get(channel.id, 0)
+        subchannels = parents.get(channel.id, [])
         if event_count or subchannel_count:
-            channels.append((channel, event_count, subchannel_count))
+            channels.append((
+                channel,
+                event_count,
+                subchannel_count,
+                subchannels
+            ))
     data = {
         'channels': channels,
         'feed_privacy': feed_privacy,
