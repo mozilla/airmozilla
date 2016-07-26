@@ -62,6 +62,14 @@ form .adding {
 #timenails a.timenail {
     position: relative;
 }
+a.timenail img {
+    transform: scale(1);
+    transition: all .1s ease-out;
+}
+a.timenail img:hover {
+    transform: scale(1.5);
+    z-index: 1000;
+}
 #timenails a.timenail .similarity {
     position: absolute;
     top: -9px;

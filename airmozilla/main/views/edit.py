@@ -455,7 +455,7 @@ class EventChaptersThumbnailsView(EventEditChaptersView):
                 thumb = thumbnail(
                     picture.file,
                     # size shown with width set in CSS
-                    '105x59',
+                    '160x90',
                     crop='center',
                 )
                 similarity = -1
