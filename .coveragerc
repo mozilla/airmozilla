@@ -4,3 +4,6 @@ source = airmozilla
 [report]
 omit = airmozilla/*/tests/*
        airmozilla/.versions/*
+       airmozilla/*/migrations/*
+       airmozilla/settings/*
+show_missing = True
