@@ -28,6 +28,7 @@ urlpatterns = patterns(
     (r'^popcorn/', include('airmozilla.popcorn.urls', namespace='popcorn')),
     (r'^new/', include('airmozilla.new.urls', namespace='new')),
     (r'^subtitles/', include('airmozilla.subtitles.urls', namespace='subtitles')),  # NOQA
+    (r'^closedcaptions/', include('airmozilla.closedcaptions.urls', namespace='closedcaptions')),  # NOQA
     ('^(?P<path>favicon\.ico)$', 'django.views.static.serve',
      {'document_root': settings.ROOT + '/airmozilla/base/static/img'}),
     (r'', include('django_browserid.urls')),

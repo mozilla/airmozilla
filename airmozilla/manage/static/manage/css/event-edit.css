@@ -40,3 +40,8 @@ dl.hits dt {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.side-section {
+    margin-top: 25px;
+    font-weight: bold;
+}

@@ -1,0 +1,81 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Closed Captions for <a href="{{ url('manage:event_edit', event.id) }}">&quot;{{ event.title }}&quot;</a>
+{% endblock %}
+
+
+{% block manage_content %}
+
+  {% if closedcaptions.exists() %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>User</th>
+          <th>Information</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in closedcaptions %}
+        <tr>
+          <td>
+            Open as:
+            <a
+              title="Right click and \"Save Link As...\" to save"
+              href="{{ url('closedcaptions:download', item.filename_hash, item.id, event.slug, 'txt') }}">Text</a>,
+            <a
+              title="Right click and \"Save Link As...\" to save"
+              href="{{ url('closedcaptions:download', item.filename_hash, item.id, event.slug, 'srt') }}">SRT</a>,
+            <a
+              title="Right click and \"Save Link As...\" to save"
+              href="{{ url('closedcaptions:download', item.filename_hash, item.id, event.slug, 'dfxp') }}">DFXP/TTML</a>,
+            <a
+              title="Right click and \"Save Link As...\" to save"
+              href="{{ url('closedcaptions:download', item.filename_hash, item.id, event.slug, 'vtt') }}">WebVTT</a>
+          </td>
+          <td>
+            {% if item.created_user %}
+              {{ item.created_user.email }}
+            {% endif %}
+          </td>
+          <td>
+              Uploaded: {{ item.created | js_date }}<br />
+              {% if item.created.strftime('%H%M%S') != item.modified.strftime('%H%M%S') %}
+                Modified: {{ item.modified | js_date }}<br />
+              {% endif %}
+              Size: {{ item.file_info['size'] | filesizeformat }}<br />
+              Original name: {{ item.file_info['name'] }}
+          </td>
+          <td class="buttons">
+            <form method="post" class="confirm"
+                  action="{{ url('manage:event_closed_captions_delete', event.id, item.id) }}">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-sm" type="submit">
+                <i class="glyphicon glyphicon-trash"></i>
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>
+      <i>No closed captions files uploaded yet.</i>
+    </p>
+  {% endif %}
+
+  <h3 style="margin-top:100px">Upload a new Closed Captions file</h3>
+  {% set submit_text = 'Upload' %}
+  {% include "manage/_default_form_upload.html" %}
+
+
+  <p style="margin-top:25px">
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+<tt xmlns="http://www.w3.org/ns/ttml" xmlns:tts="http://www.w3.org/ns/ttml#styling" xml:lang="en">
+    <head>
+        <metadata xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+            <ttm:title/>
+            <ttm:description/>
+            <ttm:copyright/>
+        </metadata>
+        <styling>
+            <style xml:id="amara-style" tts:color="white" tts:fontFamily="proportionalSansSerif" tts:fontSize="18px" tts:backgroundColor="transparent" tts:textOutline="black 1px 0px" tts:textAlign="center"/>
+        </styling>
+    </head>
+    <body region="bottom">
+        <div>
+            <p begin="00:00:00.983" end="00:00:02.172">Ping</p>
+            <p begin="00:00:05.733" end="00:00:06.629">Hey, ping?</p>
+            <p begin="00:00:06.629" end="00:00:07.481">Hey, ping?</p>
+            <p begin="00:00:07.856" end="00:00:11.949">I thought I had it on my computer, but actually it's on<br/>the wiki somewhere, so go ahead and find that</p>
+            <p begin="00:00:12.529" end="00:00:17.971">Umm... it's on the wiki or the manor<br/>or the Internet or somewhere</p>
+            <p begin="00:00:18.004" end="00:00:21.333">Ugh, it's on the wiki somewhere but can't find it</p>
+            <p begin="00:00:21.770" end="00:00:23.094">Can't you just file a bug?</p>
+            <p begin="00:00:23.100" end="00:00:24.211">Just file a bug</p>
+            <p begin="00:00:24.211" end="00:00:25.727">You are CC'ed on the bug</p>
+            <p begin="00:00:25.833" end="00:00:27.784">It is like so corporate</p>
+            <p begin="00:00:27.954" end="00:00:30.866">Dude, this is so corporate</p>
+            <p begin="00:00:31.438" end="00:00:32.641">That is so corporate</p>
+            <p begin="00:00:33.011" end="00:00:34.632">W-who's room are we meeting in?</p>
+            <p begin="00:00:34.632" end="00:00:36.415">Wait, you just voiped, say that again</p>
+            <p begin="00:00:36.415" end="00:00:38.161">Wait a minute, you just voiped</p>
+            <p begin="00:00:41.681" end="00:00:43.361">Okay, here we go, so</p>
+            <p begin="00:00:43.361" end="00:00:45.658">Sorry, the audio just went out, can somebody call IT</p>
+            <p begin="00:00:45.907" end="00:00:48.012">Man, the audio's not working, we're callin' IT</p>
+            <p begin="00:00:48.383" end="00:00:50.387">Seriously, which wikipad?</p>
+            <p begin="00:00:50.387" end="00:00:52.346">I've got a link to like fifteen different wikipads</p>
+            <p begin="00:00:52.662" end="00:00:53.865">So we're gonna have a party</p>
+            <p begin="00:00:54.000" end="00:00:54.994">Are there gonna be cupcakes?</p>
+            <p begin="00:00:54.994" end="00:00:57.208">Uuh, are there gonna be cupcakes?</p>
+            <p begin="00:00:57.208" end="00:01:02.558">I don't know, they offer usually about ten different kinds<br/>of cupcakes every time but I don't really like any of them</p>
+            <p begin="00:01:02.909" end="00:01:04.486">Yeah, but I'm not on Facebook</p>
+            <p begin="00:01:04.486" end="00:01:06.845">Umm, yeah, I'm not on Facebook</p>
+            <p begin="00:01:06.845" end="00:01:08.876">Oh no, I'm not on Facebook</p>
+            <p begin="00:01:08.876" end="00:01:10.862">That's what I would like to tell</p>
+            <p begin="00:01:11.026" end="00:01:12.164">Yes, and...?</p>
+            <p begin="00:01:27.904" end="00:01:30.031">Brown bag in seven minutes?</p>
+            <p begin="00:01:30.031" end="00:01:31.800">Brown bag in three minutes?</p>
+            <p begin="00:01:31.800" end="00:01:33.941">Aah! Brown bag right now!</p>
+            <p begin="00:01:36.839" end="00:01:38.494">So then, that's what I want to work on</p>
+            <p begin="00:01:38.494" end="00:01:40.125">Somebody already did that</p>
+            <p begin="00:01:40.569" end="00:01:43.129">Wait, isn't somebody already working on that?</p>
+            <p begin="00:01:43.129" end="00:01:45.124">Oh yes, somebody's already working on that</p>
+            <p begin="00:01:45.124" end="00:01:46.508">Did you send me the link?</p>
+            <p begin="00:01:46.508" end="00:01:48.245">Didn't I send you the link?</p>
+            <p begin="00:01:48.625" end="00:01:49.952">Who's driving this anyway?</p>
+            <p begin="00:01:49.952" end="00:01:52.974">Yeah, so... who actually owns this?</p>
+            <p begin="00:01:52.974" end="00:01:54.273">Who's driving this anyway?</p>
+            <p begin="00:01:54.273" end="00:01:59.466">Keep on rocking the free web (x4)</p>
+        </div>
+    </body>
+</tt>
