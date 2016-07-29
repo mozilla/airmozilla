@@ -31,6 +31,7 @@ from .views import (
     related,
     durations,
     email_sending,
+    closed_captions,
 )
 
 
@@ -339,5 +340,11 @@ urlpatterns = patterns(
     url(r'^emailsending/$',
         email_sending.home,
         name='email_sending'),
+    url(r'^closed_captions/(?P<event_id>\d+)/$',
+        closed_captions.event_closed_captions,
+        name='event_closed_captions'),
+    url(r'^closed_captions/(?P<event_id>\d+)/(?P<id>\d+)/delete/$',
+        closed_captions.event_closed_captions_delete,
+        name='event_closed_captions_delete'),
 
 )

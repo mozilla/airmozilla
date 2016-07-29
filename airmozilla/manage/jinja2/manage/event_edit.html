@@ -99,7 +99,7 @@
     {% endif %}
 
     {% if suggested_event and suggested_event.upload %}
-        <p style="margin-top:25px"><strong>File Upload</strong> (from requested event)</p>
+        <p class="side-section">File Upload <small>(from requested event)</small></p>
         <table class="event-upload">
           <tr>
             <th>Name:</th>
@@ -121,7 +121,7 @@
         </table>
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
     {% elif event.upload %}
-        <p style="margin-top:25px"><strong>File Upload</strong></p>
+        <p class="side-section">File Upload</p>
         <table class="event-upload">
            <tr>
              <th>Name:</th>
@@ -154,12 +154,12 @@
         </table>
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload a different file</a></p>
     {% elif event.is_pending() or event.is_processing() %}
-        <p style="margin-top:25px"><strong>File Upload</strong></p>
+        <p class="side-section">File Upload</p>
         <p><a href="{{ url('manage:event_upload', event.pk) }}" class="btn btn-primary btn-sm">Upload original file</a></p>
     {% endif %}
 
     {% if event.is_live() and event.is_scheduled() %}
-    <form action="{{ url('manage:stop_live_event', event.pk) }}" method="post" style="margin-top:25px">
+    <form action="{{ url('manage:stop_live_event', event.pk) }}" method="post" class="side-section">
       {% csrf_token %}
       <p>
         <button class="btn btn-danger"
@@ -169,7 +169,7 @@
     </form>
     {% endif %}
 
-    <p style="margin-top:25px"><strong>Tweets</strong></p>
+    <p class="side-section">Tweets</p>
     {% for tweet in tweets %}
       {% if loop.first %}
       <ul>
@@ -208,7 +208,7 @@
     </p>
 
     {% if is_vidly_event %}
-    <p style="margin-top:25px"><strong>Vid.ly Media</strong></p>
+    <p class="side-section">Vid.ly Media</p>
     <p>
       <span id="vidly-submission" data-id="{{ event.pk }}" class="label">Finding out</span>
       {% if perms.main.add_vidlysubmission %}
@@ -223,7 +223,7 @@
     </p>
     {% endif %}
 
-    <p style="margin-top:25px"><strong>Discussions</strong></p>
+    <p class="side-section">Discussions</p>
     <p>
       <a href="{{ url('manage:event_discussion', event.pk) }}" class="btn btn-primary btn-sm">
       {% if discussion %}
@@ -243,7 +243,7 @@
     </p>
 
     {% if approvals %}
-    <p style="margin-top:25px"><strong>Approval Requested</strong></p>
+    <p class="side-section">Approval Requested</p>
     <dl>
     {% for approval in approvals %}
         <dt>{{ approval.group.name }}</dt>
@@ -267,13 +267,13 @@
 
     {% if stuck_pending %}
     <form action="{{ url('manage:event_archive_auto', event.pk) }}" method="post">
-    <p style="margin-top:25px"><strong>Pending to archive</strong></p>
+    <p class="side-section">Pending to archive</p>
     <p>This event is <strong>pending</strong> but has a finished Vid.ly submission.<br>
     <button class="btn btn-primary btn-xs">Auto Archive now</button>
     </p>
     {% endif %}
 
-    <p style="margin-top:25px"><strong>Event Assignment</strong></p>
+    <p class="side-section">Event Assignment</p>
     <p>
       <a href="{{ url('manage:event_assignment', event.pk) }}" class="btn btn-primary btn-sm">
         {% if assignment %}
@@ -290,7 +290,14 @@
       {% endif %}
     </p>
 
-    <p style="margin-top:25px"><strong>Event Transcript</strong></p>
+    <p class="side-section">Closed Captions</p>
+    <p>
+      <a href="{{ url('manage:event_closed_captions', event.pk) }}" class="btn btn-primary btn-sm">
+        {{ closed_captions.count() }} uploaded
+      </a>
+    </p>
+
+    <p class="side-section">Event Transcript</p>
     <p>
       <a href="{{ url('manage:event_transcript', event.pk) }}" class="btn btn-primary btn-sm">
         {% if event.transcript %}
@@ -302,7 +309,7 @@
       <small>{{ amara_videos_count }} Amara video{{ amara_videos_count | pluralize }}</small>
     </p>
 
-    <p style="margin-top:25px"><strong>Survey</strong></p>
+    <p class="side-section">Survey</p>
     <p>
       {% if survey %}
       <a href="{{ url('manage:event_survey', event.id) }}" class="btn btn-primary btn-sm"
@@ -313,14 +320,14 @@
       {% endif %}
     </p>
 
-    <p style="margin-top:25px"><strong>Chapters</strong></p>
+    <p class="side-section">Chapters</p>
     <p>
       <a href="{{ url('manage:event_chapters', event.id) }}"
          class="btn btn-primary btn-sm">Chapters ({{ chapters_count }})</a>
     </p>
 
     {% if is_superuser %}
-    <p style="margin-top:25px"><strong>Archive Time</strong></p>
+    <p class="side-section">Archive Time</p>
     <p>
       {% if event.archive_time %}
       {{ event.archive_time | js_date }}
@@ -334,7 +341,7 @@
     </p>
 
     {% if event.is_removed() %}
-    <p style="margin-top:25px"><strong>Really Delete</strong></p>
+    <p class="side-section">Really Delete</p>
     <p class="really-delete-metadata">
         This event last changed {{ event.modified | js_date }}
       <br>

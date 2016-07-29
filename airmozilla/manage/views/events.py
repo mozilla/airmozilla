@@ -57,6 +57,7 @@ from airmozilla.main.models import (
     LocationDefaultEnvironment,
 )
 from airmozilla.subtitles.models import AmaraVideo
+from airmozilla.closedcaptions.models import ClosedCaptions
 from airmozilla.main.views import is_contributor
 from airmozilla.main.tasks import (
     create_all_timestamp_pictures,
@@ -604,6 +605,8 @@ def event_edit(request, id):
     )
 
     context['chapters_count'] = Chapter.objects.filter(event=event).count()
+
+    context['closed_captions'] = ClosedCaptions.objects.filter(event=event)
 
     try:
         context['assignment'] = EventAssignment.objects.get(event=event)

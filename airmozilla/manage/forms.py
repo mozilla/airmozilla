@@ -4,6 +4,7 @@ from collections import defaultdict
 
 import dateutil.parser
 import pytz
+import pycaption
 
 from django import forms
 from django.db.models import Count
@@ -37,6 +38,7 @@ from airmozilla.main.models import (
     Chapter,
     CuratedGroup,
 )
+from airmozilla.closedcaptions.models import ClosedCaptions
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
 from airmozilla.staticpages.models import StaticPage
@@ -1147,4 +1149,28 @@ class EmailSendingForm(BaseForm):
         value = [x.strip() for x in value.split(';') if x.strip()]
         if not value:
             raise forms.ValidationError('Email list of emails')
+        return value
+
+
+class UploadClosedCaptionsForm(BaseModelForm):
+
+    class Meta:
+        model = ClosedCaptions
+        fields = ('file',)
+
+    def clean_file(self):
+        value = self.cleaned_data['file']
+        # it must be possible to read it with pycaption
+        reader = pycaption.detect_format(value.read())
+        extension = value.name.lower().split('.')[-1]
+        valid_extensions = (
+            'sami', 'ttml', 'srt', 'dfxp', 'dfxp', 'vtt', 'scc'
+        )
+        # It's important to also check the file extension because,
+        # for example, if you pass in a .py file, it will be recognized
+        # by the WebVTTReader reader.
+        if not reader or extension not in valid_extensions:
+            raise forms.ValidationError(
+                'Not a valid caption file that could be recognized'
+            )
         return value

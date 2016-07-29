@@ -62,7 +62,7 @@ def get_profile_safely(user, create_if_necessary=False):
 
 # The reason this function is not *inside* _upload_path() is
 # because of migrations.
-def _upload_path_tagged(tag, instance, filename):
+def upload_path_tagged(tag, instance, filename):
     if isinstance(filename, unicode):
         filename = (
             unicodedata
@@ -77,21 +77,24 @@ def _upload_path_tagged(tag, instance, filename):
     __, extension = os.path.splitext(filename)
     return os.path.join(tag, path, hashed_filename + extension)
 
+# Kept for legacy reason for migrations
+_upload_path_tagged = upload_path_tagged
+
 
 def _upload_path_pictures(instance, filename):
-    return _upload_path_tagged('pictures', instance, filename)
+    return upload_path_tagged('pictures', instance, filename)
 
 
 def _upload_path_channels(instance, filename):
-    return _upload_path_tagged('channels', instance, filename)
+    return upload_path_tagged('channels', instance, filename)
 
 
 def _upload_path_event_placeholder(instance, filename):
-    return _upload_path_tagged('event-placeholder', instance, filename)
+    return upload_path_tagged('event-placeholder', instance, filename)
 
 
 def _upload_path_chapters(instance, filename):
-    return _upload_path_tagged('chapters', instance, filename)
+    return upload_path_tagged('chapters', instance, filename)
 
 
 class Channel(models.Model):

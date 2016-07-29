@@ -54,6 +54,7 @@ INSTALLED_APPS = (
     'airmozilla.new',
     'airmozilla.popcorn',
     'airmozilla.chapters',
+    'airmozilla.closedcaptions',
 
     'djcelery',
     'kombu.transport.django',

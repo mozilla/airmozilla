@@ -356,3 +356,73 @@ def get_video_redirect_info(tag, format_, hd=False):
         'type': req2.headers['Content-Type'],
     }
     return data
+
+
+def update_media_closed_captions(
+    shortcode,
+    video_url,
+    closed_caption_url,
+    hd=False,
+    notify_url=None
+):
+    """
+    <?xml version="1.0"?>
+    <Query>
+        <Action>UpdateMedia</Action>
+        <userid>[userid]</userid>
+        <userkey>[userkey]</userkey>
+        <Notify>[URL_or_email]</Notify>
+        <Source>
+            <MediaShortLink>[shortlink]</MediaShortLink>
+            <SourceFile>[sourcefile]</SourceFile>
+            <HD>YES</HD>
+            <ClosedCaptions>
+                <Source>[closed_caption_url]</Source>
+            </ClosedCaptions>
+        </Source>
+    </Query>
+    """
+    assert shortcode
+    root = ET.Element('Query')
+    ET.SubElement(root, 'Action').text = 'UpdateMedia'
+    ET.SubElement(root, 'UserID').text = settings.VIDLY_USER_ID
+    ET.SubElement(root, 'UserKey').text = settings.VIDLY_USER_KEY
+    if notify_url:
+        ET.SubElement(root, 'Notify').text = notify_url
+    source = ET.SubElement(root, 'Source')
+    ET.SubElement(source, 'MediaShortLink').text = shortcode
+    ET.SubElement(source, 'SourceFile').text = video_url
+    ET.SubElement(source, 'HD').text = hd and 'YES' or 'NO'
+    cc = ET.SubElement(source, 'ClosedCaptions')
+    ET.SubElement(cc, 'Source').text = closed_caption_url
+    xml_string = ET.tostring(root)
+    response_content = _download(xml_string)
+    root = ET.fromstring(response_content)
+    errors = root.find('Errors')
+    if errors is not None:
+        # For example...
+        """
+        <?xml version="1.0"?>
+        <Response>
+            <Message>Action failed: none of media short link w...</Message>
+            <MessageCode>2.6</MessageCode>
+            <Errors>
+                <Error>
+                    <ErrorCode>8.4</ErrorCode>
+                    <ErrorName>Media invalidation in progress</ErrorName>
+                    <Description>Media invalidation in progress</Description>
+                    <Suggestion></Suggestion>
+                    <SourceFile>8q8e5h</SourceFile>
+                </Error>
+            </Errors>
+        </Response>
+        """
+        error = errors.find('Error')
+        error_code = error.find('ErrorCode').text
+        error_name = error.find('ErrorName').text
+        raise VidlyUpdateError(
+            "%s: %s" % (
+                error_code,
+                error_name,
+            )
+        )
