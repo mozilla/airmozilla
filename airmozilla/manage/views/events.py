@@ -56,8 +56,10 @@ from airmozilla.main.models import (
     Chapter,
     LocationDefaultEnvironment,
 )
-from airmozilla.subtitles.models import AmaraVideo
-from airmozilla.closedcaptions.models import ClosedCaptions
+from airmozilla.closedcaptions.models import (
+    ClosedCaptions,
+    ClosedCaptionsTranscript,
+)
 from airmozilla.main.views import is_contributor
 from airmozilla.main.tasks import (
     create_all_timestamp_pictures,
@@ -613,9 +615,6 @@ def event_edit(request, id):
     except EventAssignment.DoesNotExist:
         context['assignment'] = None
 
-    amara_videos = AmaraVideo.objects.filter(event=event)
-    context['amara_videos_count'] = amara_videos.count()
-
     try:
         context['survey'] = Survey.objects.get(events=event)
     except Survey.DoesNotExist:
@@ -956,10 +955,13 @@ def event_transcript(request, id):
 
         form = forms.EventTranscriptForm(instance=event, initial=initial)
 
-    amara_videos = AmaraVideo.objects.filter(event=event)
+    # amara_videos = AmaraVideo.objects.filter(event=event)
+    context['closedcaptions'] = None
+    for connection in ClosedCaptionsTranscript.objects.filter(event=event):
+        context['closedcaptions'] = connection.closedcaptions
 
     context['event'] = event
-    context['amara_videos'] = amara_videos
+    # context['amara_videos'] = amara_videos
     context['form'] = form
     context['scrapeable_urls'] = scrapeable_urls
     return render(request, 'manage/event_transcript.html', context)

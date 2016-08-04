@@ -40,7 +40,8 @@ from airmozilla.main.templatetags.jinja_helpers import thumbnail
 from airmozilla.search.models import LoggedSearch
 from airmozilla.comments.models import Discussion
 from airmozilla.surveys.models import Survey
-from airmozilla.subtitles.models import AmaraVideo
+# from airmozilla.subtitles.models import AmaraVideo
+from airmozilla.closedcaptions.models import ClosedCaptionsTranscript
 from airmozilla.manage import vidly
 from airmozilla.manage import related
 from airmozilla.base import mozillians
@@ -493,13 +494,18 @@ class EventView(View):
 
         context['subscription_channel_status'] = 'event-{}'.format(event.id)
 
-        amara_videos = AmaraVideo.objects.filter(
-            event=event,
-            transcript__isnull=False,
-        )
-        context['amara_video'] = None
-        for amara_video in amara_videos.order_by('-modified')[:1]:
-            context['amara_video'] = amara_video
+        # amara_videos = AmaraVideo.objects.filter(
+        #     event=event,
+        #     transcript__isnull=False,
+        # )
+        # context['amara_video'] = None
+        # for amara_video in amara_videos.order_by('-modified')[:1]:
+        #     context['amara_video'] = amara_video
+
+        context['closedcaptions'] = None
+        for connection in ClosedCaptionsTranscript.objects.filter(event=event):
+            assert connection.closedcaptions.transcript
+            context['closedcaptions'] = connection.closedcaptions
 
         cache_key = 'event_survey_id_%s' % event.id
         context['survey_id'] = cache.get(cache_key, -1)

@@ -9,6 +9,21 @@
 {% block content_class %}col-md-6{% endblock %}
 
 {% block manage_content %}
+
+  {% if closedcaptions %}
+  <div class="alert alert-hidden alert-warning alert-dismissible" role="alert">
+    <h4>Note!</h4>
+    <p>
+      This event gets its transcript from
+      <a href="{{ url('manage:event_closed_captions', event.id) }}">a closed captions file</a>.
+    </p>
+    <p>
+      Any manual text changes will be saved but can be overwritten by the
+      transcript extraction of the closed captions file.
+    </p>
+  </div>
+  {% endif %}
+
   {% if amara_videos %}
   <div class="alert alert-danger">
     <p>

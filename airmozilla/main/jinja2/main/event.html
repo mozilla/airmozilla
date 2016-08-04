@@ -287,12 +287,24 @@
           </div>
         {% endif %}
 
+        {#
         {% if amara_video and amara_video.transcript %}
           <div class="tab">
             <input type="radio" id="tab-transcript" name="tab-group-1">
             <label for="tab-transcript">Transcript</label>
             <div class="content extra-long transcript">
               {{ render_transcript(amara_video.transcript) }}
+            </div>
+          </div>
+        {% endif %}
+        #}
+
+        {% if closedcaptions and closedcaptions.transcript %}
+          <div class="tab">
+            <input type="radio" id="tab-transcript" name="tab-group-1">
+            <label for="tab-transcript">Transcript</label>
+            <div class="content extra-long transcript">
+              {{ render_transcript(closedcaptions.transcript) }}
             </div>
           </div>
         {% endif %}

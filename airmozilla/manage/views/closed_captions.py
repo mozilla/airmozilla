@@ -13,7 +13,10 @@ from .decorators import (
 )
 from airmozilla.base.utils import get_base_url
 from airmozilla.main.models import Event, VidlySubmission
-from airmozilla.closedcaptions.models import ClosedCaptions
+from airmozilla.closedcaptions.models import (
+    ClosedCaptions,
+    ClosedCaptionsTranscript,
+)
 from airmozilla.manage import forms
 from airmozilla.manage import vidly
 
@@ -47,10 +50,14 @@ def event_closed_captions(request, event_id):
         form = forms.UploadClosedCaptionsForm()
 
     closedcaptions = ClosedCaptions.objects.filter(event=event)
+    transcript_closedcaptions = None
+    for connection in ClosedCaptionsTranscript.objects.filter(event=event):
+        transcript_closedcaptions = connection.closedcaptions
     context = {
         'event': event,
         'form': form,
         'closedcaptions': closedcaptions.order_by('created'),
+        'transcript_closedcaptions': transcript_closedcaptions,
     }
     return render(request, 'manage/event_closed_captions.html', context)
 
@@ -74,6 +81,11 @@ class LastTimestampWriter(pycaption.base.BaseWriter):
 
 
 @staff_required
+@cancel_redirect(
+    lambda r, event_id, id: reverse('manage:event_closed_captions', args=(
+        event_id,
+    ))
+)
 @permission_required('closedcaptions.change_closedcaptions')
 def event_closed_captions_submit(request, event_id, id):
     event = get_object_or_404(Event, id=event_id)
@@ -145,3 +157,52 @@ def event_closed_captions_submit(request, event_id, id):
         'submission': submission,
     }
     return render(request, 'manage/event_closed_captions_submit.html', context)
+
+
+@staff_required
+@cancel_redirect(
+    lambda r, event_id, id: reverse('manage:event_closed_captions', args=(
+        event_id,
+    ))
+)
+@permission_required('closedcaptions.change_closedcaptions')
+def event_closed_captions_transcript(request, event_id, id):
+    event = get_object_or_404(Event, id=event_id)
+    closedcaptions = get_object_or_404(ClosedCaptions, event=event, id=id)
+
+    if request.method == 'POST':
+        # make sure the transcript is current
+        closedcaptions.set_transcript_from_file()
+        closedcaptions.save()
+
+        ClosedCaptionsTranscript.objects.filter(event=event).delete()
+        ClosedCaptionsTranscript.objects.create(
+            event=event,
+            closedcaptions=closedcaptions
+        )
+        event.transcript = closedcaptions.get_plaintext_transcript()
+        event.save()
+
+        messages.success(
+            request,
+            'Closed Captions file chosen as event transcript.'
+        )
+        return redirect('manage:event_closed_captions', event.id)
+
+    if not closedcaptions.transcript:
+        closedcaptions.set_transcript_from_file()
+        closedcaptions.save()
+    else:
+        # Always set the latest
+        closedcaptions.set_transcript_from_file()
+
+    context = {
+        # 'form': form,
+        'event': closedcaptions.event,
+        'closedcaptions': closedcaptions,
+    }
+    return render(
+        request,
+        'manage/event_closed_captions_transcript.html',
+        context
+    )

@@ -8,7 +8,10 @@ from django.core.files import File
 from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import Event, VidlySubmission
-from airmozilla.closedcaptions.models import ClosedCaptions
+from airmozilla.closedcaptions.models import (
+    ClosedCaptions,
+    ClosedCaptionsTranscript,
+)
 from .base import ManageTestCase
 from airmozilla.closedcaptions.tests.test_views import TEST_DIRECTORY
 from airmozilla.manage.tests.test_vidly import SAMPLE_MEDIA_UPDATED_XML
@@ -116,3 +119,30 @@ class TestClosedCaptions(ManageTestCase):
             'dfxp'
         ))
         ok_(download_url in response.content)
+
+    def test_upload_closed_captions_transcript(self):
+        event = Event.objects.get(title='Test event')
+
+        with open(os.path.join(TEST_DIRECTORY, 'example.dfxp')) as fp:
+            closedcaptions = ClosedCaptions.objects.create(
+                event=event,
+                file=File(fp),
+            )
+
+        url = reverse('manage:event_closed_captions_transcript', args=(
+            event.id,
+            closedcaptions.id,
+        ))
+        response = self.client.get(url)
+        # Just rendering this checks the preview works
+        eq_(response.status_code, 200)
+
+        response = self.client.post(url)
+        eq_(response.status_code, 302)
+
+        ok_(ClosedCaptionsTranscript.objects.get(
+            event=event,
+            closedcaptions=closedcaptions
+        ))
+        event = Event.objects.get(id=event.id)
+        ok_(event.transcript.startswith('Ping'))

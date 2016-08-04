@@ -22,7 +22,6 @@
         {% for item in closedcaptions %}
         <tr>
           <td>
-            Open as:
             <a
               title="Right click and \"Save Link As...\" to save"
               href="{{ url('closedcaptions:download', item.filename_hash, item.id, event.slug, 'txt') }}">Text</a>,
@@ -80,6 +79,19 @@
               title="Submit for transcoding">
               <i class="glyphicon glyphicon-export"></i>
               Submit
+            </a>
+            <a
+              href="{{ url('manage:event_closed_captions_transcript', event.id, item.id) }}"
+              {% if item == transcript_closedcaptions %}
+                class="btn btn-primary btn-sm"
+                title="This closed captions file is what's used as transcript on the event"
+              {% else %}
+                class="btn btn-default btn-sm"
+                title="Save an text transcript for the event"
+              {% endif %}
+              >
+              <i class="glyphicon glyphicon-floppy-save"></i>
+              Transcript
             </a>
           </td>
         </tr>

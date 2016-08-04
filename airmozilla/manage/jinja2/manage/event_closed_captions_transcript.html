@@ -1,0 +1,54 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Closed Captions Transcript for
+  <a href="{{ url('manage:event_edit', event.id) }}">&quot;{{ event.title }}&quot;</a>
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  <style>
+  .preview pre {
+    max-height: 300px;
+    overflow: scroll;
+  }
+  </style>
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+
+  <div class="preview">
+    <h4>Preview Transcript as JSON</h4>
+    <p>
+      This is what will be used to display the rolling transcript
+      in the "Transcript" tab under the video.
+    </p>
+    <pre>{{ json_print(closedcaptions.transcript, indent=4) }}</pre>
+  </div>
+
+  <form method="post" class="form-horizontal" role="form">
+    {% csrf_token %}
+    {% set submit_text = 'Make this the transcript for the video' %}
+    {% include "manage/_form_buttons.html" %}
+  </form>
+
+  <div class="preview">
+    <h4>Preview Transcript as Plain Text</h4>
+    <p>
+      This is what will be stored with the event for the sake of
+      the search-by-transcript.
+    </p>
+    <pre>{{ closedcaptions.get_plaintext_transcript() }}</pre>
+  </div>
+
+
+  <p style="margin-top:25px">
+    <a href="{{ url('manage:event_closed_captions', event.pk) }}">&larr; Return to Closed Captions for event</a>
+    <br />
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

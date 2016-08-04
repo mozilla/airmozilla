@@ -36,7 +36,11 @@ from airmozilla.main.models import (
     EventLiveHits,
     Chapter,
 )
-from airmozilla.subtitles.models import AmaraVideo
+# from airmozilla.subtitles.models import AmaraVideo
+from airmozilla.closedcaptions.models import (
+    ClosedCaptions,
+    ClosedCaptionsTranscript,
+)
 from airmozilla.search.models import SavedSearch
 from airmozilla.surveys.models import Survey, Question, next_question_order
 from airmozilla.staticpages.models import StaticPage
@@ -3273,19 +3277,23 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_(survey_url not in response.content)
 
-    def test_render_event_with_subtitles(self):
+    def test_render_event_with_closedcaptions(self):
         event = Event.objects.get(title='Test event')
 
-        AmaraVideo.objects.create(
+        cc = ClosedCaptions.objects.create(
             event=event,
-            video_id='123',
-            video_url='http://example.com/file.mp4',
-            transcript={
-                'subtitles': [
-                    {'start': 1100, 'end': 2220, 'text': 'HI'},
-                ]
-            }
         )
+        cc.transcript = {
+            'subtitles': [
+                {'start': 1100, 'end': 2220, 'text': 'HI'},
+            ]
+        }
+        cc.save()
+        ClosedCaptionsTranscript.objects.create(
+            event=event,
+            closedcaptions=cc,
+        )
+
         url = reverse('main:event', args=(event.slug,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
