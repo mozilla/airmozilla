@@ -548,3 +548,20 @@ class VidlyTestCase(DjangoTestCase):
             'mp4',
             hd=True
         )
+
+    @mock.patch('urllib2.urlopen')
+    def test_update_media_closed_captions(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_MEDIA_UPDATED_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        # This doesn't return anything but we're only interested in if it
+        # can execute at all without errors.
+        vidly.update_media_closed_captions(
+            'abc123',
+            'https://s3.example.com/file.mov',
+            'https://air.example.com/subs.dfxp',
+            hd=True,
+        )

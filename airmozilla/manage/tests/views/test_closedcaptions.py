@@ -1,13 +1,17 @@
 import os
+from cStringIO import StringIO
 
+import mock
 from nose.tools import eq_, ok_
 
+from django.core.files import File
 from django.core.urlresolvers import reverse
 
-from airmozilla.main.models import Event
+from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.closedcaptions.models import ClosedCaptions
 from .base import ManageTestCase
 from airmozilla.closedcaptions.tests.test_views import TEST_DIRECTORY
+from airmozilla.manage.tests.test_vidly import SAMPLE_MEDIA_UPDATED_XML
 
 
 class TestClosedCaptions(ManageTestCase):
@@ -57,3 +61,58 @@ class TestClosedCaptions(ManageTestCase):
             ClosedCaptions.objects.filter(event=event).count(),
             len(filenames) - 1
         )
+
+    @mock.patch('urllib2.urlopen')
+    def test_upload_closed_captions_submit(self, p_urlopen):
+
+        def mocked_urlopen(request):
+            return StringIO(SAMPLE_MEDIA_UPDATED_XML.strip())
+
+        p_urlopen.side_effect = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        event.duration = 120
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+        VidlySubmission.objects.create(
+            event=event,
+            tag='abc123',
+            url='https://s3.example.com/file.mov',
+            hd=True,
+        )
+
+        with open(os.path.join(TEST_DIRECTORY, 'example.dfxp')) as fp:
+            closedcaptions = ClosedCaptions.objects.create(
+                event=event,
+                file=File(fp),
+            )
+
+        url = reverse('manage:event_closed_captions_submit', args=(
+            event.id,
+            closedcaptions.id,
+        ))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        # let's submit it
+        response = self.client.post(url, {'file_format': 'dfxp'})
+        eq_(response.status_code, 302)
+
+        # reload
+        closedcaptions = ClosedCaptions.objects.get(id=closedcaptions.id)
+        first, = closedcaptions.submission_info['submissions']
+        eq_(first['url'], 'https://s3.example.com/file.mov')
+        eq_(first['tag'], 'abc123')
+        eq_(first['hd'], True)
+        ok_(first['public_url'])
+
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        # expect the link to the closed captions download is there
+        download_url = reverse('closedcaptions:download', args=(
+            closedcaptions.filename_hash,
+            closedcaptions.id,
+            event.slug,
+            'dfxp'
+        ))
+        ok_(download_url in response.content)

@@ -309,9 +309,9 @@ class TestStarredEvent(DjangoTestCase):
         for i, event in enumerate(events):
             match = 'data-id="%d"' % event.id
             if i >= 20:
-                ok_(match in response.content, i)
+                ok_(match in response.content, match)
             else:
-                ok_(match not in response.content, i)
+                ok_(match not in response.content, match)
 
         output = response.content.decode('utf-8')
         ok_('href="%s"' % reverse('starred:home', args=(2,)) in output)
