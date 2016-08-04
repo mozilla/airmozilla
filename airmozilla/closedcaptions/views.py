@@ -63,7 +63,6 @@ def download(request, filename_hash, id, slug, extension):
     for key, ext in FILE_EXTENSIONS.items():
         if ext == extension:
             output_writer = SUPPORTED_WRITERS[key]
-    # content = unicode(closedcaptions.file.read(), 'utf-8')
     content = closedcaptions.file.read()
     if not (
         closedcaptions.file.name.lower().endswith('.ttml') or

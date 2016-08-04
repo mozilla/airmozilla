@@ -1174,3 +1174,16 @@ class UploadClosedCaptionsForm(BaseModelForm):
                 'Not a valid caption file that could be recognized'
             )
         return value
+
+
+class SubmitClosedCaptionsForm(BaseForm):
+
+    file_format = forms.ChoiceField(
+        choices=[
+            ('dfxp', 'DXFP/TTML'),
+            ('srt', 'SRT'),
+            ('vtt', 'WebVTT'),
+        ]
+    )
+    # class Meta:
+    #     model = ClosedCaptions

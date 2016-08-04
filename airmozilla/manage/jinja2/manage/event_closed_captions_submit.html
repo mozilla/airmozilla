@@ -1,0 +1,36 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Submit Closed Captions for <a href="{{ url('manage:event_edit', event.id) }}">&quot;{{ event.title }}&quot;</a>
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+
+  <div class="alert alert-hidden alert-warning alert-dismissible" role="alert">
+    <h4>Sanity check</h4>
+    <p>
+      The event is <b>{{ show_duration(event.duration) }}</b>.<br/>
+      The last caption of this closed caption file happens at
+      <b>{{ show_duration(last_caption) }}</b>.
+    </br/>
+    </p>
+    <p>
+      The submission will be for <code>{{ submission.tag }}</code>
+      and <a href="{{ submission.url }}">this video url</a>.
+    </p>
+  </div>
+
+  {% set submit_text = 'Submit' %}
+  {% include "manage/_default_form.html" %}
+
+
+  <p style="margin-top:25px">
+    <a href="{{ url('manage:event_closed_captions', event.pk) }}">&larr; Return to Closed Captions for event</a>
+    <br />
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

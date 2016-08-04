@@ -48,6 +48,22 @@
               {% endif %}
               Size: {{ item.file_info['size'] | filesizeformat }}<br />
               Original name: {{ item.file_info['name'] }}
+              {% if item.submission_info %}
+              <hr />
+              {% for submission in item.submission_info['submissions'] %}
+                Submitted:
+                   <dl class="dl-horizontal">
+                     <dt>Date:</dt>
+                     <dd>{{ submission.date }}</dd>
+                     <dt>Tag:</dt>
+                     <dd>{{ submission.tag }}</dd>
+                     <dt>Video URL</dt>
+                     <dd><a href="{{ submission.url }}">{{ truncate_chars(submission.url, 65) }}</a></dd>
+                     <dt>Closed Captions URL</dt>
+                     <dd><a href="{{ submission.public_url }}">{{ truncate_chars(submission.public_url, 65) }}</a></dd>
+                   </dl>
+                  {% endfor %}
+              {% endif %}
           </td>
           <td class="buttons">
             <form method="post" class="confirm"
@@ -58,6 +74,13 @@
                 Delete
               </button>
             </form>
+            <a
+              href="{{ url('manage:event_closed_captions_submit', event.id, item.id) }}"
+              class="btn btn-default btn-sm"
+              title="Submit for transcoding">
+              <i class="glyphicon glyphicon-export"></i>
+              Submit
+            </a>
           </td>
         </tr>
         {% endfor %}
