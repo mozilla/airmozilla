@@ -69,7 +69,6 @@ PIPELINE_CSS = {
         'source_filenames': (
             'main/css/onemozilla.css',
             'starred/css/star_event.css',
-            'main/css/fonts.css',
             'main/css/main.css',
             'main/css/tabzilla.css',
             'main/autocompeter/autocompeter.min.css',

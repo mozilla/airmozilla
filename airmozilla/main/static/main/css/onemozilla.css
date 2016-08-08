@@ -30,7 +30,6 @@ Hover         #872727
 
 /* @Fonts *********/
 /* Regular */
-/* Commented out because this are already in tabzilla.css
 @font-face {
   font-family: "Open Sans";
   src: url("/static/main/fonts/OpenSans-Regular-webfont.eot");
@@ -40,10 +39,8 @@ Hover         #872727
   font-weight: normal;
   font-style: normal;
 }
-*/
 
 /* Light */
-/* Commented out because this are already in tabzilla.css
 @font-face {
   font-family: "Open Sans Light";
   src: url("/static/main/fonts/OpenSans-Light-webfont.eot");
@@ -53,7 +50,6 @@ Hover         #872727
   font-weight: normal;
   font-style: normal;
 }
-*/
 
 /* @Reset defaults *********/
 header, hgroup, nav, section, article, aside, footer { display: block; }
