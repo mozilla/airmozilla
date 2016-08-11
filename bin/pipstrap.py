@@ -4,7 +4,7 @@
 Embed this in your project, and your VCS checkout is all you have to trust. In
 a post-peep era, this lets you claw your way to a hash-checking version of pip,
 with which you can install the rest of your dependencies safely. All it assumes
-is Python 2.7 or better and *some* version of pip already installed. If
+is Python 2.6 or better and *some* version of pip already installed. If
 anything goes wrong, it will exit with a non-zero status code.
 
 """
@@ -25,8 +25,25 @@ from hashlib import sha256
 from os.path import join
 from pipes import quote
 from shutil import rmtree
-from subprocess import check_output
-from sys import exit
+try:
+    from subprocess import check_output
+except ImportError:
+    from subprocess import CalledProcessError, PIPE, Popen
+
+    def check_output(*popenargs, **kwargs):
+        if 'stdout' in kwargs:
+            raise ValueError('stdout argument not allowed, it will be '
+                             'overridden.')
+        process = Popen(stdout=PIPE, *popenargs, **kwargs)
+        output, unused_err = process.communicate()
+        retcode = process.poll()
+        if retcode:
+            cmd = kwargs.get("args")
+            if cmd is None:
+                cmd = popenargs[0]
+            raise CalledProcessError(retcode, cmd)
+        return output
+from sys import exit, version_info
 from tempfile import mkdtemp
 try:
     from urllib2 import build_opener, HTTPHandler, HTTPSHandler
@@ -38,19 +55,27 @@ except ImportError:
     from urllib.parse import urlparse  # 3.4
 
 
-PACKAGES = [
+__version__ = 1, 1, 1
+
+
+# wheel has a conditional dependency on argparse:
+maybe_argparse = (
+    [('https://pypi.python.org/packages/source/a/argparse/'
+      'argparse-1.4.0.tar.gz',
+      '62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4')]
+    if version_info < (2, 7, 0) else [])
+
+
+PACKAGES = maybe_argparse + [
     # Pip has no dependencies, as it vendors everything:
-    ('https://pypi.python.org/packages/source/p/pip/pip-8.0.2.tar.gz',
-     '46f4bd0d8dfd51125a554568d646fe4200a3c2c6c36b9f2d06d2212148439521'),
+    ('https://pypi.python.org/packages/source/p/pip/pip-8.0.3.tar.gz',
+     '30f98b66f3fe1069c529a491597d34a1c224a68640c82caf2ade5f88aa1405e8'),
     # This version of setuptools has only optional dependencies:
     ('https://pypi.python.org/packages/source/s/setuptools/'
-     'setuptools-19.4.tar.gz',
-     '214bf29933f47cf25e6faa569f710731728a07a19cae91ea64f826051f68a8cf'),
-    # We require Python 2.7 or later because we don't support wheel's
-    # conditional dep on argparse. This version of wheel has no other
-    # dependencies:
-    ('https://pypi.python.org/packages/source/w/wheel/wheel-0.26.0.tar.gz',
-     'eaad353805c180a47545a256e6508835b65a8e830ba1093ed8162f19a50a530c')
+     'setuptools-20.2.2.tar.gz',
+     '24fcfc15364a9fe09a220f37d2dcedc849795e3de3e4b393ee988e66a9cbd85a'),
+    ('https://pypi.python.org/packages/source/w/wheel/wheel-0.29.0.tar.gz',
+     '1ebb8ad7e26b448e9caa4773d2357849bf80ff9e313964bcaf79cbf0201a1648')
 ]
 
 
@@ -65,7 +90,10 @@ class HashError(Exception):
 def hashed_download(url, temp, digest):
     """Download ``url`` to ``temp``, make sure it has the SHA-256 ``digest``,
     and return its path."""
-    # Based on pip 1.4.1's URLOpener but with cert verification removed
+    # Based on pip 1.4.1's URLOpener but with cert verification removed. Python
+    # >=2.7.9 verifies HTTPS certs itself, and, in any case, the cert
+    # authenticity has only privacy (not arbitrary code execution)
+    # implications, since we're checking hashes.
     def opener():
         opener = build_opener(HTTPSHandler())
         # Strip out HTTPHandler to prevent MITM spoof:

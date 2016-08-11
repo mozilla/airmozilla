@@ -18,8 +18,13 @@ RUN mkdir -p /etc/my_init.d
 ADD bin/docker/services.sh /etc/my_init.d/services.sh
 
 RUN mkdir /airmozilla
+ADD bin/pipstrap.py /airmozilla/
 ADD requirements.txt /airmozilla/
 WORKDIR /airmozilla
+
+
+# Install a modern pip
+RUN python pipstrap.py
 
 # Install python dependencies.
 RUN pip install -r requirements.txt
