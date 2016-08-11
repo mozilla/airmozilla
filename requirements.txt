@@ -112,8 +112,8 @@ BeautifulSoup==3.2.1 \
     --hash=sha256:6a8cb4401111e011b579c8c52a51cdab970041cc543814bbd9577a4529fe1cdb
 django-cronjobs==0.2.3 \
     --hash=sha256:177295b1442400c92cdb67e8e18f9ff5946fb442f85813b9d0837823722ea08d
-django-bootstrap-form==3.2 \
-    --hash=sha256:015d6e89ea4f90efe68c883702f00a503cecc3cda5b0208b0a9e89eaaff89da3
+django-bootstrap-form==3.2.1 \
+    --hash=sha256:806732e87785bd4fd235a98de64af2fd24845a9390dad6196bb3aeb13a01c74b
 regex==2014.12.24 \
     --hash=sha256:8e238fc338480ddbd783088e84582a37a75f07c99275337332c9a399b20191f2
 requests-oauthlib==0.6.1 \
