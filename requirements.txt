@@ -141,9 +141,8 @@ readability-api==1.0.2 \
     --hash=sha256:62b04a54d59471cad0388cc28db1f65f0ec471ae5268cdfee699c6839ba5f2dd
 django-jsonfield==0.9.19 \
     --hash=sha256:3df19d80029f1c20ad728e3d900326797603abecec8ec45694fe0c246f301321
-python-memcached==1.57 \
-    --hash=sha256:3b689a135afb2fdb6da2298d5213780f43a3f210cf8c960d50b252acb3f62902 \
-    --hash=sha256:544419fd5e33300835de3b2f8462a145dda451d5e3088a69e0cd0da2b5bc0f7a
+python-memcached==1.58 \
+    --hash=sha256:2775829cb54b9e4c5b3bbd8028680f0c0ab695db154b9c46f0f074ff97540eb6
 selenium==2.50.1 \
     --hash=sha256:0eabd34bdb914d9580ae293c69bb2c10c6dcff20b77169914d87a844068d884b \
     --hash=sha256:1bd6ade474eebc7132dde2d44ab0df24ff299eb07958f49331602a9b6684330d
