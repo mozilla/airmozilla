@@ -531,6 +531,28 @@ class VidlyTestCase(DjangoTestCase):
         })
 
     @mock.patch('requests.head')
+    def test_get_video_redirect_info_content_length_error(self, rhead):
+
+        head_requests = []
+
+        def mocked_head(url):
+            head_requests.append(url)
+            if url == 'http://cdn.vidly/file.mp4':
+                return Response('', 302, headers={})
+            else:
+                return Response('', 302, headers={
+                    'Location': 'http://cdn.vidly/file.mp4',
+                })
+
+        rhead.side_effect = mocked_head
+
+        assert_raises(
+            vidly.VideoError,
+            vidly.get_video_redirect_info,
+            'abc123', 'mp4', hd=True
+        )
+
+    @mock.patch('requests.head')
     def test_get_video_redirect_info_not_found(self, rhead):
 
         head_requests = []

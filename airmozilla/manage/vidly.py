@@ -27,6 +27,10 @@ class VidlyNotFoundError(Exception):
     pass
 
 
+class VideoError(Exception):
+    pass
+
+
 def tokenize(tag, seconds):
     cache_key = 'vidly_tokenize:%s' % tag
     token = cache.get(cache_key)
@@ -350,9 +354,18 @@ def get_video_redirect_info(tag, format_, hd=False):
         raise VidlyNotFoundError(tag)
     assert req.status_code == 302, (req.status_code, vidly_url)
     req2 = requests.head(req.headers['Location'])
+    try:
+        content_length = int(req2.headers['Content-Length'])
+    except KeyError:
+        raise VideoError(
+            'Redirect URL lacks a Content-Length (url:{} status:{})'.format(
+                req.headers['Location'],
+                req.status_code,
+            )
+        )
     data = {
         'url': req.headers['Location'].split('?t=')[0],
-        'length': int(req2.headers['Content-Length']),
+        'length': content_length,
         'type': req2.headers['Content-Type'],
     }
     return data
