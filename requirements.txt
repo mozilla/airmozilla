@@ -146,8 +146,8 @@ python-memcached==1.58 \
 selenium==2.50.1 \
     --hash=sha256:0eabd34bdb914d9580ae293c69bb2c10c6dcff20b77169914d87a844068d884b \
     --hash=sha256:1bd6ade474eebc7132dde2d44ab0df24ff299eb07958f49331602a9b6684330d
-xmltodict==0.10.1 \
-    --hash=sha256:b2cab0184bbb8c3627fc54b03ed79ea2f4d5579fa041e3456ff8d3b3c09b0d5e
+xmltodict==0.10.2 \
+    --hash=sha256:fc518ccf9adbbb917a2ddcb386be852ae6dd36935e1e8b9a3e760201abfdbf77
 boto==2.39.0 \
     --hash=sha256:c73f43558bbc2c4a438c39019b7b4947ba00573ead23420c8614dde0239167ca \
     --hash=sha256:950c5bf36691df916b94ebc5679fed07f642030d39132454ec178800d5b6c58a
