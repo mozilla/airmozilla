@@ -57,9 +57,9 @@
                      <dt>Tag:</dt>
                      <dd>{{ submission.tag }}</dd>
                      <dt>Video URL</dt>
-                     <dd><a href="{{ submission.url }}">{{ truncate_chars(submission.url, 65) }}</a></dd>
+                     <dd><a href="{{ submission.url }}">{{ truncate_chars(submission.url, 65, left=True) }}</a></dd>
                      <dt>Closed Captions URL</dt>
-                     <dd><a href="{{ submission.public_url }}">{{ truncate_chars(submission.public_url, 65) }}</a></dd>
+                     <dd><a href="{{ submission.public_url }}">{{ truncate_chars(submission.public_url, 65, left=True) }}</a></dd>
                    </dl>
                   {% endfor %}
               {% endif %}

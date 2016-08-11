@@ -190,6 +190,14 @@ class TestTruncation(DjangoTestCase):
         result = truncate_chars('peter bengtsson', 7)
         eq_(result, 'peter' + u'…')
 
+    def test_truncate_chars_left(self):
+        result = truncate_chars('peter bengtsson', 11, left=True)
+        eq_(result, u'…' + 'r bengtsson')
+        result = truncate_chars('peter bengtsson', 10, left=True)
+        eq_(result, u'…' + 'bengtsson')
+        result = truncate_chars('peter bengtsson', 7, left=True)
+        eq_(result, u'…' + 'ngtsson')
+
     def test_truncate_chars_too_short(self):
         self.assertRaises(
             AssertionError,

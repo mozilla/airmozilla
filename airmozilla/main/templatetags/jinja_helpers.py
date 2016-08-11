@@ -65,13 +65,19 @@ def truncate_words(text, words):
 
 
 @library.global_function
-def truncate_chars(text, chars, ellipsis=u'…'):
+def truncate_chars(text, chars, ellipsis=u'…', left=False):
     assert chars > 4, chars
     if len(text) > chars:
-        text = '%s%s' % (
-            text[:chars - 1].strip(),
-            ellipsis
-        )
+        if left:
+            text = '%s%s' % (
+                ellipsis,
+                text[len(text) - chars:].strip(),
+            )
+        else:
+            text = '%s%s' % (
+                text[:chars - 1].strip(),
+                ellipsis
+            )
     return text
 
 
