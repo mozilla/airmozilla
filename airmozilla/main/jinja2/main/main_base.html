@@ -138,11 +138,11 @@
   {# the day Air Mozilla uses L10n we can remove this /en-US/ here. For now it reduces redirects. #}
 
   {% if include_autocompeter %}
-  <autocompeter
+  <autocompeter-config
     data-groups="{{ autocompeter_groups }}"
     data-domain="{{ autocompeter_domain }}"
     data-url="{{ autocompeter_url }}"
-    ></autocompeter>
+    ></autocompeter-config>
   {% endif %}
 
   {% javascript 'main_base' %}

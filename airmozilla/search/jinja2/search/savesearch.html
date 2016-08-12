@@ -1,5 +1,7 @@
 {% extends 'search/home.html' %}
 
+{% block page_title %}Save Search | {{ super() }}{% endblock %}
+
 {% block site_css %}
   {{ super() }}
   {% stylesheet 'select2' %}

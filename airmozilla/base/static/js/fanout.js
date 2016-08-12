@@ -2,7 +2,7 @@ window.Fanout = (function() {
     var _loaded = false;
     var _client = null;
     var _locks = {};
-    var config = $('fanout');
+    var config = $('fanout-config');
 
     var loadJS = function loadJS(cb) {
         if (_loaded) {

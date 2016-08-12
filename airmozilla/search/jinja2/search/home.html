@@ -1,6 +1,7 @@
 {% extends 'main/main_base.html' %}
 {% set front_page = 0 %}
 
+{% block page_title %}{% if q %}Searching for... &quot;{{ q }}&quot; | {{ super() }}{% else %}Search | {{ super() }}{% endif %}{% endblock %}
 {% block extra_head %}
 {{ super() }}
 {% stylesheet 'search' %}

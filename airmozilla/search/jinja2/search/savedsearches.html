@@ -1,5 +1,6 @@
 {% extends 'search/home.html' %}
 
+{% block page_title %}Saved Searches | {{ super() }}{% endblock %}
 {% block site_js %}
   {{ super() }}
   <script src="{{ static('angular/angular.min.js') }}"></script>
