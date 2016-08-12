@@ -43,12 +43,8 @@ Pillow==3.2.0 \
     --hash=sha256:eaacc826aff4ed6e9e253ebf372b7b43cbb59de6101fecd9ab4fbdef4c2cd378 \
     --hash=sha256:a1be6f04dd631c511fd8cef83d610dafb755e97e25fbf5a03fb1fd5ee1aa4745 \
     --hash=sha256:cc44c54b432b27c59e3d0bc048a5a7581b13944c14c56c94634cfe8d5eabade5
-lxml==3.6.0 \
-    --hash=sha256:8fdfeea3f1854bfd117bf0a1f13e14c3377bf14c1b7191f497f368df08dcbb55 \
-    --hash=sha256:4566e8d80f13ade36e55ac60c9bb9a3540115a6314af5692da09d01a15795728 \
-    --hash=sha256:9c74ca28a7f0c30dca8872281b3c47705e21217c8bc63912d95c9e2a7cac6bdf \
-    --hash=sha256:bea9bcf0467ab8741bfaf31dab1fd114984312f2b11daaf2ff8610fad8869e7b \
-    --hash=sha256:3879d0de2d616041a25a76b0d39898fabbb2ce95d30d3babb8920be378754fea
+lxml==3.6.1 \
+    --hash=sha256:3eefcfbc548f8df38063b26c9686554268c1eb736e52cd230ff148aa550239d1
 ujson==1.35 \
     --hash=sha256:f66073e5506e91d204ab0c614a148d5aa938bdbf104751be66f8ad7a222f5f86
 nose==1.3.4 \
