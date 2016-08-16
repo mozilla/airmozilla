@@ -173,6 +173,19 @@
                   Estimated duration: {{ show_duration(event.estimated_duration) }}<br>
                 {% endif %}
               </p>
+
+              {% if tags %}
+                <p>
+                  Tags:
+                  {% for tag in tags %}
+                    <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
+                  {% endfor %}
+                  <br>
+                  {% if request.user.is_active %}
+                  <a href="{{ url('main:event_edit', event.slug) }}">You can edit the event tags</a>
+                  {% endif %}
+                </p>
+             {% endif %}
             </div>
           </div>
 
@@ -224,26 +237,6 @@
             </div>
           </div>
         {% endif %}
-
-        <div class="tab">
-          <input type="radio" id="tab-2" name="tab-group-1">
-          <label for="tab-2">Tags</label>
-          <div class="content">
-            <p>
-            {% if tags and request.user.is_active %}
-               {% for tag in tags %}
-                 <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
-               {% endfor %}
-               <br>
-               <a href="{{ url('main:event_edit', event.slug) }}">You can edit the event tags</a>
-           {% elif not tags and request.user.is_active %}
-               <a href="{{ url('main:event_edit', event.slug) }}">Help us assign some tags for this event</a>
-           {% elif not request.user.is_active %}
-               <p>Sign in so you can help adding tags to this event</p>
-           {% endif %}
-           </p>
-          </div>
-        </div>
 
         {% if channels %}
           <div class="tab">
