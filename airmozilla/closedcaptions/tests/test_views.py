@@ -6,8 +6,11 @@ from django.core.urlresolvers import reverse
 from django.core.files import File
 
 from airmozilla.base.tests.testbase import DjangoTestCase
-from airmozilla.main.models import Event
-from airmozilla.closedcaptions.models import ClosedCaptions
+from airmozilla.main.models import Event, Template
+from airmozilla.closedcaptions.models import (
+    ClosedCaptions,
+    ClosedCaptionsTranscript,
+)
 
 TEST_DIRECTORY = os.path.dirname(__file__)
 
@@ -184,3 +187,47 @@ class TestClosedCaptions(DjangoTestCase):
         ok_(response.content.startswith(
             'WEBVTT\n\n00:00.983 -->'
         ))
+
+    def test_view_event_with_transcript(self):
+        filepath = os.path.join(TEST_DIRECTORY, 'example.dfxp')
+        with open(filepath) as f:
+            item = ClosedCaptions.objects.create(
+                event=self.event,
+                file=File(f),
+            )
+        item.set_transcript_from_file()
+        item.save()
+
+        # The transcript download is on the Download tab which
+        # only works if you have a Vid.ly video
+        self.event.template = Template.objects.create(
+            name='Vid.ly',
+            content='<iframe>{{tag}}</iframe>',
+        )
+        self.event.template_environment = {'tag': 'abc123'}
+        self.event.save()
+
+        assert self.event.privacy == Event.PRIVACY_PUBLIC
+
+        url = reverse('main:event', args=(self.event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        download_url = reverse('closedcaptions:download', args=(
+            item.filename_hash,
+            item.id,
+            self.event.slug,
+            'txt'
+        ))
+        # It's not there because the closed captions hasn't
+        # been associated with the event yet.
+        ok_('Transcript:' not in response.content)
+        ok_(download_url not in response.content)
+
+        ClosedCaptionsTranscript.objects.create(
+            event=self.event,
+            closedcaptions=item,
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Transcript:' in response.content)
+        ok_(download_url in response.content)

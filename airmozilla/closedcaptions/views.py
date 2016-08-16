@@ -12,11 +12,10 @@ class TxtWriter(pycaption.base.BaseWriter):
         captions = caption_set.get_captions(lang)
         output = 'Language: {}\n\n'.format(lang)
         for caption in captions:
-            output += '{start} --> {end}\n{text}\n\n'.format(
-                start=caption.format_start(),
-                end=caption.format_end(),
-                text=caption.get_text().replace('\n', ' '),
-            )
+            line = caption.get_text().replace('\n', ' ')
+            if line.startswith('- '):
+                output += '\n\n'
+            output += line + ' '
         return output
 
 

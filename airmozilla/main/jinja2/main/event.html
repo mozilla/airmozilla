@@ -309,6 +309,7 @@
           </div>
         {% endif %}
 
+        XXXXXXXXXXX:{{pending}},{{video}},{{event.is_public()}},{{not event.needs_approval()}}
         {% if not pending and video and event.is_public() and not event.needs_approval() %}
           <div class="tab">
             <input type="radio" id="tab-embed" name="tab-group-1">
@@ -339,7 +340,26 @@
                 (<a href="https://vid.ly/{{ vidly_tag }}?content=video&amp;format=hd_mp4"
                    download="{{ event.slug }}-hd.mp4">HD</a>)
                 {% endif %}
-                <br>
+                <br />
+                CLOSEDCAPTIONS:{{closedcaptions}}
+                {% if closedcaptions %}
+                  Transcript:
+                  <a
+                    href="{{ url('closedcaptions:download', closedcaptions.filename_hash, closedcaptions.id, event.slug, 'txt') }}"
+                    title="No timestamp markers"
+                  >Plain text</a>,
+                  <a
+                    href="{{ url('closedcaptions:download', closedcaptions.filename_hash, closedcaptions.id, event.slug, 'srt') }}"
+                  >SRT</a>,
+                  <a
+                    href="{{ url('closedcaptions:download', closedcaptions.filename_hash, closedcaptions.id, event.slug, 'vtt') }}"
+                  >WebVTT</a>,
+                  <a
+                    href="{{ url('closedcaptions:download', closedcaptions.filename_hash, closedcaptions.id, event.slug, 'dfxp') }}"
+                  >DFXP/TTML</a>
+                  <br />
+                  <br />
+                {% endif %}
                 To download, right-click and select &quot;Save Link As...&quot;
               </p>
             </div>
