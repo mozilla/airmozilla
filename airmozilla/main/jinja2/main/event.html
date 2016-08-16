@@ -309,7 +309,6 @@
           </div>
         {% endif %}
 
-        XXXXXXXXXXX:{{pending}},{{video}},{{event.is_public()}},{{not event.needs_approval()}}
         {% if not pending and video and event.is_public() and not event.needs_approval() %}
           <div class="tab">
             <input type="radio" id="tab-embed" name="tab-group-1">
