@@ -7,6 +7,7 @@ import os
 import urlparse
 import random
 
+import boto
 import fanout
 import pytz
 import requests
@@ -326,3 +327,23 @@ def build_absolute_url(uri):
     site = Site.objects.get_current()
     base = 'https://%s' % site.domain  # yuck!
     return urlparse.urljoin(base, uri)
+
+
+def delete_s3_keys_by_urls(urls):
+    if not isinstance(urls, (list, tuple)):
+        urls = [urls]
+
+    s3_keys = []
+    for url in urls:
+        key = urlparse.urlparse(url).path
+        s3_keys.append(key)
+    if s3_keys:
+        conn = boto.connect_s3(
+            settings.AWS_ACCESS_KEY_ID,
+            settings.AWS_SECRET_ACCESS_KEY
+        )
+        bucket = conn.get_bucket(settings.S3_UPLOAD_BUCKET)
+        for key in s3_keys:
+            bucket.delete_key(key)
+
+    return s3_keys

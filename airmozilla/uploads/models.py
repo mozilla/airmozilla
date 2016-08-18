@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Q
 
-from airmozilla.main.models import Event, SuggestedEvent
+from airmozilla.main.models import Event, SuggestedEvent, VidlySubmission
 
 
 class Upload(models.Model):
@@ -30,3 +31,10 @@ class Upload(models.Model):
     @property
     def upload_speed(self):
         return float(self.size) / self.upload_time
+
+    def get_vidly_submissions(self):
+        return VidlySubmission.objects.filter(
+            event=self.event
+        ).filter(
+            Q(url=self.url) | Q(url=self.url + '?nocopy')
+        )

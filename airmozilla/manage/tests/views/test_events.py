@@ -1716,6 +1716,134 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 302)
         ok_(not VidlySubmission.objects.filter(id=submission.id))
 
+    @mock.patch('boto.connect_s3')
+    @mock.patch('airmozilla.manage.vidly.urllib2')
+    def test_delete_event_vidly_submissions_and_uploads(
+        self,
+        p_urllib2,
+        mocked_connect_s3,
+    ):
+
+        def mocked_urlopen(request):
+            if '<MediaShortLink>abc456</MediaShortLink>' in request.data:
+                return StringIO("""
+                <?xml version="1.0"?>
+                <Response>
+                  <Message>Success</Message>
+                  <MessageCode>0.0</MessageCode>
+                  <Success>
+                    <MediaShortLink>abc456</MediaShortLink>
+                  </Success>
+                  <Errors>
+                    <Error>
+                      <SourceFile>http://www.com</SourceFile>
+                      <ErrorCode>1</ErrorCode>
+                      <Description>ErrorDescriptionK</Description>
+                      <Suggestion>ErrorSuggestionK</Suggestion>
+                    </Error>
+                  </Errors>
+                </Response>
+                """)
+            if '<MediaShortLink>xyz987</MediaShortLink>' in request.data:
+                return StringIO("""
+                <?xml version="1.0"?>
+                <Response>
+                  <Message>Success</Message>
+                  <MessageCode>0.0</MessageCode>
+                  <Success>
+                    <MediaShortLink>xyz987</MediaShortLink>
+                  </Success>
+                  <Errors>
+                    <Error>
+                      <SourceFile>http://www.com</SourceFile>
+                      <ErrorCode>1</ErrorCode>
+                      <Description>ErrorDescriptionK</Description>
+                      <Suggestion>ErrorSuggestionK</Suggestion>
+                    </Error>
+                  </Errors>
+                </Response>
+                """)
+            raise NotImplementedError
+
+        def mocked_Request(url, data, **kwargs):
+            req = mock.MagicMock()
+            req.data = urllib.unquote_plus(data)
+            return req
+
+        p_urllib2.Request = mocked_Request
+        p_urllib2.urlopen = mocked_urlopen
+
+        event = Event.objects.get(title='Test event')
+        template = event.template
+        template.name = 'Vid.ly Fun'
+        template.save()
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+
+        url = reverse('manage:event_vidly_submissions', args=(event.pk,))
+
+        # add one
+        vs1 = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url.file',
+            hd=True,
+            token_protection=False,
+            tag='abc123',
+        )
+        vs2 = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url2.file',
+            hd=True,
+            token_protection=False,
+            tag='abc456',
+        )
+        vs3 = VidlySubmission.objects.create(
+            event=event,
+            url='http://something.long/url3.file?nocopy',
+            hd=True,
+            token_protection=False,
+            tag='xyz987',
+        )
+
+        Upload.objects.create(
+            user=self.user,
+            event=event,
+            url=vs1.url,
+            size=111,
+        )
+        Upload.objects.create(
+            user=self.user,
+            event=event,
+            url=vs2.url,
+            size=222,
+        )
+        Upload.objects.create(
+            user=self.user,
+            event=event,
+            url=vs3.url.replace('?nocopy', ''),
+            size=333,
+        )
+
+        response = self.client.post(url, {
+            'id': [vs2.id, vs3.id],
+            'uploads_too': True,
+        })
+        eq_(response.status_code, 302)
+        ok_(VidlySubmission.objects.filter(tag='abc123'))
+        ok_(not VidlySubmission.objects.filter(tag='abc456'))
+        ok_(not VidlySubmission.objects.filter(tag='xyz987'))
+        ok_(Upload.objects.filter(size=111))
+        ok_(not Upload.objects.filter(size=222))
+        ok_(not Upload.objects.filter(size=333))
+        assert Upload.objects.filter(event=event).count() == 1
+
+        mocked_connect_s3().get_bucket().delete_key.assert_any_call(
+            '/url2.file'
+        )
+        mocked_connect_s3().get_bucket().delete_key.assert_any_call(
+            '/url3.file'
+        )
+
     def test_event_vidly_submission(self):
         event = Event.objects.get(title='Test event')
         submission = VidlySubmission.objects.create(
@@ -2448,7 +2576,7 @@ class TestEvents(ManageTestCase):
         dt = dt.replace(tzinfo=utc)
         eq_(event.archive_time, dt)
 
-    @mock.patch('airmozilla.manage.views.events.boto.connect_s3')
+    @mock.patch('boto.connect_s3')
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_event_delete(self, p_urllib2, mocked_connect_s3):
 

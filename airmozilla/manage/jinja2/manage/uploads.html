@@ -27,12 +27,17 @@
   </div>
   {% endif %}
 
+  <form action="" method="post">{% csrf_token %}
+
+
   <table class="table">
     <thead>
       <tr>
         {% if not event %}
         <th>Event</th>
         <th>Status</th>
+        {% else %}
+        <th></th>
         {% endif %}
         <th>URL</th>
         <th>Size</th>
@@ -66,6 +71,16 @@
           </span>
           {% endif %}
         </td>
+        {% else %}
+        <td>
+          {% for vidly_submission in upload.get_vidly_submissions() %}
+            <a
+              href="{{ url('manage:event_vidly_submissions', vidly_submission.event.id) }}"
+              title="This upload is associated with a Vid.ly submission">n/a</a>
+          {% else %}
+            <input type="checkbox" name="ids" value="{{ upload.id }}" />
+          {% endfor %}
+        </td>
         {% endif %}
         <td>
           <a href="{{ upload.url }}">{{ urlparse(upload.url).path.split('/')[-1] }}</a>
@@ -90,6 +105,11 @@
       {% endfor %}
     </tbody>
   </table>
+  {% if event %}
+    <input type="hidden" name="event" value="{{ event.id }}">
+    <button type="submit" class="btn btn-primary">Delete selected uploads</button>
+  {% endif %}
+  </form>
   {% include "manage/_paginate.html" %}
 
   {% if event %}

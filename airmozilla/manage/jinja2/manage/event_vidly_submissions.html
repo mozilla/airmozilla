@@ -122,9 +122,16 @@
     </tbody>
   </table>
 
-  <button type="submit" class="btn btn-primary">Delete selected submissions from Vid.ly</button>
   <input type="checkbox" name="forced" value="1" id="id_forced">
   <label for="id_forced">Delete even submissions not found on Vid.ly</label>
+  <br>
+
+  <input type="checkbox" name="uploads_too" value="1" id="id_uploads_too" checked>
+  <label for="id_uploads_too">Delete associated upload(s) too</label>
+  <br>
+
+  <button type="submit" class="btn btn-primary">Delete selected submissions from Vid.ly</button>
+
 </form>
 
   {% include "manage/_paginate.html" %}

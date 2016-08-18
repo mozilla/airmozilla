@@ -7,7 +7,6 @@ import os
 
 import pytz
 import vobject
-import boto
 
 from django.conf import settings
 from django import http
@@ -37,6 +36,7 @@ from airmozilla.base.utils import (
     shorten_url,
     get_base_url,
     prepare_vidly_video_url,
+    delete_s3_keys_by_urls,
 )
 from airmozilla.main.models import (
     Approval,
@@ -798,18 +798,9 @@ def event_delete(request, id):
     """
     event = get_object_or_404(Event, id=id, status=Event.STATUS_REMOVED)
 
-    s3_keys = {}
-    for upload in Upload.objects.filter(event=event):
-        key = urlparse.urlparse(upload.url).path
-        s3_keys[upload.id] = key
-    if s3_keys:
-        conn = boto.connect_s3(
-            settings.AWS_ACCESS_KEY_ID,
-            settings.AWS_SECRET_ACCESS_KEY
-        )
-        bucket = conn.get_bucket(settings.S3_UPLOAD_BUCKET)
-        for id, key in s3_keys.items():
-            bucket.delete_key(key)
+    s3_keys = delete_s3_keys_by_urls(
+        [upload.url for upload in Upload.objects.filter(event=event)]
+    )
 
     no_vidly_medias = 0
     for submission in VidlySubmission.objects.filter(event=event):
@@ -979,6 +970,7 @@ def event_vidly_submissions(request, id):
     if request.method == 'POST':
         ids = request.POST.getlist('id')
         forced = request.POST.get('forced')
+        uploads_too = request.POST.get('uploads_too')
         submissions = submissions.filter(id__in=ids)
         if not forced:
             submissions = submissions.filter(tag__isnull=False)
@@ -988,13 +980,34 @@ def event_vidly_submissions(request, id):
             return http.HttpResponseBadRequest(
                 "Can not delete because it's in use"
             )
-        deletions = failures = 0
+
+        uploads_map = collections.defaultdict(list)
+        if uploads_too:
+            for submission in submissions:
+                # This submission belongs to an event AND a URL.
+                # Similarly, uploads belong to an event AND a URL too.
+                # Make sure that adds up and that there's exactly only one
+                uploads = Upload.objects.filter(
+                    event=submission.event
+                ).filter(
+                    Q(url=submission.url.replace('?nocopy', '')) |
+                    Q(url=submission.url)
+                )
+                for upload in uploads:
+                    uploads_map[submission].append(upload)
+
+        deletions = failures = upload_deletions = 0
         for submission in submissions:
             if submission.tag:
                 results = vidly.delete_media(submission.tag)
             else:
                 assert forced
                 results = ''
+            for upload in uploads_map.get(submission, []):
+                # delete the upload AND the record of it too
+                if delete_s3_keys_by_urls(upload.url):
+                    upload_deletions += 1
+                    upload.delete()
             if forced or submission.tag in results:
                 submission.delete()
                 deletions += 1
@@ -1002,8 +1015,9 @@ def event_vidly_submissions(request, id):
                 failures += 1
         messages.success(
             request,
-            "%s vidly submissions deleted. %s failures" % (
+            "%s vidly submissions deleted. %s uploads deleted. %s failures" % (
                 deletions,
+                upload_deletions,
                 failures
             )
         )

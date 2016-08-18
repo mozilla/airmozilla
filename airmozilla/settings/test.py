@@ -39,6 +39,8 @@ SITE_URL = 'http://localhost:8000'
 
 AWS_ACCESS_KEY_ID = AWS_SECRET_ACCESS_KEY = 'something'
 
+S3_UPLOAD_BUCKET = 'test----air-mozilla-uploads'
+
 EDGECAST_SECURE_KEY = 'soemthing'
 
 AKAMAI_SECURE_KEY = 'something'
