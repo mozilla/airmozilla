@@ -8,7 +8,7 @@ import time
 import uuid
 
 from django import http
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.template.defaultfilters import filesizeformat
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -21,7 +21,7 @@ from django.core.urlresolvers import reverse
 import requests
 from jsonview.decorators import json_view
 
-from airmozilla.main.models import Event, SuggestedEvent
+from airmozilla.main.models import Event
 from .models import Upload
 from . import forms
 
@@ -128,6 +128,10 @@ def sign(request):
 @transaction.atomic
 def save(request):
     form = forms.SaveForm(request.POST)
+    event = None
+    if request.POST.get('event_id'):
+        # check that it's a valid Event object
+        event = get_object_or_404(Event, id=request.POST['event_id'])
     if not form.is_valid():
         return http.HttpResponseBadRequest(str(form.errors))
     url = form.cleaned_data['url']
@@ -160,30 +164,16 @@ def save(request):
         'Upload saved.'
     )
     context = {'id': new_upload.pk, 'url': new_upload.url}
-    if request.session.get('active_event'):
-        event_id = request.session['active_event']
-        event = Event.objects.get(pk=event_id)
+    if event:
         event.upload = new_upload
         event.save()
         new_upload.event = event
         new_upload.save()
-        next_url = reverse('manage:event_archive', args=(event_id,))
+        next_url = reverse('manage:event_archive', args=(event.id,))
         next_url += '#vidly-shortcutter'
         context['event'] = {
             'url': next_url,
             'title': event.title,
-        }
-    elif request.session.get('active_suggested_event'):
-        event_id = request.session['active_suggested_event']
-        event = SuggestedEvent.objects.get(pk=event_id)
-        event.upload = new_upload
-        event.save()
-        new_upload.suggested_event = event
-        new_upload.save()
-        next_url = reverse('suggest:description', args=(event_id,))
-        context['suggested_event'] = {
-            'url': next_url,
-            'title': event.title
         }
     return context
 

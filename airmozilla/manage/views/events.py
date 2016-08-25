@@ -863,7 +863,6 @@ def event_upload(request, id):
 
     context['chapters'] = Chapter.objects.filter(event=event)
 
-    request.session['active_event'] = event.pk
     return render(request, 'manage/event_upload.html', context)
 
 

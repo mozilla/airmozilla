@@ -124,7 +124,8 @@ class TestUploads(DjangoTestCase):
 
         url = reverse('uploads:save')
         response = self.client.post(url, {
-            'url': 'https://aws.com/foo.flv'
+            'url': 'https://aws.com/foo.flv',
+            'event_id': event.id,
         })
         eq_(response.status_code, 200)
         structure = json.loads(response.content)

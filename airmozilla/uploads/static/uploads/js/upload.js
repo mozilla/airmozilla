@@ -8,6 +8,7 @@ $(function() {
     progress_value.text('0 %');
     var verify_size_url = form.data('verify_size_url');
     var save_url = form.data('save_url');
+    var event_id = form.data('event-id');
 
     $('button.start', form).click(function() {
         if (!$('#file').val()) {
@@ -48,7 +49,8 @@ $(function() {
                       var params = {
                           url: url,
                           upload_time: duration,
-                          csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val()
+                          csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]', form).val(),
+                          event_id: event_id,
                       };
                       $.post(save_url, params)
                         .then(function(response) {

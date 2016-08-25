@@ -40,6 +40,7 @@
         data-sign_upload_url="{{ url('uploads:sign') }}"
         data-verify_size_url="{{ url('uploads:verify_size') }}"
         data-save_url="{{ url('uploads:save') }}"
+        data-event-id="{{ event.pk }}"
         data-vidly-shortcut-url="{{ url('manage:vidly_url_to_shortcode', event.pk) }}"
         data-vidly-submit-details='{{ json_print(vidly_submit_details) }}'
         data-event-archive-url="{{ url('manage:event_archive', event.pk) }}"
