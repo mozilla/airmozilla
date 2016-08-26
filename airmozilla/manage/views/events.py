@@ -41,6 +41,7 @@ from airmozilla.base.utils import (
 from airmozilla.main.models import (
     Approval,
     Event,
+    EventMetadata,
     EventTweet,
     Location,
     Template,
@@ -754,6 +755,60 @@ def event_edit_duration(request, id):
         'form': form,
     }
     return render(request, 'manage/event_edit_duration.html', context)
+
+
+@staff_required
+@permission_required('main.change_event')
+@cancel_redirect(lambda r, id: reverse('manage:event_edit', args=(id,)))
+@transaction.atomic
+def event_edit_metadata(request, id):
+    event = get_object_or_404(Event, id=id)
+    result = can_edit_event(event, request.user)
+    if isinstance(result, http.HttpResponse):
+        return result
+
+    if request.method == 'POST':
+        if request.POST.get('delete_key'):
+            get_object_or_404(
+                EventMetadata,
+                event=event,
+                key__iexact=request.POST['delete_key'],
+            ).delete()
+            messages.success(
+                request,
+                'Metadata key deleted.'
+            )
+            return redirect('manage:event_edit_metadata', event.id)
+        else:
+            form = forms.EventMetadataForm(request.POST)
+            if form.is_valid():
+                try:
+                    item = EventMetadata.objects.get(
+                        event=event,
+                        key__iexact=form.cleaned_data['key']
+                    )
+                    item.key = form.cleaned_data['key']
+                    item.value = form.cleaned_data['value']
+                    item.save()
+                except EventMetadata.DoesNotExist:
+                    EventMetadata.objects.create(
+                        event=event,
+                        key=form.cleaned_data['key'],
+                        value=form.cleaned_data['value'],
+                    )
+                messages.success(
+                    request,
+                    'Metadata on event saved.'
+                )
+                return redirect('manage:event_edit_metadata', event.id)
+    else:
+        form = forms.EventMetadataForm()
+
+    context = {
+        'event': event,
+        'form': form,
+    }
+    return render(request, 'manage/event_edit_metadata.html', context)
 
 
 @cache_page(60)

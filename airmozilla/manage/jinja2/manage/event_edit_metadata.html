@@ -1,0 +1,73 @@
+{% extends 'manage/event_request.html' %}
+{% set page = "events" %}
+
+{% block manage_title %}
+  Event Metadata "{{ event.title }}"
+{% endblock %}
+
+
+{% block manage_content %}
+
+{% include "manage/_alert_form_errors.html" %}
+<form method="post" class="form-horizontal" role="form">
+  {% csrf_token %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>
+          Key
+        </th>
+        <th>
+          Value
+        </th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr>
+        <td>
+          {{ form.key }}
+          {{ form.errors.key }}
+        </td>
+        <td>
+          {{ form.value }}
+          {{ form.errors.value }}
+        </td>
+        <td>
+
+        </td>
+      </tr>
+    </tfoot>
+    <tbody>
+      {% for key, value in event.metadata %}
+      <tr>
+        <td>
+          <b>{{ key }}</b>
+        </td>
+        <td>
+          {{ value }}
+        </td>
+        <td>
+          <button
+            type="submit"
+            name="delete_key"
+            value="{{ key }}"
+            class="btn btn-danger btn-sm">
+            <i class="glyphicon glyphicon-trash"></i>
+            Delete
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+  {% include "manage/_form_buttons.html" %}
+</form>
+
+
+
+  <p>
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

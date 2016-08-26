@@ -21,6 +21,7 @@ from airmozilla.manage import url_transformer
 from airmozilla.main.models import (
     Approval,
     Event,
+    EventMetadata,
     EventTweet,
     Location,
     Region,
@@ -1131,6 +1132,21 @@ class EventDurationForm(BaseModelForm):
             "Note! If you remove this value (make it blank), it will be "
             "unset and automatically be re-evaluated."
         )
+
+
+class EventMetadataForm(BaseModelForm):
+
+    class Meta:
+        model = EventMetadata
+        fields = ('key', 'value')
+        widgets = {
+            'key': forms.widgets.TextInput(
+                attrs={'placeholder': 'New key...'}
+            ),
+            'value': forms.widgets.Textarea(
+                attrs={'cols': 80, 'rows': 2}
+            ),
+        }
 
 
 class EmailSendingForm(BaseForm):

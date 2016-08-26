@@ -512,6 +512,14 @@ class Event(models.Model):
                 start_time.strftime('%d %b %Y')
             )
 
+    @property
+    def metadata(self):
+        items = []
+        qs = EventMetadata.objects.filter(event=self)
+        for each in qs.order_by('created'):
+            items.append((each.key, each.value))
+        return items
+
 
 def most_recent_event():
     cache_key = 'most_recent_event'
@@ -549,6 +557,17 @@ def reset_event_unique_title(sender, instance, **kwargs):
     for event in Event.objects.filter(title=instance.title):
         cache_key = 'unique_title_{}'.format(event.id)
         cache.delete(cache_key)
+
+
+class EventMetadata(models.Model):
+    event = models.ForeignKey(Event)
+    key = models.CharField(max_length=300)
+    value = models.TextField()
+    modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['event', 'key']
 
 
 class EventEmail(models.Model):

@@ -72,6 +72,27 @@
     </p>
     {% endif %}
 
+    <p class="side-section">
+      Event Metadata
+    </p>
+    {% if event.metadata %}
+      <table>
+        {% for key, value in event.metadata %}
+          <tr>
+            <th>
+              {{ key }}
+            </th>
+            <td>
+              {{ value | text_to_html }}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+    <p>
+      <a href="{{ url('manage:event_edit_metadata', event.pk) }}" class="btn btn-primary btn-sm">Manage Metadata</a>
+    </p>
+
     {% if event.duration %}
     <p>
       <b>Duration:</b>

@@ -22,6 +22,7 @@ from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import (
     Event,
+    EventMetadata,
     EventOldSlug,
     Location,
     Template,
@@ -2372,6 +2373,37 @@ class TestEvents(ManageTestCase):
         ok_('Archived hits:' in response.content)
         ok_('1,234' in response.content)
 
+    def test_event_edit_with_metadata(self):
+        event = Event.objects.get(title='Test event')
+        EventMetadata.objects.create(
+            event=event,
+            key='Key',
+            value='Value <b>with</b> html'
+        )
+        EventMetadata.objects.create(
+            event=event,
+            key='XSS',
+            value='<script>xss</script>'
+        )
+        EventMetadata.objects.create(
+            event=event,
+            key='Urrrl',
+            value='https://www.example.com'
+        )
+        url = reverse('manage:event_edit', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_('Value <b>with</b> html' in response.content)
+        ok_('<script>xss</script>' not in response.content)
+        ok_('&lt;script&gt;xss&lt;/script&gt;' in response.content)
+        ok_(
+            '<a href="https://www.example.com">https://www.example.com</a>' in
+            response.content
+        )
+        # Also, there should be a link to edit the metadata
+        url = reverse('manage:event_edit_metadata', args=(event.id,))
+        ok_(url in response.content)
+
     @mock.patch('airmozilla.manage.vidly.urllib2')
     def test_is_privacy_vidly_mismatch(self, p_urllib2):
 
@@ -2903,11 +2935,50 @@ class TestEvents(ManageTestCase):
         eq_(response.status_code, 302)
         eq_(Event.objects.get(id=event.id).duration, 60 * 5 + 20)
 
-    # def test_change_upload(self):
-    #     """An event has been successfully archived, but someone decides
-    #     to upload a different video, submit that to vid.ly and re-archive
-    #     it.
-    #
-    #     What should happen is that the event should now NOT be archived.
-    #     """
-    #
+    def test_event_edit_metadata(self):
+
+        event = Event.objects.get(title='Test event')
+        url = reverse('manage:event_edit_metadata', args=(event.id,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+
+        assert not event.metadata
+
+        response = self.client.post(url, {
+            'key': 'something',
+            'value': '',
+        })
+        eq_(response.status_code, 200)
+        response = self.client.post(url, {
+            'key': ' ',
+            'value': 'something',
+        })
+        eq_(response.status_code, 200)
+        assert not EventMetadata.objects.all().exists()
+
+        response = self.client.post(url, {
+            'key': 'Key',
+            'value': 'Value',
+        })
+        eq_(response.status_code, 302)
+        ok_(EventMetadata.objects.get(
+            event=event,
+            key='Key',
+            value='Value'
+        ))
+        response = self.client.post(url, {
+            'key': 'kEY',
+            'value': 'Different value',
+        })
+        ok_(EventMetadata.objects.get(
+            event=event,
+            key='kEY',
+            value='Different value'
+        ))
+        eq_(EventMetadata.objects.all().count(), 1)
+
+        response = self.client.post(url, {
+            'delete_key': 'kEy',
+        })
+        # Now delete it
+        eq_(EventMetadata.objects.all().count(), 0)

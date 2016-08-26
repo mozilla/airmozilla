@@ -164,6 +164,11 @@ def safe_html(text):
     return jinja2.Markup(text)
 
 
+@library.filter
+def text_to_html(text):
+    return safe_html(bleach.linkify(text))
+
+
 @library.global_function
 def show_thumbnail(
     event,
