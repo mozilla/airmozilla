@@ -20,10 +20,14 @@
     </a>
 
     {{ star_tag(event.id, star_on and 'star-on' or None) }}
+    {% if event.privacy == Event.PRIVACY_CONTRIBUTORS and not request.user.is_active %}
+      {% include "main/_contributor_teaser.html" %}
+    {% else %}
     <p>
       {{ short_desc(event) | safe_html }}
       <a class="go" href="{{ href }}">{{ _('See more') }}</a>
     </p>
+    {% endif %}
   </div>
 </article>
 {% endfor %}

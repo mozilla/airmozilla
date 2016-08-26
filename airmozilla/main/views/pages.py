@@ -79,7 +79,8 @@ def home(request, page=1, channel_slug=settings.DEFAULT_CHANNEL_SLUG):
         if is_contributor(request.user):
             privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
     else:
-        privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+        # privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+        privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
         archived_events = archived_events.approved()
 
     if privacy_filter:

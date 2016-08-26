@@ -54,7 +54,8 @@ def home(request):
             if is_contributor(request.user):
                 privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
         else:
-            privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+            # privacy_filter = {'privacy': Event.PRIVACY_PUBLIC}
+            privacy_exclude = {'privacy': Event.PRIVACY_COMPANY}
             qs = qs.approved()
 
         extra = {}

@@ -33,7 +33,7 @@ class TestStarredEvent(DjangoTestCase):
         return Event.objects.create(
             title=title,
             slug='event' + str(event_count),
-            description=event.description,
+            description=event.description + ' ' + title,
             start_time=event.start_time,
             archive_time=event.archive_time,
             privacy=Event.PRIVACY_PUBLIC,
@@ -245,10 +245,11 @@ class TestStarredEvent(DjangoTestCase):
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
         eq_(response.status_code, 200)
-
         # verify correct events load
         ok_(event1.title in response.content)
-        ok_(event2.title not in response.content)
+        ok_(event1.description in response.content)
+        ok_(event2.title in response.content)
+        ok_(event2.description not in response.content)
         ok_(event3.title not in response.content)
 
     def test_anonymous_starred_events_bad_ids(self):

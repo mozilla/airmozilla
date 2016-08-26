@@ -1,6 +1,7 @@
 import collections
 
 from django import http
+from django.db.models import Q
 from django.shortcuts import render
 from django.views.decorators import cache
 from django.core.urlresolvers import reverse
@@ -63,7 +64,12 @@ def home(request, page=1):
             ids = [int(x) for x in ids.split(',')]
         except ValueError:
             return http.HttpResponseBadRequest('invalid id')
-        events = Event.objects.filter(id__in=ids, privacy=Event.PRIVACY_PUBLIC)
+        events = Event.objects.filter(
+            id__in=ids
+        ).filter(
+            Q(privacy=Event.PRIVACY_PUBLIC) |
+            Q(privacy=Event.PRIVACY_CONTRIBUTORS)
+        )
         events = sorted(events, key=lambda e: ids.index(e.id))
     else:
         events = None

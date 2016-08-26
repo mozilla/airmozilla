@@ -125,7 +125,9 @@ class TestSearch(DjangoTestCase):
 
         response = self.client.get(url, {'q': 'entirely'})
         eq_(response.status_code, 200)
-        ok_('Nothing found' in response.content)
+        ok_('Nothing found' not in response.content)
+        ok_(event.title in response.content)
+        ok_(event.description not in response.content)
 
         contributor = User.objects.create_user(
             'nigel', 'nigel@live.com', 'secret'
@@ -139,6 +141,7 @@ class TestSearch(DjangoTestCase):
         eq_(response.status_code, 200)
         ok_('Nothing found' not in response.content)
         ok_(event.title in response.content)
+        ok_(event.description in response.content)
 
         event.privacy = Event.PRIVACY_COMPANY
         event.save()

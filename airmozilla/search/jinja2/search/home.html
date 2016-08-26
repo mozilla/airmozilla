@@ -120,10 +120,18 @@
             <span class="transcript">{{ event.transcript_highlit | safe }}</span>
 
           {% else %}
-            {{ short_desc(event) }}
+            {% if event.privacy == Event.PRIVACY_CONTRIBUTORS and not request.user.is_active %}
+              {% include "main/_contributor_teaser.html" %}
+            {% else %}
+              {{ short_desc(event) }}
+
+            {% endif %}
           {% endif %}
 
-          <a class="go" href="{{ href }}">{{ _('See more') }}</a>
+          {% if not (event.privacy == Event.PRIVACY_CONTRIBUTORS and not request.user.is_active) %}
+          <a class="go" href="{{ href }}">See more</a>
+          {% endif %}
+
         </p>
         {{ star_tag(event.id) }}
       </div>
@@ -143,16 +151,12 @@
     <ul role="navigation">
       {% if next_page_url %}
         <li class="next">
-          <a href="{{ next_page_url }}">
-            {{ _('Next page') }}
-          </a>
+          <a href="{{ next_page_url }}">Next page</a>
         </li>
       {% endif %}
       {% if prev_page_url %}
         <li class="prev">
-          <a href="{{ prev_page_url }}">
-            {{ _('Previous page') }}
-          </a>
+          <a href="{{ prev_page_url }}">Previous page</a>
         </li>
       {% endif %}
     </ul>
