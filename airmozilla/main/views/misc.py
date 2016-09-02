@@ -43,20 +43,6 @@ def edgecast_smil(request):
     return response
 
 
-def crossdomain_xml(request):
-    response = http.HttpResponse(content_type='text/xml')
-    response.write(
-        '<?xml version="1.0"?>\n'
-        '<!DOCTYPE cross-domain-policy SYSTEM '
-        '"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">\n'
-        '<cross-domain-policy>'
-        '<allow-access-from domain="*" />'
-        '</cross-domain-policy>'
-    )
-    response['Access-Control-Allow-Origin'] = '*'
-    return response
-
-
 @login_required
 @json_view
 def curated_groups_autocomplete(request):

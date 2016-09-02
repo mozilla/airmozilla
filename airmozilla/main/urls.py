@@ -131,7 +131,4 @@ urlpatterns = patterns(
     url(r'^edgecast.smil$',
         misc.edgecast_smil,
         name='edgecast_smil'),
-    url(r'^crossdomain.xml$',
-        misc.crossdomain_xml,
-        name='crossdomain_xml'),
 )
