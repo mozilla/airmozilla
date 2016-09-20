@@ -1,0 +1,13 @@
+form textarea {
+    height: 100px;
+}
+
+.comment {
+    margin-left: 160px;
+    margin-bottom: 10px;
+    border-bottom: 4px solid rgb(250, 250, 250);
+}
+
+.comment-text {
+    font-style: italic;
+}

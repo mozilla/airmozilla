@@ -1,0 +1,13 @@
+.loading {
+    margin: 200px auto;
+    width: 50%;
+}
+
+input[name="title"], input[name="location"] {
+    /*width: 250px;*/
+    width: 100%;
+}
+
+th a {
+    cursor: pointer;
+}

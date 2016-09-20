@@ -1,0 +1,18 @@
+#users-stats {
+    float: right;
+    font-size: 80%;
+}
+
+.loading {
+    margin: 200px auto;
+    width: 50%;
+}
+
+input[name="group"], input[name="email"] {
+    /*width: 250px;*/
+    width: 100%;
+}
+
+th a {
+    cursor: pointer;
+}

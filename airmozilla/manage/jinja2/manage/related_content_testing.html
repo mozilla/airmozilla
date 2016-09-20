@@ -7,17 +7,7 @@
 
 {% block site_css %}
   {{ super() }}
-  <style type="text/css">
-  span.stopword { color: #ccc; }
-  span.match { color: #feabab; }
-  #id_event {
-      width: 500px;
-  }
-  input[type="number"] {
-      width: 100px;
-  }
-  pre.explanation { display: none; }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/related-content-testing.css') }}" />
 {% endblock %}
 
 

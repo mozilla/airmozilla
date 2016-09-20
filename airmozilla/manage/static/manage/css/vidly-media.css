@@ -1,0 +1,27 @@
+th.buttons, td.buttons {
+    width: 280px;
+}
+
+form.resubmit {
+    display: none;
+}
+
+form.resubmit #id_url {
+    width: 800px;
+}
+
+div.info {
+    display: none;
+}
+
+td span.errored {
+    color: darkred;
+}
+
+td span.finished {
+    color: green;
+}
+
+.timings-link {
+    float: right;
+}

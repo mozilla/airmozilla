@@ -1,0 +1,8 @@
+td.text {
+    font-size: 0.8em;
+    font-style: italic;
+}
+
+td.buttons {
+    text-align: right;
+}

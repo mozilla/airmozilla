@@ -1,0 +1,19 @@
+span.stopword {
+    color: #ccc;
+}
+
+span.match {
+    color: #feabab;
+}
+
+#id_event {
+    width: 500px;
+}
+
+input[type="number"] {
+    width: 100px;
+}
+
+pre.explanation {
+    display: none;
+}

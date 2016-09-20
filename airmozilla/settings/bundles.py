@@ -200,6 +200,24 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/savedsearches.min.css',
     },
+    'vidly_media_timings': {
+        'source_filenames': (
+            'manage/css/vidly-media-timings.css',
+        ),
+        'output_filename': 'css/vidly-media-timings.min.css',
+    },
+    'cronlogger': {
+        'source_filenames': (
+            'manage/css/cronlogger.css',
+        ),
+        'output_filename': 'css/cronlogger.min.css',
+    },
+    'home': {
+        'source_filenames': (
+            'main/css/home.css',
+        ),
+        'output_filename': 'css/home.min.css',
+    },
 }
 
 #

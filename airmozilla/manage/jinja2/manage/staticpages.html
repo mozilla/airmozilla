@@ -7,14 +7,7 @@
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  .content-preview {
-      max-width: 250px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-  }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/staticpages.css') }}" />
 {% endblock %}
 
 {% block manage_content %}

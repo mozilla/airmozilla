@@ -14,12 +14,7 @@
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  form.stats pre,
-  form.test pre {
-    display: none;
-  }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/autocompeter.css') }}" />
 {% endblock %}
 
 {% block manage_content %}

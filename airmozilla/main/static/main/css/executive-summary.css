@@ -1,0 +1,23 @@
+table.counts, table.hits {
+    width: 100%;
+}
+
+table.hits th {
+    text-align: left;
+}
+
+table.counts th {
+    text-align: right;
+}
+
+td.count {
+    text-align: right;
+}
+
+h3 small {
+    font-size: 50%;
+}
+
+p.prev-next {
+    float: right;
+}

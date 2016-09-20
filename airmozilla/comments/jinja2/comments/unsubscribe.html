@@ -6,26 +6,12 @@ Unsubscribe from reply notifications
 
 {% block site_css %}
 {{ super() }}
-<style type="text/css">
-.main form { margin: 40px; text-align: center; }
-</style>
+<link ref="stylesheet" href="{{ static('new/css/unsubscribe.css') }}" />
 {% endblock %}
-
 
 {% block site_js %}
   {{ super() }}
-  <script>
-  $(function() {
-      $('input[name="cancel"]').click(function() {
-          if ($('a.event').length) {
-              location.href = $('a.event').attr('href');
-          } else {
-              location.href = '/';
-          }
-          return false;
-      });
-  });
-  </script>
+  <script src="{{ static('comments/js/unsubscribe.js') }}"></script>
 {% endblock %}
 
 

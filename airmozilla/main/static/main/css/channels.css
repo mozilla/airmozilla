@@ -1,0 +1,8 @@
+p.feed {
+    float: right;
+}
+
+/* un-hide it */
+#content-sub {
+    display: block;
+}

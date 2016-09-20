@@ -1,4 +1,4 @@
-/*global VIDLY_URL_TO_SHORTCUT */
+var VIDLY_URL_TO_SHORTCUT = $('#vidly-shortcutter').data('vidly-url-to-shortcut');
 
 var VidlyShortcutter = (function() {
     var container = $('#vidly-shortcutter');

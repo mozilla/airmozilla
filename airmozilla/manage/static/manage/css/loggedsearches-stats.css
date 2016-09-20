@@ -1,0 +1,30 @@
+.section {
+    margin-bottom: 50px;
+}
+
+.section h4 {
+    border-top: 1px solid #ccc;
+}
+
+.searches {
+    margin: 0 auto;
+    width: 90%;
+}
+
+.searches th, .searches td {
+    width: 100px;
+}
+
+.searches th {
+    text-align: center;
+}
+
+tr.counts td {
+    font-size: 300%;
+    text-align: center;
+    /*padding: 5px 70px;*/
+}
+
+tr.terms td {
+    vertical-align: top;
+}

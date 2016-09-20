@@ -6,17 +6,7 @@
 
 {% block site_css %}
     {{ super() }}
-    <style type="text/css">
-    form textarea { height: 100px; }
-    .comment {
-        margin-left: 160px;
-        margin-bottom: 10px;
-        border-bottom: 4px solid rgb(250,250,250);
-    }
-    .comment-text {
-        font-style: italic;
-    }
-    </style>
+    <link rel="stylesheet" href="{{ static('manage/css/suggestion-review.css') }}" />
 {% endblock %}
 
 {% block content_class %}col-md-6{% endblock %}

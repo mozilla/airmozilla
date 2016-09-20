@@ -12,15 +12,7 @@
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  /* default for inputs and selects is 240px */
-  #id_user, #id_status {
-      width: 150px;
-  }
-  #id_comment {
-      width: 340px;
-  }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/comments.css') }}" />
 {% endblock %}
 
 

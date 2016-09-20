@@ -5,11 +5,7 @@
 
 {% block site_css %}
 {{ super() }}
-<style type="text/css">
-p.feed { float: right; }
-.channels p.title a { font-weight: bold; }
-#content-sub { display: block; } /* un-hide it */
-</style>
+{% stylesheet 'home' %}
 {% endblock %}
 
 {% block sidebar_inner %}

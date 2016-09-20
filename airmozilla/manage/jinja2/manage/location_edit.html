@@ -9,9 +9,7 @@
   {{ super() }}
   {% stylesheet 'select2' %}
   {% stylesheet 'select2_bootstrap' %}
-  <style>
-  textarea.form-control { height: 100px; }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/location-edit.css') }}" />
 {% endblock %}
 
 {% block site_js %}

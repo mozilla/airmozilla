@@ -29,15 +29,16 @@
     <h4>
       You are here to associate a picture with
       <a href="{{ url('manage:event_edit', event.id) }}">{{ event.title }}</a>
-
-    <script>
-      window.CURRENT_EVENT = {{ event.id }};
-      {% if event.picture %}
-        window.CURRENT_EVENT_PICTURE = {{ event.picture.id }};
-      {% endif %}
-    </script>
-
     </h4>
+
+    <div id="current-event" style="display:none"
+      data-current-event="{{ event.id }}">
+      {% if event.picture %}
+      <div id="current-event-picture"
+        data-current-event-picture="{{ event.picture.id }}">
+      </div>
+      {% endif %}
+    </div>
 
     {% if event.placeholder_img %}
 

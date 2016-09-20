@@ -7,24 +7,7 @@
 
 {% block site_css %}
   {{ super() }}
-  <style type="text/css">
-  #users-stats {
-      float: right;
-      font-size: 80%;
-  }
-  .loading {
-      margin: 200px auto;
-      width: 50%;
-  }
-  input[name="group"],
-  input[name="email"] {
-      /*width: 250px;*/
-      width: 100%;
-  }
-  th a {
-      cursor: pointer;
-  }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/users.css') }}" />
 {% endblock %}
 
 {% block site_js %}

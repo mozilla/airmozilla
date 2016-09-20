@@ -6,26 +6,7 @@ Weekly Utilization Report | {{ super() }}
 
 {% block site_css %}
 {{ super() }}
-<style type="text/css">
-table.counts, table.hits {
-    width: 100%;
-}
-table.hits th {
-    text-align: left;
-}
-table.counts th {
-    text-align: right;
-}
-td.count {
-    text-align: right;
-}
-h3 small {
-    font-size: 50%;
-}
-p.prev-next {
-    float: right;
-}
-</style>
+<link rel="stylesheet" href="{{ static('main/css/executive-summary.css') }}" />
 {% endblock %}
 
 {% block content_main %}

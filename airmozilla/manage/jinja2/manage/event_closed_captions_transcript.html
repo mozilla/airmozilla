@@ -8,12 +8,7 @@
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  .preview pre {
-    max-height: 300px;
-    overflow: scroll;
-  }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/event-closed-captions-transcript.css') }}" />
 {% endblock %}
 
 {% block content_class %}col-md-6{% endblock %}

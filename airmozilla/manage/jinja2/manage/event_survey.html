@@ -5,12 +5,6 @@
   Event Survey for "<a href="{{ url('main:event', event.slug) }}">{{ event.title }}</a>"
 {% endblock %}
 
-{% block site_css %}
-  {{ super() }}
-  <style type="text/css">
-  </style>
-{% endblock %}
-
 {% block manage_content %}
 
 {% if survey %}

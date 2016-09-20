@@ -7,21 +7,19 @@
 
 {% block site_css %}
   {{ super() }}
-  <style type="text/css">
-  .last-url code { font-size: 10px; }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/event-archive.css') }}" />
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
-  <script>var VIDLY_URL_TO_SHORTCUT = '{{ url('manage:vidly_url_to_shortcode', event.pk) }}';</script>
   {% javascript 'event_archive' %}
 {% endblock %}
 
 
 {% block manage_content %}
 
-  <div id="vidly-shortcutter">
+  <div id="vidly-shortcutter"
+    data-vidly-url-to-shortcut="{{ url('manage:vidly_url_to_shortcode', event.pk) }}">
     {% if default_archive_template %}
     <input type="hidden" name="default_archive_template" value="{{ default_archive_template.pk }}">
     {% endif %}

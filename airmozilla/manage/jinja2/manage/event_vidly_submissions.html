@@ -12,12 +12,7 @@
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  td.url { font-size: 0.8em; }
-  div.info { display: none; }
-  td span.errored { color: darkred; }
-  td span.finished { color: green; }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/event-vidly-submissions.css') }}" />
 {% endblock %}
 
 

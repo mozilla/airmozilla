@@ -6,14 +6,7 @@ Uploads | {{ super() }}
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  table.uploads {
-      width: 100%;
-  }
-  table.uploads th {
-      text-align: left;
-  }
-  </style>
+  <link rel="stylesheet" href="{{ static('uploads/css/home.css') }}" />
 {% endblock %}
 
 {% block content_main %}

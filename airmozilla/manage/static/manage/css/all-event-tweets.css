@@ -1,0 +1,16 @@
+td.text {
+    font-size: 0.8em;
+    font-style: italic;
+}
+
+td.buttons {
+    text-align: right;
+}
+
+.truncate-title {
+    max-width: 200px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -8,21 +8,12 @@ Unsubscribe from new video emails
 
 {% block site_css %}
 {{ super() }}
-<style type="text/css">
-.main form { margin: 40px; text-align: center; }
-</style>
+<link rel="stylesheet" href="{{ static('new/css/unsubscribe.css') }}" />
 {% endblock %}
 
 {% block site_js %}
   {{ super() }}
-  <script>
-  $(function() {
-      $('input[name="cancel"]').click(function() {
-          location.href = '/';
-          return false;
-      });
-  });
-  </script>
+  <script src="{{ static('new/js/unsubscribe.js') }}"></script>
 {% endblock %}
 
 {% block sidebar %}{% endblock %}

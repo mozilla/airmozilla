@@ -58,11 +58,20 @@ app.controller('PictureGalleryController', ['$scope', '$http',
         'use strict';
 
         // When you load the picture gallery for a specific event, it will set
-        // two global variables which we can use here. If they're not defined,
+        // two hidden DOM elements with datasets. If they're not defined,
         // it means you're probably just browsing the picture gallery.
-        $scope.current_event = typeof CURRENT_EVENT !== 'undefined' && CURRENT_EVENT || null;
-        $scope.current_event_picture = typeof CURRENT_EVENT_PICTURE !== 'undefined' && CURRENT_EVENT_PICTURE || null;
-
+        var current_event = null;
+        if (angular.element('#current-event').length) {
+            current_event = angular.element('#current-event')
+            .data('current-event');
+        }
+        var current_event_picture = null;
+        if (angular.element('#current-event-picture').length) {
+            current_event_picture = angular.element('#current-event-picture')
+            .data('current-event-picture');
+        }
+        $scope.current_event = current_event;
+        $scope.current_event_picture = current_event_picture;
         $scope.loading = true;
 
         $scope.currentPage = 0;

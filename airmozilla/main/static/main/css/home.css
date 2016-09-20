@@ -1,0 +1,12 @@
+p.feed {
+    float: right;
+}
+
+.channels p.title a {
+    font-weight: bold;
+}
+
+/* un-hide it */
+#content-sub {
+    display: block;
+}

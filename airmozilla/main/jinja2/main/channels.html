@@ -9,10 +9,7 @@ Channels | {{ super() }}
 
 {% block site_css %}
 {{ super() }}
-<style type="text/css">
-p.feed { float: right; }
-#content-sub { display: block; } /* un-hide it */
-</style>
+<link rel="stylesheet" href="{{ static('main/css/channels.css') }}" />
 {% endblock %}
 
 {% block sidebar_inner %}

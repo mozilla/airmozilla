@@ -7,18 +7,7 @@ Tag Cloud | {{ super() }}
 
 {% block site_css %}
 {{ super() }}
-<style type="text/css">
-.tag-cloud a.size-1 { font-size: 1.1em }
-.tag-cloud a.size-2 { font-size: 1.2em }
-.tag-cloud a.size-3 { font-size: 1.3em }
-.tag-cloud a.size-4 { font-size: 1.4em }
-.tag-cloud a.size-5 { font-size: 1.5em }
-.tag-cloud a.size-6 { font-size: 1.6em }
-.tag-cloud a.size-7 { font-size: 1.7em }
-.tag-cloud a.size-8 { font-size: 1.8em }
-.tag-cloud a.size-9 { font-size: 1.9em }
-.tag-cloud a.size-10 { font-size: 2em }
-</style>
+<link rel="stylesheet" href="{{ static('main/css/tag-cloud.css') }}" />
 {% endblock %}
 
 {% block content_main %}

@@ -1,0 +1,18 @@
+.filter-bar {
+    margin-left: 10px;
+    margin-bottom: 30px;
+}
+
+.loading {
+    padding: 200px;
+    text-align: center;
+}
+
+div.buttons {
+    float: right;
+    padding-right: 15px;
+}
+
+.right {
+    float: right;
+}

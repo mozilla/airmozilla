@@ -1,0 +1,25 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    font-family: sans-serif;
+}
+
+h3.error {
+    color: red;
+    margin: 50px;
+}
+
+p.footer {
+    text-align: right;
+    font-size: 10px;
+}
+
+p.footer a {
+    color: black;
+}

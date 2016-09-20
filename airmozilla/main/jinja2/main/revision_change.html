@@ -10,17 +10,7 @@ Changes made just in this revision.
 
 {% block site_css %}
 {{ super() }}
-<style>
-div.change {
-    margin-top: 25px;
-}
-div.change label {
-    border-bottom: 1px solid #999;
-}
-.change-from, .change-to { color: #333; margin: 5px; }
-.change-from { background-color: #FDD; }
-.change-to { background-color: #DFD; }
-</style>
+<link rel="stylesheet" href="{{ static('main/css/revision-change.css') }}" />
 {% endblock %}
 
 {% block site_js %}

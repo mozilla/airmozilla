@@ -1,0 +1,20 @@
+div.change {
+    margin-top: 25px;
+}
+
+div.change label {
+    border-bottom: 1px solid #999;
+}
+
+.change-from, .change-to {
+    color: #333;
+    margin: 5px;
+}
+
+.change-from {
+    background-color: #FDD;
+}
+
+.change-to {
+    background-color: #DFD;
+}

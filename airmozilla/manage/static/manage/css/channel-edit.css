@@ -1,0 +1,9 @@
+.editor-container {
+    clear: both;
+    height: 300px;
+}
+
+#editor {
+    width: 640px;
+    height: 300px;
+}

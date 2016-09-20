@@ -8,11 +8,7 @@ Discussion Configuration | {{ super() }}
   {{ super() }}
   {% stylesheet 'select2' %}
   {% stylesheet 'select2_overrides' %}
-  <style>
-  .disabled {
-      opacity: 0.5;
-  }
-  </style>
+  <link rel="stylesheet" href="{{ static('suggest/css/discussion.css') }}" />
 {% endblock %}
 
 {% block site_js %}

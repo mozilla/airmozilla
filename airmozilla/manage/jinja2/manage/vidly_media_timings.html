@@ -16,14 +16,7 @@
 {% block site_css %}
   {{ super() }}
   <link rel="stylesheet" href="{{ static('manage/metricsgraphics/metricsgraphics.css') }}">
-  <style>
-  .summary { margin: 20px; }
-  .summary h3,
-  .summary h1 {
-      text-align: center;
-  }
-  .vidly-media-link { float: right; }
-  </style>
+  {% stylesheet 'vidly_media_timings' %}
 {% endblock %}
 
 {% block manage_content %}

@@ -1,0 +1,11 @@
+.summary {
+    margin: 20px;
+}
+
+.summary h3, .summary h1 {
+    text-align: center;
+}
+
+.vidly-media-link {
+    float: right;
+}

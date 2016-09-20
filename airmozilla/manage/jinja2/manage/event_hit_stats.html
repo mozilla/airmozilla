@@ -8,9 +8,7 @@
 
 {% block site_css %}
   {{ super() }}
-  <style>
-  td.total_hits { font-weight: bold; }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/event-hit-stats.css') }}" />
 {% endblock %}
 
 

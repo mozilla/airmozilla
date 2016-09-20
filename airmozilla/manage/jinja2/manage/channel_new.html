@@ -21,16 +21,7 @@
 {% block site_css %}
   {{ super() }}
   {% if use_ace %}
-  <style>
-  .editor-container {
-      clear: both;
-      height: 300px;
-  }
-  #editor {
-      width: 640px;
-      height: 300px;
-  }
-  </style>
+  <link rel="stylesheet" href="{{ static('manage/css/channel-new.css') }}" />
   {% endif %}
 {% endblock %}
 
