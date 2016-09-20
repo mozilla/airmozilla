@@ -14,6 +14,12 @@ def debugger__(request):  # pragma: no cover
     r.write('Todays date: 2014-05-21 14:02 PST\n')
     r.write('Request secure? %s\n' % request.is_secure())
     r['Content-Type'] = 'text/plain'
+    if request.session.test_cookie_worked():
+        r.write('Test cookie worked.\n')
+        request.session.delete_test_cookie()
+    else:
+        request.session.set_test_cookie()
+        r.write('Set a test cookie. Refresh to see if it stuck\n')
     return r
 
 
