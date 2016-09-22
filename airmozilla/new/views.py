@@ -957,12 +957,20 @@ def youtube_create(request):
             name=data['channel']['title'],
         )
     except Channel.DoesNotExist:
-        channel = Channel.objects.create(
-            parent=youtube_parent,
-            youtube_id=data['channel']['id'],
-            name=data['channel']['title'],
-            slug=slugify(data['channel']['title'])
-        )
+        # If it doesn't exist under the "YouTube parent",
+        # see if it exists globally.
+        try:
+            channel = Channel.objects.get(
+                youtube_id=data['channel']['id'],
+                name=data['channel']['title'],
+            )
+        except Channel.DoesNotExist:
+            channel = Channel.objects.create(
+                parent=youtube_parent,
+                youtube_id=data['channel']['id'],
+                name=data['channel']['title'],
+                slug=slugify(data['channel']['title'])
+            )
         if data['channel']['thumbnail_url']:
             img_temp = NamedTemporaryFile(delete=True)
             img_temp.write(

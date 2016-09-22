@@ -2185,3 +2185,111 @@ class TestNew(DjangoTestCase):
         # this channel will be created in a parent channel called YouTube
         eq_(channel.parent.name, u'YouTube\u2122')
         eq_(channel.parent.slug, 'youtube')
+
+    @mock.patch('requests.get')
+    @mock.patch('airmozilla.base.youtube.build')
+    def test_youtube_create_non_parent(self, build, rget):
+
+        def mocked_videos_list(id=None, **kwargs):
+
+            def inner_list():
+                if id == '0x0x0x0x0x0':
+                    return {
+                        'items': []
+                    }
+                if id == '1a1a1a1a1a1':
+                    thumbnails = {
+                        'high': {
+                            'width': 1028,
+                            'height': 720,
+                            'url': 'https://youtubecdn.c0m/big.jpg'
+                        }
+                    }
+                    return {
+                        'items': [
+                            {
+                                'id': '1a1a1a1a1a1',
+                                'snippet': {
+                                    'title': 'Some Title',
+                                    'description': 'Some Description',
+                                    'thumbnails': thumbnails,
+                                    'tags': ['Tag 1', 'Tag 2'],
+                                    'channelId': 'ccchhhaaannnnnneeelll',
+                                },
+                                'contentDetails': {
+                                    'duration': 'PT1M45S',
+                                },
+
+                            }
+                        ]
+                    }
+                raise NotImplementedError(id)
+
+            result = inner_list()
+            obj = mock.MagicMock()
+            obj.execute.return_value = result
+            return obj
+
+        def mocked_channels_list(id=None, **kwargs):
+
+            def inner_list():
+                if id == 'ccchhhaaannnnnneeelll':
+                    thumbnails = {
+                        'high': {
+                            'width': 1028,
+                            'height': 720,
+                            'url': 'https://youtubecdn.c0m/channel.jpg'
+                        }
+                    }
+                    return {
+                        'items': [
+                            {
+                                'id': 'ccchhhaaannnnnneeelll',
+                                'snippet': {
+                                    'title': 'Some Channel',
+                                    'description': 'Channel Description',
+                                    'thumbnails': thumbnails,
+                                },
+                            }
+                        ]
+                    }
+                raise NotImplementedError(id)
+
+            result = inner_list()
+            obj = mock.MagicMock()
+            obj.execute.return_value = result
+            return obj
+
+        def mocked_build(*args, **params):
+            assert params['developerKey'] == settings.YOUTUBE_API_KEY
+            api = mock.MagicMock()
+            api.videos().list.side_effect = mocked_videos_list
+            api.channels().list.side_effect = mocked_channels_list
+            return api
+
+        build.side_effect = mocked_build
+
+        def mocked_get(url):
+            if url.endswith('big.jpg') or url.endswith('channel.jpg'):
+                with open(self.sample_jpg, 'rb') as f:
+                    return Response(f.read())
+            raise NotImplementedError(url)
+
+        rget.side_effect = mocked_get
+
+        # Suppose it already exists
+        Channel.objects.create(
+            youtube_id='ccchhhaaannnnnneeelll',
+            name='Some Channel',
+            slug='Some-Channel',
+        )
+
+        url = reverse('new:youtube_create')
+        self._login()
+        response = self.post_json(url, {'id': '1a1a1a1a1a1'})
+        eq_(response.status_code, 200)
+        event_data = json.loads(response.content)
+        eq_(event_data['youtube_id'], '1a1a1a1a1a1')
+
+        channel = Channel.objects.get(name='Some Channel')
+        ok_(not channel.parent)
