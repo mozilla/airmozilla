@@ -441,8 +441,6 @@ CSP_IMG_SRC = (
 )
 CSP_SCRIPT_SRC = (
     "'self'",
-    "'unsafe-inline'",
-    "'unsafe-eval'",
     'air.cdn.mozilla.net',
     'login.persona.org',
     'cdn.jsdelivr.net',
@@ -466,7 +464,6 @@ CSP_MEDIA_SRC = (
 )
 CSP_STYLE_SRC = (
     "'self'",
-    "'unsafe-inline'",
     'air.cdn.mozilla.net',
 )
 CSP_CHILD_SRC = (
