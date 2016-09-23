@@ -437,6 +437,7 @@ CSP_IMG_SRC = (
     'secure.gravatar.com',
     'jwpltx.com',  # used by JWPlayer
     'd3fenhwk93s16g.cloudfront.net',  # vidly
+    'ssl.google-analytics.com',
 )
 CSP_SCRIPT_SRC = (
     "'self'",
@@ -446,6 +447,8 @@ CSP_SCRIPT_SRC = (
     'login.persona.org',
     'cdn.jsdelivr.net',
     'vid.ly',
+    's.vid.ly',
+    'cf.cdn.vid.ly',
     'd132d9vcg4o0oh.cloudfront.net',  # what vid.ly redirect to
     'ssl.p.jwpcdn.com',  # Where vidly hosts the JWPlayer
     'ssl.google-analytics.com',
