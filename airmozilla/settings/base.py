@@ -432,18 +432,21 @@ CSP_FONT_SRC = (
 CSP_IMG_SRC = (
     "'self'",
     'data:',
-    'air.cdn.mozilla.net',
     'vid.ly',
+    'air.cdn.mozilla.net',
     'secure.gravatar.com',
     'jwpltx.com',  # used by JWPlayer
     'd3fenhwk93s16g.cloudfront.net',  # vidly
     'ssl.google-analytics.com',
+    'mozillians.org',
+    'https://i0.wp.com',  # used by mozillians.org
 )
 CSP_SCRIPT_SRC = (
     "'self'",
-    'air.cdn.mozilla.net',
-    'login.persona.org',
+    "'unsafe-inline'",  # needed for video templates
+    "'unsafe-eval'",    # needed for hls.js
     'cdn.jsdelivr.net',
+    'air.cdn.mozilla.net',
     'vid.ly',
     's.vid.ly',
     'cf.cdn.vid.ly',
@@ -459,16 +462,18 @@ CSP_CONNECT_SRC = (
 )
 CSP_MEDIA_SRC = (
     "'self'",
+    'blob:',
     'vid.ly',
     'd3fenhwk93s16g.cloudfront.net',  # vidly
 )
 CSP_STYLE_SRC = (
     "'self'",
-    'air.cdn.mozilla.net',
+    "'unsafe-inline'",
 )
 CSP_CHILD_SRC = (
     "'self'",
-    'login.persona.org',
     'blob:',
+    'vid.ly',
     'www.youtube-nocookie.com',
+    'login.persona.org',
 )
