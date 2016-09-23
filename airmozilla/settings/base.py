@@ -206,6 +206,7 @@ MIDDLEWARE_CLASSES = (
     'session_csrf.CsrfMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'airmozilla.manage.middleware.CacheBustingMiddleware',
     'airmozilla.staticpages.middleware.StaticPageFallbackMiddleware',
 )
@@ -424,30 +425,49 @@ CSP_DEFAULT_SRC = (
 )
 CSP_FONT_SRC = (
     "'self'",
-    # 'http://*.mozilla.net',
-    # 'https://*.mozilla.net',
-    # 'http://*.mozilla.org',
-    # 'https://*.mozilla.org',
+    'data:',
+    'air.cdn.mozilla.net',
+    'cdn.jsdelivr.net',
 )
 CSP_IMG_SRC = (
     "'self'",
-    # 'http://*.mozilla.net',
-    # 'https://*.mozilla.net',
-    # 'http://*.mozilla.org',
-    # 'https://*.mozilla.org',
+    'data:',
+    'air.cdn.mozilla.net',
+    'vid.ly',
+    'secure.gravatar.com',
+    'jwpltx.com',  # used by JWPlayer
+    'd3fenhwk93s16g.cloudfront.net',  # vidly
 )
 CSP_SCRIPT_SRC = (
     "'self'",
-    # 'http://*.mozilla.org',
-    # 'https://*.mozilla.org',
-    # 'http://*.mozilla.net',
-    # 'https://*.mozilla.net',
+    "'unsafe-inline'",
+    "'unsafe-eval'",
+    'air.cdn.mozilla.net',
+    'login.persona.org',
+    'cdn.jsdelivr.net',
+    'vid.ly',
+    'd132d9vcg4o0oh.cloudfront.net',  # what vid.ly redirect to
+    'ssl.p.jwpcdn.com',  # Where vidly hosts the JWPlayer
+)
+CSP_CONNECT_SRC = (
+    "'self'",
+    'vid.ly',
+    'mozillalives-i.akamaihd.net',
+    'autocompeter.com',
+)
+CSP_MEDIA_SRC = (
+    "'self'",
+    'vid.ly',
+    'd3fenhwk93s16g.cloudfront.net',  # vidly
 )
 CSP_STYLE_SRC = (
     "'self'",
     "'unsafe-inline'",
-    # 'http://*.mozilla.org',
-    # 'https://*.mozilla.org',
-    # 'http://*.mozilla.net',
-    # 'https://*.mozilla.net',
+    'air.cdn.mozilla.net',
+)
+CSP_CHILD_SRC = (
+    "'self'",
+    'login.persona.org',
+    'blob:',
+    'www.youtube-nocookie.com',
 )

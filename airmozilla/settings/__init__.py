@@ -12,6 +12,17 @@ except ImportError, exc:  # pragma: no cover
     ])
     raise exc
 
+# Certain things are not possible to do until AFTER the base and local
+# settings have been loaded.
+if FANOUT_REALM_ID:
+    CSP_SCRIPT_SRC = CSP_SCRIPT_SRC + (
+        '{}.fanoutcdn.com'.format(FANOUT_REALM_ID),
+    )
+    CSP_CONNECT_SRC = CSP_CONNECT_SRC + (
+        '{}.fanoutcdn.com'.format(FANOUT_REALM_ID),
+        'wss://{}.fanoutcdn.com'.format(FANOUT_REALM_ID),
+    )
+
 
 # This takes care of removing that pesky warning, about raven not
 # being configured in local development, that looks like an error.
