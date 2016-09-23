@@ -448,6 +448,7 @@ CSP_SCRIPT_SRC = (
     'vid.ly',
     'd132d9vcg4o0oh.cloudfront.net',  # what vid.ly redirect to
     'ssl.p.jwpcdn.com',  # Where vidly hosts the JWPlayer
+    'ssl.google-analytics.com',
 )
 CSP_CONNECT_SRC = (
     "'self'",
