@@ -490,9 +490,6 @@ class EventView(View):
         except Discussion.DoesNotExist:
             context['discussion'] = {'enabled': False}
 
-        if event.recruitmentmessage and event.recruitmentmessage.active:
-            context['recruitmentmessage'] = event.recruitmentmessage
-
         context['subscription_channel_status'] = 'event-{}'.format(event.id)
 
         # amara_videos = AmaraVideo.objects.filter(

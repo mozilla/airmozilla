@@ -7,7 +7,6 @@ from django.contrib.auth.models import User
 from airmozilla.base.forms import BaseModelForm, BaseForm, GallerySelect
 from airmozilla.main.models import (
     EventRevision,
-    RecruitmentMessage,
     Event,
     Channel,
     Chapter,
@@ -98,11 +97,6 @@ class EventEditForm(BaseModelForm):
             'Upload a picture from your computer'
         )
         self.fields['channels'].help_text = ''
-        self.fields['recruitmentmessage'].label = 'Recruitment message'
-        self.fields['recruitmentmessage'].required = False
-        self.fields['recruitmentmessage'].queryset = (
-            RecruitmentMessage.objects.filter(active=True)
-        )
         self.fields['picture'].widget = GallerySelect(event=self.event)
         self.fields['picture'].label = (
             'Select an existing picture from the gallery'

@@ -1,5 +1,6 @@
 import json
 
+import pyquery
 from nose.tools import eq_, ok_
 
 from django.contrib.auth.models import User
@@ -279,12 +280,13 @@ class TestStarredEvent(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
+        doc = pyquery.PyQuery(response.content)
         for i, event in enumerate(events):
-            match = 'data-id="%d"' % event.id
+            match = doc('a[data-id="{}"]'.format(event.id))
             if i < 10:
-                ok_(match in response.content, i)
+                ok_(match)
             else:
-                ok_(match not in response.content, i)
+                ok_(not match)
 
         output = response.content.decode('utf-8')
         ok_('href="%s"' % reverse('starred:home', args=(2,)) in output)
@@ -293,12 +295,13 @@ class TestStarredEvent(DjangoTestCase):
         response = self.client.get(url + 'page/2/')
         eq_(response.status_code, 200)
 
+        doc = pyquery.PyQuery(response.content)
         for i, event in enumerate(events):
-            match = 'data-id="%d"' % event.id
+            match = doc('a[data-id="{}"]'.format(event.id))
             if i >= 10 and i < 20:
-                ok_(match in response.content, i)
+                ok_(match)
             else:
-                ok_(match not in response.content, i)
+                ok_(not match)
 
         output = response.content.decode('utf-8')
         ok_('href="%s"' % reverse('starred:home', args=(1,)) in output)
@@ -307,12 +310,13 @@ class TestStarredEvent(DjangoTestCase):
         response = self.client.get(url + 'page/3/')
         eq_(response.status_code, 200)
 
+        doc = pyquery.PyQuery(response.content)
         for i, event in enumerate(events):
-            match = 'data-id="%d"' % event.id
+            match = doc('a[data-id="{}"]'.format(event.id))
             if i >= 20:
-                ok_(match in response.content, match)
+                ok_(match)
             else:
-                ok_(match not in response.content, match)
+                ok_(not match)
 
         output = response.content.decode('utf-8')
         ok_('href="%s"' % reverse('starred:home', args=(2,)) in output)

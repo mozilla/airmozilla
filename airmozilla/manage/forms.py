@@ -33,7 +33,6 @@ from airmozilla.main.models import (
     URLMatch,
     EventAssignment,
     LocationDefaultEnvironment,
-    RecruitmentMessage,
     Picture,
     Topic,
     Chapter,
@@ -249,7 +248,6 @@ class EventEditForm(EventRequestForm):
             'approvals',
             'popcorn_url',
             'pin',
-            'recruitmentmessage',
         )
 
     def __init__(self, *args, **kwargs):
@@ -265,9 +263,6 @@ class EventEditForm(EventRequestForm):
                 "Use of pins is deprecated. Use Curated groups instead."
             )
         self.fields['popcorn_url'].label = 'Popcorn URL'
-        if 'recruitmentmessage' in self.fields:
-            self.fields['recruitmentmessage'].required = False
-            self.fields['recruitmentmessage'].label = 'Recruitment message'
 
         self.fields['location'].queryset = (
             Location.objects.filter(is_active=True).order_by('name')
@@ -328,7 +323,7 @@ class EventExperiencedRequestForm(EventEditForm):
             'estimated_duration',
             'channels', 'tags', 'call_info',
             'additional_links', 'remote_presenters',
-            'approvals', 'pin', 'popcorn_url', 'recruitmentmessage'
+            'approvals', 'pin', 'popcorn_url',
         )
 
 
@@ -507,15 +502,6 @@ class TemplateMigrateForm(BaseForm):
                 )
             ))
         self.fields['template'].choices = choices
-
-
-class RecruitmentMessageEditForm(BaseModelForm):
-    class Meta:
-        model = RecruitmentMessage
-        widgets = {
-            'notes': forms.Textarea(attrs={'rows': 3})
-        }
-        exclude = ('modified_user', 'created')
 
 
 class EventChapterEditForm(BaseModelForm):

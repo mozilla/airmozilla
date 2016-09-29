@@ -24,7 +24,6 @@ $(function() {
         });
     }
 
-    $('#id_recruitmentmessage').select2();
     $('#id_curated_groups').select2({
         placeholder: "Search for a Mozillians group",
         ajax: {
@@ -55,7 +54,6 @@ $(function() {
 
     // due to our integration with bootstrap 3 we have to do this to all select2 widgets
     $('#id_curated_groups').css('width', '100%');
-    $('#id_recruitmentmessage').css('width', '100%');
 
     // Do these additional things a little bit later so the page
     // has a chance to settle first

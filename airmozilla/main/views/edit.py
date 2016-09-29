@@ -46,11 +46,8 @@ class EventEditView(EventView):
             'tags': [x.pk for x in event.tags.all()],
             'call_info': event.call_info,
             'additional_links': event.additional_links,
-            'recruitmentmessage': None,
             'picture': picture_id
         }
-        if event.recruitmentmessage_id:
-            data['recruitmentmessage'] = event.recruitmentmessage_id
         if event.placeholder_img:
             data['placeholder_img'] = event.placeholder_img.url
             if event.picture:
@@ -83,8 +80,6 @@ class EventEditView(EventView):
                 event=event,
                 no_tag_choices=True,
             )
-            if not request.user.has_perm('main.change_recruitmentmessage'):
-                del form.fields['recruitmentmessage']
 
         context = {
             'event': event,
@@ -163,9 +158,6 @@ class EventEditView(EventView):
                     pass
                 else:
                     current_value = getattr(event, key)
-                    if key == 'recruitmentmessage':
-                        if current_value:
-                            current_value = current_value.pk
 
                 if key == 'channels':
                     prev = set([
@@ -219,14 +211,6 @@ class EventEditView(EventView):
                             'to': '__saved__event_placeholder_img'
                         }
                         event.placeholder_img = value
-                elif key == 'recruitmentmessage':
-                    prev = event.recruitmentmessage
-                    event.recruitmentmessage = value
-                    if value != prev:
-                        changes[key] = {
-                            'from': prev,
-                            'to': event.recruitmentmessage
-                        }
                 elif key == 'event_id':
                     pass
                 else:
@@ -307,7 +291,6 @@ class EventRevisionView(EventView):
             ('tags', 'Tags'),
             ('call_info', 'Call info'),
             ('additional_links', 'Additional links'),
-            ('recruitmentmessage', 'Recruitment message'),
         )
         differences = []
 

@@ -4,7 +4,6 @@ $(function() {
 
     $('#id_tags').css('width', '100%');
     $('#id_channels').css('width', '100%');
-    $('#id_recruitmentmessage').css('width', '100%');
 
     // Autocomplete tags - uses the select2 library
     $('#id_tags').select2({tags: true});
@@ -18,7 +17,6 @@ $(function() {
     });
 
     $('#id_channels').select2();
-    $('#id_recruitmentmessage').select2();
 
     $('div.select2-container').each(function() {
         var $controls = $(this).parents('.control-group');

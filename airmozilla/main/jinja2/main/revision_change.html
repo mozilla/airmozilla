@@ -60,22 +60,6 @@ Changes made just in this revision.
           {{ show_thumbnail(None, image=difference.after.file, alt='New image') }}
         </div>
         {% endif %}
-      {% elif difference.key == 'recruitmentmessage' %}
-        <div class="change-from">
-          {% if difference.before %}
-            {{ difference.before }}
-          {% else %}
-            none
-          {% endif %}
-        </div>
-        <div class="change-to">
-          {% if difference.after %}
-            {{ difference.after }}
-          {% else %}
-            none
-          {% endif %}
-        </div>
-
       {% else %}
       <div class="change-from">
         {{ difference.before | carefulnl2br | safe_html }}
