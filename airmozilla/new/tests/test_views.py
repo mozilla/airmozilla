@@ -134,6 +134,17 @@ class TestNew(DjangoTestCase):
         # the only thing special is that you shouldn't see the sidebar
         ok_('id="content-sub"' not in response.content)
 
+        # check that the CSP header is there for connect-src
+        csp_value = response['Content-Security-Policy']
+        domains = [
+            x for x in csp_value.split(';')
+            if x.strip().startswith('connect-src')
+        ][0]
+        aws_domain = '{}.s3.amazonaws.com'.format(
+            settings.S3_UPLOAD_BUCKET
+        )
+        ok_(aws_domain in domains)
+
     def test_save_upload(self):
         # basics first
         url = reverse('new:save_upload')

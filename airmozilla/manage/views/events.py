@@ -23,6 +23,7 @@ from django.views.decorators.cache import cache_page
 from django.core.urlresolvers import reverse
 
 from jsonview.decorators import json_view
+from csp.decorators import csp_update
 
 from airmozilla.main.templatetags.jinja_helpers import thumbnail, short_desc
 from airmozilla.manage.templatetags.jinja_helpers import (
@@ -894,6 +895,11 @@ def event_delete(request, id):
 
 @staff_required
 @permission_required('uploads.add_upload')
+@csp_update(
+    CONNECT_SRC='{}.s3.amazonaws.com'.format(
+        settings.S3_UPLOAD_BUCKET
+    )
+)
 def event_upload(request, id):
     event = get_object_or_404(Event, id=id)
     context = {}

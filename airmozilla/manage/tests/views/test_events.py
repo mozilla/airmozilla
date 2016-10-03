@@ -2166,6 +2166,17 @@ class TestEvents(ManageTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
 
+        # check that the CSP header is there for connect-src
+        csp_value = response['Content-Security-Policy']
+        domains = [
+            x for x in csp_value.split(';')
+            if x.strip().startswith('connect-src')
+        ][0]
+        aws_domain = '{}.s3.amazonaws.com'.format(
+            settings.S3_UPLOAD_BUCKET
+        )
+        ok_(aws_domain in domains)
+
         # if the event has a file upload, you'd expect to see a link to it here
         upload = Upload.objects.create(
             user=self.user,

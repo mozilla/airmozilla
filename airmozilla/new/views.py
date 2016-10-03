@@ -31,6 +31,7 @@ from django.core.files.temp import NamedTemporaryFile
 
 from jsonview.decorators import json_view
 from sorl.thumbnail import get_thumbnail
+from csp.decorators import csp_update
 
 from airmozilla.manage import vidly
 from airmozilla.base.utils import get_base_url, prepare_vidly_video_url
@@ -88,6 +89,11 @@ def must_be_your_event(f):
 
 
 @login_required
+@csp_update(
+    CONNECT_SRC='{}.s3.amazonaws.com'.format(
+        settings.S3_UPLOAD_BUCKET
+    )
+)
 def home(request):
     context = {
         'has_youtube_api_key': bool(settings.YOUTUBE_API_KEY),

@@ -435,7 +435,8 @@ class Event(models.Model):
         return (
             not self.archive_time and
             self.start_time and
-            self.start_time < _get_live_time()
+            self.start_time < _get_live_time() and
+            self.status != self.STATUS_PROCESSING
         )
 
     def needs_approval(self):

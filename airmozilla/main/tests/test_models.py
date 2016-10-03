@@ -258,6 +258,16 @@ class EventStateTests(DjangoTestCase):
         ok_(event in Event.objects.upcoming())
         ok_(event in Event.objects.upcoming().approved())
 
+    def test_event_live_and_processing(self):
+        event = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=timezone.now(),
+        )
+        ok_(event.is_live())
+        event.status = Event.STATUS_PROCESSING
+        event.save()
+        ok_(not event.is_live())
+
 
 class ForeignKeyTests(DjangoTestCase):
 
