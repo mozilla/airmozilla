@@ -469,6 +469,7 @@ CSP_MEDIA_SRC = (
 CSP_STYLE_SRC = (
     "'self'",
     "'unsafe-inline'",
+    'air.cdn.mozilla.net',
 )
 CSP_CHILD_SRC = (
     "'self'",
