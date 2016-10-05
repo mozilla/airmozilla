@@ -8,30 +8,20 @@
 
 {% block manage_content %}
   {% include "manage/_default_form_upload.html" %}
+  {% include "manage/_fancy_editor_toggle.html" %}
 
-  <p>
-  {% if use_ace %}
-  <a class="btn btn-default" href="?use_ace=0">Disable fancy HTML editor</a>
-  {% else %}
-  <a class="btn btn-default" href="?use_ace=1">Enable fancy HTML editor</a>
-  {% endif %}
-  </p>
 {% endblock %}
 
 {% block site_css %}
   {{ super() }}
-  {% if use_ace %}
-  <link rel="stylesheet" href="{{ static('manage/css/channel-edit.css') }}" />
-  {% endif %}
+  {% stylesheet 'manage:fancy_editor' %}
 {% endblock %}
 
 
 {% block site_js %}
   {{ super() }}
 
-  {% if use_ace %}
+  {% include "manage/_ace_scripts.html" %}
+  {% javascript 'manage:fancy_editor' %}
   {% javascript 'channel_html_edit' %}
-  <!-- http://ace.ajax.org/#nav=embedding -->
-  <script src="//d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-  {% endif %}
 {% endblock %}

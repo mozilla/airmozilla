@@ -1,7 +1,8 @@
 $(function() {
+    'use strict';
 
-    if (FancyEditor.isEnabled('channel-edit')) {
-        var $field = $('#id_description').hide();
+    if (FancyEditor.isEnabled('template-edit')) {
+        var $field = $('#id_content').hide();
         var $editor = $('<div>').attr('id', 'editor').text('\n');
 
         $('<div>')
@@ -18,7 +19,7 @@ $(function() {
         editor.selection.clearSelection();
 
         $('form[method="post"]').submit(function() {
-            $('#id_description').val(editor.getValue());
+            $('#id_content').val(editor.getValue());
         });
     }
 

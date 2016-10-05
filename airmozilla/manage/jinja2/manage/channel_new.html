@@ -9,29 +9,4 @@
 {% block manage_content %}
   {% include "manage/_default_form_upload.html" %}
 
-  <p>
-  {% if use_ace %}
-  <a class="btn btn-default btn-sm" href="?use_ace=0">Disable fancy HTML editor</a>
-  {% else %}
-  <a class="btn btn-default btn-sm" href="?use_ace=1">Enable fancy HTML editor</a>
-  {% endif %}
-  </p>
-{% endblock %}
-
-{% block site_css %}
-  {{ super() }}
-  {% if use_ace %}
-  <link rel="stylesheet" href="{{ static('manage/css/channel-new.css') }}" />
-  {% endif %}
-{% endblock %}
-
-
-{% block site_js %}
-  {{ super() }}
-
-  {% if use_ace %}
-  {% javascript 'channel_html_edit' %}
-  <!-- http://ace.ajax.org/#nav=embedding -->
-  <script src="//d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-  {% endif %}
 {% endblock %}

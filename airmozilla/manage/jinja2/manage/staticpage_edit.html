@@ -8,10 +8,19 @@
 
 {% block manage_content %}
   {% include "manage/_default_form.html" %}
+  {% include "manage/_fancy_editor_toggle.html" %}
   {% include "manage/_about_sidebar_slugs.html" %}
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'manage:fancy_editor' %}
+{% endblock %}
+
+
 {% block site_js %}
   {{ super() }}
-  {% javascript 'staticpage_edit' %}
+  {% include "manage/_ace_scripts.html" %}
+  {% javascript 'manage:staticpage_edit' %}
+  {% javascript 'manage:fancy_editor' %}
 {% endblock %}

@@ -1,5 +1,30 @@
-{% extends 'manage/staticpage_edit.html' %}
+{% extends 'manage/staticpages.html' %}
 
 {% block manage_title %}
   New static page
+{% endblock %}
+
+{% block content_class %}col-md-6{% endblock %}
+
+{% block manage_content %}
+
+  <div class="alert alert-hidden alert-warning alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <p>
+      <b>Optionally, use a template:</b>
+      <button name="html">Regular HTML</button>
+      <button name="javascript">JavaScript</button>
+      <button name="xml">XML</button>
+      <button name="json">JSON</button>
+    </p>
+  </div>
+
+  {% include "manage/_default_form.html" %}
+  {% include "manage/_about_sidebar_slugs.html" %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  {% javascript 'staticpage_edit' %}
+  {% javascript 'staticpage_new' %}
 {% endblock %}

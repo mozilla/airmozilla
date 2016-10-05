@@ -218,6 +218,12 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/home.min.css',
     },
+    'manage:fancy_editor': {
+        'source_filenames': (
+            'manage/css/fancy-editor.css',
+        ),
+        'output_filename': 'css/fancy-editor.min.css',
+    },
 }
 
 #
@@ -471,11 +477,17 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/related-content-testing.min.js',
     },
-    'staticpage_edit': {
+    'manage:staticpage_edit': {
         'source_filenames': (
             'manage/js/staticpage-edit.js',
         ),
         'output_filename': 'js/staticpage-edit.min.js',
+    },
+    'staticpage_new': {
+        'source_filenames': (
+            'manage/js/staticpage-new.js',
+        ),
+        'output_filename': 'js/staticpage-new.min.js',
     },
     'suggestions': {
         'source_filenames': (
@@ -598,6 +610,18 @@ PIPELINE_JS = {
             'js/fanout.js',
         ),
         'output_filename': 'js/fanout.min.js',
+    },
+    'manage:fancy_editor': {
+        'source_filenames': (
+            'manage/js/fancy-editor.js',
+        ),
+        'output_filename': 'js/fancy-editor.min.js',
+    },
+    'manage:template_edit': {
+        'source_filenames': (
+            'manage/js/template-edit.js',
+        ),
+        'output_filename': 'js/template-edit.min.js',
     },
 }
 

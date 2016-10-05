@@ -19,4 +19,36 @@ $(function() {
         }
         return true;
     });
+
+    if (FancyEditor.isEnabled('staticpage-edit')) {
+        var $field = $('#id_content').hide();
+        var $editor = $('<div>').attr('id', 'editor').text('\n');
+
+        $('<div>')
+          .addClass('editor-container')
+          .append($editor)
+          .insertBefore($field);
+
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/textmate");
+        editor.setShowPrintMargin(false);
+        var headers = $('#id_headers').val();
+        if (headers.search('Content-Type: application/javascript') > -1) {
+            editor.getSession().setMode("ace/mode/javascript");
+        } else if (headers.search('Content-Type: application/xml') > -1) {
+            editor.getSession().setMode("ace/mode/xml");
+        } else if (headers.search('Content-Type: application/json') > -1) {
+            editor.getSession().setMode("ace/mode/json");
+        } else {
+            editor.getSession().setMode("ace/mode/html");
+        }
+        editor.setValue($field.val());
+        // otherwise it starts all selected
+        editor.selection.clearSelection();
+
+        $('form[method="post"]').submit(function() {
+            $('#id_content').val(editor.getValue());
+        });
+    }
+
 });

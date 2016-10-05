@@ -4,9 +4,25 @@
     Editing template "{{ template.name }}"
 {% endblock %}
 
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'manage:fancy_editor' %}
+{% endblock %}
+
+
+{% block site_js %}
+  {{ super() }}
+
+  {% include "manage/_ace_scripts.html" %}
+  {% javascript 'manage:fancy_editor' %}
+  {% javascript 'manage:template_edit' %}
+{% endblock %}
+
+
 {% block manage_content %}
     {% include "manage/_default_form.html" %}
 
+    {% include "manage/_fancy_editor_toggle.html" %}
 
     <h3>
       Events using this template ({{ events_count }})
