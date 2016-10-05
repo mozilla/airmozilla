@@ -103,7 +103,7 @@ class TestComments(DjangoTestCase):
 
         # enable discussion
         discussion = self._create_discussion(event)
-        jay = User.objects.create(username='jay', email='jay@mozilla.com')
+        jay = User.objects.create(username='jay', email='jay@example.com')
         discussion.moderators.add(jay)
 
         response = self.client.get(url)
@@ -111,7 +111,8 @@ class TestComments(DjangoTestCase):
         ok_('Comments' in response.content)
 
         comments_url = reverse('comments:event_data', args=(event.pk,))
-        response = self.client.get(comments_url)
+        # add the {'since': 1} to bust the cache
+        response = self.client.get(comments_url, {'since': 1})
         eq_(response.status_code, 200)
         structure = json.loads(response.content)
         eq_(structure['discussion']['enabled'], True)
@@ -139,14 +140,14 @@ class TestComments(DjangoTestCase):
         ok_('No comments posted' not in structure['html'])
         ok_('Bla bla' in structure['html'])
 
-        self.fanout.publish.assert_called_with(
-            'comments-{}'.format(event.id),
-            True
-        )
-
         comment = Comment.objects.get(comment='Bla bla')
         ok_(comment)
         eq_(comment.status, Comment.STATUS_POSTED)
+
+        self.fanout.publish.assert_called_with(
+            'comments-{}'.format(event.id),
+            comment.id
+        )
 
         # the moderator should now have received an email
         email_sent = mail.outbox[-1]
@@ -155,6 +156,66 @@ class TestComments(DjangoTestCase):
 
         ok_(url in email_sent.body)
         ok_(url + '#comment-%d' % comment.pk in email_sent.body)
+
+    def test_cached_event_data(self):
+        cache.clear()
+        event = Event.objects.get(title='Test event')
+        # enable discussion
+        discussion = self._create_discussion(event)
+        jay = User.objects.create(username='jay', email='jay@example.com')
+        discussion.moderators.add(jay)
+        url = reverse('comments:event_data', args=(event.pk,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        eq_(structure['discussion']['enabled'], True)
+        eq_(structure['discussion']['closed'], False)
+        ok_('No comments posted' in structure['html'])
+
+        # Post a comment
+        Comment.objects.create(
+            event=event,
+            user=jay,
+            comment='Cool birds!',
+            status=Comment.STATUS_APPROVED,
+        )
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        # Same as before
+        ok_('No comments posted' in structure['html'])
+
+        # Add some noise
+        response = self.client.get(url, {'noise': 1})
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        # Now it should be different
+        ok_('No comments posted' not in structure['html'])
+        ok_('Cool birds!' in structure['html'])
+
+        # Add another comment but keep the same noise
+        Comment.objects.create(
+            event=event,
+            user=jay,
+            comment='Flamingos Rock!',
+            status=Comment.STATUS_APPROVED,
+        )
+
+        # Same noise as on the last one
+        response = self.client.get(url, {'noise': 1})
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        # Should remain the same
+        ok_('Cool birds!' in structure['html'])
+        ok_('Flamingos Rock!' not in structure['html'])
+
+        # Change the noise to double-check that the value of the noise matters
+        response = self.client.get(url, {'noise': 2})
+        eq_(response.status_code, 200)
+        structure = json.loads(response.content)
+        # Should be different
+        ok_('Cool birds!' in structure['html'])
+        ok_('Flamingos Rock!' in structure['html'])
 
     def test_post_comment_no_moderation(self):
         event = Event.objects.get(title='Test event')

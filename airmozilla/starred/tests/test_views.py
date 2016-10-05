@@ -314,6 +314,11 @@ class TestStarredEvent(DjangoTestCase):
         for i, event in enumerate(events):
             match = doc('a[data-id="{}"]'.format(event.id))
             if i >= 20:
+                if not match:
+                    print response.content
+                    print "EXPECT TO BE THERE..."
+                    print repr('a[data-id="{}"]'.format(event.id))
+                    raise AssertionError('Bad test!')
                 ok_(match)
             else:
                 ok_(not match)

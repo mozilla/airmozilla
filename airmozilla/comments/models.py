@@ -48,7 +48,7 @@ def notify_fanout(sender, instance, **kwargs):
     # This channel must match `subscription_channel_comments` set in the
     # view class for holding the comments container.
     channel = 'comments-{}'.format(event.id)
-    send_fanout(channel, True)
+    send_fanout(channel, instance.id)
 
 
 class Discussion(models.Model):

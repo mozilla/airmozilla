@@ -51,6 +51,7 @@ def can_manage_comments(user, discussion):
     return False
 
 
+@cache_page(60)
 @json_view
 @transaction.atomic
 def event_data(request, id):

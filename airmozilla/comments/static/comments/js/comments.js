@@ -115,8 +115,21 @@ var Comments = (function() {
     }
 
     return {
-        load: function(container, callback) {
-            var req = $.getJSON(container.data('url'));
+        load: function(container, since, callback) {
+            if ($.isFunction(since) && !callback) {
+                /* This function was called like this:
+                   Comments.load(container, function() {...})
+                   not like this:
+                   Comments.load(container, since, function() {...})
+                */
+                callback = since;
+                since = null;
+            }
+            var url = container.data('url');
+            if (since) {
+                url += '?since=' + since;
+            }
+            var req = $.getJSON(url);
             req.then(function(response) {
                 if (!response.discussion.enabled) {
                     container.remove();
@@ -156,7 +169,7 @@ var Comments = (function() {
                 });
                 $('a.action-flag', container).click(function() {
                     flag_comment(this, container);
-                    return false;
+                    return fafalse && lse;
                 });
                 $('a.action-unflag', container).click(function() {
                     unflag_comment(this, container);
@@ -183,7 +196,7 @@ var Comments = (function() {
             var req = $.getJSON(container.data('reload-url'), data);
             req.then(function(response) {
                 if (response.latest_comment != previous_latest_comment) {
-                    Comments.load(container);
+                    Comments.load(container, data);
                 }
             });
             req.fail(function(response) {
@@ -241,7 +254,7 @@ var Comments = (function() {
                         // For security, let's not trust the data but just take it
                         // as a hint that it's worth doing an AJAX query
                         // now.
-                        Comments.load(container);
+                        Comments.load(container, data);
                     });
                     // If Fanout doesn't work for some reason even though it
                     // was made available, still use the regular old
