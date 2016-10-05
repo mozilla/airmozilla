@@ -24,7 +24,8 @@
     {% endblock %}
     {% if FANOUT_REALM_ID %}
     <fanout-config
-      data-js-url="https://{{ FANOUT_REALM_ID }}.fanoutcdn.com/bayeux/static/faye-browser-min.js"
+      data-js-url="https://{{ FANOUT_REALM_ID }}.fanoutcdn.com/bayeux/static/faye-browser-1.1.2-fanout1-min.js"
+      data-js-sha="sha384-/9uLm3UDnP3tBHstjgZiqLa7fopVRjYmFinSBjz+FPS/ibb2C4aowhIttvYIGGt9"
       data-client-url="https://{{ FANOUT_REALM_ID }}.fanoutcdn.com/bayeux"
       ></fanout-config>
     {% javascript 'fanout' %}

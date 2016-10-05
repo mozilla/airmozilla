@@ -9,6 +9,8 @@ window.Fanout = (function() {
             return cb();
         }
         var script = document.createElement('script');
+        script.crossOrigin = 'anonymous';
+        script.integrity = config.data('js-sha');
         script.onload = function() {
             loaded = true;
             cb();
