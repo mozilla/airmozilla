@@ -64,4 +64,9 @@
       </tbody>
     </table>
 
+    {% if request.user.is_superuser %}
+    <p style="margin-top:50px">
+      <a href="{{ url('manage:legacy_video_migration') }}">Legacy Video Migration</a>
+    </p>
+    {% endif %}
 {% endblock %}

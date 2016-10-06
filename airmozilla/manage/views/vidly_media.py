@@ -3,7 +3,10 @@ import logging
 from collections import defaultdict
 from xml.parsers.expat import ExpatError
 
+import requests
+
 from django import http
+from django.conf import settings
 from django.core.cache import cache
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
@@ -20,10 +23,15 @@ from airmozilla.base.utils import (
     get_base_url,
     prepare_vidly_video_url,
 )
-from airmozilla.main.models import Event, VidlySubmission
+from airmozilla.main.models import Event, VidlySubmission, Template
 from airmozilla.manage import forms
 from airmozilla.manage import vidly
 from airmozilla.manage import archiver
+from airmozilla.manage import videoinfo
+from airmozilla.main.tasks import (
+    create_all_timestamp_pictures,
+    create_all_event_pictures,
+)
 
 from .decorators import superuser_required
 
@@ -355,3 +363,105 @@ def vidly_media_timings_data(request):
         'intercept': intercept,
     }
     return context
+
+
+@superuser_required
+def legacy_video_migration(request):  # pragma: no cover
+    """for one off mass vid.ly submission"""
+
+    class VideoURLError(Exception):
+        pass
+
+    def redirect_recurse(url):
+        """return the URL only when it's not redirecting.
+        Raise an error on all other statuses >= 400
+        """
+        response = requests.head(url)
+        if response.status_code in (301, 302):
+            return redirect_recurse(response.headers['Location'])
+        elif response.status_code >= 400:
+            raise VideoURLError('{} => {}'.format(
+                url, response.status_code
+            ))
+        return url
+
+    if request.method == 'POST':
+        events = Event.objects.filter(id__in=request.POST.getlist('ids'))
+        template, = Template.objects.filter(default_archive_template=True)
+        for event in events:
+            try:
+                url = event.template_environment['url']
+                url = redirect_recurse(url)
+                base_url = get_base_url(request)
+                webhook_url = base_url + reverse('manage:vidly_media_webhook')
+                url = prepare_vidly_video_url(url)
+                token_protection = event.privacy != Event.PRIVACY_PUBLIC
+                shortcode, error = vidly.add_media(
+                    url,
+                    hd=True,
+                    token_protection=token_protection,
+                    notify_url=webhook_url,
+                )
+
+                VidlySubmission.objects.create(
+                    event=event,
+                    url=url,
+                    token_protection=token_protection,
+                    hd=True,
+                    tag=shortcode,
+                    submission_error=error
+                )
+                event.template_environment = {
+                    'tag': shortcode,
+                }
+                if shortcode:
+                    event.template = template
+                    event.archive_time = None
+                    event.status = Event.STATUS_PROCESSING
+                    event.save()
+
+                    videoinfo.fetch_duration(
+                        event,
+                        video_url=url,
+                        save=True,
+                        verbose=settings.DEBUG
+                    )
+                    if Event.objects.get(id=event.id).duration:
+                        create_all_event_pictures.delay(
+                            event.id,
+                            video_url=url,
+                        )
+                        create_all_timestamp_pictures.delay(
+                            event.id,
+                            video_url=url,
+                        )
+            except Exception as exception:
+                error = str(exception)
+                messages.error(
+                    request,
+                    'Failed to submit "{}". Error: {}'.format(
+                        event.title,
+                        error,
+                    )
+                )
+
+        messages.success(
+            request,
+            'Submitted {} events for Vid.ly processing'.format(
+                events.count()
+            )
+        )
+        return redirect('manage:legacy_video_migration')
+
+    search = request.GET.get('search', 'http://videos.mozilla.org/')
+    if search:
+        events = Event.objects.filter(
+            template_environment__icontains=search
+        )
+    else:
+        events = Event.objects.none()
+    context = {
+        'events': events,
+        'search': search,
+    }
+    return render(request, 'manage/legacy_video_migration.html', context)
