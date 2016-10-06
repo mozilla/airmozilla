@@ -54,6 +54,9 @@
     <div class="event-content"
       data-event-status="{{ event.status }}"
       data-subscription-channel-status="{{ subscription_channel_status }}"
+      {% if event.is_upcoming() %}
+      data-refresh-in="{{ event.seconds_till_live }}"
+      {% endif %}
       >
       {% if event.is_pending() %}
         <p class="pending">

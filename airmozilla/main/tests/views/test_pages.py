@@ -586,6 +586,7 @@ class TestPages(DjangoTestCase):
         date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
         event.start_time = date
         event.save()
+        seconds_till_live = event.seconds_till_live
         group = Group.objects.create(name='testapprover')
         approval = Approval(event=event, group=group)
         approval.approved = True
@@ -598,6 +599,14 @@ class TestPages(DjangoTestCase):
         # 18:00 in UTC on that 1st Jan 2099 is 10AM in Pacific time
         assert event.location.timezone == 'US/Pacific'
         ok_('10:00AM' in response.content)
+        assert 'data-refresh-in=' in response.content
+        seconds = int(
+            re.findall('data-refresh-in="(\d+)"', response.content)[0]
+        )
+        # The rendering takes > 0 seconds and the seconds_till_live number
+        # is always rounded up. So expect the diff to be around 1-2 seconds
+        diff = abs(seconds - seconds_till_live)
+        self.assertTrue(diff <= 2)
 
     def test_event_in_cyberspace(self):
         event = Event.objects.get(title='Test event')

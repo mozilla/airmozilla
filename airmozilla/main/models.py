@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import os
 import unicodedata
+import math
 
 import pytz
 
@@ -500,6 +501,15 @@ class Event(models.Model):
         for each in qs.order_by('created'):
             items.append((each.key, each.value))
         return items
+
+    @property
+    def seconds_till_live(self):
+        assert self.is_upcoming()
+        diff = (self.start_time - timezone.now()).total_seconds()
+        # but the live status starts before it actually begins
+        diff -= settings.LIVE_MARGIN * 60  # LIVE_MARGIN is minutes
+        # Round up so avoid hitting exactly on when it goes live
+        return int(math.ceil(diff))
 
 
 def most_recent_event():

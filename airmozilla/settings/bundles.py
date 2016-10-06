@@ -294,6 +294,7 @@ PIPELINE_JS = {
             'main/js/playbackrate.js',
             'main/js/startat.js',
             'main/js/eventstatus.js',
+            'main/js/eventrefresh.js',
             'main/js/chapters.js',
             'comments/js/comments.js',
             'surveys/js/survey.js',

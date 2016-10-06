@@ -5,6 +5,7 @@ import datetime
 from django.contrib.auth.models import Group, User
 from django.utils import timezone
 from django.core.files import File
+from django.conf import settings
 
 from nose.tools import ok_, eq_
 import mock
@@ -157,6 +158,24 @@ class EventTests(DjangoTestCase):
         event.title += ' difference'
         event.save()
         eq_(event.get_unique_title(), event.title)
+
+    def test_seconds_till_live(self):
+        """events that are upcoming have a property called
+        `seconds_till_live` which gives a number of seconds until
+        the event is considered live.
+        Note that "considered live" doesn't mean when the event starts.
+        It's when the event starts - settings.LIVE_MARGIN
+        """
+        time_soon = timezone.now() + datetime.timedelta(hours=1)
+        event = Event.objects.create(
+            status=Event.STATUS_SCHEDULED,
+            start_time=time_soon,
+        )
+        ok_(event.is_upcoming())
+        ok_(not event.is_live())
+        assert settings.LIVE_MARGIN > 0
+        expect = 60 * 60 - settings.LIVE_MARGIN * 60
+        self.assertEqual(event.seconds_till_live, expect)
 
 
 class EventStateTests(DjangoTestCase):
