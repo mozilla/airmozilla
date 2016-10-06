@@ -436,7 +436,6 @@ CSP_IMG_SRC = (
     'air.cdn.mozilla.net',
     'secure.gravatar.com',
     'jwpltx.com',  # used by JWPlayer
-    'd3fenhwk93s16g.cloudfront.net',  # vidly
     'ssl.google-analytics.com',
     'mozillians.org',
     'https://i0.wp.com',  # used by mozillians.org
@@ -450,9 +449,9 @@ CSP_SCRIPT_SRC = (
     'vid.ly',
     's.vid.ly',
     'cf.cdn.vid.ly',
-    'd132d9vcg4o0oh.cloudfront.net',  # what vid.ly redirect to
     'ssl.p.jwpcdn.com',  # Where vidly hosts the JWPlayer
     'ssl.google-analytics.com',
+    'd132d9vcg4o0oh.cloudfront.net',  # vid.ly's jwplayer.js
 )
 CSP_CONNECT_SRC = (
     "'self'",
@@ -464,7 +463,6 @@ CSP_MEDIA_SRC = (
     "'self'",
     'blob:',
     'vid.ly',
-    'd3fenhwk93s16g.cloudfront.net',  # vidly
 )
 CSP_STYLE_SRC = (
     "'self'",

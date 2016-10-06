@@ -3,6 +3,9 @@ import hashlib
 import urllib
 import time
 import collections
+import urlparse
+
+import requests
 
 from django import http
 from django.conf import settings
@@ -532,7 +535,67 @@ class EventView(View):
                     except LoggedSearch.DoesNotExist:
                         pass
 
-        return render(request, self.template_name, context)
+        response = render(request, self.template_name, context)
+        self._set_csp_update(response, event)
+        return response
+
+    def _set_csp_update(self, response, event):
+        """Hack alert!
+        We need to, potentially, update the CSP at run time if the
+        video you're trying to watch is a Vid.ly video.
+        Vid.ly is embedded by simply using `https://vid.ly/:shortcode`
+        but internally they will redirect to a AWS CloudFront domain
+        which we might not have prepared in our CSP settings.
+        So let's update that on the fly.
+        """
+        cache_key = 'custom_csp_update:{}'.format(event.id)
+        update = cache.get(cache_key)
+        if update is not None:
+            # it was set, use that and exit early
+            if update:
+                response._csp_update = update
+            return
+
+        if not event.template:
+            return
+        if event.is_upcoming() or event.is_live():
+            return
+        if 'vid.ly' not in event.template.name.lower():
+            return
+        if not event.template_environment.get('tag'):
+            return
+
+        token = None
+        if not event.is_public():
+            token = vidly.tokenize(event.template_environment['tag'], 90)
+
+        update = {}
+        webm_url = 'https://vid.ly/{}?content=video&format=webm'.format(
+            event.template_environment['tag']
+        )
+        if token:
+            webm_url += '&token={}'.format(token)
+        head_response = requests.head(webm_url)
+        if head_response.status_code == 302:
+            update['media-src'] = urlparse.urlparse(
+                head_response.headers['Location']
+            ).netloc
+
+        poster_url = 'https://vid.ly/{}/poster'.format(
+            event.template_environment['tag']
+        )
+        if token:
+            poster_url += '?token={}'.format(token)
+        head_response = requests.head(poster_url)
+        if head_response.status_code == 302:
+            update['img-src'] = urlparse.urlparse(
+                head_response.headers['Location']
+            ).netloc
+
+        cache.set(cache_key, update, 60)
+        # Now we've figured out what headers to update, set it on the response
+        if update:
+            response._csp_update = update
 
     def post(self, request, slug):
         event = get_object_or_404(Event, slug=slug)
