@@ -369,7 +369,9 @@ class EventEditChaptersView(EventEditView):
             'event': event,
             'video': video,
         }
-        return render(request, self.template_name, context)
+        response = render(request, self.template_name, context)
+        self._set_csp_update(response, event)
+        return response
 
     @transaction.atomic
     def post(self, request, slug):
