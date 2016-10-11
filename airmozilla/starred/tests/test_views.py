@@ -318,6 +318,9 @@ class TestStarredEvent(DjangoTestCase):
                     print response.content
                     print "EXPECT TO BE THERE..."
                     print repr('a[data-id="{}"]'.format(event.id))
+                    print "Users Events", Event.objects.filter(
+                        starredevent__user=user
+                    )
                     raise AssertionError('Bad test!')
                 ok_(match)
             else:

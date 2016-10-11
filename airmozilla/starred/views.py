@@ -53,7 +53,7 @@ def home(request, page=1):
 
     if request.user.is_authenticated():
         events = (
-            Event.objects.filter(starredevent__user=request.user.id)
+            Event.objects.filter(starredevent__user=request.user)
             .order_by('starredevent__created')
         )
 
