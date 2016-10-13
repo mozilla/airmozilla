@@ -16,16 +16,19 @@
     {% endif %}
 
     {% if event %}
-      {% if pending %}
+      {% if event.is_pending() %}
         <p class="pending">
         Event is currently in a pending state meaning it will soon be made available.
         </p>
-      {% else %}
+      {% elif video %}
         {{ video | safe }}
         {% if embedded and not no_footer %}
           <p class="footer"><a href="{{ absolute_url }}" target="_blank">View on Air Mozilla</a></p>
         {% endif %}
+      {% else %}
+        {{ show_thumbnail(event, '896x504') }}
       {% endif %}
+
     {% endif %}
   {% endif %}
 
