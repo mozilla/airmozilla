@@ -342,6 +342,7 @@ def _unpack_dom(dom, main_tag_name):
 
 
 def get_video_redirect_info(tag, format_, hd=False):
+    assert tag
     assert format_ in ('webm', 'mp4'), format_
     if hd:
         format_ = 'hd_{}'.format(format_)
