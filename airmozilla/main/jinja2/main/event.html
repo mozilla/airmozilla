@@ -150,7 +150,7 @@
           <div class="tab">
             <input type="radio" id="tab-details" name="tab-group-1" checked>
             <label for="tab-details">Details</label>
-            <div class="content">
+            <div class="content extra-long">
               <p>
                 {% if event.is_prerecorded() %}
                     Uploaded: {{ event.start_time | js_date }}
@@ -175,29 +175,18 @@
                 {% elif event.is_upcoming() %}
                   Estimated duration: {{ show_duration(event.estimated_duration) }}<br>
                 {% endif %}
+                {% if channels %}
+                  Channel{{ channels.count()|pluralize }}:
+                  {% for channel in channels %}
+                    <a href="{{ url('main:home_channels', channel.slug) }}" class="channel">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
+                  {% endfor %}
+                {% endif %}
               </p>
 
-              {% if tags %}
-                <p>
-                  Tags:
-                  {% for tag in tags %}
-                    <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
-                  {% endfor %}
-                  <br>
-                  {% if request.user.is_active %}
-                  <a href="{{ url('main:event_edit', event.slug) }}">You can edit the event tags</a>
-                  {% endif %}
-                </p>
-             {% endif %}
-            </div>
-          </div>
-
-        {% if chapters or can_edit_chapters %}
-          <div class="tab">
-            <input type="radio" id="tab-chapters" name="tab-group-1">
-            <label for="tab-chapters">Chapters</label>
-            <div class="content chapters extra-long">
               {% if chapters %}
+              <p class="chapters">
+                Chapters:
+              </p>
               <ul class="chapters">
                 {% for chapter in chapters %}
                 <li>
@@ -222,14 +211,27 @@
                 {% endfor %}
               </ul>
               {% endif %}
+
               {% if can_edit_chapters %}
               <p>
                 <a href="{{ url('main:event_edit_chapters', event.slug) }}">Edit chapters &raquo;</a>
               </p>
               {% endif %}
+
+              {% if tags %}
+                <p>
+                  Tags:
+                  {% for tag in tags %}
+                    <a href="{{ url('main:home') }}?tag={{ tag | urlencode }}">{{ tag }}</a>{% if not loop.last %}, {% endif %}
+                  {% endfor %}
+                  <br>
+                  {% if request.user.is_active %}
+                  <a href="{{ url('main:event_edit', event.slug) }}">You can edit the event tags</a>
+                  {% endif %}
+                </p>
+             {% endif %}
             </div>
           </div>
-        {% endif %}
 
         {% if event.additional_links %}
           <div class="tab">
@@ -237,20 +239,6 @@
             <label for="tab-1">Additional Links</label>
             <div class="content additional-links extra-long">
               {{ event.additional_links | urlize_and_linebreaksbr }}
-            </div>
-          </div>
-        {% endif %}
-
-        {% if channels %}
-          <div class="tab">
-            <input type="radio" id="tab-3" name="tab-group-1">
-            <label for="tab-3">Channels</label>
-            <div class="content">
-              <p>
-                {% for channel in channels %}
-                  <a href="{{ url('main:home_channels', channel.slug) }}" class="channel">{{ channel.name }}</a>{% if not loop.last %},{% endif %}
-                {% endfor %}
-              </p>
             </div>
           </div>
         {% endif %}

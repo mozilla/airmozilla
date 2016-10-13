@@ -1229,7 +1229,7 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         # Still not, because the event is live!
-        ok_('Chapters' not in response.content)
+        ok_('Edit chapters' not in response.content)
 
         event.archive_time = timezone.now()
         event.save()
@@ -1237,7 +1237,7 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url)
         eq_(response.status_code, 200)
         response_content = response.content.decode('utf-8')
-        ok_('Chapters' in response_content)
+        ok_('Edit chapters' in response_content)
         ok_(edit_url in response_content)
 
     @mock.patch('airmozilla.manage.vidly.urllib2.urlopen')
