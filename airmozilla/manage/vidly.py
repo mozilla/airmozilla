@@ -358,7 +358,10 @@ def get_video_redirect_info(tag, format_, hd=False):
         content_length = int(req2.headers['Content-Length'])
     except KeyError:
         raise VideoError(
-            'Redirect URL lacks a Content-Length (url:{} status:{})'.format(
+            'Redirect URL lacks a Content-Length '
+            '(tag:{} url:{} location:{} status:{})'.format(
+                tag,
+                vidly_url,
                 req.headers['Location'],
                 req.status_code,
             )
