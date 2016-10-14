@@ -16,6 +16,9 @@ $(function () {
     // to a live one, to avoid a stampeding herd, add a litter
     // staggering which is going to be different for every user
     var randomStagger = Math.random() * 5; // seconds
+    console.log(
+        "This page will automatically refresh in " + refreshIn + " seconds"
+    );
     setTimeout(function() {
         location.reload();
     }, (refreshIn + randomStagger) * 1000);

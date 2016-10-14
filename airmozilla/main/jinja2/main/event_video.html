@@ -26,6 +26,12 @@
           <p class="footer"><a href="{{ absolute_url }}" target="_blank">View on Air Mozilla</a></p>
         {% endif %}
       {% else %}
+
+        {% if event.is_upcoming() %}
+        <div class="upcoming" style="display:none"
+          data-refresh-in="{{ event.seconds_till_live }}"></div>
+        {% endif %}
+
         {{ show_thumbnail(event, '896x504') }}
       {% endif %}
 

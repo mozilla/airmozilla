@@ -463,6 +463,7 @@ CSP_MEDIA_SRC = (
     "'self'",
     'blob:',
     'vid.ly',
+    'mozillalives-i.akamaihd.net'
 )
 CSP_STYLE_SRC = (
     "'self'",
