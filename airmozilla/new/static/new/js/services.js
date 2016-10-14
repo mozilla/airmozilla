@@ -1,12 +1,12 @@
 function humanFileSize( bytes, precision ) {
     'use strict';
     var units = [
-       'bytes',
-       'Kb',
-       'Mb',
-       'Gb',
-       'Tb',
-       'Pb'
+       'Bytes',
+       'KB',
+       'MB',
+       'GB',
+       'TB',
+       'PB'
     ];
 
     if ( isNaN( parseFloat( bytes )) || !isFinite( bytes ) ) {
