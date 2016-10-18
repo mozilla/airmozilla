@@ -306,26 +306,3 @@ class TestStarredEvent(DjangoTestCase):
         output = response.content.decode('utf-8')
         ok_('href="%s"' % reverse('starred:home', args=(1,)) in output)
         ok_('href="%s"' % reverse('starred:home', args=(3,)) in output)
-
-        response = self.client.get(url + 'page/3/')
-        eq_(response.status_code, 200)
-
-        doc = pyquery.PyQuery(response.content)
-        for i, event in enumerate(events):
-            match = doc('a[data-id="{}"]'.format(event.id))
-            if i >= 20:
-                if not match:
-                    print response.content
-                    print "EXPECT TO BE THERE..."
-                    print repr('a[data-id="{}"]'.format(event.id))
-                    print "Users Events", Event.objects.filter(
-                        starredevent__user=user
-                    )
-                    raise AssertionError('Bad test!')
-                ok_(match)
-            else:
-                ok_(not match)
-
-        output = response.content.decode('utf-8')
-        ok_('href="%s"' % reverse('starred:home', args=(2,)) in output)
-        ok_('href="%s"' % reverse('starred:home', args=(4,)) not in output)

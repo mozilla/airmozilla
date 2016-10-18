@@ -203,6 +203,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'session_csrf.CsrfMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -477,3 +478,8 @@ CSP_CHILD_SRC = (
     'www.youtube-nocookie.com',
     'login.persona.org',
 )
+
+# See https://bugzilla.mozilla.org/show_bug.cgi?id=1310807
+# Once we know with more certainty that there's no need to keep
+# http:// traffic, change this number to 31536000 (1 year)
+SECURE_HSTS_SECONDS = 600  # 10 minutes
