@@ -483,3 +483,8 @@ CSP_CHILD_SRC = (
 # Once we know with more certainty that there's no need to keep
 # http:// traffic, change this number to 31536000 (1 year)
 SECURE_HSTS_SECONDS = 600  # 10 minutes
+
+# See
+# https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-XSS-Protection
+# Sets the 'X-XSS-Protection' header to '1; mode=block'
+SECURE_BROWSER_XSS_FILTER = True

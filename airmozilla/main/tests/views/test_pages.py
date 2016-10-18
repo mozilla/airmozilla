@@ -100,6 +100,12 @@ class TestPages(DjangoTestCase):
             url += 'ss={}'.format(savedsearch)
         return url
 
+    def test_security_headers(self):
+        response = self.client.get('/')
+        eq_(response.status_code, 200)
+        eq_(response['X-XSS-Protection'], '1; mode=block')
+        ok_(response['Content-Security-Policy'])
+
     def test_contribute_json(self):
         response = self.client.get('/contribute.json')
         eq_(response.status_code, 200)
