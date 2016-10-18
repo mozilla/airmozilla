@@ -488,3 +488,7 @@ SECURE_HSTS_SECONDS = 600  # 10 minutes
 # https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-XSS-Protection
 # Sets the 'X-XSS-Protection' header to '1; mode=block'
 SECURE_BROWSER_XSS_FILTER = True
+
+# See
+# https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-Content-Type-Options  # noqa
+SECURE_CONTENT_TYPE_NOSNIFF = True

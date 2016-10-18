@@ -105,6 +105,7 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 200)
         eq_(response['X-XSS-Protection'], '1; mode=block')
         ok_(response['Content-Security-Policy'])
+        eq_(response['X-Content-Type-Options'], 'nosniff')
 
     def test_contribute_json(self):
         response = self.client.get('/contribute.json')
