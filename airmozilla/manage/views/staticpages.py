@@ -69,7 +69,11 @@ def staticpage_edit(request, id):
     if request.method == 'POST':
         form = forms.StaticPageEditForm(request.POST, instance=staticpage)
         if form.is_valid():
-            instance = form.save()
+            instance = form.save(commit=False)
+            # Need to manually save the 'headers' field because
+            # otherwise, if it's empty, it won't save.
+            instance.headers = form.cleaned_data['headers']
+            instance.save()
             if instance.url.startswith('sidebar_'):
                 __, location, channel_slug = instance.url.split('_', 2)
                 channel = Channel.objects.get(
