@@ -480,9 +480,7 @@ CSP_CHILD_SRC = (
 )
 
 # See https://bugzilla.mozilla.org/show_bug.cgi?id=1310807
-# Once we know with more certainty that there's no need to keep
-# http:// traffic, change this number to 31536000 (1 year)
-SECURE_HSTS_SECONDS = 600  # 10 minutes
+SECURE_HSTS_SECONDS = 31536000
 
 # See
 # https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-XSS-Protection
