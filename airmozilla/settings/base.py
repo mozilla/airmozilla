@@ -429,6 +429,7 @@ CSP_FONT_SRC = (
     'data:',
     'air.cdn.mozilla.net',
     'cdn.jsdelivr.net',
+    'ssl.p.jwcdn.com',
 )
 CSP_IMG_SRC = (
     "'self'",
