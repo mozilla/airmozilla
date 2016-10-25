@@ -489,11 +489,35 @@ The -s makes it so that any print statements aren't swallowed if tests pass. The
 Troubleshooting
 --------------
 
-### Deprecated Files
+### Testing Sending email is really really slow
 
-Make sure you don't have a `./vendor` or `./vendor-local` directory. This
-functionality has been deprecated. All dependencies are now contained in the
-`requirements.txt` file.
+On some OSX systems, the time it takes to figure out your computers
+hostname can be really slow. Like 5+ seconds just to figure out that your
+computers hostname is `MyMacBook-Pro`.
+
+You're likely to see that some unit tests are really slow that touch
+on sending emails. Even though the emails are just piped to `LocMemCache`
+it needs to know your computer's hostname.
+
+Apply the solution mention [in this StackExhange answer](http://apple.stackexchange.com/a/175756)
+
+In simple terms, test if it's slow like this:
+
+```
+$ time python -c 'import socket; print(socket.getfqdn())'
+Peters-MacBook-Pro-2.local
+python -c 'import socket; print(socket.getfqdn())'  0.01s user 0.01s system 0% cpu 5.025 total
+```
+
+To make it fast, run `sudo scutil --set HostName MacBook-Pro`
+
+Now it should be faster:
+
+```
+$ time python -c 'import socket; print(socket.getfqdn())'
+MacBook-Pro
+python -c 'import socket; print(socket.getfqdn())'  0.01s user 0.01s system 13% cpu 0.137 total
+```
 
 ### Unable to sign in
 
