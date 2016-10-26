@@ -1,0 +1,23 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  New Rev.com Order for <a href="{{ url('manage:event_edit', event.id) }}">&quot;{{ event.title }}&quot;</a>
+{% endblock %}
+
+
+{% block manage_content %}
+
+
+  <h3 style="margin-top:100px">Place a new Rev.com Order</h3>
+  {% set submit_text = 'Submit' %}
+  {% include "manage/_default_form_upload.html" %}
+
+
+  <p style="margin-top:25px">
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+    <br />
+    <a href="{{ url('manage:event_closed_captions', event.pk) }}">&larr; Return to event Closed Captions</a>
+  </p>
+
+{% endblock %}

@@ -38,7 +38,7 @@ from airmozilla.main.models import (
     Chapter,
     CuratedGroup,
 )
-from airmozilla.closedcaptions.models import ClosedCaptions
+from airmozilla.closedcaptions.models import ClosedCaptions, RevInput
 from airmozilla.comments.models import Discussion, Comment
 from airmozilla.surveys.models import Question, Survey
 from airmozilla.staticpages.models import StaticPage
@@ -1187,5 +1187,27 @@ class SubmitClosedCaptionsForm(BaseForm):
             ('vtt', 'WebVTT'),
         ]
     )
-    # class Meta:
-    #     model = ClosedCaptions
+
+
+class RevInputForm(BaseModelForm):
+    output_file_formats = forms.MultipleChoiceField(
+        choices=(
+            ('Dfxp', 'DFXP'),
+            ('WebVtt', 'WebVTT'),
+            ('Ttml', 'Timed Text'),
+            ('SubRip', 'SubRip'),
+            ('Scc', 'Scenarist'),
+            ('Mcc', 'MacCaption'),
+            ('QTtext', 'Quicktime Timed Text'),
+            ('Transcript', 'Transcript'),
+            ('CheetahCap', 'Cheetah .CAP'),
+            ('Stl', 'Spruce Subtitle File'),
+            ('AvidDs', 'Avid DS Subtitle File'),
+        ),
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = RevInput
+        fields = ('url', 'content_type', 'filename')
+        labels = {'url': 'URL', 'content_type': 'Content-Type'}

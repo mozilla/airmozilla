@@ -109,6 +109,9 @@
   {% include "manage/_default_form_upload.html" %}
 
 
+  <h3 style="margin-top:100px">Submit a Rev.com order</h3>
+  <a href="{{ url('manage:new_event_rev_order', event.pk) }}">Start here</a>
+
   <p style="margin-top:25px">
     <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
   </p>

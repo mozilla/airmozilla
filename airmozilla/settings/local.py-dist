@@ -158,3 +158,5 @@ AWS_SECRET_ACCESS_KEY = ''
 # For production we probably want to override this with a RabbitMQ URL
 # or something like that.
 #BROKER_URL = 'django://'
+
+#REV_BASE_URL = 'https://api-sandbox.rev.com'

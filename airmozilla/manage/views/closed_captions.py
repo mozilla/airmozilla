@@ -1,10 +1,15 @@
-import pycaption
+import os
 
+import pycaption
+import requests
+
+from django import http
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils import timezone
+from django.db import transaction
 
 from .decorators import (
     staff_required,
@@ -16,9 +21,12 @@ from airmozilla.main.models import Event, VidlySubmission
 from airmozilla.closedcaptions.models import (
     ClosedCaptions,
     ClosedCaptionsTranscript,
+    RevInput,
+    RevOrder,
 )
 from airmozilla.manage import forms
 from airmozilla.manage import vidly
+from airmozilla.base import rev
 
 
 @staff_required
@@ -206,3 +214,170 @@ def event_closed_captions_transcript(request, event_id, id):
         'manage/event_closed_captions_transcript.html',
         context
     )
+
+
+@staff_required
+@permission_required('closedcaptions.change_closedcaptions')
+def event_rev_orders(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    rev_orders = RevOrder.objects.filter(event=event).order_by('created')
+    context = {
+        'event': event,
+        'rev_orders': rev_orders,
+    }
+    return render(
+        request,
+        'manage/event_rev_orders.html',
+        context
+    )
+
+
+@staff_required
+@cancel_redirect(
+    lambda r, event_id: reverse('manage:event_closed_captions', args=(
+        event_id,
+    ))
+)
+@permission_required('closedcaptions.change_closedcaptions')
+@transaction.atomic
+def new_event_rev_order(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    if request.method == 'POST':
+        form = forms.RevInputForm(request.POST)
+        if form.is_valid():
+            rev_input = RevInput.objects.create(
+                url=form.cleaned_data['url'],
+                content_type=form.cleaned_data['content_type'],
+                filename=form.cleaned_data['filename'],
+            )
+            uri = rev.input_order(
+                rev_input.url,
+                filename=rev_input.filename,
+                content_type=rev_input.content_type,
+            )
+            rev_input.uri = uri
+            rev_input.save()
+
+            rev_order = RevOrder.objects.create(
+                event=event,
+                input=rev_input,
+                created_user=request.user,
+                output_file_formats=form.cleaned_data['output_file_formats'],
+            )
+            base_url = get_base_url(request)
+            webhook_url = base_url + reverse('manage:rev_order_update_hook')
+            webhook_url = 'http://requestb.in/sxwiousx'
+            order_uri = rev.place_order(
+                uri,
+                output_file_formats=form.cleaned_data['output_file_formats'],
+                webhook_url=webhook_url,
+            )
+            rev_order.uri = order_uri
+            rev_order.order_number = order_uri.split('/')[-1]
+            rev_order.update_status(save=False)
+            rev_order.save()
+
+            return redirect('manage:event_rev_orders', event.pk)
+    else:
+        url = ''
+        content_type = ''
+        filename = ''
+        # If the event is public, and has a vidly submission, use its
+        # SD version in MPEG4 format.
+        if event.template.name.lower().count('vid.ly'):
+            submissions = VidlySubmission.objects.filter(
+                event=event,
+                tag=event.template_environment['tag'],
+                finished__isnull=False,
+                submission_error__isnull=True,
+            )
+            for submission in submissions.order_by('-finished')[:1]:
+                url = 'https://vid.ly/{}?content=video&format=mp4'.format(
+                    submission.tag,
+                )
+                filename = '{}.mp4'.format(submission.tag)
+                content_type = 'video/mpeg'
+                # get the real URL
+                response = requests.head(url)
+                if response.status_code in (301, 302):
+                    url = response.headers['Location']
+                    filename = os.path.basename(url.split('?')[0])
+
+        initial = {
+            'url': url,
+            'content_type': content_type,
+            'filename': filename,
+            'output_file_formats': ['Dfxp'],
+        }
+        form = forms.RevInputForm(initial=initial)
+
+    context = {
+        'event': event,
+        'form': form,
+    }
+    return render(request, 'manage/new_event_rev_order.html', context)
+
+
+def rev_order_update_hook(request):
+    raise NotImplementedError(request.method)
+
+
+@require_POST
+@staff_required
+@permission_required('closedcaptions.change_closedcaptions')
+@transaction.atomic
+def event_rev_orders_cancel(request, event_id, id):
+    rev_order = get_object_or_404(RevOrder, event__id=event_id, id=id)
+    rev.cancel_order(rev_order.order_number)
+    rev_order.cancelled = True
+    rev_order.save()
+    messages.success(
+        request,
+        'Order cancelled',
+    )
+    return redirect('manage:event_rev_orders', rev_order.event.id)
+
+
+@require_POST
+@staff_required
+@permission_required('closedcaptions.change_closedcaptions')
+@transaction.atomic
+def event_rev_orders_update(request, event_id, id):
+    rev_order = get_object_or_404(RevOrder, event__id=event_id, id=id)
+    status_before = rev_order.status
+    rev_order.update_status()
+    status_after = rev_order.status
+    if status_before != status_after:
+        messages.success(
+            request,
+            'Status changed from {} to {}'.format(
+                status_before,
+                status_after,
+            )
+        )
+    else:
+        messages.info(
+            request,
+            'Status unchanged',
+        )
+    return redirect('manage:event_rev_orders', rev_order.event.id)
+
+
+@staff_required
+@permission_required('closedcaptions.change_closedcaptions')
+@transaction.atomic
+def event_rev_orders_download(request, event_id, id, attachment_id):
+    rev_order = get_object_or_404(RevOrder, event__id=event_id, id=id)
+    for attachment in rev_order.get_order()['attachments']:
+        if attachment['id'] == attachment_id:
+            response_attachment = rev.get_attachment(attachment['id'])
+            response = http.HttpResponse()
+            response['Content-Type'] = (
+                response_attachment.headers['Content-Type']
+            )
+            response['Content-Disposition'] = (
+                response_attachment.headers['Content-Disposition']
+            )
+            response.write(response_attachment.text)
+            return response
+    return http.HttpResponseBadRequest(attachment_id)

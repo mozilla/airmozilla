@@ -4,10 +4,12 @@ import pycaption
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 from jsonfield import JSONField
 
 from airmozilla.main.models import Event, upload_path_tagged
+from airmozilla.base import rev
 
 
 class JSONTranscriptWriter(pycaption.base.BaseWriter):
@@ -76,3 +78,42 @@ class ClosedCaptions(models.Model):
 class ClosedCaptionsTranscript(models.Model):
     event = models.OneToOneField(Event)
     closedcaptions = models.ForeignKey(ClosedCaptions)
+
+
+class RevInput(models.Model):
+    url = models.URLField(max_length=500)
+    content_type = models.CharField(max_length=100, null=True)
+    filename = models.CharField(max_length=100, null=True)
+    uri = models.CharField(max_length=200, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+
+class RevOrder(models.Model):
+    event = models.ForeignKey(Event)
+    order_number = models.CharField(max_length=100, null=True)
+    uri = models.CharField(max_length=200, null=True)
+    input = models.ForeignKey(RevInput)
+    output_file_formats = ArrayField(
+        models.CharField(max_length=100)
+    )
+    status = models.CharField(max_length=100, null=True)
+    cancelled = models.BooleanField(default=False)
+    metadata = JSONField(null=True)
+    created_user = models.ForeignKey(
+        User,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def update_status(self, save=True):
+        assert self.uri
+        self.metadata = self.get_order()
+        self.status = self.metadata.get('status')
+        if save:
+            self.save()
+
+    def get_order(self):
+        return rev.get_order(self.uri)

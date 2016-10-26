@@ -109,6 +109,7 @@ class DjangoLiveServerTestCase(LiveServerTestCase):
 class Response(object):
     def __init__(self, content=None, status_code=200, headers=None):
         self.content = content
+        self.text = content
         self.status_code = status_code
         self.headers = headers or {}
 

@@ -491,3 +491,8 @@ SECURE_BROWSER_XSS_FILTER = True
 # See
 # https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-Content-Type-Options  # noqa
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+
+REV_CLIENT_API_KEY = ''
+REV_USER_API_KEY = ''
+REV_BASE_URL = 'https://www.rev.com'

@@ -1,0 +1,148 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='events' -%}
+
+{% block manage_title %}
+  Rev.com Orders for <a href="{{ url('manage:event_edit', event.id) }}">&quot;{{ event.title }}&quot;</a>
+{% endblock %}
+
+
+{% block manage_content %}
+
+  {% if rev_orders.exists() %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>User</th>
+          <th>Information</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in rev_orders %}
+        <tr>
+          <td>
+            {{ item.status }}
+            {% if item.cancelled %}
+            <span class="label label-warning">Cancelled</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.created_user %}
+              {{ item.created_user.email }}
+            {% endif %}
+          </td>
+          <td>
+            <table class="table table-condensed">
+              <tbody>
+                <tr>
+                  <th>
+                    Order Number
+                  </th>
+                  <td>
+                    {{ item.order_number }}
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Created
+                  </th>
+                  <td>
+                    {{ item.created | js_date }}
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Updated
+                  </th>
+                  <td>
+                    {{ item.modified | js_date }}
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Video URL
+                  </th>
+                  <td>
+                    <a href="{{ item.input.url }}">
+                      {{ truncate_chars(item.input.url, 85, left=True) }}
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    File formats
+                  </th>
+                  <td>
+                    {{ ', '.join(item.output_file_formats) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            {% if item.status == 'Complete' %}
+              <h4>Attachments</h4>
+              <table class="table table-condensed">
+                <thead>
+                  <tr>
+                    <th>
+                      Kind
+                    </th>
+                    <th>
+                      Download
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for attachment in item.get_order().attachments %}
+                  <tr>
+                    <th>
+                      {{ attachment.kind }}
+                    </th>
+                    <td>
+                      <a href="{{ url('manage:event_rev_orders_download', event.id, item.id, attachment.id) }}">{{ attachment.name }}</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% endif %}
+          </td>
+          <td class="buttons">
+            {% if item.status != 'Complete' %}
+            <form method="post" class="confirm"
+                  action="{{ url('manage:event_rev_orders_cancel', event.id, item.id) }}">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-sm" type="submit">
+                <i class="glyphicon glyphicon-trash"></i>
+                Cancel
+              </button>
+            </form>
+            {% endif %}
+            <form method="post"
+                  action="{{ url('manage:event_rev_orders_update', event.id, item.id) }}">
+              {% csrf_token %}
+              <button class="btn btn-primary btn-sm" type="submit">
+                <i class="glyphicon glyphicon-refresh"></i>
+                Update
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>
+      <i>No Rev.com orders yet.</i>
+    </p>
+  {% endif %}
+
+
+  <h3 style="margin-top:100px">Submit a Rev.com order</h3>
+  <a href="{{ url('manage:new_event_rev_order', event.pk) }}">Start here</a>
+
+  <p style="margin-top:25px">
+    <a href="{{ url('manage:event_edit', event.pk) }}">&larr; Return to event</a>
+  </p>
+
+{% endblock %}

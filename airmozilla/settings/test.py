@@ -113,3 +113,7 @@ AMARA_PROJECT = 'airmuzilla'
 # We mock all testing that involves running ffmpeg.
 # If a test is poorly mocked, it should actually fail to run.
 FFMPEG_LOCATION = '/dont/ever/actually/run/ffmpeg'
+
+REV_CLIENT_API_KEY = 'testsomerevclientapikey'
+REV_USER_API_KEY = 'testsomerevuserapikey'
+REV_BASE_URL = 'https://api-rev.example.com'
