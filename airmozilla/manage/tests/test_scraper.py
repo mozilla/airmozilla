@@ -4,21 +4,7 @@ import mock
 from django.test import TestCase
 
 from airmozilla.manage import scraper
-
-
-class _Parsed(object):
-    def __init__(self, content, status=200):
-        if content:
-            self.content = {'content': content}
-        else:
-            self.content = {}
-        self.status = status
-
-
-class _Response(object):
-    def __init__(self, content, status_code=200):
-        self.content = self.text = content
-        self.status_code = status_code
+from airmozilla.base.tests.testbase import Response
 
 
 SAMPLE_INTRANET_HTML = u"""<!doctype html>
@@ -55,16 +41,16 @@ class TestScraper(TestCase):
             ]
         )
 
-    @mock.patch('readability.ParserClient')
-    def test_get_content_readability(self, mocked_parser_client):
+    @mock.patch('requests.get')
+    def test_get_content_readability(self, rget):
 
-        parser = mock.Mock()
+        def mocked_get(url):
+            assert 'abc123' in url
+            return Response({
+                'content': '<p>Test content</p>'
+            })
 
-        def mocked_get_article_content(url):
-            return _Parsed('<p>Test content</p>')
-
-        parser.get_article_content = mocked_get_article_content
-        mocked_parser_client.return_value = parser
+        rget.side_effect = mocked_get
 
         url = 'http://doesnotexist/path'
         with self.settings(READABILITY_PARSER_KEY='abc123'):
@@ -86,16 +72,14 @@ class TestScraper(TestCase):
             eq_(content, None)
             eq_(status, 'No READABILITY_PARSER_KEY setting set up')
 
-    @mock.patch('readability.ParserClient')
-    def test_get_content_readability_failed(self, mocked_parser_client):
+    @mock.patch('requests.get')
+    def test_get_content_readability_failed(self, rget):
 
-        parser = mock.Mock()
+        def mocked_get(url):
+            assert 'abc123' in url
+            return Response({}, status_code=500)
 
-        def mocked_get_article_content(url):
-            return _Parsed(None, status=500)
-
-        parser.get_article_content = mocked_get_article_content
-        mocked_parser_client.return_value = parser
+        rget.side_effect = mocked_get
 
         url = 'http://doesnotexist/path'
         with self.settings(READABILITY_PARSER_KEY='abc123'):
@@ -107,10 +91,8 @@ class TestScraper(TestCase):
     def test_get_content_intranet(self, rget):
 
         def mocked_get(url, **options):
-            return _Response(
-                SAMPLE_INTRANET_HTML,
-                200
-            )
+            assert options['auth'] == ('foo', 'bar')
+            return Response(SAMPLE_INTRANET_HTML)
 
         rget.side_effect = mocked_get
 
@@ -146,10 +128,7 @@ class TestScraper(TestCase):
                 'https://etherpad.mozilla.org/ep/pad/export/foo-bar/latest?'
                 'format=txt'
             )
-            return _Response(
-                "Content here",
-                200
-            )
+            return Response('Content here')
 
         rget.side_effect = mocked_get
 

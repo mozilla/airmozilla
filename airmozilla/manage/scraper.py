@@ -58,20 +58,20 @@ def get_urls(text):
 def get_content_readability(url):
     key = getattr(settings, 'READABILITY_PARSER_KEY', None)
     if key:
-        parser = readability.ParserClient(key)
+        parser = readability.ParserClient(token=key)
     else:
         return None, 'No READABILITY_PARSER_KEY setting set up'
-    parser_response = parser.get_article_content(url)
-    status = parser_response.status
+    parser_response = parser.get_article(url)
+    status = parser_response.status_code
     text = []
     try:
-        content = parser_response.content['content']
-        for each in tag_content.findall(content):
+        rendered = parser_response.json()
+        for each in tag_content.findall(rendered['content']):
             if each.strip():
                 text.append(each.strip())
 
     except KeyError:
-        content = None
+        text = []
 
     return '\n'.join(text), status
 
