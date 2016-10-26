@@ -114,6 +114,14 @@ AMARA_PROJECT = 'airmuzilla'
 # If a test is poorly mocked, it should actually fail to run.
 FFMPEG_LOCATION = '/dont/ever/actually/run/ffmpeg'
 
+
 REV_CLIENT_API_KEY = 'testsomerevclientapikey'
 REV_USER_API_KEY = 'testsomerevuserapikey'
 REV_BASE_URL = 'https://api-rev.example.com'
+
+# Custom Key-Value store for sorl.thumbnail that doesn't use the ORM
+# at all. In fact, it doesn't even use the LocMemCache.
+THUMBNAIL_KVSTORE = 'airmozilla.base.tests.testbase.FastSorlKVStore'
+
+THUMBNAIL_ENGINE = 'airmozilla.base.tests.testbase.FastSorlEngine'
+

@@ -14,6 +14,8 @@ from django.core.files import File
 from django.utils import timezone
 
 from pipeline.storage import PipelineCachedStorage
+from sorl.thumbnail.kvstores.base import KVStoreBase
+from sorl.thumbnail.engines.base import EngineBase
 
 # Calm down the overly verbose sorl.thumbnail logging
 logging.getLogger('sorl.thumbnail.base').setLevel(logging.INFO)
@@ -124,3 +126,63 @@ class Response(object):
             if not chunk:
                 break
             yield chunk
+
+
+class FastSorlKVStore(KVStoreBase):
+
+    def __init__(self):
+        self.cache = {}
+
+    def clear(self, delete_thumbnails=False):
+        self.cache = {}
+        if delete_thumbnails:
+            # XXX does this ever happen in tests?
+            self.delete_all_thumbnail_files()
+
+    def _get_raw(self, key):
+        return self.cache.get(key)
+
+    def _set_raw(self, key, value):
+        self.cache[key] = value
+
+    def _delete_raw(self, *keys):
+        for key in keys:
+            del self.cache[key]
+
+    def _find_keys_raw(self, prefix):
+        return [x for x in self.cache.keys() if x.startswith(prefix)]
+
+
+class _Image(object):
+    def __init__(self):
+        self.size = (1000, 1000)
+        self.mode = 'RGBA'
+        self.data = '\xa0'
+
+
+class FastSorlEngine(EngineBase):
+
+    def get_image(self, source):
+        return _Image()
+        # return StringIO()
+
+    def get_image_size(self, image):
+        return image.size
+
+    def _colorspace(self, image, colorspace):
+        return image
+
+    def _scale(self, image, width, height):
+        image.size = (width, height)
+        return image
+
+    def _crop(self, image, width, height, x_offset, y_offset):
+        image.size = (width, height)
+        return image
+
+    def _get_raw_data(self, image, *args, **kwargs):
+        return image.data
+
+    def is_valid_image(self, raw_data):
+        # print "RAW_DATA", repr(raw_data)
+        return bool(raw_data)

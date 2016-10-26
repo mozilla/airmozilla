@@ -36,7 +36,6 @@ from airmozilla.main.models import (
     EventLiveHits,
     Chapter,
 )
-# from airmozilla.subtitles.models import AmaraVideo
 from airmozilla.closedcaptions.models import (
     ClosedCaptions,
     ClosedCaptionsTranscript,
@@ -57,22 +56,15 @@ from airmozilla.base.tests.testbase import DjangoTestCase
 
 class TestPages(DjangoTestCase):
 
-    def setUp(self):
-        super(TestPages, self).setUp()
-        # Make the fixture event live as of the test.
+    def _get_main_channel(self):
+        return Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+
+    def _get_live_event(self, save=True):
         event = Event.objects.get(title='Test event')
         event.start_time = timezone.now()
         event.archive_time = None
         event.save()
-
-        self.fanout.publish.assert_called_with(
-            'event-{}'.format(event.id),
-            True
-        )
-
-        self.main_channel = Channel.objects.get(
-            slug=settings.DEFAULT_CHANNEL_SLUG
-        )
+        return event
 
     def _calendar_url(
         self,
@@ -478,7 +470,7 @@ class TestPages(DjangoTestCase):
 
         main_channel_url = reverse(
             'main:home_channels',
-            args=(self.main_channel.slug,))
+            args=(self._get_main_channel().slug,))
         test_channel1_url = reverse(
             'main:home_channels',
             args=(channel1.slug,))
@@ -487,7 +479,7 @@ class TestPages(DjangoTestCase):
             args=(channel2.slug,))
 
         ok_(
-            self.main_channel.name in response.content and
+            self._get_main_channel().name in response.content and
             main_channel_url in response.content
         )
         ok_(
@@ -589,7 +581,7 @@ class TestPages(DjangoTestCase):
 
     def test_event_upcoming(self):
         """View an upcoming event and it should show the local time"""
-        event = Event.objects.get(title='Test event')
+        event = self._get_live_event()
         date = datetime.datetime(2099, 1, 1, 18, 0, 0).replace(tzinfo=utc)
         event.start_time = date
         event.save()
@@ -668,7 +660,7 @@ class TestPages(DjangoTestCase):
         response_private = self.client.get(private_url)
         eq_(response_private.status_code, 200)
         # Cache tests
-        event_change = Event.objects.get(title='Test event')
+        event_change = self._get_live_event()
         event_change.title = 'Hello cache clear!'
         event_change.save()
         response_changed = self.client.get(url)
@@ -676,7 +668,7 @@ class TestPages(DjangoTestCase):
         ok_('cache clear!' in response_changed.content)
 
     def test_calendar_ical_filter_by_status(self):
-        event = Event.objects.get(title='Test event')
+        event = self._get_live_event()
         assert event.status == Event.STATUS_SCHEDULED
 
         url = self._calendar_url('public')
@@ -744,7 +736,7 @@ class TestPages(DjangoTestCase):
             placeholder_img=event1.placeholder_img,
             location=london
         )
-        event2.channels.add(self.main_channel)
+        event2.channels.add(self._get_main_channel())
         assert event1.location != event2.location
 
         url = self._calendar_url('public')
@@ -788,7 +780,7 @@ class TestPages(DjangoTestCase):
             placeholder_img=event1.placeholder_img,
             location=event1.location
         )
-        event2.channels.add(self.main_channel)
+        event2.channels.add(self._get_main_channel())
         parent_channel = Channel.objects.create(name='Parent', slug='parent')
         sub_channel = Channel.objects.create(
             name='Sub',
@@ -884,7 +876,7 @@ class TestPages(DjangoTestCase):
             name='London',
             timezone='Europe/London'
         )
-        event1 = Event.objects.get(title='Test event')
+        event1 = self._get_live_event()
         # know your fixtures
         assert event1.location.name == 'Mountain View'
 
@@ -898,7 +890,7 @@ class TestPages(DjangoTestCase):
             placeholder_img=event1.placeholder_img,
             location=london
         )
-        event2.channels.add(self.main_channel)
+        event2.channels.add(self._get_main_channel())
         assert event1.location != event2.location
 
         url = reverse('main:calendars')
@@ -956,7 +948,7 @@ class TestPages(DjangoTestCase):
             name='London',
             timezone='Europe/London'
         )
-        event1 = Event.objects.get(title='Test event')
+        event1 = self._get_live_event()
         # know your fixtures
         assert event1.location.name == 'Mountain View'
 
@@ -970,7 +962,7 @@ class TestPages(DjangoTestCase):
             placeholder_img=event1.placeholder_img,
             location=london
         )
-        event2.channels.add(self.main_channel)
+        event2.channels.add(self._get_main_channel())
         assert event1.location != event2.location
 
         url = reverse('main:calendars')
@@ -1054,7 +1046,7 @@ class TestPages(DjangoTestCase):
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
-        event2.channels.add(self.main_channel)
+        event2.channels.add(self._get_main_channel())
 
         eq_(Event.objects.approved().count(), 2)
         eq_(Event.objects.archived().count(), 2)
@@ -1121,7 +1113,7 @@ class TestPages(DjangoTestCase):
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
-        event2.channels.add(self.main_channel)
+        event2.channels.add(self._get_main_channel())
 
         eq_(Event.objects.approved().count(), 2)
         eq_(Event.objects.archived().count(), 2)
@@ -1176,26 +1168,23 @@ class TestPages(DjangoTestCase):
         )
 
     def test_call_info_presence(self):
-        event = Event.objects.get(title='Test event')
+        event = self._get_live_event()
         event.call_info = 'More info'
-
-        url = reverse('main:event', args=(event.slug,))
-
         event.archive_time = None
         event.start_time = timezone.now() + datetime.timedelta(days=1)
         event.save()
         assert event.is_upcoming()
+
+        url = reverse('main:event', args=(event.slug,))
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('More info' in response.content)
-
         event.start_time = timezone.now()
         event.save()
         assert event.is_live()
         response = self.client.get(url)
         eq_(response.status_code, 200)
         ok_('More info' in response.content)
-
         event.archive_time = timezone.now()
         event.save()
         assert not event.is_live() and not event.is_upcoming()
@@ -1204,7 +1193,7 @@ class TestPages(DjangoTestCase):
         ok_('More info' not in response.content)
 
     def test_chapters_tab(self):
-        event = Event.objects.get(title='Test event')
+        event = self._get_live_event()
         assert not Chapter.objects.filter(event=event)
         url = reverse('main:event', args=(event.slug,))
         edit_url = reverse('main:event_edit_chapters', args=(event.slug,))
@@ -1307,7 +1296,7 @@ class TestPages(DjangoTestCase):
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
-        event.channels.add(self.main_channel)
+        event.channels.add(self._get_main_channel())
 
         event = Event.objects.create(
             title='Third test event',
@@ -1317,7 +1306,7 @@ class TestPages(DjangoTestCase):
             status=event1.status,
             placeholder_img=event1.placeholder_img,
         )
-        event.channels.add(self.main_channel)
+        event.channels.add(self._get_main_channel())
 
         response = self.client.get(reverse('main:home'))
         eq_(response.status_code, 200)
@@ -1365,7 +1354,7 @@ class TestPages(DjangoTestCase):
         )
 
         # create an archived event that can belong to this channel
-        event1 = Event.objects.get(title='Test event')
+        event1 = self._get_live_event()
         now = timezone.now()
         event = Event.objects.create(
             title='Third test event',
@@ -1623,7 +1612,7 @@ class TestPages(DjangoTestCase):
 
     def test_render_home_without_channel(self):
         # if there is no "main" channel it gets automatically created
-        self.main_channel.delete()
+        self._get_main_channel().delete()
         ok_(not Channel.objects.filter(slug=settings.DEFAULT_CHANNEL_SLUG))
         response = self.client.get(reverse('main:home'))
         eq_(response.status_code, 200)
@@ -1679,6 +1668,7 @@ class TestPages(DjangoTestCase):
         event1 = Event.objects.get(title='Test event')
         now = timezone.now()
 
+        main_channel = self._get_main_channel()
         for i in range(1, 40):
             event = Event.objects.create(
                 title='%d test event' % i,
@@ -1689,7 +1679,7 @@ class TestPages(DjangoTestCase):
                 status=Event.STATUS_SCHEDULED,
                 placeholder_img=event1.placeholder_img,
             )
-            event.channels.add(self.main_channel)
+            event.channels.add(main_channel)
 
         url = reverse('main:home')
         response = self.client.get(url)
@@ -1977,6 +1967,7 @@ class TestPages(DjangoTestCase):
         events = []
         event1 = Event.objects.get(title='Test event')
         now = timezone.now()
+        main_channel = self._get_main_channel()
         for i in range(1, 10):
             event = Event.objects.create(
                 title='%d test event' % i,
@@ -1987,7 +1978,7 @@ class TestPages(DjangoTestCase):
                 status=Event.STATUS_SCHEDULED,
                 placeholder_img=event1.placeholder_img,
             )
-            event.channels.add(self.main_channel)
+            event.channels.add(main_channel)
             events.append(event)
 
         tag1 = Tag.objects.create(name='Tag1')
@@ -2028,7 +2019,7 @@ class TestPages(DjangoTestCase):
         # view it as a contributor
         UserProfile.objects.create(
             user=User.objects.create_user(
-                'nigel', 'nigel@live.com', 'secret'
+                'nigel', 'nigel@example.com', 'secret'
             ),
             contributor=True
         )
@@ -2073,6 +2064,8 @@ class TestPages(DjangoTestCase):
         ok_(calendars_url in response.content)
 
     def test_calendar_data(self):
+        test_event = self._get_live_event()
+
         url = reverse('main:calendar_data')
         response = self.client.get(url)
         eq_(response.status_code, 400)
@@ -2113,11 +2106,9 @@ class TestPages(DjangoTestCase):
         })
         eq_(response.status_code, 200)
         structure = json.loads(response.content)
-        test_event = Event.objects.get(title='Test event')
         assert test_event.start_time.date() >= first
         assert test_event.start_time.date() < last
-
-        assert len(structure) == 1
+        assert len(structure) == 1, len(structure)
         item, = structure
         eq_(item['title'], test_event.title)
         eq_(item['url'], reverse('main:event', args=(test_event.slug,)))
@@ -2196,6 +2187,7 @@ class TestPages(DjangoTestCase):
         eq_((end - start).seconds, 60 * 37)
 
     def test_calendar_data_privacy(self):
+        event = self._get_live_event()
         url = reverse('main:calendar_data')
         response = self.client.get(url)
 
@@ -2217,7 +2209,6 @@ class TestPages(DjangoTestCase):
         response = self.client.get(url, params)
         eq_(response.status_code, 200)
         structure = json.loads(response.content)
-        event = Event.objects.get(title='Test event')
         assert first <= event.start_time.date() <= last
         item, = structure
         eq_(item['title'], event.title)
@@ -2315,6 +2306,7 @@ class TestPages(DjangoTestCase):
         ok_('Trending' not in response.content)
 
         # set up 3 events
+        main_channel = self._get_main_channel()
         event0 = Event.objects.get(title='Test event')
         now = timezone.now()
         event1 = Event.objects.create(
@@ -2326,7 +2318,7 @@ class TestPages(DjangoTestCase):
             status=Event.STATUS_SCHEDULED,
             placeholder_img=event0.placeholder_img,
         )
-        event1.channels.add(self.main_channel)
+        event1.channels.add(main_channel)
         event2 = Event.objects.create(
             title='2 Test Event',
             description='Anything',
@@ -2336,7 +2328,7 @@ class TestPages(DjangoTestCase):
             status=Event.STATUS_SCHEDULED,
             placeholder_img=event0.placeholder_img,
         )
-        event2.channels.add(self.main_channel)
+        event2.channels.add(main_channel)
         event3 = Event.objects.create(
             title='3 Test Event',
             description='Anything',
@@ -2346,7 +2338,7 @@ class TestPages(DjangoTestCase):
             status=Event.STATUS_SCHEDULED,
             placeholder_img=event0.placeholder_img,
         )
-        event3.channels.add(self.main_channel)
+        event3.channels.add(main_channel)
 
         # now, we can expect all of these three to appear in the side bar
         url = reverse('main:channels')
@@ -2435,6 +2427,7 @@ class TestPages(DjangoTestCase):
         # in the side bar
         url = reverse('main:channels')
         # set up 3 events
+        main_channel = self._get_main_channel()
         event0 = Event.objects.get(title='Test event')
         now = timezone.now()
         event1 = Event.objects.create(
@@ -2446,7 +2439,7 @@ class TestPages(DjangoTestCase):
             status=Event.STATUS_SCHEDULED,
             placeholder_img=event0.placeholder_img,
         )
-        event1.channels.add(self.main_channel)
+        event1.channels.add(main_channel)
         event2 = Event.objects.create(
             title='2 Test Event',
             description='Anything',
@@ -2456,7 +2449,7 @@ class TestPages(DjangoTestCase):
             status=Event.STATUS_SCHEDULED,
             placeholder_img=event0.placeholder_img,
         )
-        event2.channels.add(self.main_channel)
+        event2.channels.add(main_channel)
         event3 = Event.objects.create(
             title='3 Test Event',
             description='Anything',
@@ -2466,7 +2459,7 @@ class TestPages(DjangoTestCase):
             status=Event.STATUS_SCHEDULED,
             placeholder_img=event0.placeholder_img,
         )
-        event3.channels.add(self.main_channel)
+        event3.channels.add(main_channel)
         EventHitStats.objects.create(
             event=event1,
             total_hits=1000,
@@ -2728,8 +2721,7 @@ class TestPages(DjangoTestCase):
         ok_('Something' in response.content)
 
     def test_picture_over_placeholder(self):
-        event = Event.objects.get(title='Test event')
-        assert event in Event.objects.live()
+        event = self._get_live_event()
         self._attach_file(event, self.main_image)
         assert os.path.isfile(event.placeholder_img.path)
 
@@ -3118,8 +3110,7 @@ class TestPages(DjangoTestCase):
             eq_(resp.status_code, 200)
             return json.loads(resp.content)['hits']
 
-        event = Event.objects.get(title='Test event')
-        assert event.is_live()
+        event = self._get_live_event()
         url = reverse('main:event_livehits', args=(event.id,))
         response = self.client.get(url)
         eq_(get_hits(response), 0)
@@ -3174,7 +3165,7 @@ class TestPages(DjangoTestCase):
         eq_(response.status_code, 404)
 
     def test_home_with_some_placeholder_images(self):
-        e, = Event.objects.live()
+        e = self._get_live_event()
         e.archive_time = timezone.now()
         e.save()
         self._attach_file(e, self.main_image)
@@ -3332,8 +3323,7 @@ class TestPages(DjangoTestCase):
         )
 
     def test_see_live_unapproved_events(self):
-        event = Event.objects.get(title='Test event')
-        assert event in Event.objects.live()
+        event = self._get_live_event()
         response = self.client.get('/')
         eq_(response.status_code, 200)
         ok_('Streaming Live Now' in response.content)
