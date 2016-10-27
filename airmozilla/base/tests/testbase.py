@@ -164,7 +164,6 @@ class FastSorlEngine(EngineBase):
 
     def get_image(self, source):
         return _Image()
-        # return StringIO()
 
     def get_image_size(self, image):
         return image.size
@@ -184,5 +183,4 @@ class FastSorlEngine(EngineBase):
         return image.data
 
     def is_valid_image(self, raw_data):
-        # print "RAW_DATA", repr(raw_data)
         return bool(raw_data)
