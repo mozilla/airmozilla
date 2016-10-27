@@ -47,9 +47,6 @@ HOME=/tmp
 # Every 13 minutes
 */13 * * * * {{ cron }} tweet_new_published_events 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
-# Every 5 minutes
-*/5 * * * * {{ cron }} render_popcorn 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
-
 # Every Sunday at 8AM
 0 8 * * 0 {{ cron }} related_content_reindex 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
