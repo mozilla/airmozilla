@@ -1,0 +1,12 @@
+p.login-lock {
+    text-align: center;
+    margin: 100px;
+}
+
+input.auth0-lock-input {
+    background-color: none;
+}
+
+input.auth0-lock-input:focus {
+    background-color:transparent;
+}

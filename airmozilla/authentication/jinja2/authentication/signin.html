@@ -1,0 +1,59 @@
+{% extends 'main/main_base.html' %}
+{% set page='signin' %}
+
+{% block page_title %}
+Sign In | {{ super() }}
+{% endblock %}
+
+{% block extra_head %}
+{{ super() }}
+<meta name="auth0-client-id" content="{{ AUTH0_CLIENT_ID }}">
+<meta name="auth0-domain" content="{{ AUTH0_DOMAIN }}">
+<meta name="auth0-callback-url" content="{{ AUTH0_CALLBACK_URL }}">
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'signin' %}
+{% endblock %}
+
+{% block site_js %}
+  {{ super() }}
+  <script src="https://cdn.auth0.com/js/lock-passwordless-2.2.min.js"></script>
+  {% javascript 'signin' %}
+{% endblock %}
+
+
+{% block content_main %}
+  <h2 class="section-title">Sign In</h2>
+  {% if request.user.is_authenticated() %}
+    <p>
+      You are already signed in as
+      <b>{{ request.user.email }}</b>.
+    </p>
+    <p>
+      <a href="/">Go to the home page</a>
+    </p>
+    <form action="{{ url('authentication:signout') }}" method="post">
+      {% csrf_token %}
+      <button type="submit">Sign Out</button>
+    </form>
+  {% else %}
+
+    <p class="login-lock">
+      <a href="#"><img src="{{ static('authentication/images/lock-logo.png') }}" width="150"/></a>
+    </p>
+
+    <p>
+      Unless you are <b>Mozilla staff</b>
+      your <b>email has to belong to a <i>vouched Mozillians.org account</i></b>.
+
+    </p>
+    <p>
+      We use <a href="https://auth0.com" target="_blank" rel="noopener">Auth0.com</a>
+      to handle the authentication.
+    </p>
+
+  {% endif %}
+
+{% endblock %}

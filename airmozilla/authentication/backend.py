@@ -1,5 +1,15 @@
+import hashlib
+
+from django.contrib.auth import get_user_model
 from django_browserid.auth import BrowserIDBackend
 from django.core.cache import cache
+
+
+UserModel = get_user_model()
+
+
+def hash_email(email):
+    return hashlib.md5(email).hexdigest()[:30]
 
 
 class AirmozillaBrowserIDBackend(BrowserIDBackend):

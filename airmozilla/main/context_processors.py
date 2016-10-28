@@ -113,8 +113,9 @@ def nav_bar(request):
                     '',
                     'browserid-logout',
                 ))
+            name = request.user.first_name or request.user.email.split('@')[0]
             items.append((
-                request.user.email.split('@')[0],
+                name,
                 '#',  # url
                 'you',  # id
                 '',  # class

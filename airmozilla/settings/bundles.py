@@ -224,6 +224,12 @@ PIPELINE_CSS = {
         ),
         'output_filename': 'css/fancy-editor.min.css',
     },
+    'signin': {
+        'source_filenames': (
+            'authentication/css/signin.css',
+        ),
+        'output_filename': 'css/signin.min.css',
+    },
 }
 
 #
@@ -623,6 +629,12 @@ PIPELINE_JS = {
             'manage/js/template-edit.js',
         ),
         'output_filename': 'js/template-edit.min.js',
+    },
+    'signin': {
+        'source_filenames': (
+            'authentication/js/signin.js',
+        ),
+        'output_filename': 'js/signin.min.js',
     },
 }
 

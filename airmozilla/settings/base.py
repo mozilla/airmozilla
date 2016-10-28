@@ -496,3 +496,11 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 REV_CLIENT_API_KEY = ''
 REV_USER_API_KEY = ''
 REV_BASE_URL = 'https://www.rev.com'
+
+AUTH0_DOMAIN = 'auth.mozilla.auth0.com'
+AUTH0_CLIENT_ID = 'YOU_CLIENT_ID'
+AUTH0_SECRET = 'YOUR_SECRET'
+AUTH0_CALLBACK_URL = 'https://air.mozilla.org/authentication/callback/'
+AUTH0_SUCCESS_URL = '/?logged=in'
+
+AUTH_SIGNOUT_URL = 'https://air.mozilla.org/?logged=out'

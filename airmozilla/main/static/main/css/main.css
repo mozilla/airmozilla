@@ -366,14 +366,15 @@ input[type=email], input[type=url], input[type=password], input[type=text], text
 input[type=email]:hover, input[type=url]:hover, input[type=password]:hover, input[type=text]:hover, textarea:hover {
   border-color: #516e83;
 }
+
 input[type=email]:focus, input[type=url]:focus, input[type=password]:focus, input[type=text]:focus, textarea:focus {
   background-color: #516e83;
   color: #c5ccd2;
   border-color: #62869f;
-	-moz-box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
-	-webkit-box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
-	-o-box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
-	box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
+  -moz-box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
+  -webkit-box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
+  -o-box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
+  box-shadow: inset rgba(0,0,0,0.3) 0 0 4px, rgba(255,255,255, 0.1) 0 1px 0;
 }
 label .note { color: #afb6bb; }
 
