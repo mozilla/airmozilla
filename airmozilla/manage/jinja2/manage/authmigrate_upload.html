@@ -1,0 +1,79 @@
+{% extends 'manage/manage_base.html' %}
+{% set page='authmigrate' -%}
+
+{% block manage_title %}
+  Authentication Migration
+{% endblock %}
+
+{% block manage_content %}
+
+  <p>
+    It must be <code>.csv</code> file that looks like this example:
+  </p>
+<pre>
+ALIAS,ACTUAL
+alias@example.com,flastname@example.com
+...
+</pre>
+
+{% if results %}
+  {% if dry_run %}
+    <h3>In DRY-RUN mode</h3>
+  {% else %}
+    <h3>NOT in dry-run mode</h3>
+  {% endif %}
+  <h4>Keys</h4>
+  <dl class="dl-horizontal">
+    <dt>Neither found</dt>
+    <dd>Neither the alias or real email was found as a user</dd>
+    <dt>Nothing to do</dt>
+    <dd>Didn't exist as an alias anyway</dd>
+    <dt>Moved over</dt>
+    <dd>Only existed as alias, email address simply changed</dd>
+    <dt>Merged</dt>
+    <dd>Objects belonging to the old user account moved</dd>
+
+  </dl>
+<table class="table">
+  <thead>
+    <tr>
+      <th>
+        Alias
+      </th>
+      <th>
+        Real
+      </th>
+      <th>
+        Notes
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for result in results %}
+    <tr {% if 'Merged' in result['notes'] %}style="font-weight: bold"{% endif %}>
+      <td>
+        {{ result.alias }}
+        {% if result.old and not result.old.is_active %}
+          <span class="label label-default" title="Inactive user">Inactive</span>
+        {% endif %}
+      </td>
+      <td>
+        {{ result.real }}
+        {% if result.new and not result.new.is_active %}
+          <span class="label label-default" title="Inactive user">Inactive</span>
+        {% endif %}
+      </td>
+      <td>
+        {{ result.notes | carefulnl2br | safe }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+
+</table>
+{% endif %}
+
+  {% set submit_text = 'Upload and Process' %}
+  {% include "manage/_default_form_upload.html" %}
+
+{% endblock %}

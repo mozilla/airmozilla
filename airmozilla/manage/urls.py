@@ -31,6 +31,7 @@ from .views import (
     durations,
     email_sending,
     closed_captions,
+    authmigrate,
 )
 
 
@@ -364,5 +365,8 @@ urlpatterns = patterns(
     url(r'^closed_captions/rev/webhook/$',
         closed_captions.rev_order_update_hook,
         name='rev_order_update_hook'),
+    url(r'^authmigrate/$',
+        authmigrate.upload,
+        name='authmigrate_upload'),
 
 )
