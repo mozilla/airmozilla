@@ -2,7 +2,7 @@
 # repo. If you need to override a setting locally, use settings/local.py
 import os
 
-from bundles import PIPELINE_CSS, PIPELINE_JS  # NOQA
+from bundles import PIPELINE_CSS, PIPELINE_JS
 
 
 ROOT = os.path.abspath(
@@ -174,7 +174,7 @@ TEMPLATES = [
                 'django_jinja.builtins.extensions.CsrfExtension',
                 'django_jinja.builtins.extensions.StaticFilesExtension',
                 'django_jinja.builtins.extensions.DjangoFiltersExtension',
-                'pipeline.templatetags.ext.PipelineExtension',
+                'pipeline.jinja2.PipelineExtension',
             ],
             'globals': {
                 'browserid_info': 'django_browserid.helpers.browserid_info',
@@ -408,11 +408,23 @@ BASE_PASSWORD_HASHERS = HMAC_KEYS = []
 YOUTUBE_API_KEY = None
 
 # You have to run `npm install` for this to be installed in `./node_modules`
-PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.uglifyjs.UglifyJSCompressor'
-PIPELINE_UGLIFYJS_BINARY = path('node_modules/.bin/uglifyjs')
-PIPELINE_UGLIFYJS_ARGUMENTS = '--mangle'
-PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.cssmin.CSSMinCompressor'
-PIPELINE_CSSMIN_BINARY = path('node_modules/.bin/cssmin')
+PIPELINE = {
+    'STYLESHEETS': PIPELINE_CSS,
+    'JAVASCRIPT': PIPELINE_JS,
+    'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
+    'UGLIFYJS_BINARY': path('node_modules/.bin/uglifyjs'),
+    'UGLIFYJS_ARGUMENTS': '--mangle',
+    'CSS_COMPRESSOR': 'pipeline.compressors.cssmin.CSSMinCompressor',
+    'CSSMIN_BINARY': path('node_modules/.bin/cssmin'),
+    # Don't wrap javascript code in... `(...code...)();`
+    # because possibly much code has been built with the assumption that
+    # things will be made available globally.
+    'DISABLE_WRAPPER': True,
+    # The pipeline.jinja2.PipelineExtension extension doesn't support
+    # automatically rendering any potentional compilation errors into
+    # the rendered HTML, so just let it raise plain python exceptions.
+    'SHOW_ERRORS_INLINE': False,
+}
 
 POPCORN_EDITOR_CDN_URL = "//d2edlhmcxlovf.cloudfront.net"
 
