@@ -256,6 +256,7 @@ class TestViews(DjangoTestCase):
             eq_(json['grant_type'], 'authorization_code')
             return Response({
                 'access_token': 'somecrypticaccesstoken',
+                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
             })
 
         rpost.side_effect = mocked_post
@@ -279,11 +280,15 @@ class TestViews(DjangoTestCase):
         eq_(response.status_code, 302)
         ok_(response['location'].endswith(settings.AUTH0_SUCCESS_URL))
 
-        ok_(User.objects.get(
+        user = User.objects.get(
             email=email,
             first_name='Rufus',
             last_name='Leonard',
-        ))
+        )
+        eq_(
+            user.profile.refresh_token,
+            'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx'
+        )
 
         # Load the home page, if it worked, the page (header nav)
         # should say our first name.
@@ -298,6 +303,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
+                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
             })
 
         rpost.side_effect = mocked_post
@@ -327,6 +333,10 @@ class TestViews(DjangoTestCase):
             last_name='Leonard',
         )
         ok_(user.profile.contributor)
+        eq_(
+            user.profile.refresh_token,
+            'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx'
+        )
 
     def test_auth0_callback_missing_code(self):
         url = reverse('authentication:callback')
@@ -361,6 +371,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
+                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
             })
 
         rpost.side_effect = mocked_post
@@ -388,6 +399,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
+                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
             })
 
         rpost.side_effect = mocked_post
@@ -421,6 +433,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
+                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
             })
 
         rpost.side_effect = mocked_post
@@ -480,6 +493,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
+                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
             })
 
         rpost.side_effect = mocked_post
@@ -520,6 +534,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
+                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
             })
 
         rpost.side_effect = mocked_post

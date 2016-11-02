@@ -14,7 +14,7 @@ from django.contrib.auth import get_user_model, login
 from csp.decorators import csp_update
 
 from airmozilla.base.mozillians import is_vouched, BadStatusCodeError
-from airmozilla.main.models import UserProfile
+from airmozilla.main.models import UserProfile, get_profile_safely
 
 from django_browserid.views import Verify
 from django_browserid.http import JSONResponse
@@ -175,6 +175,10 @@ def callback(request):
         return redirect('authentication:signin')
 
     if user:
+        profile = get_profile_safely(user, create_if_necessary=True)
+        profile.refresh_token = token_info['refresh_token']
+        profile.save()
+
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
         return redirect(settings.AUTH0_SUCCESS_URL)
