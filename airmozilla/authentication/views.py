@@ -1,5 +1,7 @@
 import logging
 import urllib
+import hashlib
+import base64
 
 import requests
 
@@ -10,6 +12,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model, login
+from django.utils.encoding import smart_bytes
 
 from csp.decorators import csp_update
 
@@ -193,6 +196,15 @@ def callback(request):
         return redirect('authentication:signin')
 
 
+def default_username(email):
+    # Store the username as a base64 encoded sha1 of the email address
+    # this protects against data leakage because usernames are often
+    # treated as public identifiers (so we can't use the email address).
+    return base64.urlsafe_b64encode(
+        hashlib.sha1(smart_bytes(email)).digest()
+    ).rstrip(b'=')
+
+
 def get_user(user_info):
     email = user_info['email']
 
@@ -219,7 +231,7 @@ def get_user(user_info):
             # We have to create the user
             user = User.objects.create(
                 email=email,
-                username=user_info['user_id'],
+                username=default_username(email),
             )
             created = True
 
