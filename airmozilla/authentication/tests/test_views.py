@@ -338,6 +338,77 @@ class TestViews(DjangoTestCase):
             'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx'
         )
 
+    @mock.patch('requests.post')
+    @mock.patch('requests.get')
+    def test_auth0_callback_contributor_no_refresh_token(self, rget, rpost):
+
+        def mocked_post(url, json):
+            return Response({
+                'access_token': 'somecrypticaccesstoken',
+            })
+
+        rpost.side_effect = mocked_post
+
+        email = 'test@neverheardof.biz'
+
+        def mocked_get(url):
+            if settings.MOZILLIANS_API_BASE in url:
+                return Response(VOUCHED_FOR_USERS)
+            return Response({
+                'email': email,
+                'family_name': 'Leonard',
+                'given_name': 'Randalf',
+                'user_id': '00000001',
+            })
+
+        rget.side_effect = mocked_get
+
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {'code': 'xyz001'})
+        eq_(response.status_code, 302)
+        ok_(response['location'].endswith(settings.AUTH0_SUCCESS_URL))
+
+        user = User.objects.get(
+            email=email,
+            first_name='Randalf',
+            last_name='Leonard',
+        )
+        ok_(user.profile.contributor)
+        eq_(user.profile.refresh_token, None)
+
+    @mock.patch('requests.post')
+    @mock.patch('requests.get')
+    def test_auth0_callback_staff_no_refresh_token(self, rget, rpost):
+
+        def mocked_post(url, json):
+            return Response({
+                'access_token': 'somecrypticaccesstoken',
+            })
+
+        rpost.side_effect = mocked_post
+
+        email = 'test@{}'.format(settings.ALLOWED_BID[0])
+
+        def mocked_get(url):
+            if settings.MOZILLIANS_API_BASE in url:
+                return Response(VOUCHED_FOR_USERS)
+            return Response({
+                'email': email,
+                'family_name': 'Leonard',
+                'given_name': 'Randalf',
+                'user_id': '00000001',
+            })
+
+        rget.side_effect = mocked_get
+
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {'code': 'xyz001'})
+        eq_(response.status_code, 302)
+        # If you get redirected to the sign in page, it failed
+        ok_(response['location'].endswith(
+            reverse('authentication:signin')
+        ))
+
     def test_auth0_callback_missing_code(self):
         url = reverse('authentication:callback')
         response = self.client.get(url)

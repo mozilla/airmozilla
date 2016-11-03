@@ -178,9 +178,23 @@ def callback(request):
         return redirect('authentication:signin')
 
     if user:
-        profile = get_profile_safely(user, create_if_necessary=True)
-        profile.refresh_token = token_info['refresh_token']
-        profile.save()
+        if token_info.get('refresh_token'):
+            profile = get_profile_safely(user, create_if_necessary=True)
+            profile.refresh_token = token_info['refresh_token']
+            profile.save()
+        else:
+            # If you signed in with a domain found in settings.ALLOWED_BID
+            # then we can't accept NOT getting a refresh_token
+            if user.email.lower().split('@')[1] in settings.ALLOWED_BID:
+                messages.error(
+                    request,
+                    "Staff can't log in without a refresh token. "
+                    "Means you have to click the Google button if you're "
+                    "a member of staff.".format(
+                        user_info['email']
+                    )
+                )
+                return redirect('authentication:signin')
 
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
