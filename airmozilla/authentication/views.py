@@ -122,6 +122,21 @@ def callback(request):
     are vouched Mozillians."""
     code = request.GET.get('code', '')
     if not code:
+        # If the user is blocked, we will never be called back with a code.
+        # What Auth0 does is that it calls the callback but with extra
+        # query string parameters.
+        if request.GET.get('error'):
+            messages.error(
+                request,
+                "Unable to sign in because of an error from Auth0. "
+                "({})".format(
+                    request.GET.get(
+                        'error_description',
+                        request.GET['error']
+                    )
+                )
+            )
+            return redirect('authentication:signin')
         return http.HttpResponseBadRequest("Missing 'code'")
     token_url = 'https://{}/oauth/token'.format(settings.AUTH0_DOMAIN)
     token_payload = {

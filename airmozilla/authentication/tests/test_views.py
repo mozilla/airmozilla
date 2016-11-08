@@ -690,3 +690,19 @@ class TestViews(DjangoTestCase):
         ok_(response['location'].endswith(
             reverse('authentication:signin')
         ))
+
+    def test_auth0_callback_error(self):
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {
+            'error': 'xyz001',
+            'error_description': 'Your kind is not welcome here',
+        })
+        eq_(response.status_code, 302)
+        ok_(response['location'].endswith(
+            reverse('authentication:signin')
+        ))
+
+        # If you now load the signin page, there's a message there for you
+        response = self.client.get(reverse('authentication:signin'))
+        eq_(response.status_code, 200)
+        ok_('Your kind is not welcome here' in response.content)
