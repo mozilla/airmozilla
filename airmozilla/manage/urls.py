@@ -46,6 +46,8 @@ urlpatterns = patterns(
     url(r'^users/$', users.users, name='users'),
     url(r'^users/data/$', users.users_data, name='users_data'),
     url(r'^users/signinas/$', users.signinas, name='signinas'),
+    url(r'^users/id-token/check/$', users.id_token_check,
+        name='id_token_check'),
     url(r'^groups/(?P<id>\d+)/$', groups.group_edit, name='group_edit'),
     url(r'^groups/remove/(?P<id>\d+)/$', groups.group_remove,
         name='group_remove'),

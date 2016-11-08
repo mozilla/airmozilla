@@ -33,6 +33,7 @@ function UserManagerController($scope, $http) {
 
     var $appContainer = angular.element('#usermanagerApp');
     var signinasURL = $appContainer.data('signinas-url');
+    var checkIdTokenURL = $appContainer.data('id-token-check-url');
     $scope.is_superuser = $appContainer.data('is-superuser');
 
 
@@ -111,6 +112,20 @@ function UserManagerController($scope, $http) {
     };
     $scope.resetFilter = function(key) {
         $scope[key] = '';
+    };
+
+    $scope.checkIdToken = function(user) {
+        var url = checkIdTokenURL + '?id=' + user.id;
+        $http.get(url)
+        .success(function(data) {
+            if (data.valid) {
+                user._id_token_check = 'Yup! Valid and renewed.';
+            } else {
+                user._id_token_check = 'No! ID token no longer valid.';
+            }
+        }).error(function(data, status) {
+            console.warn('Failed to check id token', status);
+        });
     };
 
     /* Filtering */

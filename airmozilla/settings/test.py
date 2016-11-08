@@ -127,4 +127,4 @@ THUMBNAIL_ENGINE = 'airmozilla.base.tests.testbase.FastSorlEngine'
 
 AUTH0_CLIENT_ID = 'test-auth0-test-client-id'
 AUTH0_SECRET = 'super-secret-auth0-secret'
-AUTH0_DOMAIN = 'example.auth0.com'
+AUTH0_DOMAIN = 'example.auth0.bogus'

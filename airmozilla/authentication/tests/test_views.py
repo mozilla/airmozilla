@@ -25,6 +25,15 @@ from airmozilla.base.tests.test_mozillians import (
 User = get_user_model()
 
 
+SAMPLE_ID_TOKEN = (
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3BldGVyYmVjb2'
+    '0uYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTE2ODU0ODcyNjg2Njc3NjIxN'
+    'zA5IiwiYXVkIjoib3hFZUtwTnJmd0RqZm15Y2ZVTXBFekxROE9sNno4R0MiLCJleHAiOjE0'
+    'Nzg2MzEzMTgsImlhdCI6MTQ3ODYyNzcxOCwiYXpwIjoib3hFZUtwTnJmd0RqZm15Y2ZVTXB'
+    'FekxROE9sNno4R0MifQ._3-ucQUslT51uWKbPlyV-TiiMLuGv4fXV1IVyJgCfo4'
+)
+
+
 class TestViews(DjangoTestCase):
 
     def setUp(self):
@@ -256,7 +265,7 @@ class TestViews(DjangoTestCase):
             eq_(json['grant_type'], 'authorization_code')
             return Response({
                 'access_token': 'somecrypticaccesstoken',
-                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
+                'id_token': SAMPLE_ID_TOKEN,
             })
 
         rpost.side_effect = mocked_post
@@ -286,8 +295,8 @@ class TestViews(DjangoTestCase):
             last_name='Leonard',
         )
         eq_(
-            user.profile.refresh_token,
-            'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx'
+            user.profile.id_token,
+            SAMPLE_ID_TOKEN
         )
 
         # Load the home page, if it worked, the page (header nav)
@@ -303,7 +312,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
-                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
+                'id_token': SAMPLE_ID_TOKEN,
             })
 
         rpost.side_effect = mocked_post
@@ -334,13 +343,13 @@ class TestViews(DjangoTestCase):
         )
         ok_(user.profile.contributor)
         eq_(
-            user.profile.refresh_token,
-            'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx'
+            user.profile.id_token,
+            SAMPLE_ID_TOKEN
         )
 
     @mock.patch('requests.post')
     @mock.patch('requests.get')
-    def test_auth0_callback_contributor_no_refresh_token(self, rget, rpost):
+    def test_auth0_callback_contributor_no_id_token(self, rget, rpost):
 
         def mocked_post(url, json):
             return Response({
@@ -605,7 +614,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
-                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
+                'id_token': SAMPLE_ID_TOKEN,
             })
 
         rpost.side_effect = mocked_post
@@ -640,3 +649,44 @@ class TestViews(DjangoTestCase):
 
         user_profile = UserProfile.objects.get(id=user_profile.id)
         ok_(not user_profile.contributor)
+
+    @mock.patch('requests.post')
+    @mock.patch('requests.get')
+    def test_auth0_callback_staff_was_inactive(self, rget, rpost):
+
+        def mocked_post(url, json):
+            return Response({
+                'access_token': 'somecrypticaccesstoken',
+                'id_token': SAMPLE_ID_TOKEN,
+            })
+
+        rpost.side_effect = mocked_post
+
+        email = 'test@neverheardof.biz'
+        user = User.objects.create(
+            email=email,
+            is_active=False  # Note!
+        )
+        UserProfile.objects.create(
+            user=user,
+            contributor=True,
+        )
+
+        def mocked_get(url):
+            if settings.MOZILLIANS_API_BASE in url:
+                return Response(VOUCHED_FOR_USERS)
+            return Response({
+                'email': email,
+                'family_name': 'Leonard',
+                'given_name': 'Randalf',
+                'user_id': '00000001',
+            })
+
+        rget.side_effect = mocked_get
+
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {'code': 'xyz001'})
+        eq_(response.status_code, 302)
+        ok_(response['location'].endswith(
+            reverse('authentication:signin')
+        ))

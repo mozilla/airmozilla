@@ -37,6 +37,7 @@ class UserProfile(models.Model):
     contributor = models.BooleanField(default=False)
     optout_event_emails = models.BooleanField(default=False)
     refresh_token = models.CharField(max_length=100, null=True)
+    id_token = models.TextField(max_length=100, null=True)
 
 
 @receiver(models.signals.post_delete, sender=UserProfile)

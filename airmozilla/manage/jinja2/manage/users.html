@@ -24,7 +24,8 @@
   ng-app="usermanagerApp"
   ng-controller="UserManagerController"
   data-is-superuser="{{ user.is_superuser }}"
-  data-signinas-url="{{ url('manage:signinas') }}">
+  data-signinas-url="{{ url('manage:signinas') }}"
+  data-id-token-check-url="{{ url('manage:id_token_check') }}">
   {% csrf_token %}
 
     {% raw %}
@@ -87,7 +88,18 @@
     </thead>
     <tbody>
         <tr ng-repeat="u in filtered_items = (users | filter:filterBySearch) | orderBy:sorting:sorting_reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
-            <td>{{ u.email }}</td>
+            <td>
+              {{ u.email }}
+              <a
+                href="#"
+                ng-click="checkIdToken(u)"
+                ng-show="u.has_id_token"
+                class="label ng-binding label-primary"
+                title="This user has an ID Token">ID Token</a>
+              <span ng-if="u._id_token_check">
+                {{ u._id_token_check }}
+              </span>
+            </td>
             <td>
                 <span ng-show="u.is_contributor" class="label ng-binding label-info" title="Vouched Mozillians">Contributor</span>
                 <span ng-show="u.is_superuser" class="label ng-binding label-success" title="Superuser">Superuser</span>

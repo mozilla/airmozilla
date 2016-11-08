@@ -208,6 +208,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware',
+    'airmozilla.authentication.middleware.ValidateIDToken',
     'airmozilla.manage.middleware.CacheBustingMiddleware',
     'airmozilla.staticpages.middleware.StaticPageFallbackMiddleware',
 )
@@ -516,3 +517,9 @@ AUTH0_CALLBACK_URL = 'https://air.mozilla.org/authentication/callback/'
 AUTH0_SUCCESS_URL = '/?logged=in'
 
 AUTH_SIGNOUT_URL = 'https://air.mozilla.org/?logged=out'
+
+# This is the number of seconds that define how often we check the
+# logged in users' id_token (if they have one).
+# If this number is too low, too many requests on this site are blocked
+# on talking to Auth0. If it's too high, we're not being secure enough.
+RENEW_ID_TOKEN_EXPIRY_SECONDS = 60 * 15  # 15 min

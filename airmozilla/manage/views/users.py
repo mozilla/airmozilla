@@ -11,12 +11,14 @@ from django.db import transaction
 from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
 
 from jsonview.decorators import json_view
 
 from airmozilla.base.utils import dot_dict
 from airmozilla.main.models import UserProfile
 from airmozilla.manage import forms
+from airmozilla.authentication import auth0
 
 from .decorators import (
     staff_required,
@@ -94,6 +96,11 @@ def _get_all_users():
         .filter(contributor=True)
         .values_list('user_id', flat=True)
     )
+    all_users_with_id_token = set(
+        UserProfile.objects.filter(
+            id_token__isnull=False
+        ).values_list('user_id', flat=True)
+    )
     for user_dict in qs.values(*values):
         user = dot_dict(user_dict)
         item = {
@@ -116,6 +123,8 @@ def _get_all_users():
             item['is_inactive'] = True
         if groups_map[user.id]:
             item['groups'] = groups_map[user.id]
+        if user.id in all_users_with_id_token:
+            item['has_id_token'] = True
 
         users.append(item)
     return users
@@ -138,6 +147,23 @@ def user_edit(request, id):
         form = forms.UserEditForm(instance=user)
     return render(request, 'manage/user_edit.html',
                   {'form': form, 'user_': user})
+
+
+@staff_required
+@permission_required('auth.change_user')
+@json_view
+def id_token_check(request):
+    user_id = request.GET.get('id')
+    if not user_id:
+        return http.HttpResponseBadRequest('missing id')
+    user = get_object_or_404(User, id=user_id)
+    id_token = auth0.renew_id_token(user.profile.id_token)
+    if id_token:
+        user.profile.id_token = id_token
+        user.profile.save()
+        return {'valid': True}
+    else:
+        return {'valid': False}
 
 
 @superuser_required

@@ -193,3 +193,44 @@ class TestUsersAndGroups(ManageTestCase):
 
         response = self.client.get('/')
         ok_('richy' in response.content)
+
+    def test_id_token_check(self):
+        url = reverse('manage:id_token_check')
+        response = self.client.get(url)
+        eq_(response.status_code, 400)
+
+        response = self.client.get(url, {'id': 9999999})
+        eq_(response.status_code, 404)
+
+        user = User.objects.create(
+            username='test'
+        )
+        UserProfile.objects.create(
+            user=user,
+            id_token='123.456.789'
+        )
+        response = self.client.get(url, {'id': user.id})
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        eq_(struct['valid'], True)
+
+        self.auth0_renew.side_effect = lambda x: None
+        response = self.client.get(url, {'id': user.id})
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        eq_(struct['valid'], False)
+
+    def test_users_data_with_has_id_token(self):
+        UserProfile.objects.create(
+            user=self.user,
+            id_token='123.456.789'
+        )
+        assert self.user.profile.id_token
+        url = reverse('manage:users_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        user, = [x for x in struct['users'] if x['email'] == self.user.email]
+        ok_(user['has_id_token'])
+        user, = [x for x in struct['users'] if x['email'] != self.user.email]
+        ok_(not user.get('has_id_token'))

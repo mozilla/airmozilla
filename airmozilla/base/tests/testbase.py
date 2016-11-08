@@ -33,6 +33,19 @@ class DjangoTestCase(TestCase):
         self.fanout_patcher = mock.patch('airmozilla.base.utils.fanout')
         self.fanout = self.fanout_patcher.start()
 
+        # Every request goes through a piece of middleware that checks
+        # that users with ID tokens still have valid ID tokens.
+        # Not only does this add overhead, it also means any patching
+        # of `requests.post` would get confused with this.
+        # So we mock the whole function.
+        # If a particular unit test wants to really test this function
+        # they can set `self.auth0_renew.side_effect = their_own_mock_func`
+        self.auth0_renew_patcher = mock.patch(
+            'airmozilla.authentication.auth0.renew_id_token'
+        )
+        self.auth0_renew = self.auth0_renew_patcher.start()
+        self.auth0_renew.side_effect = lambda x: x
+
     def tearDown(self):
         assert os.path.basename(settings.MEDIA_ROOT).startswith('test')
         if os.path.isdir(settings.MEDIA_ROOT):
@@ -40,6 +53,7 @@ class DjangoTestCase(TestCase):
         for file_path in self.created_static_files:
             os.remove(file_path)
         self.fanout_patcher.stop()
+        self.auth0_renew_patcher.stop()
         super(DjangoTestCase, self).tearDown()
 
     def _create_static_file(self, name, content):

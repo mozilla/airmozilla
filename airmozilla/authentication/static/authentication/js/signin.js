@@ -11,9 +11,7 @@ $(function() {
             callbackURL: callbackURL,
             connections: ['google-oauth2', 'github'],
             authParams: {
-                // Use 'offline_access' where so that
-                // we get given a refresh_token in the callback.
-                scope: 'openid offline_access'
+                scope: 'openid email name'
             }
         };
         lock.socialOrEmailcode(options);

@@ -162,7 +162,6 @@ def callback(request):
         )
         return redirect('authentication:signin')
     user_info = user_response.json()
-
     assert user_info['email'], user_info
     try:
         user = get_user(user_info)
@@ -177,10 +176,18 @@ def callback(request):
         )
         return redirect('authentication:signin')
 
-    if user:
-        if token_info.get('refresh_token'):
+    if user and not user.is_active:
+        messages.error(
+            request,
+            "User account ({}) found but it has been made inactive.".format(
+                user.email,
+            )
+        )
+        return redirect('authentication:signin')
+    elif user:
+        if token_info.get('id_token'):
             profile = get_profile_safely(user, create_if_necessary=True)
-            profile.refresh_token = token_info['refresh_token']
+            profile.id_token = token_info['id_token']
             profile.save()
         else:
             # If you signed in with a domain found in settings.ALLOWED_BID
@@ -188,7 +195,7 @@ def callback(request):
             if user.email.lower().split('@')[1] in settings.ALLOWED_BID:
                 messages.error(
                     request,
-                    "Staff can't log in without a refresh token. "
+                    "Staff can't log in without an ID token. "
                     "Means you have to click the Google button if you're "
                     "a member of staff.".format(
                         user_info['email']
