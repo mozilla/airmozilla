@@ -16,13 +16,13 @@ wsgidir = os.path.dirname(__file__)
 site.addsitedir(os.path.abspath(os.path.join(wsgidir, '../')))
 
 
-from django.core.wsgi import get_wsgi_application
+from django.core.wsgi import get_wsgi_application  # noqa
 
 application = get_wsgi_application()
 
 
-## the following comes from
-## https://mana.mozilla.org/wiki/display/websites/How+to+Set+up+New+Relic+for+a+site
+# the following comes from
+# https://mana.mozilla.org/wiki/display/websites/How+to+Set+up+New+Relic+for+a+site
 
 try:
     import newrelic.agent
