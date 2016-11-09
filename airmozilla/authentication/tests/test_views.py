@@ -383,11 +383,11 @@ class TestViews(DjangoTestCase):
             last_name='Leonard',
         )
         ok_(user.profile.contributor)
-        eq_(user.profile.refresh_token, None)
+        eq_(user.profile.id_token, None)
 
     @mock.patch('requests.post')
     @mock.patch('requests.get')
-    def test_auth0_callback_staff_no_refresh_token(self, rget, rpost):
+    def test_auth0_callback_staff_no_id_token(self, rget, rpost):
 
         def mocked_post(url, json):
             return Response({
@@ -451,7 +451,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
-                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
+                'id_token': SAMPLE_ID_TOKEN,
             })
 
         rpost.side_effect = mocked_post
@@ -479,7 +479,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
-                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
+                'id_token': SAMPLE_ID_TOKEN,
             })
 
         rpost.side_effect = mocked_post
@@ -513,7 +513,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
-                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
+                'id_token': SAMPLE_ID_TOKEN,
             })
 
         rpost.side_effect = mocked_post
@@ -573,7 +573,7 @@ class TestViews(DjangoTestCase):
         def mocked_post(url, json):
             return Response({
                 'access_token': 'somecrypticaccesstoken',
-                'refresh_token': 'zzzD4WPCvV8CdJYE4Pst0bqxUaWtj9pbH00QwWhSxxx',
+                'id_token': SAMPLE_ID_TOKEN,
             })
 
         rpost.side_effect = mocked_post

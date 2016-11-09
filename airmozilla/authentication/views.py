@@ -206,7 +206,7 @@ def callback(request):
             profile.save()
         else:
             # If you signed in with a domain found in settings.ALLOWED_BID
-            # then we can't accept NOT getting a refresh_token
+            # then we can't accept NOT getting an id_token
             if user.email.lower().split('@')[1] in settings.ALLOWED_BID:
                 messages.error(
                     request,
