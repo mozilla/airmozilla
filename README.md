@@ -811,6 +811,20 @@ we have to have PostgreSQL because we rely on its ability to do
 fulltext index searches.
 
 
+How to run with uwsgi
+---------------------
+
+First `pip install uwsgi`. This is not part of our `requirements.txt`.
+
+Then start `uwsgi` like this:
+```
+DJANGO_SETTINGS_MODULE=airmozilla.settings uwsgi --pythonpath ~/airmozilla -w wsgi.airmozilla --http :8000 -H ~/virtualenvs/airmozilla
+```
+
+What's variable here, and will depend on your system, is the location of
+your root directory for the project (`~/airmozilla`  in this example) and
+the location of the virtualenv (`~/virtualenvs/airmozilla` in this example)
+
 PEP8 and pyflakes
 -----------------
 
