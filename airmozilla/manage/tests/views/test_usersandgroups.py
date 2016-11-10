@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 
 from airmozilla.main.views import is_contributor
-from airmozilla.main.models import UserProfile
+from airmozilla.main.models import UserProfile, UserEmailAlias
 from .base import ManageTestCase
 
 
@@ -234,3 +234,17 @@ class TestUsersAndGroups(ManageTestCase):
         ok_(user['has_id_token'])
         user, = [x for x in struct['users'] if x['email'] != self.user.email]
         ok_(not user.get('has_id_token'))
+
+    def test_users_data_with_aliases(self):
+        UserEmailAlias.objects.create(
+            user=self.user,
+            email='test@example.com'
+        )
+        url = reverse('manage:users_data')
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        struct = json.loads(response.content)
+        user, = [x for x in struct['users'] if x['email'] == self.user.email]
+        eq_(user['aliases'], ['test@example.com'])
+        user, = [x for x in struct['users'] if x['email'] != self.user.email]
+        ok_(not user.get('aliases'))

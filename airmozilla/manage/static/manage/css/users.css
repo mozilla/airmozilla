@@ -8,11 +8,15 @@
     width: 50%;
 }
 
-input[name="group"], input[name="email"] {
-    /*width: 250px;*/
+input[name="group"], input[name="name"], input[name="email"] {
     width: 100%;
 }
 
 th a {
     cursor: pointer;
+}
+
+td .aliases {
+    font-size: 85%;
+    opacity: 0.7;
 }

@@ -44,6 +44,15 @@
              ng-show="sorting=='email' && !sorting_reverse"
              ng-click="toggleSortingReverse()">▲</a>
         </th>
+        <th>
+          <a ng-click="setSorting('name')">Name</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='name' && sorting_reverse"
+             ng-click="toggleSortingReverse()">▼</a>
+          <a class="reverse-toggle"
+             ng-show="sorting=='name' && !sorting_reverse"
+             ng-click="toggleSortingReverse()">▲</a>
+        </th>
         <th style="width: 160px">Status</th>
         <th style="width: 200px">Group(s)</th>
         <th style="width: 160px">
@@ -62,6 +71,7 @@
     </tr>
     <tr>
         <th><input type="text" name="email" ng-model="search_email" placeholder="Search by email"></th>
+        <th><input type="text" name="name" ng-model="search_name" placeholder="Search by name"></th>
         <th>
           <select name="status" ng-model="search_status">
             <option value="">All</option>
@@ -99,6 +109,18 @@
               <span ng-if="u._id_token_check">
                 {{ u._id_token_check }}
               </span>
+              <span
+                class="aliases"
+                ng-if="!u._id_token_check && u.aliases && u.aliases.length">
+                <span ng-repeat="email in u.aliases" title="Email alias">
+                  {{ email }}
+                </span>
+              </span>
+            </td>
+            <td title="First name: '{{ u.first_name }}'
+Last name: '{{ u.last_name }}'">
+              {{ u.first_name }}
+              {{ u.last_name }}
             </td>
             <td>
                 <span ng-show="u.is_contributor" class="label ng-binding label-info" title="Vouched Mozillians">Contributor</span>

@@ -15,8 +15,7 @@ from django.shortcuts import get_object_or_404
 
 from jsonview.decorators import json_view
 
-from airmozilla.base.utils import dot_dict
-from airmozilla.main.models import UserProfile
+from airmozilla.main.models import UserProfile, UserEmailAlias
 from airmozilla.manage import forms
 from airmozilla.authentication import auth0
 
@@ -84,6 +83,8 @@ def _get_all_users():
     qs = User.objects.all()
     values = (
         'email',
+        'first_name',
+        'last_name',
         'id',
         'last_login',
         'is_staff',
@@ -101,11 +102,18 @@ def _get_all_users():
             id_token__isnull=False
         ).values_list('user_id', flat=True)
     )
-    for user_dict in qs.values(*values):
-        user = dot_dict(user_dict)
+    aliases = {}
+    for alias in UserEmailAlias.objects.all().only('email', 'user__email'):
+        if alias.user.email not in aliases:
+            aliases[alias.user.email] = []
+        aliases[alias.user.email].append(alias.email)
+
+    for user in qs.only(*values).order_by('-last_login'):
         item = {
             'id': user.id,
             'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
         }
         if user.last_login:
             item['last_login'] = user.last_login.isoformat()
@@ -125,6 +133,8 @@ def _get_all_users():
             item['groups'] = groups_map[user.id]
         if user.id in all_users_with_id_token:
             item['has_id_token'] = True
+        if user.email in aliases:
+            item['aliases'] = aliases[user.email]
 
         users.append(item)
     return users

@@ -130,10 +130,11 @@ function UserManagerController($scope, $http) {
 
     /* Filtering */
     $scope.hasFilter = function() {
-        return ($scope.search_email || $scope.search_group || $scope.search_staff || $scope.search_status);
+        return ($scope.search_email || $scope.search_name || $scope.search_group || $scope.search_staff || $scope.search_status);
     };
     $scope.clearFilter = function() {
         $scope.search_email = '';
+        $scope.search_name = '';
         $scope.search_group = '';
         $scope.search_staff = '';
         $scope.search_status = '';
@@ -143,6 +144,13 @@ function UserManagerController($scope, $http) {
     var search_email_regex = null;
     $scope.$watch('search_email', function(value) {
         search_email_regex = new RegExp('\\b' + escapeRegExp(value), 'i');
+        $scope.currentPage = 0;
+    });
+
+    $scope.search_name = '';
+    var search_name_regex = null;
+    $scope.$watch('search_name', function(value) {
+        search_name_regex = new RegExp('\\b' + escapeRegExp(value), 'i');
         $scope.currentPage = 0;
     });
 
@@ -161,6 +169,11 @@ function UserManagerController($scope, $http) {
         // gimme a reason NOT to include this
         if ($scope.search_email) {
             if (!search_email_regex.test(item.email)) {
+                return false;
+            }
+        }
+        if ($scope.search_name) {
+            if (!search_name_regex.test(item.first_name + ' ' + item.last_name)) {
                 return false;
             }
         }
