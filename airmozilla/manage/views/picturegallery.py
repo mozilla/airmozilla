@@ -11,7 +11,6 @@ from django.core.urlresolvers import reverse
 from jsonview.decorators import json_view
 
 from airmozilla.manage.utils import filename_to_notes
-from airmozilla.base.utils import dot_dict
 from airmozilla.main.templatetags.jinja_helpers import thumbnail
 from airmozilla.main.models import Event, Picture
 from airmozilla.manage import forms
@@ -118,8 +117,7 @@ def _get_all_pictures(event=None):
         qs = qs.exclude(is_active=False)
     else:
         qs = qs.filter(event__isnull=True)
-    for picture_dict in qs.order_by('event', '-created').values(*values):
-        picture = dot_dict(picture_dict)
+    for picture in qs.order_by('event', '-created').only(*values):
         item = {
             'id': picture.id,
             'width': picture.width,
@@ -135,8 +133,6 @@ def _get_all_pictures(event=None):
             item['cant_delete'] = True
         if picture.notes:
             item['notes'] = picture.notes
-        # if picture.id in event_map:
-        #     item['events'] = event_map[picture.id]
         pictures.append(item)
     return pictures
 

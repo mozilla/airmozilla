@@ -7,7 +7,6 @@ from django.db.models import Count
 
 from jsonview.decorators import json_view
 
-from airmozilla.base.utils import dot_dict
 from airmozilla.cronlogger.models import CronLog
 
 from .decorators import superuser_required
@@ -46,10 +45,13 @@ def cronlogger_data(request):
         qs = qs.filter(job__exact=request.GET['job'])
     context['count'] = qs.count()
     logs = []
-    for log_dict in qs.order_by('-created').values(*values)[:100]:
-        log = dot_dict(log_dict)
-        log['created'] = log['created'].isoformat()
-        logs.append(log)
+    for log in qs.order_by('-created').only(*values)[:100]:
+        item = {}
+        for v in values:
+            item[v] = getattr(log, v)
+        item['created'] = item['created'].isoformat()
+        item['duration'] = float(item['duration'])
+        logs.append(item)
     context['logs'] = logs
 
     return context
