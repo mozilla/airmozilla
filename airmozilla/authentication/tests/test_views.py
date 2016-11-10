@@ -280,6 +280,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Rufus',
                 'user_id': '1234567890',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -327,6 +328,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -368,6 +370,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -406,6 +409,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -494,6 +498,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -528,6 +533,42 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
+            })
+
+        rget.side_effect = mocked_get
+
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {'code': 'xyz001'})
+        eq_(response.status_code, 302)
+        ok_(response['location'].endswith(
+            reverse('authentication:signin')
+        ))
+        ok_(not User.objects.filter(email=email).exists())
+
+    @mock.patch('requests.post')
+    @mock.patch('requests.get')
+    def test_auth0_callback_email_not_verified(self, rget, rpost):
+
+        def mocked_post(url, json):
+            return Response({
+                'access_token': 'somecrypticaccesstoken',
+                'id_token': SAMPLE_ID_TOKEN,
+            })
+
+        rpost.side_effect = mocked_post
+
+        email = 'test@neverheardof.biz'
+
+        def mocked_get(url):
+            if settings.MOZILLIANS_API_BASE in url:
+                raise mozillians.BadStatusCodeError(600)
+            return Response({
+                'email': email,
+                'family_name': 'Leonard',
+                'given_name': 'Randalf',
+                'user_id': '00000001',
+                'email_verified': False,
             })
 
         rget.side_effect = mocked_get
@@ -595,6 +636,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -636,6 +678,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -680,6 +723,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -741,6 +785,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get
@@ -780,6 +825,7 @@ class TestViews(DjangoTestCase):
                 'family_name': 'Leonard',
                 'given_name': 'Randalf',
                 'user_id': '00000001',
+                'email_verified': True,
             })
 
         rget.side_effect = mocked_get

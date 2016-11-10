@@ -182,6 +182,15 @@ def callback(request):
         return redirect('authentication:signin')
     user_info = user_response.json()
     assert user_info['email'], user_info
+
+    if not user_info['email_verified']:
+        messages.error(
+            request,
+            'Email {} not verified.'.format(
+                user_info['email']
+            )
+        )
+        return redirect('authentication:signin')
     try:
         user = get_user(user_info)
     except BadStatusCodeError:
