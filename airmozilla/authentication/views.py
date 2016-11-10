@@ -17,7 +17,11 @@ from django.utils.encoding import smart_bytes
 from csp.decorators import csp_update
 
 from airmozilla.base.mozillians import is_vouched, BadStatusCodeError
-from airmozilla.main.models import UserProfile, get_profile_safely
+from airmozilla.main.models import (
+    UserProfile,
+    UserEmailAlias,
+    get_profile_safely,
+)
 
 from django_browserid.views import Verify
 from django_browserid.http import JSONResponse
@@ -264,12 +268,26 @@ def get_user(user_info):
         try:
             user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
-            # We have to create the user
-            user = User.objects.create(
-                email=email,
-                username=default_username(email),
-            )
-            created = True
+            try:
+                user = UserEmailAlias.objects.get(email__iexact=email).user
+            except UserEmailAlias.DoesNotExist:
+                # We have to create the user
+                user = User.objects.create(
+                    email=email,
+                    username=default_username(email),
+                )
+                created = True
+    if not created:
+        # If the found user is inactive, and the user's alias points
+        # to another use, return that one instead.
+        if not user.is_active:
+            try:
+                user = UserEmailAlias.objects.get(
+                    email__iexact=user.email
+                ).user
+            except UserEmailAlias.DoesNotExist:
+                # At least we tried
+                pass
 
     if user_info.get('given_name'):
         if user_info['given_name'] != user.first_name:

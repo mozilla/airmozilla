@@ -39,6 +39,13 @@ class UserProfile(models.Model):
     id_token = models.TextField(max_length=100, null=True)
 
 
+class UserEmailAlias(models.Model):
+    user = models.ForeignKey(User)
+    email = models.EmailField(unique=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+
 @receiver(models.signals.post_delete, sender=UserProfile)
 @receiver(models.signals.post_delete, sender=User)
 @receiver(models.signals.post_save, sender=UserProfile)

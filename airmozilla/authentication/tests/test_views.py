@@ -13,7 +13,7 @@ from nose.tools import ok_, eq_
 from airmozilla.authentication.browserid_mock import mock_browserid
 from airmozilla.base import mozillians
 from airmozilla.base.tests.testbase import Response
-from airmozilla.main.models import UserProfile
+from airmozilla.main.models import UserProfile, UserEmailAlias
 from airmozilla.base.tests.testbase import DjangoTestCase
 
 from airmozilla.base.tests.test_mozillians import (
@@ -706,3 +706,85 @@ class TestViews(DjangoTestCase):
         response = self.client.get(reverse('authentication:signin'))
         eq_(response.status_code, 200)
         ok_('Your kind is not welcome here' in response.content)
+
+    @mock.patch('requests.post')
+    @mock.patch('requests.get')
+    def test_auth0_callback_was_inactive_was_alias(self, rget, rpost):
+
+        def mocked_post(url, json):
+            return Response({
+                'access_token': 'somecrypticaccesstoken',
+                'id_token': SAMPLE_ID_TOKEN,
+            })
+
+        rpost.side_effect = mocked_post
+
+        email = 'test@neverheardof.biz'
+        User.objects.create(
+            email=email,
+            is_active=False  # Note!
+        )
+        right_user = User.objects.create(
+            username='other',
+            email='other@example.com',
+        )
+        UserEmailAlias.objects.create(
+            email=email,
+            user=right_user,
+        )
+
+        def mocked_get(url):
+            if settings.MOZILLIANS_API_BASE in url:
+                return Response(VOUCHED_FOR_USERS)
+            return Response({
+                'email': email,
+                'family_name': 'Leonard',
+                'given_name': 'Randalf',
+                'user_id': '00000001',
+            })
+
+        rget.side_effect = mocked_get
+
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {'code': 'xyz001'})
+        eq_(response.status_code, 302)
+        ok_(response['location'].endswith(settings.AUTH0_SUCCESS_URL))
+
+    @mock.patch('requests.post')
+    @mock.patch('requests.get')
+    def test_auth0_callback_only_found_as_alias(self, rget, rpost):
+
+        def mocked_post(url, json):
+            return Response({
+                'access_token': 'somecrypticaccesstoken',
+                'id_token': SAMPLE_ID_TOKEN,
+            })
+
+        rpost.side_effect = mocked_post
+
+        email = 'test@neverheardof.biz'
+        right_user = User.objects.create(
+            username='other',
+            email='other@example.com',
+        )
+        UserEmailAlias.objects.create(
+            email=email,
+            user=right_user,
+        )
+
+        def mocked_get(url):
+            if settings.MOZILLIANS_API_BASE in url:
+                return Response(VOUCHED_FOR_USERS)
+            return Response({
+                'email': email,
+                'family_name': 'Leonard',
+                'given_name': 'Randalf',
+                'user_id': '00000001',
+            })
+
+        rget.side_effect = mocked_get
+
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {'code': 'xyz001'})
+        eq_(response.status_code, 302)
+        ok_(response['location'].endswith(settings.AUTH0_SUCCESS_URL))

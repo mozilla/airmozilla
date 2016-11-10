@@ -15,6 +15,7 @@ from airmozilla.main.models import (
     Approval,
     Picture,
     Chapter,
+    UserEmailAlias,
 )
 from airmozilla.closedcaptions.models import ClosedCaptions, RevOrder
 from airmozilla.comments.models import (
@@ -86,8 +87,17 @@ def migrate(lines, dry_run=False):
             old.email = real
             if not dry_run:
                 old.save()
+                UserEmailAlias.objects.get_or_create(
+                    user=old,
+                    email=alias,
+                )
             notes = 'Moved over'
         elif not old and new:
+            if not dry_run:
+                UserEmailAlias.objects.get_or_create(
+                    email=alias,
+                    user=new,
+                )
             notes = 'Nothing to do'
         elif not old and not new:
             notes = 'Neither found'
@@ -101,11 +111,15 @@ def migrate(lines, dry_run=False):
                 old.is_active = False
                 old.save()
 
+                UserEmailAlias.objects.get_or_create(
+                    user=new,
+                    email=old.email,
+                )
+
         results.append({
             'alias': alias,
             'old': old,
             'real': real,
-            'is_active': new and new.is_active or None,
             'new': new,
             'notes': notes,
         })

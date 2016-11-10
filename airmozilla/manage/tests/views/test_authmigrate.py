@@ -1,4 +1,4 @@
-from nose.tools import ok_
+from nose.tools import ok_, eq_
 
 from django.core.files import File
 from django.contrib.auth import get_user_model
@@ -15,6 +15,7 @@ from airmozilla.main.models import (
     Approval,
     Picture,
     Chapter,
+    UserEmailAlias,
 )
 from airmozilla.comments.models import (
     Comment,
@@ -34,7 +35,7 @@ from airmozilla.closedcaptions.models import (
     RevOrder,
 )
 from airmozilla.uploads.models import Upload
-from airmozilla.manage.views.authmigrate import merge_user
+from airmozilla.manage.views.authmigrate import migrate, merge_user
 from .base import ManageTestCase
 
 
@@ -344,3 +345,51 @@ class TestAuthMigrate(ManageTestCase):
         ok_('transferred is_superuser' in things)
         ok_('Producers group membership transferred' in things)
         assert len(things) == 3
+
+    def test_migrate_merge(self):
+        """airmozilla.manage.views.autmigrate.migrate is the function
+        we use to start calling migrate_user() for every email combo"""
+        user = self.user
+        new = User.objects.create(
+            username='new',
+            email='new@example.com',
+            is_staff=True,
+            is_superuser=True,
+        )
+        lines = [
+            (user.email.upper(), new.email.upper()),
+        ]
+        results = migrate(lines)
+        result, = results
+        ok_('Merged' in result['notes'])
+        user_alias, = UserEmailAlias.objects.all()
+        eq_(user_alias.email, user.email)
+        eq_(user_alias.user, new)
+
+    def test_migrate_non_merge_events(self):
+        user = self.user
+        new = User.objects.create(
+            username='new',
+            email='new@example.com',
+            is_staff=True,
+            is_superuser=True,
+        )
+        lines = [
+            (user.email, 'other@example.com'),
+            ('never@heard.of', 'nor@this.io'),
+            ('alias+new@example.com', new.email.upper()),
+        ]
+        results = migrate(lines)
+        result1, result2, result3 = results
+        ok_('Moved over' in result1['notes'])
+        ok_('Neither found' in result2['notes'])
+        ok_('Nothing to do' in result3['notes'])
+
+        ok_(UserEmailAlias.objects.get(
+            email=user.email,
+            user=user,
+        ))
+        ok_(UserEmailAlias.objects.get(
+            email='alias+new@example.com',
+            user=new,
+        ))
