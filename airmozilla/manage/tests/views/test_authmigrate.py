@@ -2,6 +2,7 @@ from nose.tools import ok_
 
 from django.core.files import File
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 
 from airmozilla.main.models import (
     Event,
@@ -321,3 +322,25 @@ class TestAuthMigrate(ManageTestCase):
         ok_(new in assignment.users.all())
         ok_(user not in assignment.users.all())
         assert assignment.users.all().count() == 2
+
+    def test_migrate_user_permissions(self):
+        user = self.user
+        new = User.objects.create(
+            username='new',
+            email='new@example.com',
+            is_staff=True,
+            is_superuser=True,
+        )
+        # One group only 'user' has
+        producers = Group.objects.create(name='Producers')
+        user.groups.add(producers)
+        # One group they both have
+        humans = Group.objects.create(name='Humans')
+        user.groups.add(humans)
+        new.groups.add(humans)
+
+        things = merge_user(user, new)
+        ok_('transferred is_staff' in things)
+        ok_('transferred is_superuser' in things)
+        ok_('Producers group membership transferred' in things)
+        assert len(things) == 3

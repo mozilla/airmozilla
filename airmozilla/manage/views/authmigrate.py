@@ -126,11 +126,30 @@ def merge_user(old, new, dry_run=False):
             if not dry_run:
                 instance.save()
             count += 1
-        things.append('{}{} {}'.format(
-            name or model._meta.verbose_name,
-            count != 1 and 's' or '',
-            count,
-        ))
+        if count > 0:
+            things.append('{}{} {}'.format(
+                name or model._meta.verbose_name,
+                count != 1 and 's' or '',
+                count,
+            ))
+
+    if old.is_staff:
+        new.is_staff = True
+        if not dry_run:
+            new.save()
+        things.append('transferred is_staff')
+    if old.is_superuser:
+        new.is_superuser = True
+        if not dry_run:
+            new.save()
+        things.append('transferred is_superuser')
+
+    # Groups
+    for group in old.groups.all():
+        if group not in new.groups.all():
+            if not dry_run:
+                new.groups.add(group)
+            things.append('{} group membership transferred'.format(group.name))
 
     # Events
     migrate(Event, 'creator')
