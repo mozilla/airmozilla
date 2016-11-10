@@ -592,7 +592,7 @@ class EventView(View):
                 head_response.headers['Location']
             ).netloc
 
-        cache.set(cache_key, update, 60)
+        cache.set(cache_key, update, 60 * 60)
         # Now we've figured out what headers to update, set it on the response
         if update:
             response._csp_update = update
