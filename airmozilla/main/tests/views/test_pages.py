@@ -6,6 +6,7 @@ import urllib2
 import urllib
 import os
 import re
+from cStringIO import StringIO
 
 from nose.tools import eq_, ok_
 import mock
@@ -35,6 +36,7 @@ from airmozilla.main.models import (
     VidlySubmission,
     EventLiveHits,
     Chapter,
+    VidlyTagDomain,
 )
 from airmozilla.closedcaptions.models import (
     ClosedCaptions,
@@ -52,6 +54,7 @@ from airmozilla.base.tests.test_mozillians import (
     NO_USERS,
 )
 from airmozilla.base.tests.testbase import DjangoTestCase
+from airmozilla.main.views.pages import get_vidly_csp_headers
 
 
 class TestPages(DjangoTestCase):
@@ -3448,3 +3451,108 @@ class TestPages(DjangoTestCase):
         eq_(len(pictures), 1)
         timestamps = [x['timestamp'] for x in pictures]
         eq_(timestamps, [420])
+
+    @mock.patch('requests.head')
+    def test_get_vidly_csp_headers(self, rhead):
+
+        head_requests = []
+
+        def mocked_head(url):
+            head_requests.append(url)
+            if 'format=webm' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://videos.cdn.example.com/file.mov',
+                })
+            if 'poster' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://images.cdn.example.com/file.jpg',
+                })
+            raise NotImplementedError(url)
+
+        rhead.side_effect = mocked_head
+
+        headers = get_vidly_csp_headers('abc123')
+        eq_(headers['media-src'], 'videos.cdn.example.com')
+        eq_(headers['img-src'], 'images.cdn.example.com')
+        eq_(len(head_requests), 2)
+
+        # Run it again, the cache should pick it up
+        new_headers = get_vidly_csp_headers('abc123')
+        eq_(new_headers, headers)
+        eq_(len(head_requests), 2)
+
+    @mock.patch('requests.head')
+    def test_get_vidly_csp_headers_persistence(self, rhead):
+
+        head_requests = []
+
+        VidlyTagDomain.objects.create(
+            tag='abc123',
+            type='webm',
+            domain='cdn.example.com',
+        )
+
+        def mocked_head(url):
+            head_requests.append(url)
+            if 'poster' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://images.cdn.example.com/file.jpg',
+                })
+            raise NotImplementedError(url)
+
+        rhead.side_effect = mocked_head
+
+        headers = get_vidly_csp_headers('abc123')
+        eq_(headers['media-src'], 'cdn.example.com')
+        eq_(headers['img-src'], 'images.cdn.example.com')
+        eq_(len(head_requests), 1)
+
+    @mock.patch('urllib2.urlopen')
+    @mock.patch('requests.head')
+    def test_get_vidly_csp_headers_private(self, rhead, rurlopen):
+
+        head_requests = []
+
+        def mocked_head(url):
+            head_requests.append(url)
+            assert 'token=' in url
+            if 'format=webm' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://videos.cdn.example.com/file.mov',
+                })
+            if 'poster' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://images.cdn.example.com/file.jpg',
+                })
+            raise NotImplementedError(url)
+
+        rhead.side_effect = mocked_head
+
+        tokenize_calls = []
+
+        def mocked_urlopen(request):
+            tokenize_calls.append(1)
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>8r9e0o</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        rurlopen.side_effect = mocked_urlopen
+
+        headers = get_vidly_csp_headers('abc123', private=True)
+        eq_(headers['media-src'], 'videos.cdn.example.com')
+        eq_(headers['img-src'], 'images.cdn.example.com')
+        eq_(len(head_requests), 2)
+        eq_(len(tokenize_calls), 1)
+
+        # Do it again
+        headers = get_vidly_csp_headers('abc123', private=True)
+        eq_(len(head_requests), 2)
+        eq_(len(tokenize_calls), 1)

@@ -33,6 +33,7 @@ from airmozilla.main.models import (
     VidlySubmission,
     EventLiveHits,
     Chapter,
+    VidlyTagDomain,
 )
 from airmozilla.base.utils import (
     paginate,
@@ -565,34 +566,9 @@ class EventView(View):
         if not event.template_environment.get('tag'):
             return
 
-        token = None
-        if not event.is_public():
-            token = vidly.tokenize(event.template_environment['tag'], 90)
-
-        update = {}
-        webm_url = 'https://vid.ly/{}?content=video&format=webm'.format(
-            event.template_environment['tag']
-        )
-        if token:
-            webm_url += '&token={}'.format(token)
-        head_response = requests.head(webm_url)
-        if head_response.status_code == 302:
-            update['media-src'] = urlparse.urlparse(
-                head_response.headers['Location']
-            ).netloc
-
-        poster_url = 'https://vid.ly/{}/poster'.format(
-            event.template_environment['tag']
-        )
-        if token:
-            poster_url += '?token={}'.format(token)
-        head_response = requests.head(poster_url)
-        if head_response.status_code == 302:
-            update['img-src'] = urlparse.urlparse(
-                head_response.headers['Location']
-            ).netloc
-
-        cache.set(cache_key, update, 60 * 60 * 24)
+        tag = event.template_environment['tag']
+        update = get_vidly_csp_headers(tag, private=not event.is_public())
+        cache.set(cache_key, update, 60 * 60)
         # Now we've figured out what headers to update, set it on the response
         if update:
             response._csp_update = update
@@ -613,6 +589,66 @@ class EventView(View):
             'pin_form': pin_form,
         }
         return render(request, 'main/event_requires_pin.html', context)
+
+
+def get_vidly_csp_headers(tag, private=False):
+    token = None
+    if private:
+        token = vidly.tokenize(tag, 90)
+
+    headers = {}
+    one_month_ago = timezone.now() - datetime.timedelta(days=30)
+
+    netloc = None
+    try:
+        netloc = VidlyTagDomain.objects.get(
+            tag=tag,
+            type='webm',
+            modified__gt=one_month_ago
+        ).domain
+    except VidlyTagDomain.DoesNotExist:
+        webm_url = 'https://vid.ly/{}?content=video&format=webm'.format(
+            tag
+        )
+        if token:
+            webm_url += '&token={}'.format(token)
+        head_response = requests.head(webm_url)
+        if head_response.status_code == 302:
+            netloc = urlparse.urlparse(
+                head_response.headers['Location']
+            ).netloc
+            VidlyTagDomain.objects.create(
+                tag=tag,
+                type='webm',
+                domain=netloc,
+            )
+    if netloc:
+        headers['media-src'] = netloc
+
+    netloc = None
+    try:
+        netloc = VidlyTagDomain.objects.get(
+            tag=tag,
+            type='poster',
+            modified__gt=one_month_ago
+        ).domain
+    except VidlyTagDomain.DoesNotExist:
+        poster_url = 'https://vid.ly/{}/poster'.format(tag)
+        if token:
+            poster_url += '?token={}'.format(token)
+        head_response = requests.head(poster_url)
+        if head_response.status_code == 302:
+            netloc = urlparse.urlparse(
+                head_response.headers['Location']
+            ).netloc
+            VidlyTagDomain.objects.create(
+                tag=tag,
+                type='poster',
+                domain=netloc,
+            )
+    if netloc:
+        headers['img-src'] = netloc
+    return headers
 
 
 class EventByIDView(EventView):

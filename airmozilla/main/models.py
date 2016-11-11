@@ -987,6 +987,16 @@ class VidlySubmission(models.Model):
                 return int(estimated_time - time_gone)
 
 
+class VidlyTagDomain(models.Model):
+    tag = models.CharField(max_length=100, db_index=True)
+    type = models.CharField(max_length=100)
+    domain = models.CharField(max_length=100)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('tag', 'type')
+
+
 @receiver(models.signals.post_save, sender=VidlySubmission)
 def notify_fanout_event_vidly_submissions(sender, instance, *args, **kwargs):
     if instance.event_id and not kwargs.get('created'):
