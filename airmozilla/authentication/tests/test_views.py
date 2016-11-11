@@ -585,12 +585,12 @@ class TestViews(DjangoTestCase):
         url = reverse('authentication:signin')
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('class="login-lock"' in response.content)
+        ok_('class="signin-link"' in response.content)
 
         self._login()
         response = self.client.get(url)
         eq_(response.status_code, 200)
-        ok_('class="login-lock"' not in response.content)
+        ok_('class="signin-link"' not in response.content)
 
     def test_signout(self):
         self._login()

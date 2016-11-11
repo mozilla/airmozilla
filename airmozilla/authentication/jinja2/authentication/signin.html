@@ -40,21 +40,17 @@ Sign In | {{ super() }}
     </form>
   {% else %}
 
-    <p class="login-lock">
-      <a href="#"><img src="{{ static('authentication/images/lock-logo.png') }}" width="150"/></a>
-      <br />
-      <a href="#">Click to log in with Auth0</a>
-    </p>
+    <div class="signin-link">
+      <form>
+        <button type="submit">Sign In</button>
+      </form>
 
-    <p>
-      Unless you are <b>Mozilla staff</b>
-      your <b>email has to belong to a <i>vouched Mozillians.org account</i></b>.
+      <p>
+        Unless you are <b>Mozilla staff</b>
+        your <b>email has to belong to a <i>vouched Mozillians.org account</i></b>.
+      </p>
 
-    </p>
-    <p>
-      We use <a href="https://auth0.com" target="_blank" rel="noopener">Auth0.com</a>
-      to handle the authentication.
-    </p>
+    </div>
 
   {% endif %}
 

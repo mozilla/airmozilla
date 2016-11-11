@@ -10,3 +10,12 @@ input.auth0-lock-input {
 input.auth0-lock-input:focus {
     background-color:transparent;
 }
+
+.signin-link {
+    text-align: center;
+}
+
+.signin-link button {
+    margin: 100px 10px;
+    font-size: 140%;
+}

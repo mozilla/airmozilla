@@ -5,7 +5,7 @@ $(function() {
 
     var lock = new Auth0LockPasswordless(clientID, domain);
 
-    $('p.login-lock a').on('click', function(event) {
+    $('.signin-link form').on('submit', function(event) {
         event.preventDefault();
         var options = {
             callbackURL: callbackURL,
