@@ -66,5 +66,8 @@ HOME=/tmp
 # Every 20 minutes
 */20 * * * * {{ cron }} failed_vidly_submissions 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
 
+# Every 6 hours at 15 min past
+15 */6 * * * {{ cron }} refresh_old_vidly_tag_domains 2>&1 | grep -Ev '(DeprecationWarning|UserWarning|simplejson|from pkg_resources)'
+
 
 MAILTO=root

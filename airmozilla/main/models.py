@@ -991,6 +991,7 @@ class VidlyTagDomain(models.Model):
     tag = models.CharField(max_length=100, db_index=True)
     type = models.CharField(max_length=100)
     domain = models.CharField(max_length=100)
+    private = models.BooleanField(default=False)
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:

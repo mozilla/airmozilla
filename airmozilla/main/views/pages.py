@@ -597,14 +597,12 @@ def get_vidly_csp_headers(tag, private=False):
         token = vidly.tokenize(tag, 90)
 
     headers = {}
-    one_month_ago = timezone.now() - datetime.timedelta(days=30)
-
     netloc = None
     try:
         netloc = VidlyTagDomain.objects.get(
             tag=tag,
             type='webm',
-            modified__gt=one_month_ago
+            private=private,
         ).domain
     except VidlyTagDomain.DoesNotExist:
         webm_url = 'https://vid.ly/{}?content=video&format=webm'.format(
@@ -620,6 +618,7 @@ def get_vidly_csp_headers(tag, private=False):
             VidlyTagDomain.objects.create(
                 tag=tag,
                 type='webm',
+                private=private,
                 domain=netloc,
             )
     if netloc:
@@ -630,7 +629,7 @@ def get_vidly_csp_headers(tag, private=False):
         netloc = VidlyTagDomain.objects.get(
             tag=tag,
             type='poster',
-            modified__gt=one_month_ago
+            private=private,
         ).domain
     except VidlyTagDomain.DoesNotExist:
         poster_url = 'https://vid.ly/{}/poster'.format(tag)
@@ -644,6 +643,7 @@ def get_vidly_csp_headers(tag, private=False):
             VidlyTagDomain.objects.create(
                 tag=tag,
                 type='poster',
+                private=private,
                 domain=netloc,
             )
     if netloc:
