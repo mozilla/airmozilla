@@ -26,7 +26,7 @@ Sign In | {{ super() }}
 
 {% block content_main %}
   <h2 class="section-title">Sign In</h2>
-  {% if request.user.is_authenticated() %}
+  {% if request.user.is_active %}
     <p>
       You are already signed in as
       <b>{{ request.user.email }}</b>.
