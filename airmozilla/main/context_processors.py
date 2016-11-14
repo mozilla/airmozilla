@@ -106,13 +106,12 @@ def nav_bar(request):
                 'saved-searches',
                 '',
             ))
-            if not settings.BROWSERID_DISABLED:
-                user_sub_items.append((
-                    'Sign out',
-                    '/browserid/logout/',
-                    '',
-                    'browserid-logout',
-                ))
+            user_sub_items.append((
+                'Sign Out',
+                reverse('authentication:signout'),
+                '',
+                'signout',
+            ))
             name = request.user.first_name or request.user.email.split('@')[0]
             items.append((
                 name,

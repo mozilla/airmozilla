@@ -3200,30 +3200,6 @@ class TestPages(DjangoTestCase):
         # The first 4 gets their own picture, the rest get a placeholder
         eq_(len(re.findall('data-layzr="(.*?)"', response.content)), 6)
 
-    def test_browserid_disabled(self):
-        with self.settings(BROWSERID_DISABLED=True):
-            response = self.client.get('/')
-            eq_(response.status_code, 200)
-            ok_('Sign in' not in response.content)
-
-            User.objects.create_user(
-                'mary', 'mary@mozilla.com', 'secret'
-            )
-            assert self.client.login(username='mary', password='secret')
-
-            response = self.client.get('/')
-            eq_(response.status_code, 200)
-            ok_('Sign out' not in response.content)
-
-        response = self.client.get('/')
-        eq_(response.status_code, 200)
-        ok_('Sign out' in response.content)
-
-        self.client.logout()
-        response = self.client.get('/')
-        eq_(response.status_code, 200)
-        ok_('Sign in' in response.content)
-
     def test_god_mode(self):
         url = reverse('main:god_mode')
         response = self.client.get(url)
@@ -3246,7 +3222,8 @@ class TestPages(DjangoTestCase):
 
             response = self.client.get('/')
             eq_(response.status_code, 200)
-            ok_('Sign out' in response.content)
+            ok_(str(reverse('authentication:signout')) in response.content)
+            ok_('Sign Out' in response.content)
 
     def test_render_event_with_survey(self):
         event = Event.objects.get(title='Test event')

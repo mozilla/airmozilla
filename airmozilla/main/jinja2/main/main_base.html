@@ -19,9 +19,6 @@
 {% endblock %}
 
 {% block content %}
-  {% if not BROWSERID_DISABLED %}
-  {{ browserid_info() }}
-  {% endif %}
   <div id="page">
   <div class="wrap {% block wrap_class %}{% endblock %}">
   <header id="masthead">
@@ -54,15 +51,13 @@
 
         {% if not request.user.is_active %}
         <li>
-          {# the redirect_next function comes from the browserid context processor #}
-          {% if not BROWSERID_DISABLED %}
-          {{ browserid_login(text='Sign in', color='dark', next=redirect_next()) }}
-          {% endif %}
+          <!-- redirect_next: {{ redirect_next() }} -->
+          <a href="{{ url('authentication:signin') }}">Sign In</a>
         </li>
         {% endif %}
       </ul>
     </nav>
-    {% if request.user.is_authenticated() %}
+    {% if request.user.is_active %}
       <starred-event data-post="{{ url('starred:sync') }}"
         data-ids="{{ star_ids }}">{% csrf_token %}
       </starred-event>
@@ -146,11 +141,6 @@
   {% endif %}
 
   {% javascript 'main_base' %}
-
-  {% if not BROWSERID_DISABLED %}
-  {# Instead of using browser_js() we here include them manually. It'll make the page faster #}
-  {% javascript 'browserid' %}
-  {% endif %}
 
   {% if include_autocompeter %}
   <script src="https://cdn.jsdelivr.net/autocompeter/1.2.2/autocompeter.min.js"

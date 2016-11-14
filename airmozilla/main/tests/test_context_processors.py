@@ -167,7 +167,7 @@ class TestNavBar(DjangoTestCase):
         ok_(reverse('starred:home') in urls)
         ok_(reverse('search:savedsearches') in urls)
         ok_(reverse('manage:events') not in urls)
-        ok_('/browserid/logout/' in urls)
+        ok_(reverse('authentication:signout') in urls)
 
     def test_signed_in_staff(self):
         request = RequestFactory().get('/')
