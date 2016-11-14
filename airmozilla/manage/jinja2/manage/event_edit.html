@@ -382,6 +382,18 @@
     {% endif %}
     {% endif %}
 
+    {% if vidly_tag_domains %}
+    <p class="side-section">Vidly CDN Domains</p>
+    <p>
+      {{ ', '.join(vidly_tag_domains) }}
+    </p>
+    <form action="{{ url('manage:reset_vidly_tag_domains', event.id) }}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-xs btn-primary cancel">Reset domains</button>
+    </form>
+
+    {% endif %}
+
   </div>
 </div>
 {% endblock %}

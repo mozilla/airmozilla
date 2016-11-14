@@ -57,6 +57,7 @@ from airmozilla.main.models import (
     Picture,
     Chapter,
     LocationDefaultEnvironment,
+    VidlyTagDomain,
 )
 from airmozilla.closedcaptions.models import (
     ClosedCaptions,
@@ -631,6 +632,22 @@ def event_edit(request, id):
         context['live_hits'] += each['total_hits']
 
     context['count_event_uploads'] = Upload.objects.filter(event=event).count()
+
+    context['vidly_tag_domains'] = None
+    if (
+        event.template and
+        'Vid.ly' in event.template.name and
+        event.template_environment and
+        event.template_environment.get('tag')
+    ):
+        vidly_tag_domains = set()
+        qs = VidlyTagDomain.objects.filter(
+            tag=event.template_environment['tag']
+        )
+        vidly_tag_domains = set(
+            qs.values_list('domain', flat=True)
+        )
+        context['vidly_tag_domains'] = list(vidly_tag_domains)
 
     return render(request, 'manage/event_edit.html', context)
 
@@ -1978,3 +1995,17 @@ def event_autocomplete(request):
     # save it for later
     cache.set(_cache_key, titles, 60)
     return titles
+
+
+@staff_required
+@require_POST
+def reset_vidly_tag_domains(request, id):  # pragma: no cover
+    event = get_object_or_404(Event, id=id)
+    qs = VidlyTagDomain.objects.filter(tag=event.template_environment['tag'])
+    count = qs.count()
+    qs.delete()
+    messages.success(
+        request,
+        'Reset {} Vid.ly CDN domains'.format(count)
+    )
+    return redirect('manage:event_edit', event.id)
