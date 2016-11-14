@@ -10,7 +10,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
-from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model, login
 from django.utils.encoding import smart_bytes
 
@@ -109,15 +108,17 @@ def signin(request):
     return render(request, 'authentication/signin.html', context)
 
 
-@require_POST
 def signout(request):
-    logout(request)
-    url = 'https://' + settings.AUTH0_DOMAIN + '/v2/logout'
-    url += '?' + urllib.urlencode({
-        'returnTo': settings.AUTH_SIGNOUT_URL,
-        'client_id': settings.AUTH0_CLIENT_ID,
-    })
-    return redirect(url)
+    if request.method == 'POST' and request.user.is_authenticated():
+        logout(request)
+        url = 'https://' + settings.AUTH0_DOMAIN + '/v2/logout'
+        url += '?' + urllib.urlencode({
+            'returnTo': settings.AUTH_SIGNOUT_URL,
+            'client_id': settings.AUTH0_CLIENT_ID,
+        })
+        return redirect(url)
+    else:
+        return render(request, 'authentication/signout.html')
 
 
 def callback(request):

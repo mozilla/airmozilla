@@ -1,0 +1,39 @@
+{% extends 'main/main_base.html' %}
+{% set page='signin' %}
+
+{% block page_title %}
+Sign Out | {{ super() }}
+{% endblock %}
+
+{% block site_css %}
+  {{ super() }}
+  {% stylesheet 'signin' %}
+{% endblock %}
+
+
+{% block content_main %}
+
+  {% if not request.user.is_authenticated() %}
+    <h2 class="section-title">Sign Out</h2>
+    <p>
+      You are already signed in as
+      <b>{{ request.user.email }}</b>.
+    </p>
+    <p>
+      <a href="/">Go to the home page</a>
+    </p>
+
+  {% else %}
+
+    <div class="signin-link">
+
+      <form action="{{ url('authentication:signout') }}" method="post">
+        {% csrf_token %}
+        <button type="submit">Sign Out</button>
+      </form>
+
+    </div>
+
+  {% endif %}
+
+{% endblock %}
