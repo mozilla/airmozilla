@@ -38,6 +38,7 @@ from airmozilla.main.models import (
     CuratedGroup,
     Picture,
     LocationDefaultEnvironment,
+    VidlyTagDomain,
 )
 from airmozilla.base.tests.test_mozillians import (
     Response,
@@ -2993,3 +2994,78 @@ class TestEvents(ManageTestCase):
         })
         # Now delete it
         eq_(EventMetadata.objects.all().count(), 0)
+
+    @mock.patch('requests.head')
+    def test_reset_vidly_tag_domains(self, rhead):
+        """If you watch an event that has a vidly template, the view
+        function figures out the CDN used based on the tag.
+        When you reset that, the code will try to look it up again.
+        """
+        head_requests = []
+
+        def mocked_head(url):
+            head_requests.append(url)
+            if 'abc123' in url and 'webm' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://video.vidlycdn.example.com/file.webm'
+                })
+            if 'abc123' in url and 'poster' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://images.vidlycdn.example.com/pic.jpg'
+                })
+            raise NotImplementedError(url)
+
+        rhead.side_effect = mocked_head
+
+        event = Event.objects.get(title='Test event')
+        event.template = Template.objects.create(
+            name='Vid.ly Archive',
+            content='<iframe src="https://vid.ly/{{ tag }}"></iframe>'
+        )
+        event.template_environment = {'tag': 'abc123'}
+        event.save()
+        url = reverse('main:event', args=(event.slug,))
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        ok_(
+            '<iframe src="https://vid.ly/abc123"></iframe>' in response.content
+        )
+        csp = response._headers['content-security-policy'][1]
+        ok_('video.vidlycdn.example.com' in csp, csp)
+        ok_('images.vidlycdn.example.com' in csp, csp)
+        eq_(len(head_requests), 2)
+
+        ok_(VidlyTagDomain.objects.filter(
+            tag='abc123',
+            private=False,
+            domain='video.vidlycdn.example.com',
+        ))
+        ok_(VidlyTagDomain.objects.filter(
+            tag='abc123',
+            private=False,
+            domain='images.vidlycdn.example.com',
+        ))
+
+        # View it again
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        csp = response._headers['content-security-policy'][1]
+        ok_('video.vidlycdn.example.com' in csp, csp)
+        ok_('images.vidlycdn.example.com' in csp, csp)
+        eq_(len(head_requests), 2)  # because if caching
+
+        # Now reset the cache
+        reset_url = reverse('manage:reset_vidly_tag_domains', args=(event.id,))
+        response = self.client.get(reset_url)
+        eq_(response.status_code, 405)
+        response = self.client.post(reset_url)
+        eq_(response.status_code, 302)
+        eq_(VidlyTagDomain.objects.filter(tag='abc123').count(), 0)
+
+        # View it a third time
+        response = self.client.get(url)
+        eq_(response.status_code, 200)
+        csp = response._headers['content-security-policy'][1]
+        ok_('video.vidlycdn.example.com' in csp, csp)
+        ok_('images.vidlycdn.example.com' in csp, csp)
+        eq_(len(head_requests), 4)  # caching should be reset this time

@@ -1999,8 +1999,10 @@ def event_autocomplete(request):
 
 @staff_required
 @require_POST
-def reset_vidly_tag_domains(request, id):  # pragma: no cover
+def reset_vidly_tag_domains(request, id):
     event = get_object_or_404(Event, id=id)
+    cache_key = 'custom_csp_update:{}'.format(event.id)
+    cache.delete(cache_key)
     qs = VidlyTagDomain.objects.filter(tag=event.template_environment['tag'])
     count = qs.count()
     qs.delete()
