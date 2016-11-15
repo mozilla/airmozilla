@@ -12,9 +12,9 @@ from airmozilla.main.views.pages import get_vidly_csp_headers
 @cronjobs.register
 @capture
 def refresh_old_vidly_tag_domains():
-    minimum = timezone.now() - datetime.timedelta(days=7)
+    minimum = timezone.now() - datetime.timedelta(days=1)
     qs = VidlyTagDomain.objects.filter(modified__lt=minimum)
-    for each in qs.order_by('modified')[:10]:
+    for each in qs.order_by('modified')[:20]:
         tag = each.tag
         private = each.private
         print (tag, private, each.modified)
