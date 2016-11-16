@@ -14,12 +14,31 @@ from airmozilla.main.views.pages import get_vidly_csp_headers
 def refresh_old_vidly_tag_domains():
     minimum = timezone.now() - datetime.timedelta(days=1)
     qs = VidlyTagDomain.objects.filter(modified__lt=minimum)
-    for each in qs.order_by('modified')[:20]:
+    print "There are {} VidlyTagDomains older than {}".format(
+        qs.count(),
+        minimum,
+    )
+    print "There are {} VidlyTagDomains newer than {}".format(
+        VidlyTagDomain.objects.filter(modified__gte=minimum).count(),
+        minimum,
+    )
+    print ''
+
+    combos = set()
+    for each in qs.order_by('modified'):
         tag = each.tag
         private = each.private
-        print (tag, private, each.modified)
+        print 'Details: {}'.format({
+            'tag': tag,
+            'private': private,
+            'modified': each.modified
+        })
         domain_before = each.domain
         each.delete()
-        print 'Domain before: {}'.format(domain_before)
-        headers = get_vidly_csp_headers(each.tag, private=each.private)
-        print 'New headers: {}'.format(headers)
+        combo = (each.tag, each.private)
+        if combo not in combos:
+            print 'Domain before: {}'.format(domain_before)
+            headers = get_vidly_csp_headers(each.tag, private=each.private)
+            combos.add(combo)
+            print 'New headers: {}'.format(headers)
+        print ''

@@ -615,6 +615,7 @@ def get_vidly_csp_headers(tag, private=False):
             netloc = urlparse.urlparse(
                 head_response.headers['Location']
             ).netloc
+            assert netloc, head_response.headers['Location']
             VidlyTagDomain.objects.create(
                 tag=tag,
                 type='webm',
@@ -640,6 +641,7 @@ def get_vidly_csp_headers(tag, private=False):
             netloc = urlparse.urlparse(
                 head_response.headers['Location']
             ).netloc
+            assert netloc, head_response.headers['Location']
             VidlyTagDomain.objects.create(
                 tag=tag,
                 type='poster',
