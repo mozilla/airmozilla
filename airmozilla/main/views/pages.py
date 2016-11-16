@@ -559,7 +559,7 @@ class EventView(View):
 
         if not event.template:
             return
-        if event.is_upcoming() or event.is_live():
+        if event.is_upcoming() or event.is_live() or not event.is_scheduled():
             return
         if 'vid.ly' not in event.template.name.lower():
             return
