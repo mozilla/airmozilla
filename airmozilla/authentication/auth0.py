@@ -1,3 +1,4 @@
+import simplejson
 import requests
 
 from django.conf import settings
@@ -17,5 +18,9 @@ def renew_id_token(id_token):
     })
     # If the response.status_code is not 200, it's still JSON but it
     # won't have a id_token.
-    result = response.json()
+    try:
+        result = response.json()
+    except simplejson.JSONDecodeError:
+        # This can happen if the response was someting like a 502 error
+        return
     return result.get('id_token')

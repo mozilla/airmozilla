@@ -4,6 +4,7 @@ import json
 import logging
 
 import mock
+import simplejson
 from nose.plugins.skip import SkipTest
 from selenium import webdriver
 
@@ -123,13 +124,22 @@ class DjangoLiveServerTestCase(LiveServerTestCase):
 
 
 class Response(object):
-    def __init__(self, content=None, status_code=200, headers=None):
+    def __init__(
+        self,
+        content=None,
+        status_code=200,
+        headers=None,
+        require_valid_json=False,
+    ):
         self.content = content
         self.text = content
         self.status_code = status_code
         self.headers = headers or {}
+        self.require_valid_json = require_valid_json
 
     def json(self):
+        if self.require_valid_json and isinstance(self.content, basestring):
+            simplejson.loads(self.content)
         return self.content
 
     def iter_content(self, chunk_size=1024):

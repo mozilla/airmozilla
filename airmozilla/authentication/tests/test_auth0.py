@@ -40,3 +40,18 @@ class TestAuth0(TestCase):
 
         result = auth0.renew_id_token('1234')
         eq_(result, None)
+
+    @mock.patch('requests.post')
+    def test_renew_id_token_not_json_response(self, rpost):
+
+        def mocked_post(url, json):
+            return Response(
+                'The world is broken!',
+                status_code=500,
+                require_valid_json=True
+            )
+
+        rpost.side_effect = mocked_post
+
+        result = auth0.renew_id_token('1234')
+        eq_(result, None)
