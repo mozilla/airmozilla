@@ -384,9 +384,13 @@
 
     {% if vidly_tag_domains %}
     <p class="side-section">Vidly CDN Domains</p>
-    <p>
-      {{ ', '.join(vidly_tag_domains) }}
-    </p>
+    {% for vidly_tag_domain in vidly_tag_domains %}
+      <p style="font-size:80%">
+        {{ vidly_tag_domain.type }}{% if vidly_tag_domain.private %} (private){% endif %}:
+        <code>{{ vidly_tag_domain.domain }}</code>
+        {{ vidly_tag_domain.modified | js_date }}
+      </p>
+    {% endfor %}
     <form action="{{ url('manage:reset_vidly_tag_domains', event.id) }}" method="post">
       {% csrf_token %}
       <button class="btn btn-xs btn-primary cancel">Reset domains</button>

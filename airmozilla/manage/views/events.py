@@ -640,14 +640,9 @@ def event_edit(request, id):
         event.template_environment and
         event.template_environment.get('tag')
     ):
-        vidly_tag_domains = set()
-        qs = VidlyTagDomain.objects.filter(
+        context['vidly_tag_domains'] = VidlyTagDomain.objects.filter(
             tag=event.template_environment['tag']
         )
-        vidly_tag_domains = set(
-            qs.values_list('domain', flat=True)
-        )
-        context['vidly_tag_domains'] = list(vidly_tag_domains)
 
     return render(request, 'manage/event_edit.html', context)
 
