@@ -128,3 +128,8 @@ THUMBNAIL_ENGINE = 'airmozilla.base.tests.testbase.FastSorlEngine'
 AUTH0_CLIENT_ID = 'test-auth0-test-client-id'
 AUTH0_SECRET = 'super-secret-auth0-secret'
 AUTH0_DOMAIN = 'example.auth0.bogus'
+
+# This makes sure we don't accidentally leak tests that depend on real
+# working URLs
+VIDLY_VIDEO_URL_FORMAT = 'https://vid.ly.example/{}?content=video&format=webm'
+VIDLY_POSTER_URL_FORMAT = 'https://vid.ly.example/{}/poster'

@@ -249,7 +249,16 @@ class TestEventEditChapters(DjangoTestCase):
         eq_(struct['missing'], 0)
         eq_(len(struct['pictures']), 6)
 
-    def test_no_chapter_edit_unless_scheduled(self):
+    @mock.patch('requests.head')
+    def test_no_chapter_edit_unless_scheduled(self, rhead):
+
+        def mocked_head(url):
+            return Response('', 302, {
+                'Location': 'https://cdn.example.com/file.mp4',
+            })
+
+        rhead.side_effect = mocked_head
+
         event = Event.objects.get(title='Test event')
         assert event.is_scheduled()
         # Set a template so it can have chapters

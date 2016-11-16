@@ -605,7 +605,7 @@ def get_vidly_csp_headers(tag, private=False):
             private=private,
         ).domain
     except VidlyTagDomain.DoesNotExist:
-        webm_url = 'https://vid.ly/{}?content=video&format=webm'.format(
+        webm_url = settings.VIDLY_VIDEO_URL_FORMAT.format(
             tag
         )
         if token:
@@ -632,7 +632,7 @@ def get_vidly_csp_headers(tag, private=False):
             private=private,
         ).domain
     except VidlyTagDomain.DoesNotExist:
-        poster_url = 'https://vid.ly/{}/poster'.format(tag)
+        poster_url = settings.VIDLY_POSTER_URL_FORMAT.format(tag)
         if token:
             poster_url += '?token={}'.format(token)
         head_response = requests.head(poster_url)

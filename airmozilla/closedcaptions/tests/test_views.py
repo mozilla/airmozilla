@@ -1,11 +1,12 @@
 import os
 
+import mock
 from nose.tools import eq_, ok_
 
 from django.core.urlresolvers import reverse
 from django.core.files import File
 
-from airmozilla.base.tests.testbase import DjangoTestCase
+from airmozilla.base.tests.testbase import DjangoTestCase, Response
 from airmozilla.main.models import Event, Template
 from airmozilla.closedcaptions.models import (
     ClosedCaptions,
@@ -188,7 +189,16 @@ class TestClosedCaptions(DjangoTestCase):
             'WEBVTT\n\n00:00.983 -->'
         ))
 
-    def test_view_event_with_transcript(self):
+    @mock.patch('requests.head')
+    def test_view_event_with_transcript(self, rhead):
+
+        def mocked_head(url):
+            return Response('', 302, {
+                'Location': 'https://cdn.example.com/file.mp4',
+            })
+
+        rhead.side_effect = mocked_head
+
         filepath = os.path.join(TEST_DIRECTORY, 'example.dfxp')
         with open(filepath) as f:
             item = ClosedCaptions.objects.create(

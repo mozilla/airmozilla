@@ -523,3 +523,6 @@ AUTH_SIGNOUT_URL = 'https://air.mozilla.org/?logged=out'
 # If this number is too low, too many requests on this site are blocked
 # on talking to Auth0. If it's too high, we're not being secure enough.
 RENEW_ID_TOKEN_EXPIRY_SECONDS = 60 * 15  # 15 min
+
+VIDLY_VIDEO_URL_FORMAT = 'https://vid.ly/{}?content=video&format=webm'
+VIDLY_POSTER_URL_FORMAT = 'https://vid.ly/{}/poster'

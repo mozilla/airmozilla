@@ -536,8 +536,17 @@ class TestPages(DjangoTestCase):
         ok_(poster_url.endswith('.png'))
         ok_(poster_url.startswith(settings.MEDIA_URL))
 
-    def test_event_with_vidly_download_links(self):
+    @mock.patch('requests.head')
+    def test_event_with_vidly_download_links(self, rhead):
         cache.clear()  # we don't want past vidly info cache to affect
+
+        def mocked_head(url):
+            return Response('', 302, {
+                'Location': 'https://cdn.example.com/file.mp4',
+            })
+
+        rhead.side_effect = mocked_head
+
         event = Event.objects.get(title='Test event')
         vidly = Template.objects.create(
             name="Vid.ly HD",
@@ -2941,7 +2950,16 @@ class TestPages(DjangoTestCase):
         response_content = response.content.decode('utf-8')
         ok_(edit_url not in response_content)  # note the not
 
-    def test_hd_download_links(self):
+    @mock.patch('requests.head')
+    def test_hd_download_links(self, rhead):
+
+        def mocked_head(url):
+            return Response('', 302, {
+                'Location': 'https://cdn.example.com/file.mp4',
+            })
+
+        rhead.side_effect = mocked_head
+
         event = Event.objects.get(title='Test event')
         vidly = Template.objects.create(
             name="Vid.ly HD",
