@@ -597,59 +597,48 @@ def get_vidly_csp_headers(tag, private=False):
         token = vidly.tokenize(tag, 90)
 
     headers = {}
-    netloc = None
-    try:
-        netloc = VidlyTagDomain.objects.get(
-            tag=tag,
-            type='webm',
-            private=private,
-        ).domain
-    except VidlyTagDomain.DoesNotExist:
-        webm_url = settings.VIDLY_VIDEO_URL_FORMAT.format(
-            tag
-        )
-        if token:
-            webm_url += '&token={}'.format(token)
-        head_response = requests.head(webm_url)
-        if head_response.status_code == 302:
-            netloc = urlparse.urlparse(
-                head_response.headers['Location']
-            ).netloc
-            assert netloc, head_response.headers['Location']
-            VidlyTagDomain.objects.create(
-                tag=tag,
-                type='webm',
-                private=private,
-                domain=netloc,
-            )
-    if netloc:
-        headers['media-src'] = netloc
 
-    netloc = None
-    try:
-        netloc = VidlyTagDomain.objects.get(
-            tag=tag,
-            type='poster',
-            private=private,
-        ).domain
-    except VidlyTagDomain.DoesNotExist:
-        poster_url = settings.VIDLY_POSTER_URL_FORMAT.format(tag)
-        if token:
-            poster_url += '?token={}'.format(token)
-        head_response = requests.head(poster_url)
-        if head_response.status_code == 302:
-            netloc = urlparse.urlparse(
-                head_response.headers['Location']
-            ).netloc
-            assert netloc, head_response.headers['Location']
-            VidlyTagDomain.objects.create(
+    def get_netloc(type_, url_format):
+        netloc = None
+        try:
+            found = VidlyTagDomain.objects.get(
                 tag=tag,
-                type='poster',
-                private=private,
-                domain=netloc,
+                type=type_,
             )
-    if netloc:
-        headers['img-src'] = netloc
+            if found.private != private:
+                # The tag has changed!
+                found.delete()
+                raise VidlyTagDomain.DoesNotExist
+            else:
+                netloc = found.domain
+        except VidlyTagDomain.DoesNotExist:
+            url = url_format.format(
+                tag
+            )
+            if token:
+                url += '&token={}'.format(token)
+            head_response = requests.head(url)
+            if head_response.status_code == 302:
+                netloc = urlparse.urlparse(
+                    head_response.headers['Location']
+                ).netloc
+                assert netloc, head_response.headers['Location']
+                VidlyTagDomain.objects.create(
+                    tag=tag,
+                    type=type_,
+                    private=private,
+                    domain=netloc,
+                )
+        return netloc
+
+    media_netloc = get_netloc('webm', settings.VIDLY_VIDEO_URL_FORMAT)
+    if media_netloc:
+        headers['media-src'] = media_netloc
+
+    img_netloc = get_netloc('poster', settings.VIDLY_POSTER_URL_FORMAT)
+    if img_netloc:
+        headers['img-src'] = img_netloc
+
     return headers
 
 

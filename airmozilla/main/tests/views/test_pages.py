@@ -3505,6 +3505,8 @@ class TestPages(DjangoTestCase):
     @mock.patch('urllib2.urlopen')
     @mock.patch('requests.head')
     def test_get_vidly_csp_headers_private(self, rhead, rurlopen):
+        # vidly.tokenize() is cached so,
+        cache.clear()
 
         head_requests = []
 
@@ -3551,3 +3553,64 @@ class TestPages(DjangoTestCase):
         headers = get_vidly_csp_headers('abc123', private=True)
         eq_(len(head_requests), 2)
         eq_(len(tokenize_calls), 1)
+
+    @mock.patch('urllib2.urlopen')
+    @mock.patch('requests.head')
+    def test_get_vidly_csp_headers_private_change(self, rhead, rurlopen):
+        # vidly.tokenize() is cached so,
+        cache.clear()
+
+        head_requests = []
+
+        def mocked_head(url):
+            head_requests.append(url)
+            if 'format=webm' in url and 'token=' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://videos.private.example.com/file.mov',
+                })
+            if 'poster' in url and 'token=' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://images.private.example.com/file.jpg',
+                })
+            if 'format=webm' in url and 'token=' not in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://videos.cdn.example.com/file.mov',
+                })
+            if 'poster' in url and 'token=' not in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://images.cdn.example.com/file.jpg',
+                })
+            raise NotImplementedError(url)
+
+        rhead.side_effect = mocked_head
+
+        tokenize_calls = []
+
+        def mocked_urlopen(request):
+            tokenize_calls.append(1)
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>8r9e0o</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        rurlopen.side_effect = mocked_urlopen
+
+        headers = get_vidly_csp_headers('abc123', private=True)
+        eq_(headers['media-src'], 'videos.private.example.com')
+        eq_(headers['img-src'], 'images.private.example.com')
+        eq_(len(head_requests), 2)
+        eq_(len(tokenize_calls), 1)
+
+        # Suppose now that the event has changed from being being private
+        # to being public.
+        headers = get_vidly_csp_headers('abc123', private=False)
+        eq_(headers['media-src'], 'videos.cdn.example.com')
+        eq_(headers['img-src'], 'images.cdn.example.com')
+        eq_(len(head_requests), 4)
