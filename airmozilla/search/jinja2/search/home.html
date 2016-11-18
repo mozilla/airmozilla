@@ -117,7 +117,7 @@
             {{ event.desc_highlit | safe_html }}
           {% elif event.rank_transcript %}
             <span class="transcript-note">(found by transcript)</span>
-            <span class="transcript">{{ event.transcript_highlit | safe }}</span>
+            <span class="transcript">No transcript available at this time.</span>
 
           {% else %}
             {% if event.privacy == Event.PRIVACY_CONTRIBUTORS and not request.user.is_active %}
