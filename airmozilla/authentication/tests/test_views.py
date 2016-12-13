@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 
 import mock
+from requests.exceptions import ReadTimeout
 from nose.tools import ok_, eq_
 
 from airmozilla.base import mozillians
@@ -52,7 +53,7 @@ class TestViews(DjangoTestCase):
 
         email = 'test@{}'.format(settings.ALLOWED_BID[0])
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             ok_(settings.AUTH0_DOMAIN in url)
             assert 'access_token=somecrypticaccesstoken' in url
             return Response({
@@ -100,7 +101,7 @@ class TestViews(DjangoTestCase):
 
         email = 'test@neverheardof.biz'
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(VOUCHED_FOR_USERS)
             return Response({
@@ -142,7 +143,7 @@ class TestViews(DjangoTestCase):
 
         email = 'test@neverheardof.biz'
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(VOUCHED_FOR_USERS)
             return Response({
@@ -181,7 +182,7 @@ class TestViews(DjangoTestCase):
 
         email = 'test@{}'.format(settings.ALLOWED_BID[0])
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(VOUCHED_FOR_USERS)
             return Response({
@@ -240,7 +241,7 @@ class TestViews(DjangoTestCase):
 
         rpost.side_effect = mocked_post
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             return Response('', status_code=600)  # anything but 200
 
         rget.side_effect = mocked_get
@@ -270,7 +271,7 @@ class TestViews(DjangoTestCase):
 
         email = 'test@neverheardof.biz'
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(NOT_VOUCHED_FOR_USERS)
             return Response({
@@ -305,7 +306,7 @@ class TestViews(DjangoTestCase):
 
         email = 'test@neverheardof.biz'
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 raise mozillians.BadStatusCodeError(600)
             return Response({
@@ -340,7 +341,7 @@ class TestViews(DjangoTestCase):
 
         email = 'test@neverheardof.biz'
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 raise mozillians.BadStatusCodeError(600)
             return Response({
@@ -408,7 +409,7 @@ class TestViews(DjangoTestCase):
             contributor=False,
         )
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(VOUCHED_FOR_USERS)
             return Response({
@@ -450,7 +451,7 @@ class TestViews(DjangoTestCase):
             contributor=True,
         )
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(VOUCHED_FOR_USERS)
             return Response({
@@ -495,7 +496,7 @@ class TestViews(DjangoTestCase):
             contributor=True,
         )
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(VOUCHED_FOR_USERS)
             return Response({
@@ -557,7 +558,7 @@ class TestViews(DjangoTestCase):
             user=right_user,
         )
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(VOUCHED_FOR_USERS)
             return Response({
@@ -597,7 +598,7 @@ class TestViews(DjangoTestCase):
             user=right_user,
         )
 
-        def mocked_get(url):
+        def mocked_get(url, **kwargs):
             if settings.MOZILLIANS_API_BASE in url:
                 return Response(VOUCHED_FOR_USERS)
             return Response({
@@ -614,3 +615,65 @@ class TestViews(DjangoTestCase):
         response = self.client.get(url, {'code': 'xyz001'})
         eq_(response.status_code, 302)
         ok_(response['location'].endswith(settings.AUTH0_SUCCESS_URL))
+
+    @mock.patch('requests.post')
+    @mock.patch('requests.get')
+    def test_auth0_callback_timed_out_access_token(self, rget, rpost):
+
+        def mocked_post(url, **kwargs):
+            return Response({
+                'access_token': 'somecrypticaccesstoken',
+                'id_token': SAMPLE_ID_TOKEN,
+            })
+
+        rpost.side_effect = mocked_post
+
+        email = 'test@neverheardof.biz'
+        right_user = User.objects.create(
+            username='other',
+            email='other@example.com',
+        )
+        UserEmailAlias.objects.create(
+            email=email,
+            user=right_user,
+        )
+
+        def mocked_get(url, **kwargs):
+            assert '?access_token=' in url
+            raise ReadTimeout('too long')
+
+        rget.side_effect = mocked_get
+
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {'code': 'xyz001'})
+        eq_(response.status_code, 302)
+        ok_(response['location'].endswith(
+            reverse('authentication:signin')
+        ))
+
+    @mock.patch('requests.post')
+    @mock.patch('requests.get')
+    def test_auth0_callback_timed_out_authorization(self, rget, rpost):
+
+        def mocked_post(url, **kwargs):
+            assert 'oauth/token' in url
+            raise ReadTimeout('too long')
+
+        rpost.side_effect = mocked_post
+
+        email = 'test@neverheardof.biz'
+        right_user = User.objects.create(
+            username='other',
+            email='other@example.com',
+        )
+        UserEmailAlias.objects.create(
+            email=email,
+            user=right_user,
+        )
+
+        url = reverse('authentication:callback')
+        response = self.client.get(url, {'code': 'xyz001'})
+        eq_(response.status_code, 302)
+        ok_(response['location'].endswith(
+            reverse('authentication:signin')
+        ))

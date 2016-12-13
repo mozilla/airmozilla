@@ -1,8 +1,11 @@
+from requests.exceptions import ConnectTimeout, ReadTimeout
+
 from django.contrib.auth import logout
 from django.core.cache import cache
 from django.shortcuts import redirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.contrib import messages
 
 from airmozilla.main.models import get_profile_safely
 from airmozilla.authentication import auth0
@@ -33,7 +36,20 @@ class ValidateIDToken(object):
             # oh, no we need to check the id_token (and renew it)
             profile = get_profile_safely(request.user)
             if profile and profile.id_token:
-                id_token = auth0.renew_id_token(profile.id_token)
+                try:
+                    id_token = auth0.renew_id_token(profile.id_token)
+                except (ConnectTimeout, ReadTimeout):
+                    messages.error(
+                        request,
+                        'Unable to validate your authentication with Auth0. '
+                        'This can happen when there is temporary network '
+                        'problem. Please sign in again.'
+                    )
+                    # If we don't do this, the user will be redirected
+                    # to the sign-in page, which runs this middleware
+                    # and you'd get caught in an infinite redirect loop.
+                    logout(request)
+                    return redirect('authentication:signin')
                 if id_token:
                     assert isinstance(id_token, basestring)
                     profile.id_token = id_token
@@ -48,5 +64,10 @@ class ValidateIDToken(object):
                     # and you need to be signed out so you can get a new
                     # one.
                     logout(request)
-                    # XXX message?
+                    messages.error(
+                        request,
+                        'Unable to validate your authentication with Auth0. '
+                        'This is most likely due to an expired authentication '
+                        'session. You have to sign in again.'
+                    )
                     return redirect('authentication:signin')

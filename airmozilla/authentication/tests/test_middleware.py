@@ -1,10 +1,12 @@
 from nose.tools import eq_, ok_
+from requests.exceptions import ReadTimeout
 
 from django import http
 from django.test.client import RequestFactory
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.contrib.messages.middleware import MessageMiddleware
 from django.core.urlresolvers import reverse
 
 from airmozilla.main.models import UserProfile
@@ -21,8 +23,11 @@ class TestMiddleware(DjangoTestCase):
             request = RequestFactory(**headers).post(path)
         else:
             request = RequestFactory(**headers).get(path)
+
         middleware = SessionMiddleware()
         middleware.process_request(request)
+        messages_middleware = MessageMiddleware()
+        messages_middleware.process_request(request)
         request.session.save()
         return request
 
@@ -112,3 +117,21 @@ class TestMiddleware(DjangoTestCase):
         middleware = ValidateIDToken()
         result = middleware.process_request(request)
         eq_(result, None)
+
+    def test_renewal_timed_out(self):
+        def timed_out(id_token):
+            raise ReadTimeout('too long')
+
+        self.auth0_renew.side_effect = timed_out
+        user = User.objects.create(email='test@example.com')
+        UserProfile.objects.create(
+            user=user,
+            id_token='12345.6789.01234'
+        )
+        request = self._get_request()
+        request.user = user
+        middleware = ValidateIDToken()
+        result = middleware.process_request(request)
+        # Redirected to the sign in page
+        ok_(isinstance(result, http.HttpResponseRedirect))
+        eq_(result.url, reverse('authentication:signin'))

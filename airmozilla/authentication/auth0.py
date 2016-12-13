@@ -15,7 +15,7 @@ def renew_id_token(id_token):
         'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
         'id_token': id_token,
         'api_type': 'app',
-    })
+    }, timeout=settings.AUTH0_PATIENCE_TIMEOUT)
     # If the response.status_code is not 200, it's still JSON but it
     # won't have a id_token.
     try:

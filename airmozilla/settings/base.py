@@ -515,6 +515,7 @@ AUTH0_CLIENT_ID = 'YOU_CLIENT_ID'
 AUTH0_SECRET = 'YOUR_SECRET'
 AUTH0_CALLBACK_URL = 'https://air.mozilla.org/authentication/callback/'
 AUTH0_SUCCESS_URL = '/?logged=in'
+AUTH0_PATIENCE_TIMEOUT = 5  # seconds
 
 AUTH_SIGNOUT_URL = 'https://air.mozilla.org/?logged=out'
 

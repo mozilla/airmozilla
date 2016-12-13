@@ -4,6 +4,7 @@ import hashlib
 import base64
 
 import requests
+from requests.exceptions import ConnectTimeout, ReadTimeout
 
 from django import http
 from django.conf import settings
@@ -151,10 +152,20 @@ def callback(request):
         'code': code,
         'grant_type': 'authorization_code',
     }
-    token_info = requests.post(
-        token_url,
-        json=token_payload,
-    ).json()
+    try:
+        token_info = requests.post(
+            token_url,
+            json=token_payload,
+            timeout=settings.AUTH0_PATIENCE_TIMEOUT,
+        ).json()
+    except (ConnectTimeout, ReadTimeout):
+        messages.error(
+            request,
+            'Unable to authenticate with Auth0. The Auth0 service timed out. '
+            'This is most likely temporary so you can try again in a couple '
+            'of minutes.'
+        )
+        return redirect('authentication:signin')
 
     if not token_info.get('access_token'):
         messages.error(
@@ -171,7 +182,19 @@ def callback(request):
     user_url += '?' + urllib.urlencode({
         'access_token': token_info['access_token'],
     })
-    user_response = requests.get(user_url)
+    try:
+        user_response = requests.get(
+            user_url,
+            timeout=settings.AUTH0_PATIENCE_TIMEOUT,
+        )
+    except (ConnectTimeout, ReadTimeout):
+        messages.error(
+            request,
+            'Unable to authenticate with Auth0. The Auth0 service timed out. '
+            'This is most likely temporary so you can try again in a couple '
+            'of minutes.'
+        )
+        return redirect('authentication:signin')
     if user_response.status_code != 200:
         messages.error(
             request,

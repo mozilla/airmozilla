@@ -4,6 +4,7 @@ import mock
 from nose.tools import eq_
 
 from django.test import TestCase
+from django.conf import settings
 
 from airmozilla.base.tests.testbase import Response
 from airmozilla.authentication import auth0
@@ -17,7 +18,8 @@ class TestAuth0(TestCase):
     @mock.patch('requests.post')
     def test_renew_id_token(self, rpost):
 
-        def mocked_post(url, json):
+        def mocked_post(url, json, **kwargs):
+            eq_(kwargs['timeout'], settings.AUTH0_PATIENCE_TIMEOUT)
             return Response({
                 'id_token': 'xzy.123.456',
                 'expires': int(time.time()) + 1000,
@@ -31,7 +33,7 @@ class TestAuth0(TestCase):
     @mock.patch('requests.post')
     def test_renew_id_token_unauthorized(self, rpost):
 
-        def mocked_post(url, json):
+        def mocked_post(url, json, **kwargs):
             return Response({
                 'error_message': 'Not valid!',
             }, status_code=401)
@@ -44,7 +46,7 @@ class TestAuth0(TestCase):
     @mock.patch('requests.post')
     def test_renew_id_token_not_json_response(self, rpost):
 
-        def mocked_post(url, json):
+        def mocked_post(url, json, **kwargs):
             return Response(
                 'The world is broken!',
                 status_code=500,
