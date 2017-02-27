@@ -1,6 +1,14 @@
 /* This file is all about overrides for the autocompeter.min.css
    library. */
 
+#site-title form {
+    position: relative;
+}
+._ac-wrap {
+    position: unset;
+    display: inline;
+}
+
 ._ac-wrap ._ac-hint {
     background: none;
     color: #2D373B;
