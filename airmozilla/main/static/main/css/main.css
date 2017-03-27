@@ -470,7 +470,7 @@ body #cancel-comment-reply a:hover, body #cancel-comment-reply a:focus, body #ca
 #nav-primary .current-menu-item { border-color: #fed325; }
 
 /* @Footer ***/
-#site-info { background-color: #020202; color: #666; }
+#site-info { background-color: #020202; color: #757575; }
 #site-info a:link, #site-info a:visited { color: #68a7d0; }
 #site-info a:hover, #site-info a:focus, #site-info a:active { color: #82c0e8; }
 
