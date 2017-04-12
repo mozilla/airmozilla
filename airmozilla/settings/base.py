@@ -122,6 +122,7 @@ ALLOWED_BID = (
     'mozilla.com',
     'mozillafoundation.org',
     'mozilla-japan.org',
+    'getpocket.com',
 )
 
 LOGIN_URL = '/login/'
