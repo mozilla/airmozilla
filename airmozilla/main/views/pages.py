@@ -609,6 +609,16 @@ def get_vidly_csp_headers(tag, private=False):
                 # The tag has changed!
                 found.delete()
                 raise VidlyTagDomain.DoesNotExist
+            elif found.domain == 'm.vid.ly':  # pragma: no cover
+                # In a previous life, airmozilla might have attempted to
+                # look up what the CDN domain was and if it failed,
+                # Vid.ly would just redirect to 'https://m.vid.ly' which
+                # is NOT the right CDN domain. We shouldn't have stored
+                # that.
+                # This knowledge was added in June 2017 and from now on
+                # we never save this as the domain so it should cease.
+                found.delete()
+                raise VidlyTagDomain.DoesNotExist
             else:
                 netloc = found.domain
         except VidlyTagDomain.DoesNotExist:
@@ -619,10 +629,26 @@ def get_vidly_csp_headers(tag, private=False):
                 url += '&token={}'.format(token)
             head_response = requests.head(url)
             if head_response.status_code == 302:
+                if head_response.headers['Location'] == 'https://m.vid.ly':
+                    # Basically, it didn't work.
+                    # When vid.ly can't redirect to the actual file, for
+                    # some reason it instead redirects to the exact
+                    # URL 'https://m.vid.ly'. For example:
+                    #
+                    #   curl -v https://vid.ly/l1c2w5/blalbla
+                    #   ...
+                    #   < HTTP/1.1 302 Found
+                    #   ...
+                    #   < Location: https://m.vid.ly
+                    #
+                    # Odd right? But it basically means to use that we
+                    # we not able to do the lookup. Sorry.
+                    return
                 netloc = urlparse.urlparse(
                     head_response.headers['Location']
                 ).netloc
                 assert netloc, head_response.headers['Location']
+
                 VidlyTagDomain.objects.create(
                     tag=tag,
                     type=type_,
@@ -634,10 +660,25 @@ def get_vidly_csp_headers(tag, private=False):
     media_netloc = get_netloc('webm', settings.VIDLY_VIDEO_URL_FORMAT)
     if media_netloc:
         headers['media-src'] = media_netloc
+        # In almost all cases, the poster image is on the same domain
+        # as the video. So let's use that.
+        # Later we're going to try to do a specific lookup for the poster.
+        # If that's better/different that becomes the added domain
+        # for 'img-src' instead.
+        headers['img-src'] = media_netloc
+        # There is no way to pre-lookup what the actual CDN domain is
+        # for the webvtt.vtt file is so let's hope for the best and
+        # reuse the the domain for media on the connect-src too.
+        headers['connect-src'] = media_netloc
 
-    img_netloc = get_netloc('poster', settings.VIDLY_POSTER_URL_FORMAT)
-    if img_netloc:
-        headers['img-src'] = img_netloc
+    lock_cache_key = 'poster_netloc_failed:{}'.format(tag)
+    if not cache.get(lock_cache_key):
+        img_netloc = get_netloc('poster', settings.VIDLY_POSTER_URL_FORMAT)
+        if img_netloc:
+            headers['img-src'] = img_netloc
+        else:
+            # If that failed, don't bother trying again. For a while.
+            cache.set(lock_cache_key, True, 60 * 60)
 
     return headers
 

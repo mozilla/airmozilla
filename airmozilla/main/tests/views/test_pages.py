@@ -3449,6 +3449,7 @@ class TestPages(DjangoTestCase):
 
     @mock.patch('requests.head')
     def test_get_vidly_csp_headers(self, rhead):
+        cache.clear()
 
         head_requests = []
 
@@ -3478,6 +3479,7 @@ class TestPages(DjangoTestCase):
 
     @mock.patch('requests.head')
     def test_get_vidly_csp_headers_persistence(self, rhead):
+        cache.clear()
 
         head_requests = []
 
@@ -3546,6 +3548,63 @@ class TestPages(DjangoTestCase):
         headers = get_vidly_csp_headers('abc123', private=True)
         eq_(headers['media-src'], 'videos.cdn.example.com')
         eq_(headers['img-src'], 'images.cdn.example.com')
+        eq_(len(head_requests), 2)
+        eq_(len(tokenize_calls), 1)
+
+        # Do it again
+        headers = get_vidly_csp_headers('abc123', private=True)
+        eq_(len(head_requests), 2)
+        eq_(len(tokenize_calls), 1)
+
+    @mock.patch('urllib2.urlopen')
+    @mock.patch('requests.head')
+    def test_get_vidly_csp_headers_bad_fallback(self, rhead, rurlopen):
+        # vidly.tokenize() is cached so,
+        cache.clear()
+
+        head_requests = []
+
+        def mocked_head(url):
+            head_requests.append(url)
+            assert 'token=' in url
+            if 'format=webm' in url:
+                return Response('', status_code=302, headers={
+                    'Location': 'https://videos.cdn.example.com/file.mov',
+                })
+            if 'poster' in url:
+                # Sometimes, when you do a HEAD request to Vid.ly for a
+                # poster instead of giving a decent error code it redirects
+                # to the home page for mobile https://m.vid.ly. That
+                # should be ignored by our code.
+                return Response('', status_code=302, headers={
+                    'Location': 'https://m.vid.ly',
+                })
+            raise NotImplementedError(url)
+
+        rhead.side_effect = mocked_head
+
+        tokenize_calls = []
+
+        def mocked_urlopen(request):
+            tokenize_calls.append(1)
+            return StringIO("""
+            <?xml version="1.0"?>
+            <Response>
+              <Message>OK</Message>
+              <MessageCode>7.4</MessageCode>
+              <Success>
+                <MediaShortLink>8r9e0o</MediaShortLink>
+                <Token>MXCsxINnVtycv6j02ZVIlS4FcWP</Token>
+              </Success>
+            </Response>
+            """)
+
+        rurlopen.side_effect = mocked_urlopen
+
+        headers = get_vidly_csp_headers('abc123', private=True)
+        eq_(headers['media-src'], 'videos.cdn.example.com')
+        eq_(headers['img-src'], 'videos.cdn.example.com')
+        eq_(headers['connect-src'], 'videos.cdn.example.com')
         eq_(len(head_requests), 2)
         eq_(len(tokenize_calls), 1)
 
