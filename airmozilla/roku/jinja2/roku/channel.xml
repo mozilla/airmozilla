@@ -1,35 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <feed>
-	<!-- resultLength indicates the total number of results for this feed -->
-	<!-- currently not used -->
-	<resultLength>0</resultLength>
-	<!-- endIndix  indicates the number of results for this *paged* section of the feed -->
-	<!-- currently not used -->
-	<endIndex>0</endIndex>
+    <!-- resultLength indicates the total number of results for this feed -->
+    <!-- currently not used -->
+    <resultLength>0</resultLength>
+    <!-- endIndix  indicates the number of results for this *paged* section of the feed -->
+    <!-- currently not used -->
+    <endIndex>0</endIndex>
 
-	{% for event in events %}
-	{% set media_info = get_media_info(event) %}
-	{% if media_info %}
-	{% if event.picture %}
-		{% set thumb_hd = thumbnail(event.picture.file, '385x218', crop='center') %}
-		{% set thumb_sd = thumbnail(event.picture.file, '285x145', crop='center') %}
-	{% else %}
-		{% set thumb_hd = thumbnail(event.placeholder_img, '385x218', crop='center') %}
-		{% set thumb_sd = thumbnail(event.placeholder_img, '285x145', crop='center') %}
-	{% endif %}
+    {% for event in events %}
+        {% set media_info = get_media_info(event) %}
+        {% if media_info %}
+            {% if event.picture %}
+                {% set thumb_hd = thumbnail(event.picture.file, '385x218', crop = 'center') %}
+                {% set thumb_sd = thumbnail(event.picture.file, '285x145', crop = 'center') %}
+            {% else %}
+                {% set thumb_hd = thumbnail(event.placeholder_img, '385x218', crop = 'center') %}
+                {% set thumb_sd = thumbnail(event.placeholder_img, '285x145', crop = 'center') %}
+            {% endif %}
 
-	<item sdImg="{{ make_absolute(thumb_sd.url) }}" hdImg="{{ make_absolute(thumb_hd.url) }}">
-		<title>{{ event.title }} - {{ event.start_time.strftime('%b %d %Y') }}</title>
-		<contentId>{{ event.id }}</contentId>
-		<contentType>Talk</contentType>
-		<streamFormat>{{ media_info.format }}</streamFormat>
-		<media>
-			<streamUrl>{{ make_absolute(media_info.url) }}</streamUrl>
-		</media>
-		<synopsis>{{ strip_html(event.description) }}</synopsis>
-		<description>{{ short_desc(event, strip_html=True) }}</description>
-        <runtime>{{ event.duration or 3600 }}</runtime>
-	</item>
-	{% endif %}
-	{% endfor %}
+            {% if event.picture or event.placeholder_img %}
+            <item sdImg="{{ make_absolute(thumb_sd.url) }}" hdImg="{{ make_absolute(thumb_hd.url) }}">
+                <title>{{ event.title }} - {{ event.start_time.strftime('%b %d %Y') }}</title>
+                <contentId>{{ event.id }}</contentId>
+                <contentType>Talk</contentType>
+                <streamFormat>{{ media_info.format }}</streamFormat>
+                <media>
+                    <streamUrl>{{ make_absolute(media_info.url) }}</streamUrl>
+                </media>
+                <synopsis>{{ strip_html(event.description) }}</synopsis>
+                <description>{{ short_desc(event, strip_html=True) }}</description>
+                <runtime>{{ event.duration or 3600 }}</runtime>
+            </item>
+            {% else %}
+            <!-- Event does not have picture or placeholder_img -->
+            {% endif %}
+        {% endif %}
+    {% endfor %}
 </feed>

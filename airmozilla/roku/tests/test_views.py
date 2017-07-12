@@ -152,6 +152,7 @@ class TestRoku(DjangoTestCase):
         event.save()
         response = self.client.get(url)
         eq_(response.status_code, 200)
+        # Not there because the event doesn't have a picture
         ok_('%s - Sep 13 2014' % event.title in response.content)
 
     def test_event_feed_escape_description(self):
