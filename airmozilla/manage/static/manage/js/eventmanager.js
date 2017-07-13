@@ -234,6 +234,8 @@ function EventManagerController($scope, $http, $interval, $timeout) {
                 return !!event.needs_approval;
             } else if ($scope.search_only === 'live') {
                 return !!event.is_live;
+            } else if ($scope.search_only === 'pictureless') {
+                return !!event.pictureless;
             } else {
                 console.warn('Unrecognized option', $scope.search_only);
             }

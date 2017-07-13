@@ -368,6 +368,9 @@ def events_data(request):
         if event.picture_id:
             row['picture'] = event.picture_id
 
+        if not event.picture_id and not event.placeholder_img:
+            row['pictureless'] = True
+
         if row.get('is_pending'):
             # this one is only relevant if it's pending
             template_name = template_names.get(event.template_id)
@@ -391,9 +394,6 @@ def events_data(request):
 
     urls = {
         'manage:event_edit': reverse('manage:event_edit', args=('0',)),
-        'manage:event_duplicate': reverse(
-            'manage:event_duplicate', args=('0',)
-        ),
         'manage:redirect_event_thumbnail': reverse(
             'manage:redirect_event_thumbnail', args=('0',)
         ),
@@ -428,7 +428,7 @@ def _event_process(request, form, event):
         approvals_add = set(approvals_new).difference(approvals_old)
         for approval in approvals_add:
             group = Group.objects.get(name=approval)
-            app = Approval.objects.create(group=group, event=event)
+            Approval.objects.create(group=group, event=event)
             sending.email_about_approval_requested(
                 event,
                 group,

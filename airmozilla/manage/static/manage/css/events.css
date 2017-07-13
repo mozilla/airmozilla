@@ -65,3 +65,11 @@ a.picture-gallery-use {
 a.picture-gallery-use:hover {
     opacity: 1;
 }
+
+/* Custom extra to be able to use `class="badge badge-error"` */
+.badge-error {
+    background-color: #b94a48;
+}
+.badge-error:hover {
+    background-color: #953b39;
+}

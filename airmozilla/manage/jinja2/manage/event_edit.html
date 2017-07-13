@@ -434,6 +434,20 @@
     </form>
   </div>
 
+  {% if not event.picture_id and not event.placeholder_img %}
+  <div id="event-pictureless"
+       class="alert alert-warning alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <p>
+      <b>Warning!</b><br>
+      This event lacks a valid picture which will break browsing prerequisites.
+    </p>
+    <p>
+      Either upload a placeholder image or select a picture from the gallery.
+    </p>
+  </div>
+  {% endif %}
+
   {% include "manage/_default_form_upload.html" %}
 
   {% if suggested_event_comments %}
