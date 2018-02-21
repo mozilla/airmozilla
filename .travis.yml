@@ -1,9 +1,7 @@
 # http://travis-ci.org/#!/mozilla/airmozilla
 
-# This indicates to Travis that we will not use or need sudo
-# so that we can benefit from and use the cache->directories
-# directive.
-sudo: no
+# So that we can start elasticsearch
+sudo: true
 
 env: PIP_DOWNLOAD_CACHE="pip_cache"
 cache:
