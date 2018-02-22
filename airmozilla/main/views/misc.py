@@ -1,7 +1,10 @@
+import time
+
 from django import http
 from django.conf import settings
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 
 from jsonview.decorators import json_view
 
@@ -10,9 +13,9 @@ from airmozilla.base import mozillians
 
 def debugger__(request):  # pragma: no cover
     r = http.HttpResponse()
-    r.write('BROWSERID_AUDIENCES=%r\n' % settings.BROWSERID_AUDIENCES)
     r.write('Todays date: 2014-05-21 14:02 PST\n')
     r.write('Request secure? %s\n' % request.is_secure())
+    r.write('settings.COOKIES_SECURE? %s\n' % settings.COOKIES_SECURE)
     r['Content-Type'] = 'text/plain'
     if request.session.test_cookie_worked():
         r.write('Test cookie worked.\n')
@@ -20,6 +23,11 @@ def debugger__(request):  # pragma: no cover
     else:
         request.session.set_test_cookie()
         r.write('Set a test cookie. Refresh to see if it stuck\n')
+    if cache.get('__debugger__'):
+        r.write('Cache framework works.\n')
+    else:
+        cache.set('__debugger__', time.time(), 10)
+        r.write('Refresh to see if the cache framework works.\n')
     return r
 
 

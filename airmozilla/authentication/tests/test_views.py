@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 import mock
 from requests.exceptions import ReadTimeout
 from nose.tools import ok_, eq_
+from nose.plugins.skip import SkipTest
 
 from airmozilla.base import mozillians
 from airmozilla.base.tests.testbase import Response
@@ -36,6 +37,7 @@ class TestViews(DjangoTestCase):
     @mock.patch('requests.post')
     @mock.patch('requests.get')
     def test_auth0_callback_staff(self, rget, rpost):
+        raise SkipTest("We're using mozilla-django-oidc now")
 
         def mocked_post(url, **kwargs):
             ok_(settings.AUTH0_DOMAIN in url)
@@ -330,6 +332,7 @@ class TestViews(DjangoTestCase):
     @mock.patch('requests.post')
     @mock.patch('requests.get')
     def test_auth0_callback_email_not_verified(self, rget, rpost):
+        raise SkipTest("We're using mozilla-django-oidc now")
 
         def mocked_post(url, **kwargs):
             return Response({
@@ -363,6 +366,7 @@ class TestViews(DjangoTestCase):
         ok_(not User.objects.filter(email=email).exists())
 
     def test_signin_page(self):
+        raise SkipTest("We're using mozilla-django-oidc now")
         url = reverse('authentication:signin')
         response = self.client.get(url)
         eq_(response.status_code, 200)
@@ -374,6 +378,7 @@ class TestViews(DjangoTestCase):
         ok_('class="signin-link"' not in response.content)
 
     def test_signout(self):
+        raise SkipTest("We're using mozilla-django-oidc now")
         self._login()
         url = reverse('authentication:signout')
         response = self.client.get(url)
@@ -391,6 +396,7 @@ class TestViews(DjangoTestCase):
     @mock.patch('requests.post')
     @mock.patch('requests.get')
     def test_auth0_callback_contributor_vouched_was_staff(self, rget, rpost):
+        raise SkipTest("We're using mozilla-django-oidc now")
 
         def mocked_post(url, **kwargs):
             return Response({

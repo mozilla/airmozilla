@@ -5,12 +5,6 @@
 Sign In | {{ super() }}
 {% endblock %}
 
-{% block extra_head %}
-{{ super() }}
-<meta name="auth0-client-id" content="{{ AUTH0_CLIENT_ID }}">
-<meta name="auth0-domain" content="{{ AUTH0_DOMAIN }}">
-<meta name="auth0-callback-url" content="{{ AUTH0_CALLBACK_URL }}">
-{% endblock %}
 
 {% block site_css %}
   {{ super() }}
@@ -19,7 +13,6 @@ Sign In | {{ super() }}
 
 {% block site_js %}
   {{ super() }}
-  <script src="https://cdn.auth0.com/js/lock-passwordless-2.2.min.js"></script>
   {% javascript 'signin' %}
 {% endblock %}
 
@@ -41,9 +34,8 @@ Sign In | {{ super() }}
   {% else %}
 
     <div class="signin-link">
-      <form>
-        <button type="submit">Sign In</button>
-      </form>
+
+      <a href="{{ url('oidc_authentication_init') }}" style="font-size:250%;margin:50px;display:block">Sign In</a>
 
       <p>
         Unless you are <b>Mozilla staff</b>

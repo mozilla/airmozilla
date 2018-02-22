@@ -17,6 +17,7 @@ urlpatterns = patterns(
     '',
     (r'^(?P<path>contribute\.json)$', 'django.views.static.serve',
      {'document_root': settings.ROOT}),
+    (r'^oidc/', include('mozilla_django_oidc.urls')),
     (r'^authentication/', include('airmozilla.authentication.urls', namespace='authentication')),  # NOQA
     (r'^manage/', include('airmozilla.manage.urls', namespace='manage')),
     (r'^requests/', include('airmozilla.suggest.urls', namespace='suggest')),
@@ -32,7 +33,7 @@ urlpatterns = patterns(
     (r'^closedcaptions/', include('airmozilla.closedcaptions.urls', namespace='closedcaptions')),  # NOQA
     ('^(?P<path>favicon\.ico)$', 'django.views.static.serve',
      {'document_root': settings.ROOT + '/airmozilla/base/static/img'}),
-    (r'', include('django_browserid.urls')),
+    # (r'', include('django_browserid.urls')),
     (r'', include('airmozilla.main.urls', namespace='main')),
     ('^pages/', include('airmozilla.staticpages.urls',
      namespace='staticpages')),

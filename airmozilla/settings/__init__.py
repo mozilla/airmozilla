@@ -22,7 +22,29 @@ if FANOUT_REALM_ID:
         '{}.fanoutcdn.com'.format(FANOUT_REALM_ID),
         'wss://{}.fanoutcdn.com'.format(FANOUT_REALM_ID),
     )
+if (
+    not OIDC_RP_CLIENT_ID and
+    not OIDC_RP_CLIENT_SECRET and
+    AUTH0_CLIENT_ID and
+    AUTH0_SECRET
+):
+    OIDC_RP_CLIENT_ID = AUTH0_CLIENT_ID
+    OIDC_RP_CLIENT_SECRET = AUTH0_SECRET
 
+if not OIDC_OP_AUTHORIZATION_ENDPOINT and AUTH0_DOMAIN:
+    OIDC_OP_AUTHORIZATION_ENDPOINT = 'https://{}/authorize'.format(
+        AUTH0_DOMAIN
+    )
+if not OIDC_OP_TOKEN_ENDPOINT and AUTH0_DOMAIN:
+    OIDC_OP_TOKEN_ENDPOINT = 'https://{}/oauth/token'.format(AUTH0_DOMAIN)
+if not OIDC_OP_USER_ENDPOINT and AUTH0_DOMAIN:
+    OIDC_OP_USER_ENDPOINT = 'https://{}/userinfo'.format(AUTH0_DOMAIN)
+
+if not LOGIN_REDIRECT_URL and AUTH0_SUCCESS_URL:
+    LOGIN_REDIRECT_URL = AUTH0_SUCCESS_URL
+
+if not LOGOUT_REDIRECT_URL and AUTH_SIGNOUT_URL:
+    LOGOUT_REDIRECT_URL = AUTH_SIGNOUT_URL
 
 # This takes care of removing that pesky warning, about raven not
 # being configured in local development, that looks like an error.

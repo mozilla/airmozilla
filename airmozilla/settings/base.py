@@ -35,6 +35,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'session_csrf',
+    'mozilla_django_oidc',
 
     # Application base, containing global templates.
     'airmozilla.base',
@@ -108,10 +109,11 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 # Note that this is different when running tests.
 # You know in case you're debugging tests.
 AUTHENTICATION_BACKENDS = (
-    '%s.authentication.backend.AirmozillaBrowserIDBackend' % PROJECT_MODULE,
+    # '%s.authentication.backend.AirmozillaBrowserIDBackend' % PROJECT_MODULE,
     # but we're keeping this in case people still have sessions
     # whose backend cookie points to this class path
-    'django_browserid.auth.BrowserIDBackend',
+    # 'django_browserid.auth.BrowserIDBackend',
+    'airmozilla.authentication.backend.AirmozillaOIDCAuthenticationBackend',
     # Needed because the tests
     # use self.client.login(username=..., password=...)
     'django.contrib.auth.backends.ModelBackend',
@@ -204,12 +206,13 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'mozilla_django_oidc.middleware.RefreshIDToken',
     'django.middleware.security.SecurityMiddleware',
     'session_csrf.CsrfMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware',
-    'airmozilla.authentication.middleware.ValidateIDToken',
+    # 'airmozilla.authentication.middleware.ValidateIDToken',
     'airmozilla.manage.middleware.CacheBustingMiddleware',
     'airmozilla.staticpages.middleware.StaticPageFallbackMiddleware',
 )
@@ -528,3 +531,21 @@ RENEW_ID_TOKEN_EXPIRY_SECONDS = 60 * 15  # 15 min
 
 VIDLY_VIDEO_URL_FORMAT = 'https://vid.ly/{}?content=video&format=webm'
 VIDLY_POSTER_URL_FORMAT = 'https://vid.ly/{}/poster'
+
+
+# In settings/__init__.py, if these aren't set they can be populated
+# from other variables like AUTH0_* which was the old way.
+OIDC_RP_CLIENT_ID = None
+OIDC_RP_CLIENT_SECRET = None
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = None
+OIDC_OP_TOKEN_ENDPOINT = None
+OIDC_OP_USER_ENDPOINT = None
+
+LOGIN_REDIRECT_URL = None
+LOGOUT_REDIRECT_URL = None
+
+
+# Set to false because we will manually control this because we need
+# to set the profile carefully.
+OIDC_CREATE_USER = False

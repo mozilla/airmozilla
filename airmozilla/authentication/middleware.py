@@ -17,6 +17,7 @@ class ValidateIDToken(object):
     still valid. For example, the user could have been blocked (e.g.
     leaving the company) if so we need to ask the user to log in again.
     """
+    XXX_NOT_USED
 
     exception_paths = (
         reverse('authentication:callback'),

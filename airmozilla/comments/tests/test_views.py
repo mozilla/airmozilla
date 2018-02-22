@@ -507,7 +507,9 @@ class TestComments(DjangoTestCase):
             username='peterbe', password='secret'
         )
         assert self.client.login(username='peterbe', password='secret')
+        print("URL", url)
         response = self.client.get(url)
+        print(response)
         eq_(response.status_code, 200)
         structure = json.loads(response.content)
         eq_(structure['name'], '')
