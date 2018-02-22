@@ -10,7 +10,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.dirname('/usr/pgsql-9.2/bin/‘))
+sys.path.append(os.path.dirname('/usr/pgsql-9.2/bin/'))
 
 from commander.deploy import task, hostgroups
 import commander_settings as settings
