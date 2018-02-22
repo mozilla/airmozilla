@@ -43,7 +43,7 @@ def update_code(ctx, tag):
         # This makes sure we have pip 8.x at least.
         # It installs a trusted (version 8) of pip, wheel and setuptools
         # that can't have been man-in-the-middle tampered with.
-        ctx.local('%s/bin/python bin/pipstrap.py' % venv_path)
+        # Commented out by peterbe to use the latest pip instead ctx.local('%s/bin/python bin/pipstrap.py' % venv_path)
         ctx.local('%s/bin/pip install --require-hashes -r requirements.txt' % venv_path)
         ctx.local('virtualenv-2.7 --relocatable %s' % venv_path)
 
