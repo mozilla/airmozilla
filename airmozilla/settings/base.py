@@ -206,6 +206,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'airmozilla.authentication.middleware.PatchRefreshIDToken',
     'mozilla_django_oidc.middleware.RefreshIDToken',
     'django.middleware.security.SecurityMiddleware',
     'session_csrf.CsrfMiddleware',

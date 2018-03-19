@@ -122,151 +122,151 @@ def signout(request):
         return render(request, 'authentication/signout.html')
 
 
-def callback(request):
-    """Much of this is copied from the callback done in django_auth0
-    but with the major difference that we handle checking if non-staff
-    are vouched Mozillians."""
-    code = request.GET.get('code', '')
-    if not code:
-        # If the user is blocked, we will never be called back with a code.
-        # What Auth0 does is that it calls the callback but with extra
-        # query string parameters.
-        if request.GET.get('error'):
-            messages.error(
-                request,
-                "Unable to sign in because of an error from Auth0. "
-                "({})".format(
-                    request.GET.get(
-                        'error_description',
-                        request.GET['error']
-                    )
-                )
-            )
-            return redirect('authentication:signin')
-        return http.HttpResponseBadRequest("Missing 'code'")
-    token_url = 'https://{}/oauth/token'.format(settings.AUTH0_DOMAIN)
-    token_payload = {
-        'client_id': settings.AUTH0_CLIENT_ID,
-        'client_secret': settings.AUTH0_SECRET,
-        'redirect_uri': settings.AUTH0_CALLBACK_URL,
-        'code': code,
-        'grant_type': 'authorization_code',
-    }
-    try:
-        token_info = requests.post(
-            token_url,
-            json=token_payload,
-            timeout=settings.AUTH0_PATIENCE_TIMEOUT,
-        ).json()
-    except (ConnectTimeout, ReadTimeout):
-        messages.error(
-            request,
-            'Unable to authenticate with Auth0. The Auth0 service timed out. '
-            'This is most likely temporary so you can try again in a couple '
-            'of minutes.'
-        )
-        return redirect('authentication:signin')
-
-    if not token_info.get('access_token'):
-        messages.error(
-            request,
-            'Unable to authenticate with Auth0. Most commonly this '
-            'happens because the authentication token has expired. '
-            'Please refresh and try again.'
-        )
-        return redirect('authentication:signin')
-
-    user_url = 'https://{}/userinfo'.format(
-        settings.AUTH0_DOMAIN,
-    )
-    user_url += '?' + urllib.urlencode({
-        'access_token': token_info['access_token'],
-    })
-    try:
-        user_response = requests.get(
-            user_url,
-            timeout=settings.AUTH0_PATIENCE_TIMEOUT,
-        )
-    except (ConnectTimeout, ReadTimeout):
-        messages.error(
-            request,
-            'Unable to authenticate with Auth0. The Auth0 service timed out. '
-            'This is most likely temporary so you can try again in a couple '
-            'of minutes.'
-        )
-        return redirect('authentication:signin')
-    if user_response.status_code != 200:
-        messages.error(
-            request,
-            'Unable to retrieve user info from Auth0 ({}, {!r})'.format(
-                user_response.status_code,
-                user_response.text
-            )
-        )
-        return redirect('authentication:signin')
-    user_info = user_response.json()
-    assert user_info['email'], user_info
-
-    if not user_info['email_verified']:
-        messages.error(
-            request,
-            'Email {} not verified.'.format(
-                user_info['email']
-            )
-        )
-        return redirect('authentication:signin')
-    try:
-        user = get_user(user_info)
-    except BadStatusCodeError:
-        messages.error(
-            request,
-            'Email {} authenticated but unable to connect to '
-            'Mozillians.org to see if are vouched. Please try again '
-            'in a minute.'.format(
-                user_info['email']
-            )
-        )
-        return redirect('authentication:signin')
-
-    if user and not user.is_active:
-        messages.error(
-            request,
-            "User account ({}) found but it has been made inactive.".format(
-                user.email,
-            )
-        )
-        return redirect('authentication:signin')
-    elif user:
-        if token_info.get('id_token'):
-            profile = get_profile_safely(user, create_if_necessary=True)
-            profile.id_token = token_info['id_token']
-            profile.save()
-        else:
-            # If you signed in with a domain found in settings.ALLOWED_BID
-            # then we can't accept NOT getting an id_token
-            if user.email.lower().split('@')[1] in settings.ALLOWED_BID:
-                messages.error(
-                    request,
-                    "Staff can't log in without an ID token. "
-                    "Means you have to click the Google button if you're "
-                    "a member of staff.".format(
-                        user_info['email']
-                    )
-                )
-                return redirect('authentication:signin')
-
-        user.backend = 'django.contrib.auth.backends.ModelBackend'
-        login(request, user)
-        return redirect(settings.AUTH0_SUCCESS_URL)
-    else:
-        messages.error(
-            request,
-            'Email {} authenticated but you are not a vouched Mozillian '
-            'on Mozillians.org'.format(
-                user_info['email']
-            )
-        )
-        return redirect('authentication:signin')
+# def callback(request):
+#     """Much of this is copied from the callback done in django_auth0
+#     but with the major difference that we handle checking if non-staff
+#     are vouched Mozillians."""
+#     code = request.GET.get('code', '')
+#     if not code:
+#         # If the user is blocked, we will never be called back with a code.
+#         # What Auth0 does is that it calls the callback but with extra
+#         # query string parameters.
+#         if request.GET.get('error'):
+#             messages.error(
+#                 request,
+#                 "Unable to sign in because of an error from Auth0. "
+#                 "({})".format(
+#                     request.GET.get(
+#                         'error_description',
+#                         request.GET['error']
+#                     )
+#                 )
+#             )
+#             return redirect('authentication:signin')
+#         return http.HttpResponseBadRequest("Missing 'code'")
+#     token_url = 'https://{}/oauth/token'.format(settings.AUTH0_DOMAIN)
+#     token_payload = {
+#         'client_id': settings.AUTH0_CLIENT_ID,
+#         'client_secret': settings.AUTH0_SECRET,
+#         'redirect_uri': settings.AUTH0_CALLBACK_URL,
+#         'code': code,
+#         'grant_type': 'authorization_code',
+#     }
+#     try:
+#         token_info = requests.post(
+#             token_url,
+#             json=token_payload,
+#             timeout=settings.AUTH0_PATIENCE_TIMEOUT,
+#         ).json()
+#     except (ConnectTimeout, ReadTimeout):
+#         messages.error(
+#             request,
+#             'Unable to authenticate with Auth0. The Auth0 service timed out. '
+#             'This is most likely temporary so you can try again in a couple '
+#             'of minutes.'
+#         )
+#         return redirect('authentication:signin')
+#
+#     if not token_info.get('access_token'):
+#         messages.error(
+#             request,
+#             'Unable to authenticate with Auth0. Most commonly this '
+#             'happens because the authentication token has expired. '
+#             'Please refresh and try again.'
+#         )
+#         return redirect('authentication:signin')
+#
+#     user_url = 'https://{}/userinfo'.format(
+#         settings.AUTH0_DOMAIN,
+#     )
+#     user_url += '?' + urllib.urlencode({
+#         'access_token': token_info['access_token'],
+#     })
+#     try:
+#         user_response = requests.get(
+#             user_url,
+#             timeout=settings.AUTH0_PATIENCE_TIMEOUT,
+#         )
+#     except (ConnectTimeout, ReadTimeout):
+#         messages.error(
+#             request,
+#             'Unable to authenticate with Auth0. The Auth0 service timed out. '
+#             'This is most likely temporary so you can try again in a couple '
+#             'of minutes.'
+#         )
+#         return redirect('authentication:signin')
+#     if user_response.status_code != 200:
+#         messages.error(
+#             request,
+#             'Unable to retrieve user info from Auth0 ({}, {!r})'.format(
+#                 user_response.status_code,
+#                 user_response.text
+#             )
+#         )
+#         return redirect('authentication:signin')
+#     user_info = user_response.json()
+#     assert user_info['email'], user_info
+#
+#     if not user_info['email_verified']:
+#         messages.error(
+#             request,
+#             'Email {} not verified.'.format(
+#                 user_info['email']
+#             )
+#         )
+#         return redirect('authentication:signin')
+#     try:
+#         user = get_user(user_info)
+#     except BadStatusCodeError:
+#         messages.error(
+#             request,
+#             'Email {} authenticated but unable to connect to '
+#             'Mozillians.org to see if are vouched. Please try again '
+#             'in a minute.'.format(
+#                 user_info['email']
+#             )
+#         )
+#         return redirect('authentication:signin')
+#
+#     if user and not user.is_active:
+#         messages.error(
+#             request,
+#             "User account ({}) found but it has been made inactive.".format(
+#                 user.email,
+#             )
+#         )
+#         return redirect('authentication:signin')
+#     elif user:
+#         if token_info.get('id_token'):
+#             profile = get_profile_safely(user, create_if_necessary=True)
+#             profile.id_token = token_info['id_token']
+#             profile.save()
+#         else:
+#             # If you signed in with a domain found in settings.ALLOWED_BID
+#             # then we can't accept NOT getting an id_token
+#             if user.email.lower().split('@')[1] in settings.ALLOWED_BID:
+#                 messages.error(
+#                     request,
+#                     "Staff can't log in without an ID token. "
+#                     "Means you have to click the Google button if you're "
+#                     "a member of staff.".format(
+#                         user_info['email']
+#                     )
+#                 )
+#                 return redirect('authentication:signin')
+#
+#         user.backend = 'django.contrib.auth.backends.ModelBackend'
+#         login(request, user)
+#         return redirect(settings.AUTH0_SUCCESS_URL)
+#     else:
+#         messages.error(
+#             request,
+#             'Email {} authenticated but you are not a vouched Mozillian '
+#             'on Mozillians.org'.format(
+#                 user_info['email']
+#             )
+#         )
+#         return redirect('authentication:signin')
 
 
 def default_username(email):
